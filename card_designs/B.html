@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Perfect Component: Haptic Obsidian</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap');
+       
+        :root {
+            --surface-depth: #09090b; /* Zinc 950 */
+            --surface-elevated: #18181b; /* Zinc 900 */
+            --accent-live: #ef4444; /* Red 500 */
+            --accent-soon: #f59e0b; /* Amber 500 */
+            --accent-future: #3b82f6; /* Blue 500 */
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #000000;
+            padding: 40px 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 40px;
+            color: #fafafa;
+            min-height: 100vh;
+        }
+
+        /* 
+           PERFECTION PRINCIPLE 1: Texture & Noise 
+           Added subtle grain to reduce the sterile "digital" look (David Carson)
+        */
+        .bg-noise {
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+        }
+
+        /* 
+           PERFECTION PRINCIPLE 2: The Lens
+           Border highlighting without sharp edges (Jony Ive)
+        */
+        .lens-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.5);
+            border-left: 1px solid rgba(255, 255, 255, 0.05);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s ease;
+        }
+        
+        .lens-card:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.06);
+            box-shadow: 0 10px 40px -5px rgba(0, 0, 0, 1), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+        }
+
+        /* Typography */
+        .font-grotesk { font-family: 'Space Grotesk', sans-serif; }
+        
+        /* Layout Handling (Luke Wroblewski) */
+        @media (max-width: 640px) {
+            .mobile-stack-action {
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+                margin-top: 12px;
+                padding-top: 12px;
+            }
+        }
+    </style>
+</head>
+<body class="bg-noise">
+
+    <!-- HEADER FOR CONTEXT -->
+    <div class="text-center opacity-40 font-mono text-[10px] tracking-[0.2em] uppercase mb-4">
+        Don Norman Certified / Version 10.0
+    </div>
+
+    <!-- 
+      ==== MASTERPIECE 1: LIVE EVENT ==== 
+      Logic: The user needs speed. Large targets. Red urgency.
+    -->
+    <article class="lens-card group w-full max-w-2xl rounded-2xl relative overflow-hidden flex flex-col sm:flex-row items-stretch">
+        
+        <!-- Zaha Hadid Fluid Gradient -->
+        <div class="absolute top-0 right-0 w-[300px] h-[300px] bg-rose-600/10 blur-[80px] -translate-y-1/2 translate-x-1/3 rounded-full pointer-events-none group-hover:bg-rose-600/20 transition-all duration-500"></div>
+
+        <!-- LEFT: THE TIME ANCHOR (Vignelli Grid) -->
+        <div class="relative p-5 sm:w-[110px] sm:bg-white/[0.02] sm:border-r sm:border-white/5 flex flex-row sm:flex-col items-center justify-between sm:justify-center shrink-0">
+            <!-- Mobile: Status Indicator moves left -->
+            <div class="flex sm:flex-col items-center gap-2">
+                 <!-- Pulse Indicator -->
+                 <div class="relative flex h-3 w-3">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-500 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3 w-3 bg-rose-500 box-shadow-glow"></span>
+                </div>
+                <span class="font-grotesk font-bold text-white text-xl sm:text-2xl tracking-tight leading-none">17:00</span>
+            </div>
+            <!-- Live Tag -->
+            <span class="sm:mt-2 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest text-rose-500 bg-rose-500/10 border border-rose-500/20 shadow-[0_0_10px_rgba(244,63,94,0.2)]">
+                Live Now
+            </span>
+        </div>
+
+        <!-- MIDDLE: CONTEXTUAL DATA (Tufte Clarity) -->
+        <div class="p-5 flex-1 flex flex-col justify-center gap-1 min-w-0 z-10">
+            <h3 class="font-grotesk font-bold text-lg sm:text-xl text-white truncate leading-snug group-hover:text-rose-100 transition-colors">
+                Producer's Club
+            </h3>
+            
+            <!-- Metadata Cluster -->
+            <div class="flex flex-wrap items-center gap-x-3 gap-y-2 mt-1">
+                <span class="text-sm font-medium text-zinc-300">Hell's Kitchen</span>
+                <span class="w-0.5 h-3 bg-zinc-700 rounded-full"></span>
+                <span class="text-sm font-medium text-zinc-400">90 Min Slot</span>
+                
+                <!-- Value Prop Badge -->
+                <span class="px-2 py-0.5 bg-zinc-800 text-zinc-300 text-[10px] font-bold uppercase rounded border border-zinc-700 tracking-wide">
+                    Lottery $5
+                </span>
+            </div>
+        </div>
+
+        <!-- RIGHT: INTERACTION ZONE (Wroblewski Touch Targets) -->
+        <div class="sm:w-auto p-5 sm:pl-0 pt-0 sm:pt-5 flex sm:flex-col sm:justify-center gap-3 shrink-0 mobile-stack-action z-10">
+            
+            <!-- Secondary Action (Map) - Visually quieter -->
+            <button class="h-11 sm:h-10 sm:w-auto px-4 rounded-lg bg-zinc-800/50 hover:bg-zinc-800 border border-zinc-700/50 hover:border-zinc-600 text-zinc-400 hover:text-white transition-all flex items-center justify-center gap-2" title="Open Map">
+                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                 <span class="sm:hidden text-xs font-bold uppercase tracking-wider">Map</span>
+            </button>
+
+            <!-- Primary Action (Jony Ive Tactility) -->
+            <button class="flex-1 sm:flex-none h-11 sm:h-auto sm:px-6 bg-white text-black rounded-lg font-bold text-sm tracking-wide shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:bg-zinc-200 hover:shadow-[0_0_20px_rgba(255,255,255,0.2)] active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+                Join Now
+                <!-- Mobile Only Chevron -->
+                <svg class="w-4 h-4 sm:hidden opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+            </button>
+
+        </div>
+    </article>
+
+
+    <!-- 
+      ==== MASTERPIECE 2: STARTING SOON ====
+      Logic: Amber glow for warning/alertness. "View Info" dominant since check-in might not be open.
+    -->
+    <article class="lens-card group w-full max-w-2xl rounded-2xl relative overflow-hidden flex flex-col sm:flex-row items-stretch">
+        
+        <!-- Gradient -->
+        <div class="absolute top-0 right-0 w-[300px] h-[300px] bg-amber-500/10 blur-[80px] -translate-y-1/2 translate-x-1/3 rounded-full pointer-events-none group-hover:bg-amber-500/20 transition-all duration-500"></div>
+
+        <div class="relative p-5 sm:w-[110px] sm:bg-white/[0.02] sm:border-r sm:border-white/5 flex flex-row sm:flex-col items-center justify-between sm:justify-center shrink-0">
+            <div class="flex sm:flex-col items-center gap-2">
+                 <!-- Static Ring Indicator -->
+                 <div class="relative flex h-3 w-3 items-center justify-center">
+                    <div class="absolute w-full h-full bg-amber-500 rounded-full opacity-40 animate-pulse"></div>
+                    <span class="block h-1.5 w-1.5 bg-amber-500 rounded-full"></span>
+                </div>
+                <span class="font-grotesk font-bold text-zinc-100 text-xl sm:text-2xl tracking-tight leading-none">18:00</span>
+            </div>
+            <span class="sm:mt-2 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest text-amber-400 bg-amber-500/10 border border-amber-500/20">
+                Soon
+            </span>
+        </div>
+
+        <div class="p-5 flex-1 flex flex-col justify-center gap-1 min-w-0 z-10">
+            <h3 class="font-grotesk font-bold text-lg sm:text-xl text-white truncate leading-snug group-hover:text-amber-100 transition-colors">
+                Tiny Cupboard
+            </h3>
+            
+            <div class="flex flex-wrap items-center gap-x-3 gap-y-2 mt-1">
+                <span class="text-sm font-medium text-zinc-300">Brooklyn</span>
+                <span class="w-0.5 h-3 bg-zinc-700 rounded-full"></span>
+                <span class="text-sm font-medium text-zinc-400">60 Min Slot</span>
+                
+                <span class="px-2 py-0.5 bg-zinc-800 text-zinc-300 text-[10px] font-bold uppercase rounded border border-zinc-700 tracking-wide">
+                    Free Bucket
+                </span>
+            </div>
+        </div>
+
+        <div class="sm:w-auto p-5 sm:pl-0 pt-0 sm:pt-5 flex sm:flex-col sm:justify-center gap-3 shrink-0 mobile-stack-action z-10">
+            
+            <button class="h-11 sm:h-10 sm:w-auto px-4 rounded-lg bg-zinc-800/50 hover:bg-zinc-800 border border-zinc-700/50 hover:border-zinc-600 text-zinc-400 hover:text-white transition-all flex items-center justify-center gap-2" title="Open Map">
+                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                 <span class="sm:hidden text-xs font-bold uppercase tracking-wider">Map</span>
+            </button>
+
+            <!-- Secondary Visual Treatment for Non-Urgent action -->
+            <button class="flex-1 sm:flex-none h-11 sm:h-auto sm:px-6 bg-zinc-800 text-white border border-zinc-600 rounded-lg font-bold text-sm tracking-wide hover:bg-zinc-700 hover:border-zinc-500 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+                Details
+            </button>
+        </div>
+    </article>
+
+
+    <!-- 
+      ==== MASTERPIECE 3: FUTURE EVENT ==== 
+      Logic: Cool tones. "Book Now" feels like a reservation system.
+    -->
+    <article class="lens-card group w-full max-w-2xl rounded-2xl relative overflow-hidden flex flex-col sm:flex-row items-stretch">
+        
+        <div class="absolute top-0 right-0 w-[300px] h-[300px] bg-blue-600/10 blur-[80px] -translate-y-1/2 translate-x-1/3 rounded-full pointer-events-none group-hover:bg-blue-600/20 transition-all duration-500"></div>
+
+        <div class="relative p-5 sm:w-[110px] sm:bg-white/[0.02] sm:border-r sm:border-white/5 flex flex-row sm:flex-col items-center justify-between sm:justify-center shrink-0">
+            <div class="flex sm:flex-col items-center gap-2">
+                 <!-- Holo Ring -->
+                 <span class="block h-2 w-2 rounded-full border border-blue-400"></span>
+                <span class="font-grotesk font-bold text-zinc-200 text-xl sm:text-2xl tracking-tight leading-none group-hover:text-white transition-colors">20:00</span>
+            </div>
+            <span class="sm:mt-2 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest text-zinc-500 bg-zinc-800 border border-zinc-700 group-hover:text-blue-400 group-hover:border-blue-500/50 transition-colors">
+                In 3 Hours
+            </span>
+        </div>
+
+        <div class="p-5 flex-1 flex flex-col justify-center gap-1 min-w-0 z-10">
+            <h3 class="font-grotesk font-bold text-lg sm:text-xl text-zinc-200 truncate leading-snug group-hover:text-white transition-colors">
+                Comedy Cellar
+            </h3>
+            
+            <div class="flex flex-wrap items-center gap-x-3 gap-y-2 mt-1">
+                <span class="text-sm font-medium text-zinc-400">West Village</span>
+                <span class="w-0.5 h-3 bg-zinc-700 rounded-full"></span>
+                <span class="text-sm font-medium text-zinc-400">120 Min Slot</span>
+                
+                <span class="px-2 py-0.5 bg-zinc-900 text-zinc-500 text-[10px] font-bold uppercase rounded border border-zinc-800 tracking-wide">
+                    $10 Entry
+                </span>
+            </div>
+        </div>
+
+        <div class="sm:w-auto p-5 sm:pl-0 pt-0 sm:pt-5 flex sm:flex-col sm:justify-center gap-3 shrink-0 mobile-stack-action z-10">
+            
+            <button class="h-11 sm:h-10 sm:w-auto px-4 rounded-lg bg-zinc-800/50 hover:bg-zinc-800 border border-zinc-700/50 hover:border-zinc-600 text-zinc-400 hover:text-white transition-all flex items-center justify-center gap-2">
+                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                 <span class="sm:hidden text-xs font-bold uppercase tracking-wider">Map</span>
+            </button>
+
+            <button class="flex-1 sm:flex-none h-11 sm:h-auto sm:px-6 bg-blue-600 text-white rounded-lg font-bold text-sm tracking-wide shadow-[0_0_10px_rgba(37,99,235,0.2)] hover:bg-blue-500 hover:shadow-[0_0_20px_rgba(37,99,235,0.4)] active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+                Reserve
+            </button>
+        </div>
+    </article>
+
+</body>
+</html>

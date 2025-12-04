@@ -1,0 +1,68 @@
+{
+  "name": "micmap-api",
+  "description": "MicMap API - NYC Open Mic Finder Backend with MongoDB and Redis caching",
+  "repository": "https://github.com/yourusername/micmap",
+  "keywords": [
+    "node",
+    "express",
+    "mongodb",
+    "redis",
+    "api",
+    "comedy",
+    "open-mic",
+    "nyc"
+  ],
+  "website": "https://micmap.com",
+  "success_url": "/health/deep",
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ],
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "eco"
+    }
+  },
+  "addons": [
+    {
+      "plan": "heroku-redis:mini",
+      "as": "REDIS"
+    }
+  ],
+  "env": {
+    "NODE_ENV": {
+      "description": "Node environment",
+      "value": "production",
+      "required": true
+    },
+    "MONGODB_URI": {
+      "description": "MongoDB Atlas connection string (mongodb+srv://...)",
+      "required": true
+    },
+    "GOOGLE_API_KEY": {
+      "description": "Google Sheets API key for scraper service",
+      "required": true
+    },
+    "SHEET_ID": {
+      "description": "Google Sheet ID containing open mic data",
+      "required": true
+    },
+    "SHEET_RANGE": {
+      "description": "Google Sheet range to read (e.g., Sheet1!A2:Z)",
+      "value": "Sheet1!A2:Z",
+      "required": false
+    }
+  },
+  "scripts": {
+    "postdeploy": "echo 'Deployment complete! Run npm run seed on your local machine to populate the database.'"
+  },
+  "environments": {
+    "test": {
+      "scripts": {
+        "test": "npm test"
+      }
+    }
+  }
+}

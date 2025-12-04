@@ -1,0 +1,352 @@
+/* =============================================================================
+   MICMAP STYLES
+   ============================================================================= */
+
+/* =============================================================================
+   CSS VARIABLES - Redesigned color system with better contrast
+   ============================================================================= */
+:root {
+    --brand-blue: #6366F1;
+    --brand-blue-hover: #4F46E5;
+    --brand-accent: #8B5CF6;
+    --background-dark: #0F172A;
+    --surface-light: #1E293B;
+    --surface-medium: #0F172A;
+    --surface-elevated: #334155;
+    --text-primary: #F1F5F9;
+    --text-secondary: #CBD5E1;
+    --text-tertiary: #94A3B8;
+    --border-color: #334155;
+    --border-subtle: #1E293B;
+    --top-pick-gold: #FCD34D;
+    --top-pick-glow: #FBBF24;
+    --success-green: #10B981;
+    --warning-orange: #F59E0B;
+    --error-red: #EF4444;
+}
+
+/* =============================================================================
+   BASE STYLES
+   ============================================================================= */
+html, body {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    position: fixed;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--background-dark);
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* =============================================================================
+   FORM ELEMENTS
+   ============================================================================= */
+select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23B0B0C0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"%3e%3cpolyline points="6 9 12 15 18 9"%3e%3c/polyline%3e%3c/svg%3e');
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1.25em 1.25em;
+    padding-right: 2.5rem;
+}
+
+input:focus,
+select:focus {
+    outline: 2px solid var(--brand-blue);
+    outline-offset: 1px;
+}
+
+/* =============================================================================
+   BUTTONS
+   ============================================================================= */
+.action-btn {
+    transition: all 0.2s ease-in-out;
+}
+
+.action-btn:hover {
+    transform: scale(1.03);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.action-btn:active {
+    transform: scale(0.99);
+}
+
+.action-btn:focus {
+    outline: 2px solid var(--brand-blue);
+    outline-offset: 2px;
+}
+
+/* Day Pill Buttons */
+.day-pill {
+    background: var(--surface-light);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+    transition: all 0.15s ease-in-out;
+    position: relative;
+}
+
+.day-pill:hover {
+    background: var(--surface-elevated);
+    color: var(--text-primary);
+    border-color: var(--text-tertiary);
+    transform: translateY(-1px);
+}
+
+.day-pill.active {
+    background: var(--brand-blue);
+    color: white;
+    border: 1px solid var(--brand-blue-hover);
+    font-weight: 600;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+/* Time Filter Buttons */
+.time-filter-btn {
+    background: var(--surface-light);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+    transition: all 0.15s ease-in-out;
+}
+
+.time-filter-btn:hover {
+    background: var(--surface-elevated);
+    color: var(--text-primary);
+    border-color: var(--text-tertiary);
+    transform: translateY(-1px);
+}
+
+.time-filter-btn.active {
+    background: var(--brand-blue);
+    color: white;
+    border: 1px solid var(--brand-blue-hover);
+    font-weight: 600;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+/* =============================================================================
+   PANEL & LAYOUT
+   ============================================================================= */
+#left-panel {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translateY(calc(100% - 25%)); /* Start partially visible on mobile */
+    height: auto;
+    min-height: 25%;
+    max-height: 90%;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    border-top-left-radius: 1.5rem;
+    border-top-right-radius: 1.5rem;
+    border-top: 1px solid var(--border-color);
+    padding-top: 0.5rem;
+}
+
+/* Results Counter Animation */
+#results-counter {
+    transition: all 0.2s ease-in-out;
+}
+
+#results-count {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Smooth fade-in for mic cards */
+#mic-list > * {
+    animation: fadeInUp 0.3s ease-out forwards;
+    opacity: 0;
+}
+
+#mic-list > *:nth-child(1) { animation-delay: 0.05s; }
+#mic-list > *:nth-child(2) { animation-delay: 0.1s; }
+#mic-list > *:nth-child(3) { animation-delay: 0.15s; }
+#mic-list > *:nth-child(4) { animation-delay: 0.2s; }
+#mic-list > *:nth-child(5) { animation-delay: 0.25s; }
+#mic-list > *:nth-child(n+6) { animation-delay: 0.3s; }
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+#left-panel.expanded-mobile {
+    transform: translateY(0%);
+    height: 100%;
+}
+
+#left-panel.hidden-mobile {
+    transform: translateY(calc(100% - 3rem));
+    height: auto;
+}
+
+/* Panel Handle */
+#panel-handle {
+    transition: all 0.2s ease-in-out;
+}
+
+#panel-handle:hover {
+    background-color: var(--text-tertiary);
+    transform: scaleX(1.1);
+}
+
+#panel-handle:active {
+    background-color: var(--text-secondary);
+}
+
+/* Scrollbar */
+#left-panel::-webkit-scrollbar {
+    width: 10px;
+}
+
+#left-panel::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#left-panel::-webkit-scrollbar-thumb {
+    background-color: var(--border-color);
+    border-radius: 20px;
+    border: 2px solid var(--surface-medium);
+}
+
+#left-panel::-webkit-scrollbar-thumb:hover {
+    background-color: var(--surface-elevated);
+}
+
+/* =============================================================================
+   MAP MARKERS
+   ============================================================================= */
+.leaflet-tile-pane {
+    filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+}
+
+.marker-cluster-small {
+    background-color: rgba(67, 56, 202, 0.6);
+}
+
+.marker-cluster-small div {
+    background-color: rgba(99, 102, 241, 0.8);
+}
+
+/* Default Pin */
+.leaflet-marker-icon.default-pin {
+    background-image: url("data:image/svg+xml;charset=utf-8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='var(--brand-blue)' stroke='white' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'><path d='M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z'></path><circle cx='12' cy='10' r='3'></circle></svg>");
+    background-size: cover;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+/* Top Pick Pin */
+.leaflet-marker-icon.top-pick-pin {
+    background-image: url("data:image/svg+xml;charset=utf-8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='var(--top-pick-gold)' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><polygon points='12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2'></polygon></svg>");
+    background-size: cover;
+    width: 40px;
+    height: 40px;
+    filter: drop-shadow(0 0 5px var(--top-pick-gold)) drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));
+    animation: pulse-top-pick 1.5s infinite alternate;
+}
+
+@keyframes pulse-top-pick {
+    from {
+        transform: scale(1);
+        opacity: 1;
+    }
+    to {
+        transform: scale(1.05);
+        opacity: 0.9;
+    }
+}
+
+/* Highlighted Pin */
+.leaflet-marker-icon.highlight-pin {
+    background-image: url("data:image/svg+xml;charset=utf-8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%235C6BC0' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><path d='M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z'></path><circle cx='12' cy='10' r='3'></circle></svg>");
+    background-size: cover;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: 3px solid white;
+    filter: drop-shadow(0 0 8px rgba(92, 107, 192, 0.8)) drop-shadow(0 0 15px rgba(92, 107, 192, 0.5));
+    z-index: 1000;
+    animation: pulse-highlight 1s ease-in-out infinite alternate;
+}
+
+@keyframes pulse-highlight {
+    from {
+        transform: scale(1);
+    }
+    to {
+        transform: scale(1.08);
+    }
+}
+
+/* Open Now Pin (Green Pulsing) */
+.leaflet-marker-icon.open-now-pin {
+    background-image: url("data:image/svg+xml;charset=utf-8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2310B981' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z'></path><circle cx='12' cy='10' r='3'></circle></svg>");
+    background-size: cover;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 3px solid white;
+    filter: drop-shadow(0 0 10px rgba(16, 185, 129, 0.9)) drop-shadow(0 0 20px rgba(16, 185, 129, 0.6));
+    z-index: 999;
+    animation: pulse-open 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes pulse-open {
+    from {
+        transform: scale(1);
+        opacity: 1;
+    }
+    to {
+        transform: scale(1.1);
+        opacity: 0.85;
+    }
+}
+
+/* =============================================================================
+   DESKTOP LAYOUT
+   ============================================================================= */
+@media (min-width: 1024px) {
+    #app-container {
+        display: grid;
+        grid-template-columns: 450px 1fr;
+    }
+
+    #left-panel {
+        position: relative;
+        transform: translateY(0);
+        height: 100%;
+        border-top-left-radius: 0;
+        border-top-right-radius: 0;
+        padding-top: 1rem;
+    }
+
+    #filters-container {
+        top: 4rem;
+        left: 470px;
+        transform: translateX(0);
+        width: auto;
+        max-width: 400px;
+    }
+
+    #panel-handle,
+    #view-toggle {
+        display: none !important;
+    }
+}

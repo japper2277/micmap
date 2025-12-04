@@ -1,0 +1,48 @@
+Dieter Rams: The functionalist.
+Jony Ive: The material perfectionist.
+Massimo Vignelli: The grid tyrant.
+Zaha Hadid: The fluid futurist.
+Don Norman: The cognitive scientist.
+Luke Wroblewski: The "Mobile First" pioneer.
+Susan Kare: The empathetic pixel artist.
+David Carson: The anti-design grunge master.
+Edward Tufte: The data density clarity expert.
+Brad Frost: The atomic system builder.
+
+. Paul Rand
+Often cited as the father of modern branding. He convinced corporate America that design was good for business. He combined Swiss Modernism with American wit.
+Famous Work: The logos for IBM, ABC, UPS, and NeXT (where he worked directly with Steve Jobs, charging him $100,000 for a single logo option).
+2. Massimo Vignelli
+A strict modernist who believed a designer should be able to design anything, from a spoon to a subway system. He famously limited himself to a handful of typefaces (mostly Helvetica and Bodoni).
+Famous Work: The 1972 New York City Subway Map and the American Airlines identity.
+3. Saul Bass
+He revolutionized two industries: corporate identity and movie title sequences. Before Bass, opening credits were boring lists of names; he turned them into kinetic art.
+Famous Work: The title sequences for Psycho, Vertigo, and North by Northwest, and the AT&T and Kleenex logos.
+The Typographers & Swiss Pioneers
+4. Josef Müller-Brockmann
+The master of the "Swiss Style" (International Typographic Style). He evangelized the use of the Grid System, which is the fundamental concept behind modern web design (including the Tailwind layouts you are coding).
+Famous Work: Musica Viva concert posters (using math and rhythm to visualize music).
+5. Herb Lubalin
+A master of typography who treated letters as images. He often squeezed words together, creating ligatures that had never been seen before.
+Famous Work: The logo for Avant Garde magazine (and the subsequent font) and the Mother & Child logo.
+The Iconoclasts & Experimentalists
+6. David Carson
+The "Godfather of Grunge." In the 90s, he broke every rule Müller-Brockmann ever made. He didn't use grids; he made text illegible to force the reader to engage.
+Famous Work: Ray Gun magazine layouts (including one article printed entirely in the Symbol/Wingdings font).
+7. Paula Scher
+One of the most influential women in design history and a partner at Pentagram. She is known for "typography as image," where text becomes the main shape of the graphic.
+Famous Work: The identity for The Public Theater (which brought graffiti aesthetic to institutional design) and the CitiBank logo (sketched on a napkin in seconds).
+8. Milton Glaser
+He moved away from strict modernism toward a more illustrative, psychedelic, and eclectic style. He defined the visual style of the 1960s and 70s.
+Famous Work: The I ♥ NY logo and the psychedelic Bob Dylan poster with the colorful hair.
+The Digital Visionaries
+9. Susan Kare
+While Steve Jobs was the visionary behind the Apple aesthetic, Susan Kare was the one who actually designed the pixels. She gave the computer a "friendly" face.
+Famous Work: The original Macintosh icons (the trash can, the paint bucket, the bomb) and the Chicago typeface.
+10. Stefan Sagmeister
+Known for his shocking, tactile, and raw approach to design. He famously carved details of an AIGA lecture into his own skin with a razor blade for a poster, blending performance art with graphic design.
+Famous Work: Album covers for The Rolling Stones (Bridges to Babylon) and Talking Heads.
+Summary of Styles
+If you like Clean/Grid (Apple style): Look at Paul Rand and Massimo Vignelli.
+If you like Wild/Artistic: Look at David Carson and Stefan Sagmeister.
+If you like Classic/Timeless: Look at Saul Bass and Milton Glaser.    

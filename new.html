@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MicMap: The Final Product</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Leaflet.js & MarkerCluster for the map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
+    <style>
+        html, body { height: 100%; width: 100%; overflow: hidden; position: fixed; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background-dark);
+            color: var(--text-primary);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        :root {
+            --brand-blue: #5C6BC0; --brand-blue-hover: #455A80; --background-dark: #1A1A2E;
+            --surface-light: #3A3A50; --surface-medium: #2C2C40; --text-primary: #E0E0E0;
+            --text-secondary: #B0B0C0; --text-tertiary: #808090; --border-color: #4A4A60;
+            --top-pick-gold: #FFD700; /* Gold color for top picks */
+            --top-pick-glow: #FFEA00; /* Brighter gold for glow */
+            --success-green: #66BB6A; /* New accent for positive actions */
+            --warning-orange: #FFA726; /* New accent for warnings/check-in */
+        }
+        select {
+            -webkit-appearance: none; -moz-appearance: none; appearance: none;
+            background-image: url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23B0B0C0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"%3e%3cpolyline points="6 9 12 15 18 9"%3e%3c/polyline%3e%3c/svg%3e');
+            background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 1.25em 1.25em; padding-right: 2.5rem;
+        }
+        .action-btn { transition: all 0.2s ease-in-out; }
+        .action-btn:hover { transform: scale(1.03); box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .action-btn:active { transform: scale(0.99); }
+        .action-btn:focus { outline: 2px solid var(--brand-blue); outline-offset: 2px; }
+        input:focus, select:focus { outline: 2px solid var(--brand-blue); outline-offset: 1px; }
+
+        /* Time Filter Button Styling */
+        .time-filter-btn {
+            background: var(--surface-medium);
+            color: var(--text-secondary);
+            border: 1px solid transparent;
+            transition: all 0.2s ease-in-out;
+        }
+        .time-filter-btn:hover {
+            background: var(--surface-light);
+            color: var(--text-primary);
+        }
+        .time-filter-btn.active {
+            background: var(--brand-blue);
+            color: white;
+            border: 1px solid var(--brand-blue-hover);
+            font-weight: 600;
+        }
+        .leaflet-tile-pane { filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%); }
+        .marker-cluster-small { background-color: rgba(67, 56, 202, 0.6); }
+        .marker-cluster-small div { background-color: rgba(99, 102, 241, 0.8); }
+
+        /* Scrollbar styles */
+        #left-panel::-webkit-scrollbar { width: 8px; }
+        #left-panel::-webkit-scrollbar-track { background: transparent; }
+        #left-panel::-webkit-scrollbar-thumb { background-color: var(--border-color); border-radius: 20px; }
+
+        /* Mobile Slide-up Panel */
+        #left-panel {
+            transition: transform 0.3s ease-out, height 0.3s ease-out;
+            transform: translateY(calc(100% - 25%)); /* Start partially visible on mobile */
+            height: auto; /* Allow content to dictate height */
+            min-height: 25%; /* Minimum visible height */
+            max-height: 90%; /* Max height when dragged up */
+            bottom: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+            border-top-left-radius: 1.5rem;
+            border-top-right-radius: 1.5rem;
+            border-top: 1px solid var(--border-color);
+            padding-top: 0.5rem; /* Space for handle */
+        }
+        #left-panel.expanded-mobile { transform: translateY(0%); height: 100%; }
+        #left-panel.hidden-mobile { transform: translateY(calc(100% - 3rem)); height: auto; } /* Partially visible handle */
+
+        /* Specific styles for map icons */
+        .leaflet-marker-icon.default-pin {
+            background-image: url("data:image/svg+xml;charset=utf-8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='var(--brand-blue)' stroke='white' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'><path d='M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z'></path><circle cx='12' cy='10' r='3'></circle></svg>");
+            background-size: cover; width: 32px; height: 32px;
+            border-radius: 50%; border: 2px solid white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+        .leaflet-marker-icon.top-pick-pin {
+            background-image: url("data:image/svg+xml;charset=utf-8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='var(--top-pick-gold)' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><polygon points='12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2'></polygon></svg>");
+            background-size: cover; width: 40px; height: 40px;
+            filter: drop-shadow(0 0 5px var(--top-pick-gold)) drop-shadow(0 0 10px rgba(255,215,0,0.5));
+            animation: pulse-top-pick 1.5s infinite alternate;
+        }
+        @keyframes pulse-top-pick {
+            from { transform: scale(1); opacity: 1; }
+            to { transform: scale(1.05); opacity: 0.9; }
+        }
+        .leaflet-marker-icon.highlight-pin {
+            background-image: url("data:image/svg+xml;charset=utf-8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%235C6BC0' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><path d='M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z'></path><circle cx='12' cy='10' r='3'></circle></svg>");
+            background-size: cover; width: 42px; height: 42px;
+            border-radius: 50%; border: 3px solid white;
+            filter: drop-shadow(0 0 8px rgba(92, 107, 192, 0.8)) drop-shadow(0 0 15px rgba(92, 107, 192, 0.5));
+            z-index: 1000;
+            animation: pulse-highlight 1s ease-in-out infinite alternate;
+        }
+        @keyframes pulse-highlight {
+            from { transform: scale(1); }
+            to { transform: scale(1.08); }
+        }
+
+        /* Adjusted layout for desktop */
+        @media (min-width: 1024px) {
+            #app-container { display: grid; grid-template-columns: 450px 1fr; }
+            #left-panel {
+                position: relative; transform: translateY(0); height: 100%;
+                border-top-left-radius: 0; border-top-right-radius: 0;
+                padding-top: 1rem;
+            }
+            #filters-container { top: 4rem; left: 470px; transform: translateX(0); width: auto; max-width: 400px; }
+            #panel-handle, #view-toggle { display: none !important; }
+        }
+    </style>
+</head>
+<body class="text-[var(--text-primary)]">
+
+    <div id="app-container" class="relative w-full h-full">
+        <!-- Map View (Always in the background) -->
+        <div id="map-view" class="w-full h-full lg:col-start-2 lg:row-start-1"></div>
+
+        <!-- Filters (Overlay on top of the map for mobile, fixed on desktop) -->
+        <div id="filters-container" class="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] w-[95%] max-w-lg lg:fixed lg:top-4 lg:left-4 lg:translate-x-0 lg:max-w-[400px]">
+             <div class="space-y-3 bg-black/50 backdrop-blur-md p-3 rounded-xl border border-white/20 shadow-lg">
+                <div class="flex space-x-2">
+                    <input type="text" id="location-search-input" placeholder="Search mics and venues..." class="flex-grow bg-white/10 border-white/20 text-white placeholder-gray-400 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 p-3 text-base">
+                    <button id="near-me-button" class="bg-[var(--brand-blue)] hover:bg-[var(--brand-blue-hover)] text-white font-bold p-3 rounded-lg action-btn flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                    </button>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div>
+                        <select id="day-filter" class="w-full bg-white/10 border-white/20 text-white rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2">
+                            <option value="">All Days</option>
+                            <option value="Monday">Monday</option><option value="Tuesday">Tuesday</option><option value="Wednesday">Wednesday</option><option value="Thursday">Thursday</option><option value="Friday">Friday</option><option value="Saturday">Saturday</option><option value="Sunday">Sunday</option>
+                        </select>
+                    </div>
+                    <div id="time-filter-container" class="grid grid-cols-3 gap-1 rounded-lg bg-black/20 p-1">
+                        <button class="time-filter-btn text-gray-300 py-1.5 rounded-md text-sm font-medium" data-time="any">Any</button>
+                        <button class="time-filter-btn text-gray-300 py-1.5 rounded-md text-sm font-medium" data-time="afternoon">Afternoon</button>
+                        <button class="time-filter-btn text-gray-300 py-1.5 rounded-md text-sm font-medium active" data-time="evening">Evening</button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <div>
+                        <select id="borough-filter" class="w-full bg-white/10 border-white/20 text-white rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2 text-sm">
+                            <option value="">All Boroughs</option>
+                            <option value="Manhattan">Manhattan</option>
+                            <option value="Brooklyn">Brooklyn</option>
+                            <option value="Queens">Queens</option>
+                            <option value="Bronx">Bronx</option>
+                            <option value="Staten Island">Staten Island</option>
+                        </select>
+                    </div>
+                    <div>
+                        <select id="neighborhood-filter" class="w-full bg-white/10 border-white/20 text-white rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2 text-sm">
+                            <option value="">All Neighborhoods</option>
+                        </select>
+                    </div>
+                    <div>
+                        <select id="cost-filter" class="w-full bg-white/10 border-white/20 text-white rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2 text-sm">
+                            <option value="">Any Cost</option>
+                            <option value="free">Free</option>
+                            <option value="under10">Under $10</option>
+                            <option value="10-20">$10-$20</option>
+                            <option value="over20">$20+</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between">
+                    <label class="flex items-center space-x-2 text-sm text-white cursor-pointer">
+                        <input type="checkbox" id="favorites-only" class="w-4 h-4 rounded border-white/20 bg-white/10 text-[var(--brand-blue)] focus:ring-2 focus:ring-[var(--brand-blue)]">
+                        <span>Favorites Only</span>
+                    </label>
+                    <button id="clear-filters" class="text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">Clear All Filters</button>
+                </div>
+             </div>
+        </div>
+
+        <!-- Left Column / Slide-up Mobile Panel -->
+        <div id="left-panel" class="absolute z-[900] flex flex-col bg-[var(--background-dark)]/90 backdrop-blur-xl overflow-y-auto shadow-lg">
+            <div id="panel-handle" class="lg:hidden w-16 h-1 bg-[var(--border-color)] rounded-full mx-auto mt-3 mb-3 cursor-grab"></div>
+            <main id="mic-list" class="space-y-4 flex-grow p-4"></main>
+        </div>
+    </div>
+
+    <!-- View Toggle Button (Mobile only) -->
+    <div id="view-toggle" class="fixed bottom-5 right-5 z-[1000] lg:hidden">
+        <button id="view-toggle-btn" class="action-btn bg-white/10 backdrop-blur-sm border border-white/20 text-white font-bold py-3 px-5 rounded-full shadow-lg flex items-center">
+            <span id="toggle-icon"></span>
+            <span id="toggle-text" class="ml-2"></span>
+        </button>
+    </div>
+
+    <script>
+        // --- DATA ---
+        let mockMics = [
+             { id: 1, name: "The Grisly Pear (Evening)", day: "Monday", startTime: "9:00 PM", borough: "Manhattan", neighborhood: "Greenwich Village", signUpDetails: { type: 'in-person', value: 'List out at 8:30 PM.'}, lat: 40.7303, lon: -74.0022, comics: 12, tags: ["Tough Crowd"], environment: "Public Venue", cost: "$5", host: "John Smith", stageTime: "4 min", lastUpdated: "2024-10-19" },
+             { id: 2, name: "EastVille Comedy Club", day: "Monday", startTime: "6:00 PM", borough: "Brooklyn", neighborhood: "Williamsburg", signUpDetails: { type: 'url', value: 'https://www.slotted.co/eastville' }, lat: 40.7145, lon: -73.9565, comics: 8, tags: ["Supportive"], environment: "Public Venue", cost: "1 Item Min.", host: "Jane Doe (@janedoecomedy)", stageTime: "5 min", lastUpdated: "2024-10-20" },
+             { id: 3, name: "The Secret Loft", day: "Tuesday", startTime: "7:00 PM", borough: "Queens", neighborhood: "Astoria", signUpDetails: { type: 'email', value: 'secretloftmic@email.com' }, lat: 40.7788, lon: -73.9242, comics: 5, tags: ["Supportive"], environment: "Private Space", cost: "Free", host: "Secret Loft Productions", stageTime: null, lastUpdated: "2024-10-18" },
+             { id: 4, name: "The Comic Strip Live", day: "Tuesday", startTime: "5:30 PM", borough: "Manhattan", neighborhood: "Upper East Side", signUpDetails: { type: 'in-person', value: 'Call the club day-of after 12 PM.'}, lat: 40.7762, lon: -73.9599, comics: 2, tags: ["Pro-Am"], environment: "Public Venue", cost: "$10", host: "Club Staff", stageTime: "3 min", lastUpdated: "2024-10-20" },
+             { id: 5, name: "The Grisly Pear (Afternoon)", day: "Monday", startTime: "5:45 PM", borough: "Manhattan", neighborhood: "Greenwich Village", signUpDetails: { type: 'in-person', value: 'List out at 5:30 PM.'}, lat: 40.7303, lon: -74.0022, comics: 21, tags: ["Tough Crowd"], environment: "Public Venue", cost: "$5", host: "Mike Brown", stageTime: "4 min", lastUpdated: "2024-10-19" },
+             { id: 6, name: "Pine Box Rock Shop", day: "Monday", startTime: "7:00 PM", borough: "Brooklyn", neighborhood: "Bushwick", signUpDetails: { type: 'in-person', value: 'List out at 6:45 PM.'}, lat: 40.7051, lon: -73.9298, comics: 15, tags: ["Supportive"], environment: "Public Venue", cost: "1 Drink", host: "Natalie Lin (@allamericancomedy)", stageTime: "5 min", lastUpdated: "2024-10-20" },
+             { id: 7, name: "Alligator Lounge", day: "Monday", startTime: "8:00 PM", borough: "Brooklyn", neighborhood: "Williamsburg", signUpDetails: { type: 'url', value: 'https://www.eventbrite.com/e/alligator-lounge-comedy-tickets-12345' }, lat: 40.7165, lon: -73.9501, comics: 9, tags: ["Walk-in Friendly"], environment: "Public Venue", cost: "Free Pizza w/ Drink", host: "Gary Vider", stageTime: null, lastUpdated: "2024-10-17" },
+             { id: 8, name: "The Tiny Cupboard", day: "Monday", startTime: "4:00 PM", borough: "Brooklyn", neighborhood: "Bushwick", signUpDetails: { type: 'in-person', value: 'List at door.' }, lat: 40.6972, lon: -73.9113, comics: 30, tags: [], environment: "Private Space", cost: "$3", host: "The Tiny Cupboard", stageTime: "3-5 min", lastUpdated: "2024-10-20" },
+             { id: 9, name: "New York Comedy Club (East)", day: "Wednesday", startTime: "7:00 PM", borough: "Manhattan", neighborhood: "Gramercy", signUpDetails: { type: 'url', value: 'https://www.newyorkcomedyclub.com/open-mic' }, lat: 40.7397, lon: -73.9877, comics: 18, tags: ["Pro-Am", "Paid"], environment: "Public Venue", cost: "$15", host: "NYCC Staff", stageTime: "4 min", lastUpdated: "2024-10-20" },
+             { id: 10, name: "Broadway Comedy Club", day: "Thursday", startTime: "8:00 PM", borough: "Manhattan", neighborhood: "Midtown", signUpDetails: { type: 'in-person', value: 'List 30 min before.' }, lat: 40.7601, lon: -73.9840, comics: 10, tags: ["Tourist", "Paid"], environment: "Public Venue", cost: "$10", host: "BCC Management", stageTime: "3 min", lastUpdated: "2024-10-19" },
+             { id: 11, name: "Q.E.D. Astoria", day: "Friday", startTime: "9:30 PM", borough: "Queens", neighborhood: "Astoria", signUpDetails: { type: 'url', value: 'https://qedastoria.com/open-mics' }, lat: 40.7686, lon: -73.9200, comics: 7, tags: ["Supportive", "Unique"], environment: "Public Venue", cost: "$7", host: "QED Staff", stageTime: "6 min", lastUpdated: "2024-10-20" },
+             { id: 12, name: "The Stand NYC", day: "Saturday", startTime: "6:00 PM", borough: "Manhattan", neighborhood: "Gramercy", signUpDetails: { type: 'url', value: 'https://thestandnyc.com/open-mics' }, lat: 40.7369, lon: -73.9868, comics: 25, tags: ["Pro-Am", "Hot"], environment: "Public Venue", cost: "$20", host: "The Stand Staff", stageTime: "5 min", lastUpdated: "2024-10-20" },
+             { id: 13, name: "Brooklyn House of Comedy", day: "Sunday", startTime: "7:00 PM", borough: "Brooklyn", neighborhood: "Bushwick", signUpDetails: { type: 'in-person', value: 'List out at 6:45 PM.' }, lat: 40.7020, lon: -73.9230, comics: 14, tags: ["Local", "Free"], environment: "Private Space", cost: "Free", host: "BK Comedy", stageTime: "4 min", lastUpdated: "2024-10-18" },
+             { id: 14, name: "Comic Strip Live (Late)", day: "Tuesday", startTime: "9:00 PM", borough: "Manhattan", neighborhood: "Upper East Side", signUpDetails: { type: 'in-person', value: 'Call club day-of after 4 PM.' }, lat: 40.7762, lon: -73.9599, comics: 9, tags: ["Pro-Am"], environment: "Public Venue", cost: "$10", host: "Club Staff", stageTime: "3 min", lastUpdated: "2024-10-19" },
+             { id: 15, name: "The Dojo of Comedy", day: "Wednesday", startTime: "8:00 PM", borough: "Brooklyn", neighborhood: "Williamsburg", signUpDetails: { type: 'email', value: 'dojoofcomedy@email.com' }, lat: 40.7090, lon: -73.9580, comics: 6, tags: ["Experimental"], environment: "Private Space", cost: "Free", host: "Sensei Comedy", stageTime: "5 min", lastUpdated: "2024-10-20" },
+             { id: 16, name: "Laughing Devil Comedy Club", day: "Thursday", startTime: "7:00 PM", borough: "Queens", neighborhood: "Long Island City", signUpDetails: { type: 'url', value: 'https://laughingdevil.com/open-mics' }, lat: 40.7445, lon: -73.9485, comics: 11, tags: ["Supportive"], environment: "Public Venue", cost: "$8", host: "LDCC Staff", stageTime: "4 min", lastUpdated: "2024-10-20" },
+             { id: 17, name: "Greenwich Village Comedy Club", day: "Friday", startTime: "6:30 PM", borough: "Manhattan", neighborhood: "Greenwich Village", signUpDetails: { type: 'in-person', value: 'List out at 6 PM.' }, lat: 40.7300, lon: -74.0020, comics: 16, tags: ["Tourist"], environment: "Public Venue", cost: "$10", host: "GVCC Staff", stageTime: "3 min", lastUpdated: "2024-10-19" },
+             { id: 18, name: "The Peoples Improv Theater (PIT)", day: "Saturday", startTime: "4:00 PM", borough: "Manhattan", neighborhood: "Chelsea", signUpDetails: { type: 'url', value: 'https://thepit-nyc.com/open-mics' }, lat: 40.7441, lon: -73.9935, comics: 20, tags: ["Improv", "Workshop"], environment: "Private Space", cost: "$5", host: "PIT Staff", stageTime: "5 min", lastUpdated: "2024-10-20" },
+             { id: 19, name: "Young Ethel's", day: "Sunday", startTime: "8:30 PM", borough: "Brooklyn", neighborhood: "Park Slope", signUpDetails: { type: 'in-person', value: 'List out at 8 PM.' }, lat: 40.6720, lon: -73.9770, comics: 13, tags: ["Bar Mic", "Chill"], environment: "Public Venue", cost: "1 Drink", host: "Ethel's Comedy", stageTime: "4 min", lastUpdated: "2024-10-18" },
+             { id: 20, name: "West Side Comedy Club", day: "Monday", startTime: "7:00 PM", borough: "Manhattan", neighborhood: "Upper West Side", signUpDetails: { type: 'url', value: 'https://westsidecomedyclub.com/open-mics' }, lat: 40.7900, lon: -73.9780, comics: 17, tags: ["Pro-Am"], environment: "Public Venue", cost: "$12", host: "WSCC Staff", stageTime: "5 min", lastUpdated: "2024-10-20" },
+        ];
+
+        // --- DOM Elements ---
+        const dom = {
+            appContainer: document.getElementById('app-container'),
+            mapView: document.getElementById('map-view'),
+            filtersContainer: document.getElementById('filters-container'),
+            locationSearchInput: document.getElementById('location-search-input'),
+            nearMeButton: document.getElementById('near-me-button'),
+            dayFilter: document.getElementById('day-filter'),
+            timeFilterContainer: document.getElementById('time-filter-container'),
+            timeFilterButtons: document.querySelectorAll('.time-filter-btn'),
+            boroughFilter: document.getElementById('borough-filter'),
+            neighborhoodFilter: document.getElementById('neighborhood-filter'),
+            costFilter: document.getElementById('cost-filter'),
+            favoritesOnly: document.getElementById('favorites-only'),
+            clearFilters: document.getElementById('clear-filters'),
+            leftPanel: document.getElementById('left-panel'),
+            panelHandle: document.getElementById('panel-handle'),
+            micList: document.getElementById('mic-list'),
+            viewToggle: document.getElementById('view-toggle'),
+            viewToggleBtn: document.getElementById('view-toggle-btn'),
+            toggleIcon: document.getElementById('toggle-icon'),
+            toggleText: document.getElementById('toggle-text'),
+        };
+
+        // --- State Management ---
+        let state = {
+            currentPosition: null, // [lat, lon]
+            userLocationMarker: null, // Store user location marker
+            searchQuery: '',
+            selectedDay: '',
+            selectedTime: 'evening', // Default to evening
+            selectedBorough: '',
+            selectedNeighborhood: '',
+            selectedCost: '',
+            favoritesOnly: false,
+            favorites: JSON.parse(localStorage.getItem('micFavorites') || '[]'), // Load favorites from localStorage
+            searchHistory: JSON.parse(localStorage.getItem('searchHistory') || '[]'), // Load search history
+            mics: [], // Processed mics with distance
+            topPicks: [],
+            view: window.innerWidth >= 1024 ? 'desktop' : 'list', // 'list' or 'map' or 'desktop'
+            hoveredMicId: null,
+            isPanelDragging: false,
+            lastPanelHeight: window.innerHeight * 0.8, // For mobile panel
+            debounceTimer: null // For debounced search
+        };
+
+        // --- Leaflet Map & Markers ---
+        let map, markers, markerIcons, markerClusterGroup;
+
+        // --- UTILITY FUNCTIONS ---
+        function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Radius of earth in km
+            const dLat = deg2rad(lat2 - lat1);
+            const dLon = deg2rad(lon2 - lon1);
+            const a =
+                Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            const distanceKm = R * c; // Distance in km
+            return distanceKm * 0.621371; // Convert to miles
+        }
+
+        function deg2rad(deg) { return deg * (Math.PI / 180); }
+
+        function formatTime(timeString) {
+            const [hourStr, minuteStr, ampm] = timeString.match(/(\d+):(\d+) (AM|PM)/).slice(1);
+            let hour = parseInt(hourStr);
+            if (ampm === 'PM' && hour < 12) hour += 12;
+            if (ampm === 'AM' && hour === 12) hour = 0;
+            return { hour, minute: parseInt(minuteStr) };
+        }
+
+        function isMicActive(mic) {
+            const now = new Date();
+            const today = now.getDay(); // 0 for Sunday, 1 for Monday
+            const currentDayName = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][today];
+
+            if (mic.day !== currentDayName) {
+                return false;
+            }
+
+            const { hour: micHour, minute: micMinute } = formatTime(mic.startTime);
+            const micTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), micHour, micMinute);
+            
+            // Define active window: mic starts within the next 2 hours or has started within the last 4 hours
+            const activeStart = new Date(now.getTime());
+            activeStart.setHours(now.getHours() - 4); // Mic started up to 4 hours ago
+
+            const activeEnd = new Date(now.getTime());
+            activeEnd.setHours(now.getHours() + 2); // Mic starts up to 2 hours from now
+
+            return micTime >= activeStart && micTime <= activeEnd;
+        }
+
+        function parseCost(costString) {
+            if (!costString) return 0;
+            const lower = costString.toLowerCase();
+            if (lower === 'free' || lower.includes('free')) return 0;
+            const match = costString.match(/\$(\d+)/);
+            return match ? parseInt(match[1]) : 0;
+        }
+
+        function matchesCostFilter(mic, filter) {
+            if (!filter) return true;
+            const cost = parseCost(mic.cost);
+            switch (filter) {
+                case 'free': return cost === 0;
+                case 'under10': return cost > 0 && cost < 10;
+                case '10-20': return cost >= 10 && cost <= 20;
+                case 'over20': return cost > 20;
+                default: return true;
+            }
+        }
+
+        function isMicOpenNow(mic) {
+            const now = new Date();
+            const today = now.getDay();
+            const currentDayName = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][today];
+
+            if (mic.day !== currentDayName) return 'closed';
+
+            const { hour: micHour, minute: micMinute } = formatTime(mic.startTime);
+            const micStartTime = new Date(now);
+            micStartTime.setHours(micHour, micMinute, 0);
+
+            // Assume mics run for 3 hours
+            const micEndTime = new Date(micStartTime);
+            micEndTime.setHours(micEndTime.getHours() + 3);
+
+            const oneHourBefore = new Date(micStartTime);
+            oneHourBefore.setHours(oneHourBefore.getHours() - 1);
+
+            if (now >= micStartTime && now <= micEndTime) return 'open';
+            if (now >= oneHourBefore && now < micStartTime) return 'soon';
+            return 'closed';
+        }
+
+        function toggleFavorite(micId) {
+            const index = state.favorites.indexOf(micId);
+            const mic = mockMics.find(m => m.id === micId);
+            const micName = mic ? mic.name : 'Mic';
+
+            if (index > -1) {
+                state.favorites.splice(index, 1);
+                showToast(`Removed from favorites`, 'info');
+            } else {
+                state.favorites.push(micId);
+                showToast(`Added to favorites!`, 'success');
+            }
+            localStorage.setItem('micFavorites', JSON.stringify(state.favorites));
+            filterMics(); // Re-render to update UI
+        }
+
+        function isFavorite(micId) {
+            return state.favorites.includes(micId);
+        }
+
+        function populateNeighborhoods(borough) {
+            const neighborhoods = borough ?
+                [...new Set(mockMics.filter(m => m.borough === borough).map(m => m.neighborhood))].sort() :
+                [];
+
+            dom.neighborhoodFilter.innerHTML = '<option value="">All Neighborhoods</option>';
+            neighborhoods.forEach(n => {
+                const option = document.createElement('option');
+                option.value = n;
+                option.textContent = n;
+                dom.neighborhoodFilter.appendChild(option);
+            });
+        }
+
+        function addToSearchHistory(query) {
+            if (!query || query.trim() === '') return;
+
+            // Remove duplicates and add to front
+            state.searchHistory = state.searchHistory.filter(q => q !== query);
+            state.searchHistory.unshift(query);
+
+            // Keep only last 5 searches
+            state.searchHistory = state.searchHistory.slice(0, 5);
+
+            localStorage.setItem('searchHistory', JSON.stringify(state.searchHistory));
+        }
+
+        function clearSearchHistory() {
+            state.searchHistory = [];
+            localStorage.removeItem('searchHistory');
+        }
+
+        function showToast(message, type = 'success') {
+            // Create toast container if it doesn't exist
+            let toastContainer = document.getElementById('toast-container');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.id = 'toast-container';
+                toastContainer.className = 'fixed bottom-20 right-4 z-[2000] space-y-2';
+                document.body.appendChild(toastContainer);
+            }
+
+            // Create toast element
+            const toast = document.createElement('div');
+            const bgColor = type === 'success' ? 'bg-green-600' : type === 'error' ? 'bg-red-600' : 'bg-blue-600';
+            toast.className = `${bgColor} text-white px-4 py-3 rounded-lg shadow-lg flex items-center space-x-2 transform transition-all duration-300 translate-x-[400px]`;
+
+            const icon = type === 'success' ?
+                `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>` :
+                `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`;
+
+            toast.innerHTML = `${icon}<span class="font-medium">${message}</span>`;
+            toastContainer.appendChild(toast);
+
+            // Slide in
+            setTimeout(() => {
+                toast.classList.remove('translate-x-[400px]');
+                toast.classList.add('translate-x-0');
+            }, 10);
+
+            // Slide out and remove
+            setTimeout(() => {
+                toast.classList.remove('translate-x-0');
+                toast.classList.add('translate-x-[400px]');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function debounce(func, delay) {
+            return function(...args) {
+                clearTimeout(state.debounceTimer);
+                state.debounceTimer = setTimeout(() => func.apply(this, args), delay);
+            };
+        }
+
+        function calculateTopPicks(mics) {
+            if (mics.length === 0) return [];
+
+            // Simple scoring: prioritize active mics, then heat, then distance, then tags
+            const scoredMics = mics.map(mic => {
+                let score = 0;
+                
+                // 1. Is it active now/soon? Huge bonus.
+                if (isMicActive(mic)) {
+                    score += 1000;
+                }
+
+                // 2. Heat (Comics checking in)
+                score += mic.comics * 5; // More comics, higher score
+
+                // 3. Distance (closer is better, but less weight than heat)
+                if (mic.distance !== null) {
+                    score -= mic.distance * 20; // Penalize for distance
+                }
+
+                // 4. Tags (e.g., "Supportive" gets a small bonus)
+                if (mic.tags && mic.tags.includes("Supportive")) {
+                    score += 10;
+                }
+                if (mic.tags && mic.tags.includes("Pro-Am")) { // Balanced tag
+                    score += 5;
+                }
+                if (mic.tags && mic.tags.includes("Tough Crowd")) { // Slightly penalized if not desired
+                    score -= 5;
+                }
+
+                return { ...mic, score };
+            });
+
+            // Sort by score (descending)
+            scoredMics.sort((a, b) => b.score - a.score);
+
+            // Return top 3, or fewer if less than 3 available
+            return scoredMics.slice(0, Math.min(3, scoredMics.length));
+        }
+
+        // --- RENDERING FUNCTIONS ---
+        function createMicCard(mic, isTopPick = false) {
+            const micCard = document.createElement('div');
+            micCard.className = `bg-[var(--surface-light)] rounded-xl shadow-xl border border-[var(--border-color)] overflow-hidden cursor-pointer transform hover:scale-[1.01] transition-all duration-200 relative ${isTopPick ? 'top-pick-card' : ''}`;
+            micCard.dataset.micId = mic.id; // For hover highlighting
+
+            const allTagsHTML = mic.tags.map(tag => `<span class="bg-blue-800/50 text-blue-200 text-xs font-semibold px-2.5 py-0.5 rounded-full">${tag}</span>`).join('');
+
+            // --- Intelligent Sign-Up Rendering with Cost ---
+            let signUpHTML = '';
+            const details = mic.signUpDetails;
+            const costBadge = `<span class="text-sm font-bold bg-green-700/50 text-green-300 px-3 py-1.5 rounded-full whitespace-nowrap">${mic.cost || 'Free'}</span>`;
+
+            switch (details.type) {
+                case 'url':
+                    signUpHTML = `${costBadge}<a href="${details.value}" target="_blank" rel="noopener noreferrer" class="flex-grow text-center bg-[var(--brand-blue)] hover:bg-[var(--brand-blue-hover)] text-white font-semibold py-2.5 px-4 rounded-lg transition-colors duration-200 action-btn">Sign Up Online</a>`;
+                    break;
+                case 'email':
+                    signUpHTML = `${costBadge}<a href="mailto:${details.value}" class="flex-grow text-center bg-sky-600 hover:bg-sky-700 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors duration-200 action-btn">Email to Sign Up</a>`;
+                    break;
+                case 'in-person':
+                default:
+                    signUpHTML = `<div class="w-full bg-[var(--surface-medium)] p-3 rounded-lg text-center"><p class="text-sm text-[var(--text-primary)]">${costBadge} ${details.value}</p></div>`;
+                    break;
+            }
+
+            const mapsLink = `https://www.google.com/maps/dir/?api=1&destination=${mic.lat},${mic.lon}`;
+
+            const openStatus = isMicOpenNow(mic);
+            let statusBadge = '';
+            if (openStatus === 'open') {
+                statusBadge = `<span class="absolute top-3 left-3 bg-green-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-md flex items-center"><span class="w-1.5 h-1.5 bg-white rounded-full mr-1.5 animate-pulse"></span>Open Now</span>`;
+            } else if (openStatus === 'soon') {
+                statusBadge = `<span class="absolute top-3 left-3 bg-yellow-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-md">Opens Soon</span>`;
+            }
+
+            const favIcon = isFavorite(mic.id) ?
+                `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>` :
+                `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>`;
+
+
+            micCard.innerHTML = `
+                ${statusBadge}
+                <button class="favorite-btn absolute top-3 right-3 ${isFavorite(mic.id) ? 'text-red-500' : 'text-gray-400 hover:text-red-400'} transition-colors z-10" data-mic-id="${mic.id}" title="${isFavorite(mic.id) ? 'Remove from favorites' : 'Add to favorites'}">
+                    ${favIcon}
+                </button>
+                ${isTopPick ? `<div class="top-pick-badge absolute top-0 left-0 bg-[var(--top-pick-gold)] text-gray-900 font-extrabold px-3 py-1.5 rounded-br-lg shadow-md flex items-center"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="mr-1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>TOP PICK</div>` : ''}
+
+                <div class="p-5 flex flex-col h-full">
+                    <!-- Section 1: Name, Location, Day, Time -->
+                    <div class="mb-4 pb-4 border-b border-[var(--border-color)]">
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <h2 class="text-2xl font-bold text-[var(--text-primary)] mb-1">${mic.name}</h2>
+                                <p class="text-sm text-[var(--text-secondary)]">${mic.neighborhood}, ${mic.borough}</p>
+                            </div>
+                            <div class="text-right flex-shrink-0 ml-4">
+                                <p class="text-lg font-bold text-[var(--brand-blue)]">${mic.day}</p>
+                                <p class="text-base text-[var(--text-secondary)]">${mic.startTime}</p>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center text-sm">
+                            ${mic.distance !== null ? (() => {
+                                const walkingTime = Math.round(mic.distance * 20);
+                                return `<p class="font-semibold text-[var(--success-green)]">${mic.distance.toFixed(1)} mi <span class="text-[var(--text-tertiary)] font-normal">(~${walkingTime} min)</span></p>`;
+                            })() : '<div></div>'}
+
+                            <div class="flex items-center space-x-3">
+                                ${mic.stageTime ? `
+                                <div class="flex items-center text-[var(--text-secondary)]" title="Stage Time">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1 text-[var(--text-tertiary)]"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                    <span class="font-medium">${mic.stageTime}</span>
+                                </div>` : ''}
+
+                                <div id="heat-indicator-${mic.id}" class="flex items-center font-bold text-[var(--warning-orange)]" title="Comics Checking In">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="mr-1"><path d="M8.5 14.5A2.5 2.5 0 0011 17v3a2 2 0 104 0v-3a2.5 2.5 0 002.5-2.5v-7A2.5 2.5 0 0015 5V3a1 1 0 10-2 0v2a2.5 2.5 0 00-2.5 2.5v7z"/></svg>
+                                    <span class="ml-0.5">${mic.comics}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 2: Tags -->
+                    <div class="mb-4 flex flex-wrap gap-2">${allTagsHTML}</div>
+
+                    <!-- Section 3: Sign-Up & Cost -->
+                    <div class="mb-4 pb-4 border-b border-[var(--border-color)] space-y-3">
+                        <div class="flex items-center justify-center space-x-3">${signUpHTML}</div>
+                        <p class="text-xs text-center text-[var(--text-tertiary)]">Host: ${mic.host || 'N/A'}</p>
+                    </div>
+
+                    <!-- Section 4: Actions -->
+                    <div class="mt-auto grid grid-cols-2 gap-3">
+                        <a href="${mapsLink}" target="_blank" rel="noopener noreferrer" class="col-span-1 block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center text-sm action-btn">Directions</a>
+                        <button class="check-in-btn col-span-1 w-full bg-[var(--warning-orange)] hover:bg-orange-600 text-white font-semibold py-2.5 px-4 rounded-lg text-sm action-btn" data-mic-id="${mic.id}">Check In</button>
+                    </div>
+                </div>
+            `;
+            return micCard;
+        }
+
+        function renderMics(micsToRender) {
+            dom.micList.innerHTML = '';
+            state.topPicks = calculateTopPicks(micsToRender);
+
+            if (state.topPicks.length > 0) {
+                const topPicksHeader = document.createElement('h3');
+                topPicksHeader.className = 'text-xl font-bold text-[var(--text-primary)] mb-3 mt-2 px-1';
+                topPicksHeader.textContent = '⭐ Top Picks';
+                dom.micList.appendChild(topPicksHeader);
+
+                state.topPicks.forEach(mic => {
+                    dom.micList.appendChild(createMicCard(mic, true));
+                });
+
+                const otherMicsHeader = document.createElement('h3');
+                otherMicsHeader.className = 'text-xl font-bold text-[var(--text-primary)] mb-3 mt-6 px-1';
+                otherMicsHeader.textContent = 'Other Mics';
+                dom.micList.appendChild(otherMicsHeader);
+            }
+
+            const otherMics = micsToRender.filter(mic => !state.topPicks.some(tp => tp.id === mic.id));
+            if (otherMics.length === 0 && state.topPicks.length === 0) {
+                dom.micList.innerHTML = `
+                    <div class="text-center p-8 text-gray-400">
+                        <p class="text-lg mb-2">No mics found.</p>
+                        <p class="text-sm">Try adjusting your filters or searching a different area.</p>
+                    </div>
+                `;
+            } else {
+                otherMics.forEach(mic => {
+                    dom.micList.appendChild(createMicCard(mic, false));
+                });
+            }
+            updateMapMarkers();
+        }
+
+        function filterMics() {
+            const now = new Date();
+            const today = now.getDay();
+            const currentDayName = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][today];
+
+            let filtered = mockMics.map(mic => {
+                if (state.currentPosition) {
+                    mic.distance = getDistanceFromLatLonInKm(state.currentPosition[0], state.currentPosition[1], mic.lat, mic.lon);
+                } else {
+                    mic.distance = null; // No distance if no current position
+                }
+                return mic;
+            }).sort((a, b) => {
+                if (a.distance === null) return 1;
+                if (b.distance === null) return -1;
+                return a.distance - b.distance;
+            });
+
+            if (state.searchQuery) {
+                const query = state.searchQuery.toLowerCase();
+                filtered = filtered.filter(mic =>
+                    mic.name.toLowerCase().includes(query) ||
+                    mic.borough.toLowerCase().includes(query) ||
+                    mic.neighborhood.toLowerCase().includes(query) ||
+                    (mic.tags && mic.tags.some(tag => tag.toLowerCase().includes(query)))
+                );
+            }
+
+            if (state.selectedDay) {
+                filtered = filtered.filter(mic => mic.day === state.selectedDay);
+            } else { // If no specific day is selected, default to today's mics
+                 filtered = filtered.filter(mic => mic.day === currentDayName);
+            }
+
+
+            if (state.selectedTime === 'afternoon') {
+                filtered = filtered.filter(mic => {
+                    const { hour } = formatTime(mic.startTime);
+                    return hour >= 12 && hour < 17; // 12 PM to 4:59 PM
+                });
+            } else if (state.selectedTime === 'evening') {
+                filtered = filtered.filter(mic => {
+                    const { hour } = formatTime(mic.startTime);
+                    return hour >= 17 && hour <= 23; // 5 PM to 11:59 PM
+                });
+            }
+
+            // Borough filter
+            if (state.selectedBorough) {
+                filtered = filtered.filter(mic => mic.borough === state.selectedBorough);
+            }
+
+            // Neighborhood filter
+            if (state.selectedNeighborhood) {
+                filtered = filtered.filter(mic => mic.neighborhood === state.selectedNeighborhood);
+            }
+
+            // Cost filter
+            if (state.selectedCost) {
+                filtered = filtered.filter(mic => matchesCostFilter(mic, state.selectedCost));
+            }
+
+            // Favorites filter
+            if (state.favoritesOnly) {
+                filtered = filtered.filter(mic => isFavorite(mic.id));
+            }
+
+            // Store filtered mics in state
+            state.mics = filtered;
+
+            renderMics(filtered);
+        }
+
+        function updateCurrentTimeDisplay() {
+            const now = new Date();
+            const options = { weekday: 'long', hour: 'numeric', minute: 'numeric', hour12: true };
+            const formattedTime = now.toLocaleDateString('en-US', options);
+            // This was previously in the header, now it's more conceptual
+            // We'll rely on the default selection to show today's mics
+        }
+
+        // --- MAP FUNCTIONS ---
+        function initMap() {
+            map = L.map('map-view', { zoomControl: false }).setView([40.730610, -73.997699], 12); // NYC
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+
+            markerClusterGroup = L.markerClusterGroup();
+            map.addLayer(markerClusterGroup);
+
+            // Custom icon definitions
+            markerIcons = {
+                default: L.divIcon({
+                    className: 'leaflet-marker-icon default-pin',
+                    iconSize: [32, 32], iconAnchor: [16, 32], popupAnchor: [0, -32]
+                }),
+                topPick: L.divIcon({
+                    className: 'leaflet-marker-icon top-pick-pin',
+                    iconSize: [40, 40], iconAnchor: [20, 40], popupAnchor: [0, -40]
+                }),
+                highlight: L.divIcon({
+                    className: 'leaflet-marker-icon highlight-pin',
+                    iconSize: [36, 36], iconAnchor: [18, 36], popupAnchor: [0, -36]
+                })
+            };
+
+            map.on('resize', () => {
+                // Adjust filters container position on desktop resize if necessary
+                if (window.innerWidth >= 1024) {
+                    dom.filtersContainer.style.left = '4rem'; // Aligned to left panel
+                } else {
+                    dom.filtersContainer.style.left = '50%';
+                    dom.filtersContainer.style.transform = 'translateX(-50%)';
+                }
+            });
+
+            map.on('popupopen', function(e) {
+                const marker = e.popup._source;
+                state.hoveredMicId = marker.options.micId;
+                updateMapMarkers(); // Re-render to highlight
+            });
+            map.on('popupclose', function(e) {
+                state.hoveredMicId = null;
+                updateMapMarkers(); // Re-render to un-highlight
+            });
+        }
+
+        function createMapPopup(mic) {
+            const allTagsHTML = mic.tags.map(tag => `<span class="bg-blue-800/50 text-blue-200 text-xs font-semibold px-2 py-0.5 rounded-full">${tag}</span>`).join('');
+            const mapsLink = `https://www.google.com/maps/dir/?api=1&destination=${mic.lat},${mic.lon}`;
+
+            let signUpButton = '';
+            if (mic.signUpDetails.type === 'url') {
+                signUpButton = `<a href="${mic.signUpDetails.value}" target="_blank" rel="noopener noreferrer" class="col-span-1 block w-full text-center bg-[var(--brand-blue)] hover:bg-[var(--brand-blue-hover)] text-white font-semibold py-2 px-3 rounded-lg text-sm action-btn">Sign Up</a>`;
+            } else if (mic.signUpDetails.type === 'email') {
+                signUpButton = `<a href="mailto:${mic.signUpDetails.value}" class="col-span-1 block w-full text-center bg-sky-600 hover:bg-sky-700 text-white font-semibold py-2 px-3 rounded-lg text-sm action-btn">Email</a>`;
+            } else {
+                signUpButton = `<div class="col-span-2 bg-[var(--surface-light)] p-2 rounded-lg text-center"><p class="text-xs text-[var(--text-secondary)]">${mic.signUpDetails.value}</p></div>`;
+            }
+
+            return `
+                <div class="p-3 w-[260px] text-[var(--text-primary)] font-inter bg-[var(--surface-light)] rounded-xl shadow-2xl border border-[var(--border-color)]">
+                    <h4 class="text-lg font-bold text-[var(--text-primary)] mb-1">${mic.name}</h4>
+                    <p class="text-xs text-[var(--text-secondary)] mb-3">${mic.neighborhood}, ${mic.borough}</p>
+                    <div class="flex justify-between items-center text-sm mb-3 pb-3 border-b border-[var(--border-color)]">
+                        <p class="font-semibold text-[var(--brand-blue)]">${mic.day}, ${mic.startTime}</p>
+                        <div class="flex items-center text-[var(--warning-orange)] font-bold">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="mr-1"><path d="M8.5 14.5A2.5 2.5 0 0011 17v3a2 2 0 104 0v-3a2.5 2.5 0 002.5-2.5v-7A2.5 2.5 0 0015 5V3a1 1 0 10-2 0v2a2.5 2.5 0 00-2.5 2.5v7z"/></svg>
+                            <span>${mic.comics}</span>
+                        </div>
+                    </div>
+                    ${mic.stageTime ? `
+                    <div class="flex items-center text-[var(--text-secondary)] text-xs mb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1 text-[var(--text-tertiary)]"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                        <span class="font-medium">${mic.stageTime}</span>
+                    </div>` : ''}
+                    <div class="grid grid-cols-2 gap-2 mt-3">
+                        <a href="${mapsLink}" target="_blank" rel="noopener noreferrer" class="col-span-1 block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-3 rounded-lg text-sm action-btn">Directions</a>
+                        ${signUpButton}
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateMapMarkers() {
+            markerClusterGroup.clearLayers();
+            markers = [];
+            let bounds = [];
+
+            state.mics.forEach(mic => {
+                if (mic.lat && mic.lon) {
+                    const isTopPick = state.topPicks.some(tp => tp.id === mic.id);
+                    const isHovered = state.hoveredMicId === mic.id;
+                    let icon = markerIcons.default;
+                    if (isHovered) {
+                        icon = markerIcons.highlight;
+                    } else if (isTopPick) {
+                        icon = markerIcons.topPick;
+                    }
+
+                    const marker = L.marker([mic.lat, mic.lon], { icon: icon, micId: mic.id });
+                    marker.bindPopup(createMapPopup(mic), { closeButton: false, autoPan: false });
+                    
+                    marker.on('mouseover', () => {
+                        state.hoveredMicId = mic.id;
+                        updateMapMarkers();
+                        const correspondingCard = document.querySelector(`[data-mic-id="${mic.id}"]`);
+                        if (correspondingCard) {
+                            correspondingCard.classList.add('border-[var(--brand-blue)]'); // Highlight card
+                        }
+                    });
+                    marker.on('mouseout', () => {
+                        state.hoveredMicId = null;
+                        updateMapMarkers();
+                        const correspondingCard = document.querySelector(`[data-mic-id="${mic.id}"]`);
+                        if (correspondingCard) {
+                            correspondingCard.classList.remove('border-[var(--brand-blue)]');
+                        }
+                    });
+
+                    markers.push(marker);
+                    bounds.push([mic.lat, mic.lon]);
+                }
+            });
+
+            if (markers.length > 0) {
+                markerClusterGroup.addLayers(markers);
+                if (state.view === 'map' || window.innerWidth >= 1024) { // Only fit bounds if map is primary view or desktop
+                    map.fitBounds(bounds, { padding: [50, 50] });
+                }
+            }
+        }
+
+
+        // --- EVENT HANDLERS ---
+        function handleLocationSearch() {
+            state.searchQuery = dom.locationSearchInput.value;
+            if (state.searchQuery.trim()) {
+                addToSearchHistory(state.searchQuery);
+            }
+            filterMics();
+        }
+
+        // Debounced version for input event
+        const debouncedSearch = debounce(handleLocationSearch, 300);
+
+        function handleDayFilterChange() {
+            state.selectedDay = dom.dayFilter.value;
+            filterMics();
+        }
+
+        function handleTimeFilterClick(event) {
+            dom.timeFilterButtons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            state.selectedTime = event.target.dataset.time;
+            filterMics();
+        }
+
+        function handleNearMeClick() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((position) => {
+                    state.currentPosition = [position.coords.latitude, position.coords.longitude];
+                    map.setView(state.currentPosition, 14); // Zoom in on user
+
+                    // Remove existing user location marker if present
+                    if (state.userLocationMarker) {
+                        map.removeLayer(state.userLocationMarker);
+                    }
+
+                    // Add blue dot for user location
+                    state.userLocationMarker = L.circleMarker(state.currentPosition, {
+                        radius: 8,
+                        fillColor: "#3B82F6",
+                        color: "#FFFFFF",
+                        weight: 3,
+                        opacity: 1,
+                        fillOpacity: 0.9
+                    }).addTo(map);
+
+                    state.userLocationMarker.bindPopup("<strong>You are here</strong>");
+
+                    showToast("Location found!", 'success');
+                    filterMics();
+                }, (error) => {
+                    console.error("Geolocation error:", error);
+                    alert("Could not retrieve your location. Please ensure location services are enabled.");
+                });
+            } else {
+                alert("Geolocation is not supported by your browser.");
+            }
+        }
+
+        function handleBoroughChange() {
+            state.selectedBorough = dom.boroughFilter.value;
+            state.selectedNeighborhood = ''; // Reset neighborhood when borough changes
+            populateNeighborhoods(state.selectedBorough);
+            filterMics();
+        }
+
+        function handleNeighborhoodChange() {
+            state.selectedNeighborhood = dom.neighborhoodFilter.value;
+            filterMics();
+        }
+
+        function handleCostFilterChange() {
+            state.selectedCost = dom.costFilter.value;
+            filterMics();
+        }
+
+        function handleFavoritesOnlyChange() {
+            state.favoritesOnly = dom.favoritesOnly.checked;
+            filterMics();
+        }
+
+        function handleClearFilters() {
+            // Reset all filter states
+            state.searchQuery = '';
+            state.selectedDay = '';
+            state.selectedBorough = '';
+            state.selectedNeighborhood = '';
+            state.selectedCost = '';
+            state.favoritesOnly = false;
+            state.selectedTime = 'evening';
+
+            // Reset UI elements
+            dom.locationSearchInput.value = '';
+            dom.dayFilter.value = '';
+            dom.boroughFilter.value = '';
+            dom.neighborhoodFilter.value = '';
+            dom.costFilter.value = '';
+            dom.favoritesOnly.checked = false;
+            populateNeighborhoods('');
+
+            // Reset time filter buttons
+            dom.timeFilterButtons.forEach(btn => btn.classList.remove('active'));
+            document.querySelector('.time-filter-btn[data-time="evening"]').classList.add('active');
+
+            showToast("Filters cleared", 'info');
+            filterMics();
+        }
+
+        function handleMicCardHover(event) {
+            let targetCard = event.target.closest('[data-mic-id]');
+            if (targetCard) {
+                const micId = parseInt(targetCard.dataset.micId);
+                if (state.hoveredMicId !== micId) {
+                    state.hoveredMicId = micId;
+                    updateMapMarkers();
+                }
+            }
+        }
+
+        function handleMicCardMouseOut() {
+            state.hoveredMicId = null;
+            updateMapMarkers();
+        }
+
+        function handleCheckInClick(event) {
+            const micId = parseInt(event.target.dataset.micId);
+            const mic = mockMics.find(m => m.id === micId);
+            if (mic) {
+                mic.comics = (mic.comics || 0) + 1; // Increment check-in count
+                showToast("Checked in!", 'success');
+                filterMics(); // Re-render to update heat
+            }
+        }
+
+        // --- REFACTORED VIEW LOGIC ---
+        function updateViewToggle() {
+            if (window.innerWidth >= 1024) { // Desktop: no toggle, list always open
+                dom.leftPanel.style.transform = 'translateY(0)';
+                dom.leftPanel.style.height = '100%';
+                dom.viewToggle.classList.add('hidden');
+                map.invalidateSize();
+                return;
+            }
+
+            // Mobile: toggle panel visibility
+            dom.viewToggle.classList.remove('hidden');
+            if (state.view === 'list') {
+                dom.leftPanel.classList.remove('hidden-mobile');
+                dom.leftPanel.classList.remove('expanded-mobile');
+                dom.leftPanel.style.height = `${state.lastPanelHeight}px`; // Restore last height
+                dom.toggleIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path fill-rule="evenodd" d="M9.69 18.933l..."></path></svg>`; // Map icon
+                dom.toggleText.textContent = 'Map';
+            } else { // map view
+                dom.leftPanel.classList.add('hidden-mobile');
+                dom.leftPanel.classList.remove('expanded-mobile');
+                dom.toggleIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path d="M3 4.5A1.5 1.5 0 014.5 3h11A1.5 1.5 0 0117 4.5v11a1.5 1.5 0 01-1.5 1.5h-11A1.5 1.5 0 013 15.5v-11zM11.25 4.5a.75.75 0 00-1.5 0v.75H8.25a.75.75 0 000 1.5h1.5v1.5a.75.75 0 001.5 0v-1.5h1.5a.75.75 0 000-1.5h-1.5V4.5z" clip-rule="evenodd"></path></svg>`; // List icon
+                dom.toggleText.textContent = 'List';
+            }
+            map.invalidateSize(); // Important for map to render correctly
+        }
+
+        // --- EVENT LISTENERS ---
+        function setupEventListeners() {
+            dom.locationSearchInput.addEventListener('input', debouncedSearch);
+            dom.nearMeButton.addEventListener('click', handleNearMeClick);
+            dom.dayFilter.addEventListener('change', handleDayFilterChange);
+            dom.timeFilterButtons.forEach(button => {
+                button.addEventListener('click', handleTimeFilterClick);
+            });
+
+            dom.boroughFilter.addEventListener('change', handleBoroughChange);
+            dom.neighborhoodFilter.addEventListener('change', handleNeighborhoodChange);
+            dom.costFilter.addEventListener('change', handleCostFilterChange);
+            dom.favoritesOnly.addEventListener('change', handleFavoritesOnlyChange);
+            dom.clearFilters.addEventListener('click', handleClearFilters);
+
+            dom.micList.addEventListener('mouseover', handleMicCardHover);
+            dom.micList.addEventListener('mouseout', handleMicCardMouseOut);
+            dom.micList.addEventListener('click', (event) => {
+                if (event.target.classList.contains('check-in-btn')) {
+                    handleCheckInClick(event);
+                }
+                // Handle favorite button clicks
+                const favoriteBtn = event.target.closest('.favorite-btn');
+                if (favoriteBtn) {
+                    const micId = parseInt(favoriteBtn.dataset.micId);
+                    toggleFavorite(micId);
+                    event.stopPropagation(); // Prevent card click
+                }
+            });
+
+            dom.viewToggleBtn.addEventListener('click', () => {
+                state.view = state.view === 'list' ? 'map' : 'list';
+                updateViewToggle();
+            });
+
+            // Drag handler for mobile panel
+            let startY, currentPanelHeight;
+            const dragStart = (e) => {
+                if (window.innerWidth >= 1024) return; // Only for mobile
+                state.isPanelDragging = true;
+                dom.leftPanel.style.transition = 'none'; // Disable transition during drag
+                startY = e.touches ? e.touches[0].clientY : e.clientY;
+                currentPanelHeight = dom.leftPanel.clientHeight;
+                document.addEventListener('mousemove', dragMove);
+                document.addEventListener('touchmove', dragMove, { passive: false }); // Passive false for preventDefault
+                document.addEventListener('mouseup', dragEnd);
+                document.addEventListener('touchend', dragEnd);
+            };
+
+            const dragMove = (e) => {
+                if (!state.isPanelDragging) return;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                const deltaY = startY - clientY; // How much finger moved up
+                let newHeight = currentPanelHeight + deltaY;
+
+                // Clamp height
+                const minHeight = window.innerHeight * 0.15; // Small peek
+                const maxHeight = window.innerHeight * 0.9; // Almost full screen
+                newHeight = Math.max(minHeight, Math.min(maxHeight, newHeight));
+
+                dom.leftPanel.style.height = `${newHeight}px`;
+                dom.leftPanel.style.transform = `translateY(calc(100% - ${newHeight}px))`;
+                
+                // Prevent scrolling on body while dragging
+                if (e.cancelable) e.preventDefault();
+            };
+
+            const dragEnd = () => {
+                if (!state.isPanelDragging) return;
+                state.isPanelDragging = false;
+                dom.leftPanel.style.transition = ''; // Re-enable transition
+                state.lastPanelHeight = dom.leftPanel.clientHeight; // Save last height
+
+                // Determine new state based on final height
+                const panelHeight = dom.leftPanel.clientHeight;
+                const screenHeight = window.innerHeight;
+
+                if (panelHeight > screenHeight * 0.75) {
+                    dom.leftPanel.classList.add('expanded-mobile');
+                    dom.leftPanel.style.transform = 'translateY(0%)';
+                    state.view = 'list';
+                } else if (panelHeight < screenHeight * 0.25) {
+                    state.view = 'map';
+                    dom.leftPanel.classList.add('hidden-mobile'); // Snap to hidden
+                } else {
+                     dom.leftPanel.classList.remove('expanded-mobile');
+                     dom.leftPanel.classList.remove('hidden-mobile');
+                     dom.leftPanel.style.transform = `translateY(calc(100% - ${panelHeight}px))`;
+                     state.view = 'list';
+                }
+                 updateViewToggle(); // Ensure toggle icon reflects state
+            };
+
+            dom.panelHandle.addEventListener('mousedown', dragStart);
+            dom.panelHandle.addEventListener('touchstart', dragStart, { passive: false });
+            document.addEventListener('mouseup', dragEnd);
+            document.addEventListener('touchend', dragEnd);
+
+
+            // Resize listener for responsive layout
+            window.addEventListener('resize', () => {
+                map.invalidateSize(); // Important for map
+                updateViewToggle(); // Adjust UI based on new window size
+                filterMics(); // Re-filter to ensure distances are accurate
+            });
+
+            // Initial active state for time filter button
+            document.querySelector('.time-filter-btn[data-time="evening"]').classList.add('active');
+        }
+
+        // --- APP INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initMap();
+            updateCurrentTimeDisplay();
+            setupEventListeners();
+
+            // Set initial panel state for mobile
+            if (window.innerWidth < 1024) {
+                const initialHeight = window.innerHeight * 0.25;
+                state.lastPanelHeight = initialHeight;
+                state.view = 'list'; // Default to list view partially open
+            }
+
+            filterMics(); // Initial filter and render
+            updateViewToggle(); // Set initial view based on screen size
+        });
+
+    </script>
+</body>
+</html>

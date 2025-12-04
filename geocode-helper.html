@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MicMap Geocoding Helper</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+        .section h2 {
+            margin-top: 0;
+            color: #444;
+        }
+        button {
+            background: #6366F1;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        button:hover {
+            background: #4F46E5;
+            transform: translateY(-1px);
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Monaco', monospace;
+            font-size: 13px;
+        }
+        .status.info {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+        .status.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        .status.error {
+            background: #ffebee;
+            color: #c62828;
+        }
+        .results {
+            margin-top: 20px;
+            padding: 20px;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            border-radius: 8px;
+            font-family: 'Monaco', monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        .provider-select {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .provider-option {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .provider-option:hover {
+            border-color: #6366F1;
+        }
+        .provider-option.selected {
+            border-color: #6366F1;
+            background: #f0f1ff;
+        }
+        .provider-option h3 {
+            margin: 0 0 8px 0;
+            color: #333;
+        }
+        .provider-option p {
+            margin: 0;
+            font-size: 13px;
+            color: #666;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎤 MicMap Geocoding Helper</h1>
+        <p class="subtitle">Convert venue addresses to real coordinates</p>
+
+        <!-- Provider Selection -->
+        <div class="section">
+            <h2>1. Choose Geocoding Provider</h2>
+            <div class="provider-select">
+                <div class="provider-option selected" data-provider="nominatim">
+                    <h3>🆓 Nominatim (OpenStreetMap)</h3>
+                    <p>Free, no API key required<br>Rate limit: 1 req/sec</p>
+                </div>
+                <div class="provider-option" data-provider="google">
+                    <h3>🗺️ Google Maps</h3>
+                    <p>Most accurate<br>Requires API key</p>
+                </div>
+                <div class="provider-option" data-provider="mapbox">
+                    <h3>📍 Mapbox</h3>
+                    <p>100k free requests/month<br>Requires API key</p>
+                </div>
+            </div>
+
+            <div id="api-key-section" style="display: none;">
+                <div class="input-group">
+                    <label for="api-key">API Key:</label>
+                    <input type="text" id="api-key" placeholder="Enter your API key">
+                </div>
+            </div>
+        </div>
+
+        <!-- Single Venue Testing -->
+        <div class="section">
+            <h2>2. Test Single Venue (Optional)</h2>
+            <div class="input-group">
+                <label for="venue-name">Venue Name:</label>
+                <input type="text" id="venue-name" placeholder="e.g., The Grisly Pear">
+            </div>
+            <div class="input-group">
+                <label for="neighborhood">Neighborhood:</label>
+                <input type="text" id="neighborhood" placeholder="e.g., Greenwich Village">
+            </div>
+            <div class="input-group">
+                <label for="borough">Borough:</label>
+                <input type="text" id="borough" placeholder="e.g., Manhattan">
+            </div>
+            <button id="test-single-btn">Test Single Venue</button>
+            <div id="single-status"></div>
+        </div>
+
+        <!-- Batch Processing -->
+        <div class="section">
+            <h2>3. Geocode All Venues</h2>
+            <p style="color: #666; margin-bottom: 15px;">
+                This will process all unique venues from your data.js file and generate updated coordinates.
+            </p>
+            <button id="geocode-all-btn">Geocode All Venues</button>
+            <div id="batch-status"></div>
+            <div id="results" class="results" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- Load Scripts -->
+    <script src="js/data.js"></script>
+    <script src="js/venue-addresses.js"></script>
+    <script src="js/geocoding.js"></script>
+
+    <script>
+        // Provider selection
+        let selectedProvider = 'nominatim';
+
+        document.querySelectorAll('.provider-option').forEach(option => {
+            option.addEventListener('click', () => {
+                document.querySelectorAll('.provider-option').forEach(o => o.classList.remove('selected'));
+                option.classList.add('selected');
+                selectedProvider = option.dataset.provider;
+                GeocodingService.provider = selectedProvider;
+
+                // Show/hide API key input
+                const apiKeySection = document.getElementById('api-key-section');
+                if (selectedProvider !== 'nominatim') {
+                    apiKeySection.style.display = 'block';
+                } else {
+                    apiKeySection.style.display = 'none';
+                }
+            });
+        });
+
+        // API key input
+        document.getElementById('api-key').addEventListener('input', (e) => {
+            if (selectedProvider === 'google') {
+                GeocodingService.apiKeys.google = e.target.value;
+            } else if (selectedProvider === 'mapbox') {
+                GeocodingService.apiKeys.mapbox = e.target.value;
+            }
+        });
+
+        // Test single venue
+        document.getElementById('test-single-btn').addEventListener('click', async () => {
+            const venueName = document.getElementById('venue-name').value.trim();
+            const neighborhood = document.getElementById('neighborhood').value.trim();
+            const borough = document.getElementById('borough').value.trim();
+
+            if (!venueName || !neighborhood || !borough) {
+                showStatus('single-status', 'Please fill in all fields', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('test-single-btn');
+            btn.disabled = true;
+            btn.textContent = 'Geocoding...';
+
+            try {
+                const result = await GeocodingService.geocode(venueName, neighborhood, borough);
+                showStatus('single-status',
+                    `✅ Success!\nLat: ${result.lat}\nLon: ${result.lon}\nAddress: ${result.display_name}`,
+                    'success'
+                );
+            } catch (error) {
+                showStatus('single-status', `❌ Error: ${error.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Test Single Venue';
+            }
+        });
+
+        // Geocode all venues
+        document.getElementById('geocode-all-btn').addEventListener('click', async () => {
+            const btn = document.getElementById('geocode-all-btn');
+            btn.disabled = true;
+            btn.textContent = 'Processing...';
+
+            showStatus('batch-status', 'Starting geocoding process...', 'info');
+
+            try {
+                const results = await updateAllCoordinates();
+
+                // Show results
+                const resultsDiv = document.getElementById('results');
+                resultsDiv.style.display = 'block';
+
+                // Copy console output to results div
+                const successful = results.filter(r => r.success);
+                const failed = results.filter(r => !r.success);
+
+                let output = `GEOCODING RESULTS\n${'='.repeat(80)}\n\n`;
+                output += `✅ Successful: ${successful.length}\n`;
+                output += `❌ Failed: ${failed.length}\n\n`;
+
+                if (failed.length > 0) {
+                    output += `Failed venues:\n`;
+                    failed.forEach(f => {
+                        output += `  - ${f.name}: ${f.error}\n`;
+                    });
+                    output += '\n';
+                }
+
+                output += `\nUPDATED COORDINATES:\n${'='.repeat(80)}\n\n`;
+
+                const venueCoords = {};
+                successful.forEach(result => {
+                    const key = `${result.name}-${result.neighborhood}-${result.borough}`;
+                    venueCoords[key] = {
+                        lat: result.lat,
+                        lon: result.lon
+                    };
+                });
+
+                output += '// Copy these coordinates and update your data.js manually:\n\n';
+                Object.entries(venueCoords).forEach(([key, coords]) => {
+                    const [name] = key.split('-');
+                    output += `// ${name}\n`;
+                    output += `lat: ${coords.lat},\n`;
+                    output += `lon: ${coords.lon},\n\n`;
+                });
+
+                resultsDiv.textContent = output;
+
+                showStatus('batch-status',
+                    `✅ Geocoding complete! Check results below and update your data.js file.`,
+                    'success'
+                );
+            } catch (error) {
+                showStatus('batch-status', `❌ Error: ${error.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Geocode All Venues';
+            }
+        });
+
+        function showStatus(elementId, message, type) {
+            const statusDiv = document.getElementById(elementId);
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+            statusDiv.style.display = 'block';
+        }
+
+        // Override console.log to capture output
+        const originalLog = console.log;
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            const resultsDiv = document.getElementById('results');
+            if (resultsDiv.style.display !== 'none') {
+                resultsDiv.textContent += args.join(' ') + '\n';
+            }
+        };
+    </script>
+</body>
+</html>

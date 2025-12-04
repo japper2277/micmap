@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mic Card Component Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #09090b;
+            padding: 20px;
+        }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+        /* Icon Hover Effects */
+        .action-icon { transition: all 0.2s ease; }
+        .action-icon:hover { color: #fbbf24; transform: scale(1.1); }
+
+        /* Pulse for LIVE status */
+        .live-pulse { animation: pulse-text 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes pulse-text {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .7; }
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center gap-4">
+
+    <!-- EXAMPLE 1: HAPPENING NOW (LIVE) + HAS LINK -->
+    <div class="relative w-full max-w-[400px] bg-[#18181b] border border-white/10 rounded-2xl p-3 flex gap-3 shadow-lg group">
+
+        <!-- COLUMN A: TIME BLOCK -->
+        <div class="flex flex-col items-center justify-center w-[4.5rem] shrink-0 border-r border-white/5 pr-3">
+            <span class="text-2xl font-black text-white leading-none font-mono">17:00</span>
+            <span class="text-rose-500 font-bold text-[10px] mt-1 tracking-wider live-pulse">LIVE</span>
+        </div>
+
+        <!-- COLUMN B: DETAILS -->
+        <div class="flex flex-col justify-center flex-1 min-w-0">
+            <!-- Header Line: Venue + Tag -->
+            <div class="flex items-center justify-between gap-2">
+                <h3 class="text-white font-bold truncate text-base">Producer's Club</h3>
+                <!-- Combined Tag -->
+                <span class="shrink-0 bg-[#27272a] border border-white/10 text-neutral-300 px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wide uppercase">
+                    Lottery $5
+                </span>
+            </div>
+            <!-- Subtitle Line -->
+            <div class="text-xs text-neutral-500 truncate mt-1 flex items-center gap-1.5">
+                <span>Hell's Kitchen</span>
+                <span class="w-0.5 h-0.5 bg-neutral-600 rounded-full"></span>
+                <span>90 Min Show</span>
+            </div>
+        </div>
+
+        <!-- COLUMN C: ACTION STACK -->
+        <div class="flex flex-col items-center justify-between shrink-0 w-8 pl-2 border-l border-white/5 py-0.5">
+
+            <!-- Top Icon: External Link (Exists) -->
+            <a href="#" class="action-icon text-neutral-400" title="Sign Up Online">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+            </a>
+
+            <!-- Bottom Icon: Map Pin (Fixed) -->
+            <button class="action-icon text-neutral-400" title="Locate on Map">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            </button>
+        </div>
+    </div>
+
+
+    <!-- EXAMPLE 2: STARTING SOON + NO LINK -->
+    <div class="relative w-full max-w-[400px] bg-[#18181b] border border-white/10 rounded-2xl p-3 flex gap-3 shadow-lg group">
+
+        <!-- COLUMN A: TIME BLOCK -->
+        <div class="flex flex-col items-center justify-center w-[4.5rem] shrink-0 border-r border-white/5 pr-3">
+            <span class="text-2xl font-black text-white leading-none font-mono">18:00</span>
+            <span class="text-amber-400 font-bold text-[10px] mt-1 tracking-wider">SOON</span>
+        </div>
+
+        <!-- COLUMN B: DETAILS -->
+        <div class="flex flex-col justify-center flex-1 min-w-0">
+            <div class="flex items-center justify-between gap-2">
+                <h3 class="text-white font-bold truncate text-base">Tiny Cupboard</h3>
+                <span class="shrink-0 bg-[#27272a] border border-white/10 text-neutral-300 px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wide uppercase">
+                    Bucket Free
+                </span>
+            </div>
+            <div class="text-xs text-neutral-500 truncate mt-1 flex items-center gap-1.5">
+                <span>Brooklyn</span>
+                <span class="w-0.5 h-0.5 bg-neutral-600 rounded-full"></span>
+                <span>1 Hour Slot</span>
+            </div>
+        </div>
+
+        <!-- COLUMN C: ACTION STACK -->
+        <div class="flex flex-col items-center justify-between shrink-0 w-8 pl-2 border-l border-white/5 py-0.5">
+
+            <!-- Top Icon: NO LINK (Placeholder) -->
+            <div class="h-4 w-4 flex items-center justify-center">
+                <span class="w-1 h-1 bg-neutral-700 rounded-full"></span>
+            </div>
+
+            <!-- Bottom Icon: Map Pin -->
+            <button class="action-icon text-neutral-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            </button>
+        </div>
+    </div>
+
+
+    <!-- EXAMPLE 3: FUTURE (RELATIVE TIME) + LINK -->
+    <div class="relative w-full max-w-[400px] bg-[#18181b] border border-white/10 rounded-2xl p-3 flex gap-3 shadow-lg group">
+
+        <!-- COLUMN A: TIME BLOCK -->
+        <div class="flex flex-col items-center justify-center w-[4.5rem] shrink-0 border-r border-white/5 pr-3">
+            <span class="text-2xl font-black text-white leading-none font-mono">20:00</span>
+            <span class="text-neutral-500 font-bold text-[10px] mt-1 tracking-wider">IN 3h</span>
+        </div>
+
+        <!-- COLUMN B: DETAILS -->
+        <div class="flex flex-col justify-center flex-1 min-w-0">
+            <div class="flex items-center justify-between gap-2">
+                <h3 class="text-white font-bold truncate text-base">Comedy Cellar</h3>
+                <span class="shrink-0 bg-[#27272a] border border-white/10 text-neutral-300 px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wide uppercase">
+                    Show-Up $10
+                </span>
+            </div>
+            <div class="text-xs text-neutral-500 truncate mt-1 flex items-center gap-1.5">
+                <span>West Village</span>
+                <span class="w-0.5 h-0.5 bg-neutral-600 rounded-full"></span>
+                <span>2 Hour Slot</span>
+            </div>
+        </div>
+
+        <!-- COLUMN C: ACTION STACK -->
+        <div class="flex flex-col items-center justify-between shrink-0 w-8 pl-2 border-l border-white/5 py-0.5">
+
+            <!-- Top Icon: External Link -->
+            <a href="#" class="action-icon text-neutral-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+            </a>
+
+            <!-- Bottom Icon: Map Pin -->
+            <button class="action-icon text-neutral-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            </button>
+        </div>
+    </div>
+
+</body>
+</html>

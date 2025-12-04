@@ -1,0 +1,7 @@
+Time & Status
+Venue Name
+Type/Price Tag (Lottery $5)
+Neighborhood
+Slot Duration
+Primary Action (Sign Up)
+Map Action (View Map) does it have all this infromatoin?

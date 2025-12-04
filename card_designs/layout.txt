@@ -1,0 +1,97 @@
+Excellent choice. Option 1, using relative time (IN 3h), keeps the entire Time Column dynamic and focused on immediate utility.
+
+Here is the final, consolidated plain text sketch based on this decision:
+
+Final Mic Card Layout Sketch (Dynamic Relative Time)
+
+This layout incorporates the Combined Entry/Cost Tag, the Fixed Two-Icon Action Stack, and the Dynamic Relative Time Status.
+
+Column A (Time Block)	Column B (Main Details)	Column C (Action Stack)
+Large, Bold Time	Bold Venue Name	Top Icon (Link Status)
+Dynamic Status	Lighter Subtitle: [Neighborhood] • [Duration]	Bottom Icon (Fixed Map)
+Contextual Example Breakdowns:
+Example 1: Currently Happening (Dynamic Status: LIVE)
+code
+Code
+download
+content_copy
+expand_less
+|-----------------------------------------------------------------------|
+|  17:00       | PRODUCER'S CLUB     [LOTTERY $5]         |  <Link Icon>|
+|  LIVE        | Hell's Kitchen • 90 Min Show             | <Map Pin Icon>|
+|-----------------------------------------------------------------------|
+Example 2: Starting Soon (Dynamic Status: SOON)
+
+Assumes the mic is less than 60 minutes away.
+
+code
+Code
+download
+content_copy
+expand_less
+|-----------------------------------------------------------------------|
+|  18:00       | TINY CUPBOARD       [BUCKET FREE]        | [NO LINK]   |
+|  SOON        | East Village • 1 Hour Slot               | <Map Pin Icon>|
+|-----------------------------------------------------------------------|
+Example 3: In the Future (Dynamic Status: Relative Time)
+
+Assumes the mic is more than 60 minutes away.
+
+code
+Code
+download
+content_copy
+expand_less
+|-----------------------------------------------------------------------|
+|  20:00       | COMEDY CELLAR       [SHOW-UP $10]        |  <Link Icon>|
+|  IN 3h       | West Village • 2 Hour Slot               | <Map Pin Icon>|
+|-----------------------------------------------------------------------|
+Example 4: Far in the Future (Days Away)
+
+Assumes the mic is tomorrow (if you had a full day's range).
+
+code
+Code
+download
+content_copy
+expand_less
+|-----------------------------------------------------------------------|
+|  23:00       | QED ASTORIA         [LOTTERY FREE]       | [NO LINK]   |
+|  TMRW        | Astoria • 75 Min Show                    | <Map Pin Icon>|
+|-----------------------------------------------------------------------|
+
+
+
+
+DIMENSIONS: 
+
+
+Based on the layout in "micfinder_final_layout.html" which implements the **Design B** specifications, here are the dimensions for the Sidebar (Drawer) components:
+
+### **Mobile View (`< 768px`)**
+
+* **Drawer Height (Max):** `70vh` (70% of the viewport height).
+* **Drawer Height (Collapsed):** `0`.
+* **Drawer Width:** `100%` (spans the full width of the screen).
+* **Position:** Fixed to the bottom (`bottom: 0`, `left: 0`, `right: 0`).
+* **Top Corners:** Rounded (`rounded-t-3xl`).
+
+### **Desktop View (`>= 768px`)**
+
+* **Drawer Height (Max):** `90vh` (90% of the viewport height).
+* **Drawer Width:** `400px` (Fixed width).
+* **Position:** Absolute positioning.
+    * **Top:** `85px` from the top of the viewport.
+    * **Left:** `16px` (`left-4`) from the left edge.
+    * **Bottom:** Auto (height is determined by content up to max-height).
+* **Corners:** Fully rounded (`rounded-3xl`).
+
+### **Command Bar (Top Navigation)**
+
+The command bar that controls the drawer has these dimensions:
+* **Height:** `60px`.
+* **Width (Mobile):** Spans full width with margins (`left-3`, `right-3`).
+* **Width (Desktop):** `400px` (Matches the drawer width).
+* **Position:** Absolute, `top-4`.
+
+If you need to adjust these, look for the `#list-drawer` CSS block in the `<style>` section or the Tailwind classes in the HTML.

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geocode New Venues</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { margin-bottom: 10px; }
+        .subtitle { color: #666; margin-bottom: 30px; }
+        button {
+            background: #6366F1;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        button:hover { background: #4F46E5; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        .results {
+            margin-top: 20px;
+            padding: 20px;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            border-radius: 8px;
+            font-family: 'Monaco', monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .status {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .status.info { background: #e3f2fd; color: #1565c0; }
+        .status.success { background: #e8f5e9; color: #2e7d32; }
+        .venue-list {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .venue-item {
+            padding: 8px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .venue-item:last-child { border-bottom: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎤 Geocode New API Venues</h1>
+        <p class="subtitle">Get coordinates for the 5 new venues from your API</p>
+
+        <div class="venue-list">
+            <h3 style="margin-top: 0;">New Venues to Geocode:</h3>
+            <div class="venue-item">1. <strong>The Grisly Pear - Midtown</strong> → 61 7th Ave S, New York, NY 10014</div>
+            <div class="venue-item">2. <strong>Second City Mic</strong> → 64 N 9th St, Brooklyn, NY 11249</div>
+            <div class="venue-item">3. <strong>loose lips mic</strong> → 709 Lorimer St, Brooklyn, NY 11211</div>
+            <div class="venue-item">4. <strong>Comedy Shop</strong> → 167 Bleecker St, New York, NY 10012</div>
+            <div class="venue-item">5. <strong>Fear City Mic</strong> → 17 Essex St, New York, NY 10002</div>
+        </div>
+
+        <button id="geocode-btn">Geocode These 5 Venues</button>
+        <div id="status"></div>
+        <div id="results" class="results" style="display: none;"></div>
+    </div>
+
+    <script src="js/venue-addresses.js"></script>
+    <script src="js/geocoding.js"></script>
+
+    <script>
+        const newVenues = [
+            { name: 'The Grisly Pear - Midtown', neighborhood: 'Greenwich Village', borough: 'Manhattan' },
+            { name: 'Second City Mic', neighborhood: 'Williamsburg', borough: 'Brooklyn' },
+            { name: 'loose lips mic', neighborhood: 'Williamsburg', borough: 'Brooklyn' },
+            { name: 'Comedy Shop', neighborhood: 'Greenwich Village', borough: 'Manhattan' },
+            { name: 'Fear City Mic', neighborhood: 'Lower East Side', borough: 'Manhattan' }
+        ];
+
+        document.getElementById('geocode-btn').addEventListener('click', async () => {
+            const btn = document.getElementById('geocode-btn');
+            const statusDiv = document.getElementById('status');
+            const resultsDiv = document.getElementById('results');
+
+            btn.disabled = true;
+            btn.textContent = 'Geocoding...';
+            statusDiv.className = 'status info';
+            statusDiv.textContent = 'Starting geocoding process...';
+            statusDiv.style.display = 'block';
+            resultsDiv.style.display = 'block';
+            resultsDiv.textContent = '';
+
+            try {
+                const results = await GeocodingService.geocodeBatch(newVenues);
+
+                const successful = results.filter(r => r.success);
+                const failed = results.filter(r => !r.success);
+
+                let output = '🎤 NEW VENUE COORDINATES\n';
+                output += '='.repeat(80) + '\n\n';
+                output += `✅ Successful: ${successful.length}\n`;
+                output += `❌ Failed: ${failed.length}\n\n`;
+
+                if (failed.length > 0) {
+                    output += 'Failed venues:\n';
+                    failed.forEach(f => {
+                        output += `  - ${f.name}: ${f.error}\n`;
+                    });
+                    output += '\n';
+                }
+
+                output += 'COORDINATES TO ADD TO YOUR API/DATABASE:\n';
+                output += '='.repeat(80) + '\n\n';
+
+                successful.forEach(venue => {
+                    output += `Venue: ${venue.name}\n`;
+                    output += `Address: ${venue.display_name}\n`;
+                    output += `Latitude: ${venue.lat}\n`;
+                    output += `Longitude: ${venue.lon}\n`;
+                    output += `\n`;
+                });
+
+                output += '\n' + '='.repeat(80) + '\n';
+                output += 'JSON FORMAT (for API):\n';
+                output += '='.repeat(80) + '\n\n';
+
+                output += '[\n';
+                successful.forEach((venue, index) => {
+                    output += '  {\n';
+                    output += `    "name": "${venue.name}",\n`;
+                    output += `    "lat": ${venue.lat},\n`;
+                    output += `    "lon": ${venue.lon}\n`;
+                    output += '  }' + (index < successful.length - 1 ? ',' : '') + '\n';
+                });
+                output += ']\n';
+
+                resultsDiv.textContent = output;
+
+                statusDiv.className = 'status success';
+                statusDiv.textContent = `✅ Done! Successfully geocoded ${successful.length} venues. Copy the coordinates above to your API/database.`;
+
+            } catch (error) {
+                statusDiv.className = 'status error';
+                statusDiv.textContent = `❌ Error: ${error.message}`;
+                resultsDiv.textContent = `Error: ${error.message}`;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Geocode These 5 Venues';
+            }
+        });
+    </script>
+</body>
+</html>
