@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MicFinder - Chrono Swiss</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+        :root {
+            --swiss-red: #ff3300;
+            --deep-void: #09090b;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--deep-void);
+            overflow: hidden;
+            color: white;
+        }
+
+        .font-mono { font-family: 'Space Mono', monospace; }
+        .font-display { font-family: 'Space Grotesk', sans-serif; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Map Deep Space Bright - Max brightness filter for glowing effect */
+        .leaflet-layer {
+            filter: invert(100%) hue-rotate(180deg) brightness(2.5) saturate(1.2) contrast(1.3);
+        }
+        .leaflet-container { background: #000; }
+
+        /* --- GLASS PANEL --- */
+        .glass-panel {
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.9);
+        }
+
+        /* --- STICKY TIME HEADER (from D) --- */
+        .time-header {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(5, 5, 5, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 8px 20px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* --- THE "NOW" LASER (from D) --- */
+        .now-line-container {
+            position: relative;
+            width: 100%;
+            height: 2px;
+            margin: 8px 0;
+            display: flex;
+            align-items: center;
+        }
+        .now-line {
+            height: 1px;
+            width: 100%;
+            background: var(--swiss-red);
+            box-shadow: 0 0 10px var(--swiss-red);
+        }
+        .now-badge {
+            background: var(--swiss-red);
+            color: black;
+            font-size: 9px;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 99px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            box-shadow: 0 0 12px var(--swiss-red);
+            white-space: nowrap;
+        }
+        .now-line-container .now-badge {
+            position: absolute;
+            left: 20px;
+        }
+
+        /* SOON badge */
+        .soon-badge {
+            background: #fbbf24;
+            color: black;
+            font-size: 9px;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 99px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            box-shadow: 0 0 12px rgba(251, 191, 36, 0.5);
+            white-space: nowrap;
+        }
+
+        /* Pulsing time for urgent mics */
+        .time-pulse {
+            animation: timePulse 2s ease-in-out infinite;
+        }
+        @keyframes timePulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* --- STREAM ITEM (D's grid layout + C's hover) --- */
+        .stream-item {
+            display: grid;
+            grid-template-columns: 4.5rem 1fr auto;
+            gap: 12px;
+            padding: 14px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        /* Kinetic Hover: Slide & Invert (from C) */
+        .stream-item:hover {
+            background: #ffffff;
+            color: #000000;
+            padding-left: 2rem !important;
+        }
+
+        /* The sliding accent bar (from C) */
+        .stream-accent-bar {
+            position: absolute;
+            left: 0; top: 0; bottom: 0; width: 6px;
+            transform: translateX(-100%);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 20;
+        }
+        .stream-item:hover .stream-accent-bar {
+            transform: translateX(0);
+        }
+
+        /* Text Color Inversion on Hover */
+        .stream-item:hover h3,
+        .stream-item:hover .time-display { color: #000000 !important; }
+        .stream-item:hover .sub-text { color: #52525b !important; }
+        .stream-item:hover .tag-text { color: #000000 !important; border-color: #000000 !important; }
+        .stream-item:hover .status-dot { border-color: #000000 !important; }
+
+        /* Travel Connector (from D) */
+        .travel-connector {
+            position: absolute;
+            left: 2.25rem;
+            bottom: -14px;
+            top: 60%;
+            width: 1px;
+            background: rgba(255,255,255,0.1);
+            z-index: 0;
+        }
+        .stream-item:last-child .travel-connector { display: none; }
+        .stream-item:hover .travel-connector { background: rgba(0,0,0,0.2); }
+
+        /* Status Dot */
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+        }
+        .status-live { background: var(--swiss-red); box-shadow: 0 0 8px var(--swiss-red); animation: pulse 2s infinite; }
+        .status-soon { background: #fbbf24; }
+        .status-future { background: #52525b; }
+
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+        /* Past events fade (from D) */
+        .is-past {
+            opacity: 0.4;
+            filter: grayscale(0.5);
+        }
+        .is-past:hover {
+            opacity: 1;
+            filter: grayscale(0);
+        }
+
+        /* Capsule Buttons */
+        .capsule-btn { transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+        .capsule-btn.active {
+            background: var(--swiss-red);
+            color: white;
+            font-weight: 700;
+        }
+        .capsule-btn:not(.active) { color: #71717a; }
+        .capsule-btn:not(.active):hover { color: white; background: rgba(255,255,255,0.08); }
+
+        /* Drawer Transition */
+        #list-drawer { transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+
+        /* Pin Pulse - Subtle Glow */
+        @keyframes pulse-glow {
+            0%, 100% { filter: drop-shadow(0 0 2px currentColor); }
+            50% { filter: drop-shadow(0 0 8px currentColor) drop-shadow(0 0 12px currentColor); }
+        }
+        .pin-pulse {
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="h-screen w-screen relative selection:bg-[#ff3300] selection:text-white">
+
+    <!-- MAP LAYER -->
+    <div id="map" class="absolute inset-0 z-0 bg-[#09090b]"></div>
+
+    <!-- SEARCH THIS AREA BUTTON (appears on map pan/zoom) -->
+    <div id="search-area-btn" class="fixed top-20 left-1/2 -translate-x-1/2 z-[500] opacity-0 pointer-events-none transition-all duration-300 translate-y-2">
+        <button onclick="searchThisArea()" class="glass-panel px-4 py-2 rounded-full flex items-center gap-2 hover:bg-white/10 active:scale-95 transition-all">
+            <svg class="w-4 h-4 text-[#ff3300]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+            <span class="text-sm font-medium text-white">Search this area</span>
+        </button>
+    </div>
+
+    <!-- COMMAND BAR -->
+    <div class="absolute top-4 left-3 right-3 md:left-4 md:w-[400px] z-[1000] flex flex-col pointer-events-none">
+        <div class="glass-panel h-[56px] rounded-full flex items-center p-1.5 pointer-events-auto relative z-20">
+            <!-- Search -->
+            <div class="flex-1 flex items-center h-full pl-4 pr-2 group cursor-text" onclick="document.getElementById('search-input').focus()">
+                <svg class="w-4 h-4 text-neutral-500 group-focus-within:text-[#ff3300] transition-colors shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <input type="text" id="search-input" placeholder="Search grid..." class="w-full bg-transparent border-none text-sm text-white placeholder-neutral-600 ml-2 font-medium h-full focus:outline-none focus:ring-0">
+            </div>
+            <!-- Toggle -->
+            <div class="flex items-center bg-black/40 rounded-full p-1 border border-white/5 shrink-0">
+                <button onclick="setMode('today')" id="btn-today" class="capsule-btn active px-3 py-1.5 rounded-full text-[10px] uppercase tracking-wider leading-none">Today</button>
+                <button onclick="setMode('tomorrow')" id="btn-tomorrow" class="capsule-btn px-3 py-1.5 rounded-full text-[10px] uppercase tracking-wider leading-none">Tmrw</button>
+                <button onclick="setMode('calendar')" id="btn-calendar" class="capsule-btn w-7 h-7 flex items-center justify-center rounded-full">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                </button>
+            </div>
+            <!-- Divider -->
+            <div class="w-[1px] h-5 bg-white/10 mx-2"></div>
+            <!-- Drawer Btn -->
+            <button onclick="toggleDrawer()" id="drawer-btn" class="w-10 h-10 rounded-full hover:bg-white/10 flex items-center justify-center text-neutral-400 hover:text-white transition-all active:scale-90">
+                <svg id="chevron-icon" class="w-5 h-5 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- LIST DRAWER -->
+    <div id="list-drawer" class="glass-panel rounded-3xl overflow-hidden flex flex-col pointer-events-auto
+        fixed bottom-4 left-3 right-3 z-[900] max-h-0 opacity-0
+        md:absolute md:top-[76px] md:left-4 md:right-auto md:w-[400px] md:bottom-auto md:z-[1000]">
+
+        <!-- HEADER -->
+        <div class="bg-[#050505]/95 backdrop-blur-md shrink-0 sticky top-0 z-30 px-5 py-3 flex justify-between items-center">
+            <h2 class="text-base font-bold text-white font-display" id="header-title">Mics for Today</h2>
+            <span class="text-xl font-bold font-mono text-[#ff3300]" id="clock-display">00:00</span>
+        </div>
+
+        <!-- CONTENT LIST -->
+        <div id="list-content" class="overflow-y-auto no-scrollbar max-h-[50vh] md:max-h-[80vh] scroll-smooth bg-transparent">
+            <!-- CARDS INJECTED HERE -->
+        </div>
+    </div>
+
+    <!-- DATE CAROUSEL -->
+    <div id="date-carousel" class="fixed bottom-0 left-0 right-0 z-[1100] p-4 pointer-events-none transform translate-y-full transition-transform duration-300">
+        <div class="glass-panel mx-auto rounded-xl py-3 px-3 w-full md:max-w-xl pointer-events-auto">
+            <div id="cal-grid" class="flex justify-start overflow-x-auto gap-2 no-scrollbar">
+                <!-- Date Capsules Injected Here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --------------------------------------------------------
+        // 1. DATA GENERATION
+        // --------------------------------------------------------
+        const venues = ["Village Underground", "Comedy Cellar", "The Stand", "Grisly Pear", "Tiny Cupboard", "QED Astoria", "Grove 34", "Eastville", "West Side Comedy", "Gotham Club"];
+        const hoods = ["Greenwich Vlg", "MacDougal St", "Union Square", "Bushwick", "Astoria", "Midtown", "Chelsea", "LES"];
+        const mics = [];
+        const now = new Date();
+
+        // Live Clock
+        function updateClock() {
+            const d = new Date();
+            const h = d.getHours().toString().padStart(2, '0');
+            const m = d.getMinutes().toString().padStart(2, '0');
+            document.getElementById('clock-display').innerText = `${h}:${m}`;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        function addDays(date, days) { const r = new Date(date); r.setDate(r.getDate() + days); return r; }
+
+        for (let i = 0; i < 7; i++) {
+            const dayBase = addDays(now, i);
+            const numMics = 5 + Math.floor(Math.random() * 5);
+
+            for(let j=0; j<numMics; j++) {
+                let micDate = new Date(dayBase);
+
+                // For today, create some mics around current time for demo
+                if (i === 0 && j < 4) {
+                    // Demo mics: live (-30min), urgent (30min), urgent (45min), soon (90min)
+                    const offsets = [-30, 30, 45, 90];
+                    micDate = new Date(now.getTime() + offsets[j] * 60000);
+                } else {
+                    const hour = 17 + Math.floor(Math.random() * 9);
+                    micDate.setHours(hour, (Math.random() > 0.5 ? 0 : 30), 0, 0);
+                    if (micDate < now) { micDate.setDate(micDate.getDate() + 7); }
+                }
+
+                const diffMins = (micDate - now) / 60000;
+
+                // Status logic
+                let status = 'future';
+                if (diffMins > -90 && diffMins <= 0) status = 'live';       // Currently happening
+                else if (diffMins > 0 && diffMins <= 60) status = 'urgent'; // <1 hour: RED
+                else if (diffMins > 60 && diffMins <= 120) status = 'soon'; // 1-2 hours: AMBER
+
+                const setTimes = ["3min", "5min", "5min", "7min"]; // weighted toward 5min
+                mics.push({
+                    id: `${i}-${j}`,
+                    title: venues[Math.floor(Math.random() * venues.length)],
+                    start: micDate,
+                    timeStr: micDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: false}),
+                    lat: 40.73 + (Math.random() * 0.08 - 0.04),
+                    lng: -73.99 + (Math.random() * 0.08 - 0.04),
+                    price: Math.random() > 0.6 ? "$5" : "Free",
+                    hood: hoods[Math.floor(Math.random() * hoods.length)],
+                    type: Math.random() > 0.5 ? "Bucket" : "Lottery",
+                    setTime: setTimes[Math.floor(Math.random() * setTimes.length)],
+                    status: status
+                });
+            }
+        }
+        mics.sort((a,b) => a.start - b.start);
+
+        // --------------------------------------------------------
+        // 2. MAP SETUP
+        // --------------------------------------------------------
+        const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([40.735, -73.99], 13);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 20, subdomains: 'abcd' }).addTo(map);
+        const markersGroup = L.layerGroup().addTo(map);
+
+        const createPin = (status) => {
+            const color = status === 'urgent' ? '#ff3300' : (status === 'soon' ? '#fbbf24' : '#ffffff');
+            const isPulse = status === 'urgent' || status === 'soon';
+            return L.divIcon({
+                className: 'bg-transparent',
+                html: `<div class="relative flex items-center justify-center w-6 h-6 ${isPulse ? 'pin-pulse' : ''}">
+                        <div class="relative w-3 h-3 bg-[${color}] border border-black shadow-xl transform rotate-45"></div>
+                       </div>`
+            });
+        };
+
+        // --------------------------------------------------------
+        // 3. UI RENDERING (HYBRID)
+        // --------------------------------------------------------
+        let currentMode = 'today';
+        let isDrawerOpen = false;
+        let selectedCalendarDate = now.toDateString();
+        let filterByMapBounds = false;
+
+        function render(mode) {
+            const container = document.getElementById('list-content');
+            const searchVal = document.getElementById('search-input').value.toLowerCase();
+
+            markersGroup.clearLayers();
+            container.innerHTML = '';
+
+            let filtered = mics.filter(m => {
+                const micDateStr = m.start.toDateString();
+                const todayStr = now.toDateString();
+                const tmrwStr = addDays(now, 1).toDateString();
+                const diffMins = (m.start - now) / 60000;
+
+                // Deep past (>1 hour ago): REMOVE from DOM
+                if (diffMins < -60) return false;
+
+                if (mode === 'today' && micDateStr !== todayStr) return false;
+                if (mode === 'tomorrow' && micDateStr !== tmrwStr) return false;
+                if (mode === 'calendar' && micDateStr !== selectedCalendarDate) return false;
+                if (searchVal && !m.title.toLowerCase().includes(searchVal) && !m.hood.toLowerCase().includes(searchVal)) return false;
+
+                // Filter by map bounds if enabled
+                if (filterByMapBounds) {
+                    const bounds = map.getBounds();
+                    if (!bounds.contains([m.lat, m.lng])) return false;
+                }
+                return true;
+            });
+
+            // Update header title
+            const headerTitle = document.getElementById('header-title');
+            if (mode === 'today') headerTitle.innerText = `Mics for Today (${filtered.length})`;
+            else if (mode === 'tomorrow') headerTitle.innerText = `Mics for Tomorrow (${filtered.length})`;
+            else headerTitle.innerText = `Mics (${filtered.length})`;
+
+            // Render Markers
+            filtered.forEach(mic => {
+                L.marker([mic.lat, mic.lng], {
+                    icon: createPin(mic.status),
+                    zIndexOffset: mic.status === 'urgent' ? 1000 : (mic.status === 'soon' ? 500 : 100)
+                }).addTo(markersGroup).on('click', () => {
+                    if(!isDrawerOpen) toggleDrawer(true);
+                    document.getElementById(`card-${mic.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                });
+            });
+
+            if(filtered.length === 0) {
+                container.innerHTML = `<div class="text-center py-12 text-neutral-600 text-[10px] font-mono uppercase tracking-widest">No Signals Found</div>`;
+                return;
+            }
+
+            // Group by Hour with Sticky Headers
+            let currentHour = -1;
+
+            filtered.forEach(mic => {
+                const micHour = mic.start.getHours();
+                const diffMins = (mic.start - now) / 60000;
+                const isRecentPast = diffMins < 0 && diffMins >= -60; // Ghost mode: <1 hour ago
+
+                // --- STICKY HOUR HEADER ---
+                if (micHour !== currentHour) {
+                    currentHour = micHour;
+                    const header = document.createElement('div');
+                    header.className = 'time-header text-white/50 text-sm';
+                    header.innerHTML = `
+                        <span class="font-mono text-lg text-white">${micHour}:00</span>
+                        <div class="h-[1px] bg-white/10 flex-1"></div>
+                    `;
+                    container.appendChild(header);
+                }
+
+
+                // --- STREAM ITEM (D's grid layout + C's hover) ---
+                // live = happening now (white), urgent = <1hr (red), soon = 1-2hr (amber), future = >2hr (white)
+                const accentColor = mic.status === 'urgent' ? '#ff3300' : (mic.status === 'soon' ? '#fbbf24' : '#ffffff');
+                const timeColor = mic.status === 'urgent' ? 'text-[#ff3300]' : (mic.status === 'soon' ? 'text-amber-400' : 'text-neutral-400');
+                const shouldPulse = mic.status === 'urgent' || mic.status === 'soon';
+
+
+                const card = document.createElement('div');
+                card.id = `card-${mic.id}`;
+                card.onclick = () => locateMic(mic.lat, mic.lng, mic.id);
+
+                card.className = `stream-item group ${isRecentPast ? 'is-past' : ''}`;
+
+                card.innerHTML = `
+                    <!-- Sliding Accent Bar (from C) -->
+                    <div class="stream-accent-bar" style="background-color: ${accentColor}"></div>
+
+                    <!-- Travel Connector (from D) -->
+                    <div class="travel-connector"></div>
+
+                    <!-- LEFT: Time + Set Length -->
+                    <div class="flex flex-col items-center pt-1 relative z-10">
+                        <span class="time-display font-mono font-bold text-lg ${timeColor} ${shouldPulse ? 'time-pulse' : ''} transition-colors">${mic.timeStr}</span>
+                        <span class="sub-text text-[10px] text-neutral-500 font-mono mt-0.5 transition-colors">${mic.setTime}</span>
+                    </div>
+
+                    <!-- MIDDLE: Details -->
+                    <div class="flex flex-col justify-center relative z-10">
+                        <h3 class="font-bold text-base leading-tight text-white transition-colors font-display group-hover:text-black">${mic.title}</h3>
+                        <div class="flex items-center gap-2 mt-1 text-[10px] text-neutral-500 font-mono uppercase tracking-wide">
+                            <span class="sub-text">${mic.hood}</span>
+                            <span class="w-0.5 h-0.5 bg-neutral-600 rounded-full"></span>
+                            <span class="tag-text px-1 py-0.5 border border-white/20 rounded transition-colors">${mic.price}</span>
+                            <span class="tag-text px-1 py-0.5 border border-white/20 rounded transition-colors">${mic.type}</span>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT: Action -->
+                    <div class="flex items-center relative z-10">
+                        <div class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-neutral-500 group-hover:bg-[#ff3300] group-hover:text-black transition-all">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // --------------------------------------------------------
+        // 4. INTERACTIONS
+        // --------------------------------------------------------
+        // Calendar Functions
+        function showDateCarousel() { document.getElementById('date-carousel').style.transform = 'translateY(0)'; }
+        function hideDateCarousel() { document.getElementById('date-carousel').style.transform = 'translateY(100%)'; }
+
+        function updateDateCarouselHighlight(dateString) {
+            document.querySelectorAll('.date-capsule').forEach(cap => {
+                cap.classList.toggle('active-date', cap.dataset.date === dateString);
+            });
+        }
+
+        function selectDate(dateString) {
+            currentMode = 'calendar';
+            selectedCalendarDate = dateString;
+            filterByMapBounds = false;
+            hideSearchAreaButton();
+            hideDateCarousel();
+
+            document.querySelectorAll('.capsule-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('btn-calendar').classList.add('active');
+
+            if(!isDrawerOpen) toggleDrawer(true);
+
+            updateDateCarouselHighlight(dateString);
+            render('calendar');
+        }
+
+        function setMode(mode) {
+            document.querySelectorAll('.capsule-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`btn-${mode}`).classList.add('active');
+
+            // Reset map filter when changing modes
+            filterByMapBounds = false;
+            hideSearchAreaButton();
+
+            if (mode === 'calendar') {
+                toggleDrawer(false);
+                showDateCarousel();
+                currentMode = 'calendar';
+            } else {
+                hideDateCarousel();
+                currentMode = mode;
+                selectedCalendarDate = (mode === 'today') ? now.toDateString() : addDays(now, 1).toDateString();
+                render(mode);
+            }
+        }
+
+        function toggleDrawer(forceOpen) {
+            const drawer = document.getElementById('list-drawer');
+            const icon = document.getElementById('chevron-icon');
+            const btn = document.getElementById('drawer-btn');
+
+            isDrawerOpen = forceOpen !== undefined ? forceOpen : !isDrawerOpen;
+            const isDesktop = window.matchMedia('(min-width: 768px)').matches;
+
+            if(isDrawerOpen) {
+                if(currentMode === 'calendar') return;
+                drawer.style.maxHeight = isDesktop ? '85vh' : '55vh';
+                drawer.style.opacity = '1';
+                icon.style.transform = 'rotate(180deg)';
+                btn.classList.add('bg-white/10', 'text-white');
+            } else {
+                drawer.style.maxHeight = '0';
+                drawer.style.opacity = '0';
+                icon.style.transform = 'rotate(0deg)';
+                btn.classList.remove('bg-white/10', 'text-white');
+            }
+        }
+
+        function locateMic(lat, lng, id) {
+            map.flyTo([lat, lng], 15, { duration: 1.2, easeLinearity: 0.25 });
+        }
+
+        // Search this area button
+        function showSearchAreaButton() {
+            const btn = document.getElementById('search-area-btn');
+            btn.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-2');
+            btn.classList.add('opacity-100', 'pointer-events-auto', 'translate-y-0');
+        }
+
+        function hideSearchAreaButton() {
+            const btn = document.getElementById('search-area-btn');
+            btn.classList.add('opacity-0', 'pointer-events-none', 'translate-y-2');
+            btn.classList.remove('opacity-100', 'pointer-events-auto', 'translate-y-0');
+        }
+
+        function searchThisArea() {
+            filterByMapBounds = true;
+            render(currentMode);
+            hideSearchAreaButton();
+        }
+
+        // Show button when map moves
+        map.on('moveend', () => {
+            showSearchAreaButton();
+        });
+
+        function generateDateCarousel() {
+            const container = document.getElementById('cal-grid');
+            const days = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+
+            for(let i = 0; i < 7; i++) {
+                const date = addDays(now, i);
+                const dayStr = days[date.getDay()];
+                const dateNum = date.getDate();
+                const dateString = date.toDateString();
+
+                const capsule = document.createElement('div');
+                capsule.className = `date-capsule flex-shrink-0 w-14 h-16 rounded-xl transition-all cursor-pointer flex flex-col items-center justify-center text-center text-neutral-400 font-bold bg-black/40 hover:bg-white/10 active:scale-95
+                                     ${dateString === selectedCalendarDate ? 'active-date' : ''}`;
+                capsule.dataset.date = dateString;
+                capsule.onclick = () => selectDate(dateString);
+                capsule.innerHTML = `<span class="text-xs uppercase">${dayStr}</span><span class="text-2xl mt-0.5 leading-none text-white">${dateNum}</span>`;
+                container.appendChild(capsule);
+            }
+            // Add active date styles
+            const style = document.createElement('style');
+            style.innerHTML = `.date-capsule.active-date { background: var(--swiss-red); color: black !important; box-shadow: 0 0 15px rgba(255, 51, 0, 0.5); } .date-capsule.active-date span { color: black !important; }`;
+            document.head.appendChild(style);
+        }
+
+        document.getElementById('search-input').addEventListener('keyup', () => {
+            hideDateCarousel();
+            if(!isDrawerOpen) toggleDrawer(true);
+            render(currentMode);
+        });
+
+        // Initialize
+        generateDateCarousel();
+        render('today');
+        setTimeout(() => toggleDrawer(true), 500);
+    </script>
+</body>
+</html>
