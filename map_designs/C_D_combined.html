@@ -262,13 +262,23 @@
         md:absolute md:top-[76px] md:left-auto md:right-4 md:w-[400px] md:bottom-auto md:z-[1000]">
 
         <!-- HEADER -->
-        <div class="bg-[#050505]/95 backdrop-blur-md shrink-0 sticky top-0 z-30 px-5 py-3 flex justify-between items-center">
+        <div id="drawer-header" class="bg-[#050505]/95 backdrop-blur-md shrink-0 sticky top-0 z-30 px-5 py-3 flex justify-between items-center">
+            <!-- Drag Handle (mobile only) -->
+            <div class="absolute top-2 left-1/2 -translate-x-1/2 w-10 h-1 bg-white/30 rounded-full md:hidden"></div>
             <h2 class="text-base font-bold text-white font-display" id="header-title">Mics for Today</h2>
-            <span class="text-xl font-bold font-mono text-rose-500" id="clock-display">00:00</span>
+            <div class="flex items-center gap-3">
+                <span class="text-xl font-bold font-mono text-rose-500" id="clock-display">00:00</span>
+                <!-- Expand/Collapse Button (desktop only) -->
+                <button onclick="toggleExpand()" id="expand-btn" class="hidden md:flex w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 items-center justify-center transition-all">
+                    <svg id="expand-icon" class="w-4 h-4 text-white transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+                    </svg>
+                </button>
+            </div>
         </div>
 
         <!-- CONTENT LIST -->
-        <div id="list-content" class="overflow-y-auto no-scrollbar max-h-[50vh] md:max-h-[80vh] scroll-smooth bg-transparent">
+        <div id="list-content" class="overflow-y-auto no-scrollbar max-h-[65vh] md:max-h-[65vh] scroll-smooth bg-transparent">
             <!-- CARDS INJECTED HERE -->
         </div>
     </div>
@@ -561,7 +571,7 @@
 
             if(isDrawerOpen) {
                 if(currentMode === 'calendar') return;
-                drawer.style.maxHeight = isDesktop ? '85vh' : '55vh';
+                drawer.style.maxHeight = isDesktop ? '40vh' : '25vh';
                 drawer.style.opacity = '1';
                 icon.style.transform = 'rotate(180deg)';
                 btn.classList.add('bg-white/10', 'text-white');
@@ -572,6 +582,107 @@
                 btn.classList.remove('bg-white/10', 'text-white');
             }
         }
+
+        // Desktop expand/collapse button
+        let isDesktopExpanded = false;
+        function toggleExpand() {
+            const drawer = document.getElementById('list-drawer');
+            const icon = document.getElementById('expand-icon');
+
+            isDesktopExpanded = !isDesktopExpanded;
+
+            if (isDesktopExpanded) {
+                drawer.style.maxHeight = '70vh';
+                icon.style.transform = 'rotate(180deg)';
+            } else {
+                drawer.style.maxHeight = '40vh';
+                icon.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        // Mobile drag functionality
+        (function setupMobileDrag() {
+            const drawer = document.getElementById('list-drawer');
+            const header = document.getElementById('drawer-header');
+            const mapElement = document.getElementById('map');
+            let startY = 0;
+            let currentY = 0;
+            let isDragging = false;
+            let isExpanded = false;
+            const threshold = 80;
+            const collapsedHeight = '25vh';
+            const expandedHeight = '70vh';
+
+            function isMobile() {
+                return window.matchMedia('(max-width: 767px)').matches;
+            }
+
+            // Touch events on header
+            header.addEventListener('touchstart', (e) => {
+                if (!isMobile() || !isDrawerOpen) return;
+                startY = e.touches[0].clientY;
+                isDragging = true;
+                drawer.style.transition = 'none';
+            }, { passive: true });
+
+            header.addEventListener('touchmove', (e) => {
+                if (!isDragging || !isMobile()) return;
+                currentY = e.touches[0].clientY;
+                const deltaY = currentY - startY;
+                drawer.style.transform = `translateY(${deltaY}px)`;
+            }, { passive: true });
+
+            header.addEventListener('touchend', () => {
+                if (!isDragging || !isMobile()) return;
+                isDragging = false;
+                drawer.style.transition = 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)';
+                drawer.style.transform = 'translateY(0)';
+
+                const deltaY = currentY - startY;
+
+                if (deltaY > threshold) {
+                    if (isExpanded) {
+                        drawer.style.maxHeight = collapsedHeight;
+                        isExpanded = false;
+                    } else {
+                        toggleDrawer(false);
+                    }
+                } else if (deltaY < -threshold) {
+                    drawer.style.maxHeight = expandedHeight;
+                    isExpanded = true;
+                }
+            });
+
+            // Drag up from bottom of screen when drawer is closed
+            let mapStartY = 0;
+            let mapCurrentY = 0;
+            let isMapDragging = false;
+
+            mapElement.addEventListener('touchstart', (e) => {
+                if (!isMobile() || isDrawerOpen) return;
+                const touch = e.touches[0];
+                if (touch.clientY > window.innerHeight * 0.8) {
+                    mapStartY = touch.clientY;
+                    isMapDragging = true;
+                }
+            }, { passive: true });
+
+            mapElement.addEventListener('touchmove', (e) => {
+                if (!isMapDragging || !isMobile()) return;
+                mapCurrentY = e.touches[0].clientY;
+            }, { passive: true });
+
+            mapElement.addEventListener('touchend', () => {
+                if (!isMapDragging || !isMobile()) return;
+                isMapDragging = false;
+
+                const deltaY = mapCurrentY - mapStartY;
+                if (deltaY < -threshold) {
+                    toggleDrawer(true);
+                    isExpanded = false;
+                }
+            });
+        })();
 
         function locateMic(lat, lng, id) {
             map.flyTo([lat, lng], 15, { duration: 1.2, easeLinearity: 0.25 });
