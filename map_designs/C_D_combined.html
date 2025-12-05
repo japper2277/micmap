@@ -390,6 +390,33 @@
         .history-item-remove:hover {
             color: var(--rose);
         }
+
+        /* Mobile touch feedback */
+        .search-item:active, .history-item:active {
+            transform: scale(0.98);
+            opacity: 0.8;
+        }
+
+        /* Respect reduced motion preference */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* iOS rubber-banding fix */
+        #list-content { overscroll-behavior: contain; }
+
+        /* Safe area insets for iPhone X+ */
+        .glass-panel.rounded-full { padding-top: max(0.375rem, env(safe-area-inset-top)); }
+        #list-drawer { padding-bottom: env(safe-area-inset-bottom); }
+
+        /* Focus-visible styles for accessibility */
+        input:focus-visible, button:focus-visible {
+            outline: 2px solid rgba(251, 113, 133, 0.8);
+            outline-offset: 2px;
+        }
     </style>
 </head>
 <body class="h-screen w-screen relative selection:bg-rose-500 selection:text-white">
@@ -406,12 +433,12 @@
     </div>
 
     <!-- COMMAND BAR -->
-    <div class="absolute top-4 left-3 right-3 md:left-auto md:right-4 md:w-[400px] z-[1000] flex flex-col pointer-events-none">
+    <div class="absolute top-4 left-3 right-3 md:left-auto md:right-4 md:w-[400px] z-[1000] flex flex-col pointer-events-none" role="search">
         <div class="glass-panel h-[56px] rounded-full flex items-center p-1.5 pointer-events-auto relative z-20">
             <!-- Search -->
             <div class="flex-1 flex items-center h-full pl-4 pr-2 group cursor-text" onclick="document.getElementById('search-input').focus()">
-                <svg class="w-4 h-4 text-neutral-500 group-focus-within:text-rose-500 transition-colors shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                <input type="text" id="search-input" placeholder="Search venues..." autocomplete="off" maxlength="100" class="w-full bg-transparent border-none text-sm text-white placeholder-neutral-600 ml-2 font-medium h-full focus:outline-none focus:ring-0" style="font-size: 16px;">
+                <svg class="w-4 h-4 text-neutral-500 group-focus-within:text-rose-500 transition-colors shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <input type="text" id="search-input" placeholder="Search venues..." autocomplete="off" maxlength="100" aria-label="Search venues" class="w-full bg-transparent border-none text-sm text-white placeholder-neutral-600 ml-2 font-medium h-full focus:outline-none focus:ring-0" style="font-size: 16px;">
             </div>
             <!-- Toggle -->
             <div class="flex items-center bg-black/40 rounded-full p-1 border border-white/5 shrink-0">
@@ -430,7 +457,7 @@
         </div>
 
         <!-- AUTOCOMPLETE DROPDOWN -->
-        <div id="search-dropdown" class="rounded-2xl mt-2 pointer-events-auto hidden overflow-hidden z-[1001] bg-[#0a0a0a] border border-white/10 shadow-2xl">
+        <div id="search-dropdown" class="rounded-2xl mt-2 pointer-events-auto hidden overflow-hidden z-[1001] bg-[#0a0a0a] border border-white/10 shadow-2xl" role="listbox" aria-live="polite">
             <!-- Search History Section -->
             <div id="search-history-section" class="hidden">
                 <div class="flex justify-between items-center px-4 py-2 border-b border-white/10">
@@ -773,19 +800,19 @@
                         <!-- RIGHT: Link + Instagram -->
                         <div class="flex flex-col items-center justify-center gap-2 relative z-10">
                             ${mic.signupUrl
-                                ? `<a href="${mic.signupUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation();" class="w-7 h-7 rounded-full bg-white/10 hover:bg-rose-500 flex items-center justify-center transition-all group-hover:bg-black/20" title="Sign up">
-                                    <svg class="w-3.5 h-3.5 text-neutral-400 group-hover:text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                ? `<a href="${mic.signupUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation();" class="w-10 h-10 rounded-full bg-white/10 hover:bg-rose-500 flex items-center justify-center transition-all group-hover:bg-black/20" title="Sign up">
+                                    <svg class="w-4 h-4 text-neutral-400 group-hover:text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
                                     </svg>
                                 </a>`
-                                : `<button onclick="event.stopPropagation(); toggleSignupInfo('${mic.id}');" class="w-7 h-7 rounded-full bg-white/10 hover:bg-rose-500 flex items-center justify-center transition-all group-hover:bg-black/20" title="Signup info">
-                                    <svg class="w-3.5 h-3.5 text-neutral-400 group-hover:text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                : `<button onclick="event.stopPropagation(); toggleSignupInfo('${mic.id}');" class="w-10 h-10 rounded-full bg-white/10 hover:bg-rose-500 flex items-center justify-center transition-all group-hover:bg-black/20" title="Signup info">
+                                    <svg class="w-4 h-4 text-neutral-400 group-hover:text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                     </svg>
                                 </button>`
                             }
-                            ${mic.contact ? `<a href="https://instagram.com/${mic.contact.replace(/^@/, '')}" target="_blank" rel="noopener" onclick="event.stopPropagation();" class="w-7 h-7 rounded-full bg-white/10 hover:bg-rose-500 flex items-center justify-center transition-all group-hover:bg-black/20" title="@${mic.contact.replace(/^@/, '')}">
-                                <svg class="w-3.5 h-3.5 text-neutral-400 group-hover:text-black" fill="currentColor" viewBox="0 0 24 24">
+                            ${mic.contact ? `<a href="https://instagram.com/${mic.contact.replace(/^@/, '')}" target="_blank" rel="noopener" onclick="event.stopPropagation();" class="w-10 h-10 rounded-full bg-white/10 hover:bg-rose-500 flex items-center justify-center transition-all group-hover:bg-black/20" title="@${mic.contact.replace(/^@/, '')}">
+                                <svg class="w-4 h-4 text-neutral-400 group-hover:text-black" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
                                 </svg>
                             </a>` : ''}
@@ -946,6 +973,7 @@
             let currentY = 0;
             let isDragging = false;
             let isExpanded = false;
+            let rafId = null;
             const threshold = 80;
             const collapsedHeight = '25vh';
             const expandedHeight = '70vh';
@@ -960,18 +988,25 @@
                 startY = e.touches[0].clientY;
                 isDragging = true;
                 drawer.style.transition = 'none';
+                drawer.style.willChange = 'transform';
             }, { passive: true });
 
             header.addEventListener('touchmove', (e) => {
                 if (!isDragging || !isMobile()) return;
                 currentY = e.touches[0].clientY;
-                const deltaY = currentY - startY;
-                drawer.style.transform = `translateY(${deltaY}px)`;
+                // Use RAF to batch DOM updates for smooth 60fps
+                if (rafId) cancelAnimationFrame(rafId);
+                rafId = requestAnimationFrame(() => {
+                    const deltaY = currentY - startY;
+                    drawer.style.transform = `translateY(${deltaY}px)`;
+                });
             }, { passive: true });
 
             header.addEventListener('touchend', () => {
                 if (!isDragging || !isMobile()) return;
                 isDragging = false;
+                if (rafId) cancelAnimationFrame(rafId);
+                drawer.style.willChange = 'auto';
                 drawer.style.transition = 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)';
                 drawer.style.transform = 'translateY(0)';
 
@@ -1623,6 +1658,14 @@
                 dropdown.classList.contains('hidden')) {
                 showAllMicsDropdown();
             }
+        });
+
+        // Handle orientation change - recalculate drawer height
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => {
+                map.invalidateSize();
+                if (isDrawerOpen) toggleDrawer(true);
+            }, 100);
         });
 
         // Initialize
