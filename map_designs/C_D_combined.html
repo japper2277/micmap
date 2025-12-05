@@ -673,6 +673,27 @@
 
         function addDays(date, days) { const r = new Date(date); r.setDate(r.getDate() + days); return r; }
 
+        // Open directions in native Google Maps app
+        function openDirections(lat, lng) {
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            const isAndroid = /Android/.test(navigator.userAgent);
+
+            if (isIOS) {
+                // Try Google Maps app first, falls back to Apple Maps
+                window.location.href = `comgooglemaps://?daddr=${lat},${lng}&directionsmode=driving`;
+                // Fallback after short delay if app not installed
+                setTimeout(() => {
+                    window.location.href = `maps://maps.apple.com/?daddr=${lat},${lng}`;
+                }, 500);
+            } else if (isAndroid) {
+                // Android: use geo intent which opens in default maps app
+                window.location.href = `geo:${lat},${lng}?q=${lat},${lng}`;
+            } else {
+                // Desktop: open in new tab
+                window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, '_blank');
+            }
+        }
+
         // --------------------------------------------------------
         // 2. MAP SETUP
         // --------------------------------------------------------
@@ -831,10 +852,7 @@
                             ${firstMic.address}<br>
                             Open Mic: ${firstMic.day} @ ${timesStr}
                         </div>
-                        <a href="https://www.google.com/maps/dir/?api=1&destination=${firstMic.lat},${firstMic.lng}"
-                           target="_blank"
-                           rel="noopener"
-                           class="directions-btn">
+                        <a href="#" onclick="openDirections(${firstMic.lat}, ${firstMic.lng}); return false;" class="directions-btn">
                             <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
