@@ -1193,10 +1193,33 @@
             activeFilterDropdown = null;
         }
 
+        // Borough zoom coordinates
+        const boroughCoords = {
+            'Manhattan': { center: [40.7831, -73.9712], zoom: 13 },
+            'Brooklyn': { center: [40.6501, -73.9496], zoom: 12 },
+            'Queens': { center: [40.7282, -73.7949], zoom: 12 },
+            'Bronx': { center: [40.8448, -73.8648], zoom: 12 },
+            'Staten Island': { center: [40.5795, -74.1502], zoom: 12 },
+            'All': { center: [40.735, -73.99], zoom: 13 }
+        };
+
+        function zoomToBorough(borough) {
+            const coords = boroughCoords[borough];
+            if (coords) {
+                map.flyTo(coords.center, coords.zoom, { duration: 0.8 });
+            }
+        }
+
         function applyFilter(type, value) {
             activeFilters[type] = value;
             updateFilterPillUI(type, value);
             closeFilterDropdowns();
+
+            // Zoom to borough when borough filter is applied
+            if (type === 'borough') {
+                zoomToBorough(value);
+            }
+
             render(currentMode);
         }
 
