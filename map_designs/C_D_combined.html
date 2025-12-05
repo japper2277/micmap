@@ -501,10 +501,10 @@
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                 </button>
             </div>
-            <!-- Divider -->
-            <div class="w-[1px] h-5 bg-white/10 mx-2"></div>
-            <!-- Drawer Btn -->
-            <button onclick="toggleDrawer()" id="drawer-btn" class="w-10 h-10 rounded-full hover:bg-white/10 flex items-center justify-center text-neutral-400 hover:text-white transition-all active:scale-90">
+            <!-- Divider (hidden on mobile) -->
+            <div class="w-[1px] h-5 bg-white/10 mx-2 hidden md:block"></div>
+            <!-- Drawer Btn (hidden on mobile - use drag handle instead) -->
+            <button onclick="toggleDrawer()" id="drawer-btn" class="hidden md:flex w-10 h-10 rounded-full hover:bg-white/10 items-center justify-center text-neutral-400 hover:text-white transition-all active:scale-90">
                 <svg id="chevron-icon" class="w-5 h-5 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
             </button>
         </div>
@@ -570,8 +570,8 @@
 
         <!-- HEADER -->
         <div id="drawer-header" class="bg-[#050505]/95 backdrop-blur-md shrink-0 sticky top-0 z-30 px-5 py-3 flex justify-between items-center">
-            <!-- Drag Handle (mobile only) -->
-            <div class="absolute top-2 left-1/2 -translate-x-1/2 w-10 h-1 bg-white/30 rounded-full md:hidden"></div>
+            <!-- Drag Handle (mobile only) - tappable to toggle drawer -->
+            <div onclick="toggleDrawer()" class="absolute top-2 left-1/2 -translate-x-1/2 w-10 h-1 bg-white/30 rounded-full md:hidden cursor-pointer active:bg-white/50 transition-colors"></div>
             <h2 class="text-base font-bold text-white font-display" id="header-title">Mics for Today</h2>
             <span class="text-xl font-bold font-mono text-rose-500" id="clock-display">00:00</span>
         </div>
@@ -1045,7 +1045,7 @@
                     hideDateCarousel();
                     render('calendar'); // Render mics for selected calendar date
                 }
-                drawer.style.maxHeight = isDesktop ? 'calc(100 * var(--vh) - 136px)' : 'calc(25 * var(--vh))';
+                drawer.style.maxHeight = isDesktop ? 'calc(100 * var(--vh) - 136px)' : 'calc(50 * var(--vh))';
                 drawer.style.opacity = '1';
                 icon.style.transform = 'rotate(180deg)';
                 btn.classList.add('bg-white/10', 'text-white');
@@ -1057,33 +1057,23 @@
             }
         }
 
-        // Mobile drag functionality
+        // Mobile drag functionality - simplified: swipe down to close only
         (function setupMobileDrag() {
             const drawer = document.getElementById('list-drawer');
             const header = document.getElementById('drawer-header');
-            const mapElement = document.getElementById('map');
             let startY = 0;
             let currentY = 0;
             let isDragging = false;
-            let isExpanded = false;
             let rafId = null;
             const threshold = 80;
-            const collapsedHeight = 'calc(25 * var(--vh))';
-            const expandedHeight = 'calc(70 * var(--vh))';
 
             function isMobile() {
                 return window.matchMedia('(max-width: 767px)').matches;
             }
 
-            // Touch events on header
             header.addEventListener('touchstart', (e) => {
                 if (!isMobile() || !isDrawerOpen) return;
-
-                // Don't start drag if touching an interactive element
-                const target = e.target;
-                if (target.closest('button') || target.closest('a') || target.closest('input')) {
-                    return;
-                }
+                if (e.target.closest('button') || e.target.closest('a') || e.target.closest('input')) return;
 
                 startY = e.touches[0].clientY;
                 isDragging = true;
@@ -1094,10 +1084,9 @@
             header.addEventListener('touchmove', (e) => {
                 if (!isDragging || !isMobile()) return;
                 currentY = e.touches[0].clientY;
-                // Use RAF to batch DOM updates for smooth 60fps
                 if (rafId) cancelAnimationFrame(rafId);
                 rafId = requestAnimationFrame(() => {
-                    const deltaY = currentY - startY;
+                    const deltaY = Math.max(0, currentY - startY); // Only allow downward drag
                     drawer.style.transform = `translateY(${deltaY}px)`;
                 });
             }, { passive: true });
@@ -1111,47 +1100,8 @@
                 drawer.style.transform = 'translateY(0)';
 
                 const deltaY = currentY - startY;
-
                 if (deltaY > threshold) {
-                    if (isExpanded) {
-                        drawer.style.maxHeight = collapsedHeight;
-                        isExpanded = false;
-                    } else {
-                        toggleDrawer(false);
-                    }
-                } else if (deltaY < -threshold) {
-                    drawer.style.maxHeight = expandedHeight;
-                    isExpanded = true;
-                }
-            });
-
-            // Drag up from bottom of screen when drawer is closed
-            let mapStartY = 0;
-            let mapCurrentY = 0;
-            let isMapDragging = false;
-
-            mapElement.addEventListener('touchstart', (e) => {
-                if (!isMobile() || isDrawerOpen) return;
-                const touch = e.touches[0];
-                if (touch.clientY > window.innerHeight * 0.8) {
-                    mapStartY = touch.clientY;
-                    isMapDragging = true;
-                }
-            }, { passive: true });
-
-            mapElement.addEventListener('touchmove', (e) => {
-                if (!isMapDragging || !isMobile()) return;
-                mapCurrentY = e.touches[0].clientY;
-            }, { passive: true });
-
-            mapElement.addEventListener('touchend', () => {
-                if (!isMapDragging || !isMobile()) return;
-                isMapDragging = false;
-
-                const deltaY = mapCurrentY - mapStartY;
-                if (deltaY < -threshold) {
-                    toggleDrawer(true);
-                    isExpanded = false;
+                    toggleDrawer(false); // Close drawer
                 }
             });
         })();
