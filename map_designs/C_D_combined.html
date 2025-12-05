@@ -547,7 +547,6 @@
                     <button class="filter-option" onclick="event.stopPropagation(); applyFilter('borough', 'Brooklyn')">Brooklyn</button>
                     <button class="filter-option" onclick="event.stopPropagation(); applyFilter('borough', 'Queens')">Queens</button>
                     <button class="filter-option" onclick="event.stopPropagation(); applyFilter('borough', 'Bronx')">Bronx</button>
-                    <button class="filter-option" onclick="event.stopPropagation(); applyFilter('borough', 'Staten Island')">Staten Island</button>
                 </div>
             </div>
 
@@ -1232,13 +1231,9 @@
         };
 
         function zoomToBorough(borough) {
-            // Check if borough has mics
-            if (borough === 'Staten Island') {
-                alert('No open mics found in Staten Island');
-                return;
-            }
+            // For Bronx, zoom directly to the one mic at iNINE Bistro
             if (borough === 'Bronx') {
-                alert('Only 1 open mic found in Bronx');
+                map.flyTo([40.8067535, -73.9266818], 16, { duration: 0.8 });
                 return;
             }
 
@@ -1282,7 +1277,7 @@
 
             // Labels for display
             const labels = {
-                borough: { All: 'Borough', Manhattan: 'Manhattan', Brooklyn: 'Brooklyn', Queens: 'Queens', Bronx: 'Bronx', 'Staten Island': 'S.I.' },
+                borough: { All: 'Borough', Manhattan: 'Manhattan', Brooklyn: 'Brooklyn', Queens: 'Queens', Bronx: 'Bronx' },
                 price: { All: 'Price', Free: 'Free', Paid: '< $5' },
                 time: { All: 'Time', early: '< 5pm', late: '5pm+' }
             };
