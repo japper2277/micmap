@@ -824,8 +824,27 @@
                     className: 'mic-tooltip',
                     interactive: false
                 })
-                .on('click', () => {
-                    window.open(`https://www.google.com/maps/dir/?api=1&destination=${firstMic.lat},${firstMic.lng}`, '_blank');
+                .bindPopup(`
+                    <div style="text-align: left; min-width: 200px;">
+                        <div style="font-weight: 700; font-size: 16px; margin-bottom: 8px;">${firstMic.title}</div>
+                        <div style="font-size: 13px; color: #a1a1aa; line-height: 1.5; margin-bottom: 12px;">
+                            ${firstMic.address}<br>
+                            Open Mic: ${firstMic.day} @ ${timesStr}
+                        </div>
+                        <a href="https://www.google.com/maps/dir/?api=1&destination=${firstMic.lat},${firstMic.lng}"
+                           target="_blank"
+                           rel="noopener"
+                           class="directions-btn">
+                            <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                            Get Directions
+                        </a>
+                    </div>
+                `, {
+                    className: 'mic-popup-container',
+                    closeButton: true
                 });
 
                 // Store marker reference for each mic at this venue
