@@ -1214,32 +1214,34 @@
         // Borough bounds - automatically fit all mics in view
         const boroughBounds = {
             'Manhattan': [
-                [40.6851, -74.0349],
-                [40.9462, -73.7743]
+                [40.7033, -74.0154],
+                [40.8778, -73.9072]
             ],
             'Brooklyn': [
-                [40.6512, -74.0076],
-                [40.7321, -73.8943]
+                [40.5710, -74.0292],
+                [40.7348, -73.8706]
             ],
             'Queens': [
-                [40.6915, -73.9371],
-                [40.7865, -73.9006]
-            ],
-            'Bronx': [
-                [40.8068, -73.9267],
-                [40.8068, -73.9267]
-            ],
-            'Staten Island': [
-                [40.5250, -74.2500],
-                [40.6000, -74.0500]
+                [40.6772, -73.9579],
+                [40.7931, -73.8263]
             ],
             'All': [
-                [40.6350, -74.0249],
-                [40.9416, -73.7844]
+                [40.5710, -74.0292],
+                [40.8778, -73.8263]
             ]
         };
 
         function zoomToBorough(borough) {
+            // Check if borough has mics
+            if (borough === 'Staten Island') {
+                alert('No open mics found in Staten Island');
+                return;
+            }
+            if (borough === 'Bronx') {
+                alert('Only 1 open mic found in Bronx');
+                return;
+            }
+
             const bounds = boroughBounds[borough];
             if (bounds) {
                 map.fitBounds(bounds, { padding: [50, 50], duration: 0.8 });
