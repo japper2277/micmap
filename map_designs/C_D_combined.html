@@ -1213,20 +1213,20 @@
         // Borough bounds - automatically fit all mics in view
         const boroughBounds = {
             'Manhattan': [
-                [40.7033, -74.0154],
-                [40.8778, -73.9072]
+                [40.6992, -74.0209],
+                [40.9321, -73.7884]
             ],
             'Brooklyn': [
-                [40.5710, -74.0292],
-                [40.7348, -73.8706]
+                [40.6556, -74.0015],
+                [40.7277, -73.9004]
             ],
             'Queens': [
-                [40.6772, -73.9579],
-                [40.7931, -73.8263]
+                [40.6966, -73.9352],
+                [40.7814, -73.9026]
             ],
             'All': [
-                [40.5710, -74.0292],
-                [40.8778, -73.8263]
+                [40.6478, -74.0149],
+                [40.9289, -73.7944]
             ]
         };
 
@@ -1239,7 +1239,7 @@
 
             const bounds = boroughBounds[borough];
             if (bounds) {
-                map.fitBounds(bounds, { padding: [50, 50], duration: 0.8 });
+                map.fitBounds(bounds, { padding: [20, 20], duration: 0.8 });
             }
         }
 
