@@ -20,6 +20,12 @@
             --blue: #3b82f6;
             --blue-muted: #52525b;
             --deep-void: #09090b;
+            --vh: 1vh; /* Fallback for older browsers */
+        }
+
+        /* iOS Safari dynamic viewport fix */
+        @supports (height: 100dvh) {
+            :root { --vh: 1dvh; }
         }
 
         body {
@@ -64,53 +70,6 @@
             gap: 12px;
         }
 
-        /* --- THE "NOW" LASER (from D) --- */
-        .now-line-container {
-            position: relative;
-            width: 100%;
-            height: 2px;
-            margin: 8px 0;
-            display: flex;
-            align-items: center;
-        }
-        .now-line {
-            height: 1px;
-            width: 100%;
-            background: var(--rose);
-            box-shadow: 0 0 10px var(--rose);
-        }
-        .now-badge {
-            background: var(--rose);
-            color: white;
-            font-size: 9px;
-            font-weight: 800;
-            padding: 3px 8px;
-            border-radius: 99px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            box-shadow: 0 0 12px var(--rose-glow);
-            white-space: nowrap;
-        }
-        .now-line-container .now-badge {
-            position: absolute;
-            left: 20px;
-        }
-
-        /* SOON badge */
-        .soon-badge {
-            background: var(--amber);
-            color: black;
-            font-size: 9px;
-            font-weight: 800;
-            padding: 3px 8px;
-            border-radius: 99px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            box-shadow: 0 0 12px var(--amber-glow);
-            white-space: nowrap;
-        }
-
-
         /* --- STREAM ITEM (D's grid layout + C's hover) --- */
         .stream-item {
             display: grid;
@@ -130,6 +89,11 @@
             background: #ffffff;
             color: #000000;
             padding-left: 2rem !important;
+        }
+
+        /* Touch feedback for mobile */
+        .stream-item:active {
+            background: rgba(255, 255, 255, 0.1);
         }
 
         /* Disable hover effect when signup info is expanded */
@@ -156,7 +120,6 @@
         .stream-item:hover .time-display { color: #000000 !important; }
         .stream-item:hover .sub-text { color: #52525b !important; }
         .stream-item:hover .tag-text { color: #000000 !important; border-color: #000000 !important; }
-        .stream-item:hover .status-dot { border-color: #000000 !important; }
 
         /* Travel Connector (from D) */
         .travel-connector {
@@ -171,18 +134,12 @@
         .stream-item:last-child .travel-connector { display: none; }
         .stream-item:hover .travel-connector { background: rgba(0,0,0,0.2); }
 
-        /* Status Dot */
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            border: 2px solid transparent;
+        /* Touch feedback for stream item buttons */
+        .stream-item button:active,
+        .stream-item a:active {
+            transform: scale(0.9);
+            opacity: 0.8;
         }
-        .status-live { background: var(--rose); box-shadow: 0 0 8px var(--rose-glow); animation: pulse 2s infinite; }
-        .status-soon { background: var(--amber); box-shadow: 0 0 8px var(--amber-glow); }
-        .status-future { background: var(--blue-muted); }
-
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 
         /* Past events fade (from D) */
         .is-past {
@@ -203,6 +160,7 @@
         }
         .capsule-btn:not(.active) { color: #71717a; }
         .capsule-btn:not(.active):hover { color: white; background: rgba(255,255,255,0.08); }
+        .capsule-btn:active { transform: scale(0.95); }
 
         /* Drawer Transition */
         #list-drawer { transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
@@ -405,8 +363,14 @@
             }
         }
 
-        /* iOS rubber-banding fix */
-        #list-content { overscroll-behavior: contain; }
+        /* iOS rubber-banding fix + dynamic viewport height */
+        #list-content {
+            overscroll-behavior: contain;
+            max-height: calc(65 * var(--vh));
+        }
+        @media (min-width: 768px) {
+            #list-content { max-height: calc(100 * var(--vh) - 200px); }
+        }
 
         /* Safe area insets for iPhone X+ */
         .glass-panel.rounded-full { padding-top: max(0.375rem, env(safe-area-inset-top)); }
@@ -417,20 +381,109 @@
             outline: 2px solid rgba(251, 113, 133, 0.8);
             outline-offset: 2px;
         }
+
+        /* --- FLOATING FILTER PILLS --- */
+        .filter-pills-container {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            padding: 8px 0;
+            overflow: visible;
+        }
+
+        .filter-group { position: relative; }
+
+        .filter-pill {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #a1a1aa;
+            padding: 6px 12px;
+            border-radius: 99px;
+            font-size: 12px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+        .filter-pill:hover { border-color: white; color: white; }
+        .filter-pill:active { transform: scale(0.95); opacity: 0.8; }
+        .filter-pill.active {
+            background: var(--rose);
+            border-color: var(--rose);
+            color: white;
+            box-shadow: 0 0 10px var(--rose-glow);
+        }
+
+        .filter-arrow { font-size: 8px; transition: transform 0.2s; }
+        .filter-pill.active .filter-arrow { transform: rotate(180deg); }
+
+        /* Filter Dropdown */
+        .filter-dropdown {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            min-width: 160px;
+            background: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 6px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.9);
+            z-index: 1001;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-8px);
+            transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .filter-dropdown.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        .filter-dropdown.align-right { left: auto; right: 0; }
+
+        .filter-option {
+            display: block;
+            width: 100%;
+            padding: 8px 12px;
+            color: #a1a1aa;
+            font-size: 13px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background 0.1s;
+            text-align: left;
+            border: none;
+            background: none;
+            font-family: 'Inter', sans-serif;
+        }
+        .filter-option:hover { background: rgba(255,255,255,0.05); color: white; }
+        .filter-option.selected { color: var(--rose); font-weight: 600; }
+
+        /* Refresh Button - stands out from filters */
+        .refresh-btn {
+            background: var(--rose);
+            border: 2px solid var(--rose);
+            color: white;
+            font-weight: 700;
+            box-shadow: 0 0 8px var(--rose-glow);
+        }
+        .refresh-btn:hover {
+            background: #e11d48;
+            border-color: #e11d48;
+            transform: scale(1.05);
+            box-shadow: 0 0 16px var(--rose-glow);
+        }
     </style>
 </head>
 <body class="h-screen w-screen relative selection:bg-rose-500 selection:text-white">
 
     <!-- MAP LAYER -->
     <div id="map" class="absolute inset-0 z-0 bg-[#e8e4dc]"></div>
-
-    <!-- SEARCH THIS AREA BUTTON (appears on map pan/zoom) -->
-    <div id="search-area-btn" class="fixed top-20 left-1/2 -translate-x-1/2 z-[500] opacity-0 pointer-events-none transition-all duration-300 translate-y-2">
-        <button onclick="searchThisArea()" class="glass-panel px-4 py-2 rounded-full flex items-center gap-2 hover:bg-white/10 active:scale-95 transition-all">
-            <svg class="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-            <span class="text-sm font-medium text-white">Search this area</span>
-        </button>
-    </div>
 
     <!-- COMMAND BAR -->
     <div class="absolute top-4 left-3 right-3 md:left-auto md:right-4 md:w-[400px] z-[1000] flex flex-col pointer-events-none" role="search">
@@ -474,12 +527,46 @@
                 <div id="search-results-list" class="max-h-[300px] overflow-y-auto no-scrollbar"></div>
             </div>
         </div>
+
+        <!-- FILTER PILLS (floating below search) -->
+        <div class="filter-pills-container pointer-events-auto">
+            <!-- Refresh Mics Button -->
+            <button class="filter-pill refresh-btn" onclick="event.stopPropagation(); searchThisArea()" title="Show mics in current map view">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                Refresh
+            </button>
+
+            <!-- Borough Filter -->
+            <div class="filter-group">
+                <button class="filter-pill" id="filter-borough" onclick="event.stopPropagation(); toggleFilterDropdown('borough')">
+                    Borough <span class="filter-arrow">▼</span>
+                </button>
+                <div id="dropdown-borough" class="filter-dropdown">
+                    <button class="filter-option selected" onclick="event.stopPropagation(); applyFilter('borough', 'All')">All Boroughs</button>
+                    <button class="filter-option" onclick="event.stopPropagation(); applyFilter('borough', 'Manhattan')">Manhattan</button>
+                    <button class="filter-option" onclick="event.stopPropagation(); applyFilter('borough', 'Brooklyn')">Brooklyn</button>
+                    <button class="filter-option" onclick="event.stopPropagation(); applyFilter('borough', 'Queens')">Queens</button>
+                    <button class="filter-option" onclick="event.stopPropagation(); applyFilter('borough', 'Bronx')">Bronx</button>
+                    <button class="filter-option" onclick="event.stopPropagation(); applyFilter('borough', 'Staten Island')">Staten Island</button>
+                </div>
+            </div>
+
+            <!-- Price Filter (3-state toggle) -->
+            <button class="filter-pill" id="filter-price" onclick="event.stopPropagation(); cycleFilter('price')">
+                Price
+            </button>
+
+            <!-- Time Filter (3-state toggle) -->
+            <button class="filter-pill" id="filter-time" onclick="event.stopPropagation(); cycleFilter('time')">
+                Time
+            </button>
+        </div>
     </div>
 
     <!-- LIST DRAWER -->
     <div id="list-drawer" class="glass-panel rounded-3xl overflow-hidden flex flex-col pointer-events-auto
         fixed bottom-4 left-3 right-3 z-[900] max-h-0 opacity-0
-        md:absolute md:top-[76px] md:left-auto md:right-4 md:w-[400px] md:bottom-auto md:z-[999]">
+        md:absolute md:top-[120px] md:left-auto md:right-4 md:w-[400px] md:bottom-auto md:z-[999]">
 
         <!-- HEADER -->
         <div id="drawer-header" class="bg-[#050505]/95 backdrop-blur-md shrink-0 sticky top-0 z-30 px-5 py-3 flex justify-between items-center">
@@ -490,7 +577,7 @@
         </div>
 
         <!-- CONTENT LIST -->
-        <div id="list-content" class="overflow-y-auto no-scrollbar max-h-[65vh] md:max-h-[calc(100vh-150px)] scroll-smooth bg-transparent">
+        <div id="list-content" class="overflow-y-auto no-scrollbar scroll-smooth bg-transparent">
             <!-- CARDS INJECTED HERE -->
         </div>
     </div>
@@ -613,6 +700,10 @@
         let filterByMapBounds = false;
         let markerLookup = {}; // Store marker references by mic ID
 
+        // Filter State
+        let activeFilters = { borough: 'All', price: 'All', time: 'All' };
+        let activeFilterDropdown = null;
+
         function render(mode) {
             const container = document.getElementById('list-content');
             const searchVal = document.getElementById('search-input').value.toLowerCase();
@@ -650,6 +741,24 @@
                     const bounds = map.getBounds();
                     if (!bounds.contains([m.lat, m.lng])) return false;
                 }
+
+                // Filter by borough
+                if (activeFilters.borough !== 'All' && m.type !== activeFilters.borough) return false;
+
+                // Filter by price
+                if (activeFilters.price !== 'All') {
+                    const isFree = m.price.toLowerCase().includes('free');
+                    if (activeFilters.price === 'Free' && !isFree) return false;
+                    if (activeFilters.price === 'Paid' && isFree) return false;
+                }
+
+                // Filter by time
+                if (activeFilters.time !== 'All' && m.start) {
+                    const hour = m.start.getHours();
+                    if (activeFilters.time === 'early' && hour >= 17) return false;
+                    if (activeFilters.time === 'late' && hour < 17) return false;
+                }
+
                 return true;
             });
 
@@ -738,7 +847,7 @@
 
             filtered.forEach(mic => {
                 const micHour = mic.start ? mic.start.getHours() : 0;
-                const diffMins = mic.start ? (mic.start - now) / 60000 : 999;
+                const diffMins = mic.start ? (mic.start - currentTime) / 60000 : 999;
                 const isRecentPast = (mode === 'today') && diffMins < 0 && diffMins >= -60; // Ghost mode: only for today
 
                 // --- STICKY HOUR HEADER ---
@@ -876,7 +985,6 @@
             currentMode = 'calendar';
             selectedCalendarDate = dateString;
             filterByMapBounds = false;
-            hideSearchAreaButton();
             hideDateCarousel();
 
             document.querySelectorAll('.capsule-btn').forEach(b => b.classList.remove('active'));
@@ -889,9 +997,11 @@
         }
 
         function setMode(mode) {
-            // Reset map filter when changing modes
+            // Reset map filter and filters when changing modes
             filterByMapBounds = false;
-            hideSearchAreaButton();
+            resetFilters();
+
+            const currentTime = new Date(); // Fresh timestamp
 
             if (mode === 'calendar') {
                 // Toggle calendar if already in calendar mode
@@ -902,7 +1012,7 @@
                     document.querySelectorAll('.capsule-btn').forEach(b => b.classList.remove('active'));
                     document.getElementById('btn-today').classList.add('active');
                     currentMode = 'today';
-                    selectedCalendarDate = now.toDateString();
+                    selectedCalendarDate = currentTime.toDateString();
                     render('today');
                 } else {
                     document.querySelectorAll('.capsule-btn').forEach(b => b.classList.remove('active'));
@@ -916,7 +1026,7 @@
                 document.getElementById(`btn-${mode}`).classList.add('active');
                 hideDateCarousel();
                 currentMode = mode;
-                selectedCalendarDate = (mode === 'today') ? now.toDateString() : addDays(now, 1).toDateString();
+                selectedCalendarDate = (mode === 'today') ? currentTime.toDateString() : addDays(currentTime, 1).toDateString();
                 render(mode);
             }
         }
@@ -935,7 +1045,7 @@
                     hideDateCarousel();
                     render('calendar'); // Render mics for selected calendar date
                 }
-                drawer.style.maxHeight = isDesktop ? 'calc(100vh - 92px)' : '25vh';
+                drawer.style.maxHeight = isDesktop ? 'calc(100 * var(--vh) - 136px)' : 'calc(25 * var(--vh))';
                 drawer.style.opacity = '1';
                 icon.style.transform = 'rotate(180deg)';
                 btn.classList.add('bg-white/10', 'text-white');
@@ -944,23 +1054,6 @@
                 drawer.style.opacity = '0';
                 icon.style.transform = 'rotate(0deg)';
                 btn.classList.remove('bg-white/10', 'text-white');
-            }
-        }
-
-        // Desktop expand/collapse button
-        let isDesktopExpanded = true; // Start expanded on desktop
-        function toggleExpand() {
-            const drawer = document.getElementById('list-drawer');
-            const icon = document.getElementById('expand-icon');
-
-            isDesktopExpanded = !isDesktopExpanded;
-
-            if (isDesktopExpanded) {
-                drawer.style.maxHeight = 'calc(100vh - 92px)';
-                icon.style.transform = 'rotate(180deg)';
-            } else {
-                drawer.style.maxHeight = '40vh';
-                icon.style.transform = 'rotate(0deg)';
             }
         }
 
@@ -975,8 +1068,8 @@
             let isExpanded = false;
             let rafId = null;
             const threshold = 80;
-            const collapsedHeight = '25vh';
-            const expandedHeight = '70vh';
+            const collapsedHeight = 'calc(25 * var(--vh))';
+            const expandedHeight = 'calc(70 * var(--vh))';
 
             function isMobile() {
                 return window.matchMedia('(max-width: 767px)').matches;
@@ -985,6 +1078,13 @@
             // Touch events on header
             header.addEventListener('touchstart', (e) => {
                 if (!isMobile() || !isDrawerOpen) return;
+
+                // Don't start drag if touching an interactive element
+                const target = e.target;
+                if (target.closest('button') || target.closest('a') || target.closest('input')) {
+                    return;
+                }
+
                 startY = e.touches[0].clientY;
                 isDragging = true;
                 drawer.style.transition = 'none';
@@ -1072,32 +1172,111 @@
             }, 1300); // Slightly longer than fly duration
         }
 
-        // Search this area button
-        function showSearchAreaButton() {
-            const btn = document.getElementById('search-area-btn');
-            btn.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-2');
-            btn.classList.add('opacity-100', 'pointer-events-auto', 'translate-y-0');
-        }
-
-        function hideSearchAreaButton() {
-            const btn = document.getElementById('search-area-btn');
-            btn.classList.add('opacity-0', 'pointer-events-none', 'translate-y-2');
-            btn.classList.remove('opacity-100', 'pointer-events-auto', 'translate-y-0');
-        }
-
         function searchThisArea() {
             filterByMapBounds = true;
             render(currentMode);
-            hideSearchAreaButton();
         }
 
-        // Show button only when user manually moves map (not programmatic flyTo)
+        // Refresh button is now always visible in filter pills - no need for dynamic button
         map.on('moveend', () => {
             if (isProgrammaticMove) {
                 isProgrammaticMove = false;
                 return;
             }
-            showSearchAreaButton();
+            // No longer showing floating button - user can use Refresh pill instead
+        });
+
+        // --- FILTER FUNCTIONS ---
+        function toggleFilterDropdown(type) {
+            const dropdown = document.getElementById(`dropdown-${type}`);
+            const btn = document.getElementById(`filter-${type}`);
+
+            if (activeFilterDropdown === dropdown) {
+                closeFilterDropdowns();
+                return;
+            }
+            closeFilterDropdowns();
+
+            // Smart alignment for edge cases
+            const rect = btn.getBoundingClientRect();
+            if (rect.left + 160 > window.innerWidth) {
+                dropdown.classList.add('align-right');
+            } else {
+                dropdown.classList.remove('align-right');
+            }
+
+            dropdown.classList.add('show');
+            activeFilterDropdown = dropdown;
+        }
+
+        function closeFilterDropdowns() {
+            document.querySelectorAll('.filter-dropdown').forEach(d => d.classList.remove('show'));
+            activeFilterDropdown = null;
+        }
+
+        function applyFilter(type, value) {
+            activeFilters[type] = value;
+            updateFilterPillUI(type, value);
+            closeFilterDropdowns();
+            render(currentMode);
+        }
+
+        // Cycle through filter states (for Price and Time toggles)
+        const filterCycles = {
+            price: ['All', 'Free', 'Paid'],
+            time: ['All', 'early', 'late']
+        };
+
+        function cycleFilter(type) {
+            const cycle = filterCycles[type];
+            const currentIndex = cycle.indexOf(activeFilters[type]);
+            const nextIndex = (currentIndex + 1) % cycle.length;
+            activeFilters[type] = cycle[nextIndex];
+            updateFilterPillUI(type, activeFilters[type]);
+            render(currentMode);
+        }
+
+        function updateFilterPillUI(type, value) {
+            const btn = document.getElementById(`filter-${type}`);
+            const dropdown = document.getElementById(`dropdown-${type}`);
+
+            // Labels for display
+            const labels = {
+                borough: { All: 'Borough', Manhattan: 'Manhattan', Brooklyn: 'Brooklyn', Queens: 'Queens', Bronx: 'Bronx', 'Staten Island': 'S.I.' },
+                price: { All: 'Price', Free: 'Free', Paid: '< $5' },
+                time: { All: 'Time', early: '< 5pm', late: '5pm+' }
+            };
+
+            const label = labels[type][value] || value;
+
+            // Borough keeps dropdown arrow, Price/Time are simple toggles
+            if (type === 'borough') {
+                btn.innerHTML = `${label} <span class="filter-arrow">▼</span>`;
+            } else {
+                btn.textContent = label;
+            }
+
+            btn.classList.toggle('active', value !== 'All');
+
+            // Update selected state in dropdown (only for borough)
+            if (dropdown) {
+                dropdown.querySelectorAll('.filter-option').forEach(opt => {
+                    opt.classList.toggle('selected', opt.textContent.includes(value) ||
+                        (value === 'All' && (opt.textContent.includes('All') || opt.textContent.includes('Any'))));
+                });
+            }
+        }
+
+        function resetFilters() {
+            activeFilters = { borough: 'All', price: 'All', time: 'All' };
+            ['borough', 'price', 'time'].forEach(type => updateFilterPillUI(type, 'All'));
+        }
+
+        // Close filter dropdowns on outside click
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.filter-group')) {
+                closeFilterDropdowns();
+            }
         });
 
         function generateDateCarousel() {
@@ -1362,11 +1541,15 @@
             showSearchDropdown();
 
             // Get mics for current mode, sorted by time
+            const currentTime = new Date(); // Fresh timestamp for accurate calculations
             let filtered = mics.filter(m => {
+                // Skip mics with no valid start time
+                if (!m.start) return false;
+
                 const micDateStr = m.start.toDateString();
-                const todayStr = now.toDateString();
-                const tmrwStr = addDays(now, 1).toDateString();
-                const diffMins = (m.start - now) / 60000;
+                const todayStr = currentTime.toDateString();
+                const tmrwStr = addDays(currentTime, 1).toDateString();
+                const diffMins = (m.start - currentTime) / 60000;
 
                 // Skip past mics
                 if (diffMins < -60) return false;
@@ -1624,39 +1807,22 @@
             const query = searchInput.value;
             if (query) {
                 performSearch(query);
-            } else {
-                // Show recent searches when focused
-                const history = getSearchHistory();
-                if (history.length > 0) {
-                    showSearchHistory();
-                } else {
-                    // No history, show all mics
-                    showAllMicsDropdown();
-                }
             }
+            // Don't show anything on empty focus - user must type to search
         });
 
         searchInput.addEventListener('blur', () => {
             isSearchFocused = false;
         });
 
-        // Handle clicks - simplified logic without race-condition-prone delays
+        // Handle clicks - hide dropdown when clicking outside
         document.addEventListener('click', (e) => {
             const dropdown = document.getElementById('search-dropdown');
             const searchBar = document.querySelector('.glass-panel');
 
-            // Clicked completely outside search area - hide dropdown
+            // Clicked outside search area - hide dropdown
             if (!dropdown.contains(e.target) && !searchBar.contains(e.target)) {
                 hideSearchDropdown();
-                return;
-            }
-
-            // Clicked on search bar area (not input) while dropdown is hidden - show all mics
-            if (searchBar.contains(e.target) &&
-                !searchInput.contains(e.target) &&
-                !dropdown.contains(e.target) &&
-                dropdown.classList.contains('hidden')) {
-                showAllMicsDropdown();
             }
         });
 
