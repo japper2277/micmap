@@ -1038,6 +1038,7 @@
 
             isDrawerOpen = forceOpen !== undefined ? forceOpen : !isDrawerOpen;
             const isDesktop = window.matchMedia('(min-width: 768px)').matches;
+            const peekHeight = '56px'; // Just header visible on mobile
 
             if(isDrawerOpen) {
                 // If calendar is open, close it and show mics for selected date
@@ -1050,14 +1051,15 @@
                 icon.style.transform = 'rotate(180deg)';
                 btn.classList.add('bg-white/10', 'text-white');
             } else {
-                drawer.style.maxHeight = '0';
-                drawer.style.opacity = '0';
+                // Desktop: fully close. Mobile: peek state (header visible)
+                drawer.style.maxHeight = isDesktop ? '0' : peekHeight;
+                drawer.style.opacity = isDesktop ? '0' : '1';
                 icon.style.transform = 'rotate(0deg)';
                 btn.classList.remove('bg-white/10', 'text-white');
             }
         }
 
-        // Mobile drag functionality - simplified: swipe down to close only
+        // Mobile drag functionality - swipe up to expand, swipe down to peek
         (function setupMobileDrag() {
             const drawer = document.getElementById('list-drawer');
             const header = document.getElementById('drawer-header');
@@ -1065,17 +1067,18 @@
             let currentY = 0;
             let isDragging = false;
             let rafId = null;
-            const threshold = 80;
+            const threshold = 50;
 
             function isMobile() {
                 return window.matchMedia('(max-width: 767px)').matches;
             }
 
             header.addEventListener('touchstart', (e) => {
-                if (!isMobile() || !isDrawerOpen) return;
+                if (!isMobile()) return;
                 if (e.target.closest('button') || e.target.closest('a') || e.target.closest('input')) return;
 
                 startY = e.touches[0].clientY;
+                currentY = startY;
                 isDragging = true;
                 drawer.style.transition = 'none';
                 drawer.style.willChange = 'transform';
@@ -1086,8 +1089,13 @@
                 currentY = e.touches[0].clientY;
                 if (rafId) cancelAnimationFrame(rafId);
                 rafId = requestAnimationFrame(() => {
-                    const deltaY = Math.max(0, currentY - startY); // Only allow downward drag
-                    drawer.style.transform = `translateY(${deltaY}px)`;
+                    const deltaY = currentY - startY;
+                    // When expanded: only allow drag down. When peeked: only allow drag up
+                    if (isDrawerOpen && deltaY > 0) {
+                        drawer.style.transform = `translateY(${deltaY}px)`;
+                    } else if (!isDrawerOpen && deltaY < 0) {
+                        drawer.style.transform = `translateY(${deltaY}px)`;
+                    }
                 });
             }, { passive: true });
 
@@ -1100,8 +1108,10 @@
                 drawer.style.transform = 'translateY(0)';
 
                 const deltaY = currentY - startY;
-                if (deltaY > threshold) {
-                    toggleDrawer(false); // Close drawer
+                if (isDrawerOpen && deltaY > threshold) {
+                    toggleDrawer(false); // Collapse to peek
+                } else if (!isDrawerOpen && deltaY < -threshold) {
+                    toggleDrawer(true); // Expand from peek
                 }
             });
         })();
