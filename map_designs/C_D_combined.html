@@ -213,7 +213,77 @@
             visibility: hidden;
         }
 
-        /* Pin Pulse - Subtle Glow */
+        /* --- PIN STYLES (Matching Mockup) --- */
+
+        /* LIVE Pin: Red dot with expanding radar rings */
+        .pin-live-container {
+            position: relative;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .pin-live-dot {
+            width: 16px;
+            height: 16px;
+            background: var(--rose);
+            border: 2px solid white;
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            z-index: 2;
+        }
+        .pin-live-ring {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--rose);
+            border-radius: 50%;
+            animation: radar-pulse 2s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
+        }
+        .pin-live-ring-delay {
+            animation-delay: 0.6s;
+        }
+        @keyframes radar-pulse {
+            0% { transform: scale(1); opacity: 1; border-width: 2px; }
+            100% { transform: scale(3.5); opacity: 0; border-width: 1px; }
+        }
+
+        /* SOON Pin: White dot with orange border */
+        .pin-soon-container {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .pin-soon-dot {
+            width: 14px;
+            height: 14px;
+            background: white;
+            border: 3px solid var(--amber);
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+        }
+
+        /* LATER Pin: Small gray dot */
+        .pin-later-container {
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.7;
+        }
+        .pin-later-dot {
+            width: 10px;
+            height: 10px;
+            background: #8e8e93;
+            border-radius: 50%;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Legacy pulse (keep for compatibility) */
         @keyframes pulse-glow {
             0%, 100% { filter: drop-shadow(0 0 2px currentColor); }
             50% { filter: drop-shadow(0 0 8px currentColor) drop-shadow(0 0 12px currentColor); }
@@ -231,20 +301,34 @@
             50% { opacity: 0.7; }
         }
 
-        /* Map pin tooltip */
+        /* Map pin tooltip - Styled like mockup */
         .mic-tooltip {
-            background: rgba(0, 0, 0, 0.95) !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
-            border-radius: 12px !important;
-            padding: 12px 14px !important;
-            font-family: 'Space Grotesk', sans-serif !important;
-            font-size: 13px !important;
-            font-weight: 600 !important;
+            background: var(--deep-void) !important;
+            border: none !important;
+            border-radius: 6px !important;
+            padding: 10px 14px !important;
+            font-family: 'Space Mono', monospace !important;
+            font-size: 11px !important;
+            font-weight: 700 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.05em !important;
             color: white !important;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+            white-space: nowrap !important;
         }
         .mic-tooltip::before {
-            border-top-color: rgba(0, 0, 0, 0.95) !important;
+            border-top-color: var(--deep-void) !important;
+        }
+        /* Live tooltip - rose/pink background */
+        .mic-tooltip-live {
+            background: var(--rose) !important;
+        }
+        .mic-tooltip-live::before {
+            border-top-color: var(--rose) !important;
+        }
+        /* Soon tooltip - amber accent */
+        .mic-tooltip-soon .tooltip-time {
+            color: var(--amber) !important;
         }
 
         /* Map pin popup */
@@ -552,6 +636,192 @@
             }
         }
 
+        /* --- VENUE MODAL (Glassmorphism) --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 2000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .venue-card {
+            width: 100%;
+            max-width: 360px;
+            background: rgba(10, 10, 10, 0.92);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: white;
+            border-radius: 24px;
+            padding: 28px;
+            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8), 0 4px 20px rgba(0, 0, 0, 0.4);
+            transform: scale(0.95) translateY(20px);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+        }
+        .modal-overlay.active .venue-card {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
+
+        .venue-card h2 {
+            margin: 0 0 4px 0;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+        .venue-card .venue-address {
+            margin: 0 0 20px 0;
+            color: #71717a;
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .venue-card .venue-time-row {
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 20px;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .venue-card .venue-time-row span {
+            color: var(--amber);
+        }
+        .venue-card .venue-time-row span.live {
+            color: var(--rose);
+        }
+
+        /* Action Row */
+        .modal-action-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .modal-btn {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            padding: 14px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 13px;
+            transition: all 0.2s;
+            cursor: pointer;
+            border: none;
+            outline: none;
+        }
+
+        .modal-btn-secondary {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        .modal-btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .modal-btn-primary {
+            flex: 1;
+            background: white;
+            color: black;
+        }
+        .modal-btn-primary:hover {
+            background: #e0e0e0;
+            transform: translateY(-1px);
+        }
+
+        .modal-btn-icon {
+            width: 46px;
+            flex: 0 0 46px;
+            background: transparent;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 0;
+            font-size: 18px;
+            font-family: 'Times New Roman', serif;
+            font-style: italic;
+            font-weight: 700;
+        }
+        .modal-btn-icon:hover {
+            border-color: white;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Instructions Panel */
+        .modal-instructions {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 12px;
+            display: none;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            animation: modalSlideDown 0.3s cubic-bezier(0.2, 1, 0.3, 1);
+        }
+        .modal-instructions.show {
+            display: block;
+        }
+        .modal-instructions-header {
+            font-size: 10px;
+            color: #71717a;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            display: block;
+            font-family: 'Space Mono', monospace;
+        }
+        .modal-instructions-text {
+            font-size: 14px;
+            color: #d4d4d4;
+            line-height: 1.5;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            font-size: 28px;
+            color: #525252;
+            background: none;
+            border: none;
+            cursor: pointer;
+            line-height: 1;
+            padding: 4px;
+            transition: color 0.2s;
+        }
+        .modal-close:hover {
+            color: white;
+        }
+
+        @keyframes modalSlideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-btn svg {
+            width: 14px;
+            height: 14px;
+            fill: currentColor;
+        }
+
     </style>
 </head>
 <body class="h-screen w-screen relative selection:bg-rose-500 selection:text-white">
@@ -670,6 +940,25 @@
         </div>
     </div>
 
+    <!-- VENUE MODAL -->
+    <div class="modal-overlay" id="venue-modal">
+        <div class="venue-card">
+            <button class="modal-close" onclick="closeVenueModal()">&times;</button>
+            <h2 id="modal-title">VENUE NAME</h2>
+            <p class="venue-address" id="modal-address">ADDRESS</p>
+            <div class="venue-time-row">
+                OPEN MIC: <span id="modal-time">17:00</span>
+            </div>
+            <div class="modal-action-row" id="modal-actions">
+                <!-- Buttons injected via JS -->
+            </div>
+            <div class="modal-instructions" id="modal-instructions">
+                <span class="modal-instructions-header">SIGNUP INSTRUCTIONS</span>
+                <div class="modal-instructions-text" id="modal-instructions-text"></div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // --------------------------------------------------------
         // 1. DATA - Load from JSON
@@ -775,6 +1064,90 @@
         }
 
         // --------------------------------------------------------
+        // VENUE MODAL FUNCTIONS
+        // --------------------------------------------------------
+        const venueModal = document.getElementById('venue-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalAddress = document.getElementById('modal-address');
+        const modalTime = document.getElementById('modal-time');
+        const modalActions = document.getElementById('modal-actions');
+        const modalInstructions = document.getElementById('modal-instructions');
+        const modalInstructionsText = document.getElementById('modal-instructions-text');
+
+        // SVG Icons for buttons
+        const iconMap = `<svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>`;
+        const iconExternal = `<svg viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>`;
+
+        function openVenueModal(mic) {
+            // Set content
+            modalTitle.innerText = mic.title.toUpperCase();
+            modalAddress.innerText = mic.address.toUpperCase();
+
+            // Time display with status color
+            if (mic.status === 'live') {
+                modalTime.innerText = 'LIVE NOW';
+                modalTime.className = 'live';
+            } else {
+                modalTime.innerText = mic.timeStr;
+                modalTime.className = '';
+            }
+
+            // Hide instructions initially
+            modalInstructions.classList.remove('show');
+
+            // Build action buttons
+            let html = '';
+
+            // DIRECTIONS button (always shown)
+            html += `
+                <a href="#" onclick="openDirections(${mic.lat}, ${mic.lng}); return false;" class="modal-btn modal-btn-secondary">
+                    ${iconMap} DIRECTIONS
+                </a>
+            `;
+
+            // SIGN UP or INFO button
+            if (mic.signupUrl) {
+                html += `
+                    <a href="${mic.signupUrl}" target="_blank" rel="noopener" class="modal-btn modal-btn-primary">
+                        SIGN UP ${iconExternal}
+                    </a>
+                `;
+            } else {
+                html += `
+                    <button class="modal-btn modal-btn-icon" onclick="toggleModalInstructions()">
+                        i
+                    </button>
+                `;
+                // Store instructions text
+                modalInstructionsText.innerText = mic.signupInstructions;
+            }
+
+            modalActions.innerHTML = html;
+            venueModal.classList.add('active');
+        }
+
+        function closeVenueModal() {
+            venueModal.classList.remove('active');
+            modalInstructions.classList.remove('show');
+        }
+
+        function toggleModalInstructions() {
+            modalInstructions.classList.toggle('show');
+        }
+
+        // Close modal on background click
+        venueModal.addEventListener('click', (e) => {
+            if (e.target === venueModal) closeVenueModal();
+        });
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && venueModal.classList.contains('active')) {
+                closeVenueModal();
+            }
+        });
+
+        // --------------------------------------------------------
         // 2. MAP SETUP
         // --------------------------------------------------------
         const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([40.735, -73.99], 13);
@@ -782,14 +1155,40 @@
         const markersGroup = L.layerGroup().addTo(map);
 
         const createPin = (status) => {
-            const color = (status === 'urgent' || status === 'live') ? '#f43f5e' : (status === 'soon' ? '#f59e0b' : (status === 'upcoming' ? '#6b7280' : '#6b7280'));
-            const isPulse = status === 'urgent' || status === 'soon' || status === 'live';
-            return L.divIcon({
-                className: 'bg-transparent',
-                html: `<div class="relative flex items-center justify-center w-6 h-6 ${isPulse ? 'pin-pulse' : ''}">
-                        <div class="relative w-3.5 h-3.5 rounded-full bg-[${color}] border-2 border-white shadow-lg" style="box-shadow: 0 0 12px ${color};"></div>
-                       </div>`
-            });
+            // Match mockup: LIVE=red with pulse rings, Soon=white with orange border, Later=small gray
+            if (status === 'live' || status === 'urgent') {
+                // LIVE: Red dot with radar pulse animation
+                return L.divIcon({
+                    className: 'bg-transparent',
+                    html: `<div class="pin-live-container">
+                            <div class="pin-live-dot"></div>
+                            <div class="pin-live-ring"></div>
+                            <div class="pin-live-ring pin-live-ring-delay"></div>
+                           </div>`,
+                    iconSize: [40, 40],
+                    iconAnchor: [20, 20]
+                });
+            } else if (status === 'soon') {
+                // SOON: White dot with orange border
+                return L.divIcon({
+                    className: 'bg-transparent',
+                    html: `<div class="pin-soon-container">
+                            <div class="pin-soon-dot"></div>
+                           </div>`,
+                    iconSize: [20, 20],
+                    iconAnchor: [10, 10]
+                });
+            } else {
+                // LATER/FUTURE: Small gray dot
+                return L.divIcon({
+                    className: 'bg-transparent',
+                    html: `<div class="pin-later-container">
+                            <div class="pin-later-dot"></div>
+                           </div>`,
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8]
+                });
+            }
         };
 
         // --------------------------------------------------------
@@ -908,39 +1307,18 @@
                     icon: createPin(bestStatus),
                     zIndexOffset: bestStatus === 'urgent' || bestStatus === 'live' ? 1000 : (bestStatus === 'soon' ? 500 : 100)
                 }).addTo(markersGroup)
-                .bindTooltip(`
-                    <div style="text-align: left;">
-                        <div style="font-weight: 700; font-size: 14px; margin-bottom: 6px;">${firstMic.title}</div>
-                        <div style="font-size: 12px; color: #a1a1aa; line-height: 1.4;">
-                            ${firstMic.address}<br>
-                            Open Mic: ${firstMic.day} @ ${timesStr}
-                        </div>
-                    </div>
-                `, {
-                    direction: 'top',
-                    offset: [0, -8],
-                    className: 'mic-tooltip',
-                    interactive: false
-                })
-                .bindPopup(`
-                    <div style="text-align: left; min-width: 200px;">
-                        <div style="font-weight: 700; font-size: 16px; margin-bottom: 8px;">${firstMic.title}</div>
-                        <div style="font-size: 13px; color: #a1a1aa; line-height: 1.5; margin-bottom: 12px;">
-                            ${firstMic.address}<br>
-                            Open Mic: ${firstMic.day} @ ${timesStr}
-                        </div>
-                        <a href="#" onclick="openDirections(${firstMic.lat}, ${firstMic.lng}); return false;" class="directions-btn">
-                            <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                            </svg>
-                            Get Directions
-                        </a>
-                    </div>
-                `, {
-                    className: 'mic-popup-container',
-                    closeButton: true
-                });
+                .bindTooltip(
+                    (bestStatus === 'live' || bestStatus === 'urgent')
+                        ? `<span style="color: white;">LIVE</span><span style="opacity: 0.6; margin: 0 8px;">|</span><span>${firstMic.title.toUpperCase()}</span>`
+                        : `<span style="color: ${bestStatus === 'soon' ? '#f59e0b' : '#fff'};">${timesStr}</span><span style="opacity: 0.5; margin: 0 8px;">|</span><span>${firstMic.title.toUpperCase()}</span>`,
+                    {
+                        direction: 'top',
+                        offset: [0, -12],
+                        className: (bestStatus === 'live' || bestStatus === 'urgent') ? 'mic-tooltip mic-tooltip-live' : 'mic-tooltip',
+                        interactive: false
+                    }
+                )
+                .on('click', () => openVenueModal(firstMic));
 
                 // Store marker reference for each mic at this venue
                 venueMics.forEach(mic => {
