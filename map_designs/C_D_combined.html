@@ -864,9 +864,7 @@
 
         /* Drawer filter dropdown */
         .drawer-filter-dropdown {
-            position: absolute;
-            top: calc(100% + 8px);
-            left: 0;
+            position: fixed;
             min-width: 140px;
             background: rgba(10, 10, 10, 0.95);
             backdrop-filter: blur(16px);
@@ -994,12 +992,7 @@
                     <button class="drawer-filter-btn" id="filter-borough" onclick="event.stopPropagation(); toggleFilterDropdown('borough')">
                         Borough <span class="filter-arrow">▼</span>
                     </button>
-                    <div id="dropdown-borough" class="drawer-filter-dropdown">
-                        <button class="drawer-filter-option" onclick="event.stopPropagation(); applyFilter('borough', 'Manhattan')">Manhattan</button>
-                        <button class="drawer-filter-option" onclick="event.stopPropagation(); applyFilter('borough', 'Brooklyn')">Brooklyn</button>
-                        <button class="drawer-filter-option" onclick="event.stopPropagation(); applyFilter('borough', 'Queens')">Queens</button>
-                        <button class="drawer-filter-option" onclick="event.stopPropagation(); applyFilter('borough', 'Bronx')">Bronx</button>
-                    </div>
+                    <!-- Dropdown moved to body to escape stacking context -->
                 </div>
 
                 <!-- Price Filter -->
@@ -1729,12 +1722,19 @@
         // --- FILTER FUNCTIONS ---
         function toggleFilterDropdown(type) {
             const dropdown = document.getElementById(`dropdown-${type}`);
+            const btn = document.getElementById(`filter-${type}`);
 
             if (activeFilterDropdown === dropdown) {
                 closeFilterDropdowns();
                 return;
             }
             closeFilterDropdowns();
+
+            // Position dropdown using fixed positioning to escape overflow:hidden
+            const rect = btn.getBoundingClientRect();
+            dropdown.style.position = 'fixed';
+            dropdown.style.top = `${rect.bottom + 8}px`;
+            dropdown.style.left = `${rect.left}px`;
 
             dropdown.classList.add('show');
             activeFilterDropdown = dropdown;
@@ -2490,5 +2490,13 @@
         generateDateCarousel();
         loadData(); // Load mics from JSON and render
     </script>
+
+    <!-- BOROUGH DROPDOWN (outside drawer to escape stacking context) -->
+    <div id="dropdown-borough" class="drawer-filter-dropdown">
+        <button class="drawer-filter-option" onclick="event.stopPropagation(); applyFilter('borough', 'Manhattan')">Manhattan</button>
+        <button class="drawer-filter-option" onclick="event.stopPropagation(); applyFilter('borough', 'Brooklyn')">Brooklyn</button>
+        <button class="drawer-filter-option" onclick="event.stopPropagation(); applyFilter('borough', 'Queens')">Queens</button>
+        <button class="drawer-filter-option" onclick="event.stopPropagation(); applyFilter('borough', 'Bronx')">Bronx</button>
+    </div>
 </body>
 </html>
