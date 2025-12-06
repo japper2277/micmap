@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MicFinder - Chrono Swiss</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#09090b">
+    <title>MicFinder NYC</title>
+    <link rel="manifest" href="manifest.json">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -173,7 +177,7 @@
         /* Desktop drawer states */
         @media (min-width: 768px) {
             #list-drawer {
-                height: calc(100 * var(--vh) - 140px);
+                height: calc(100 * var(--vh) - 100px);
                 max-height: none;
             }
             #list-drawer.drawer-closed {
@@ -822,6 +826,88 @@
             fill: currentColor;
         }
 
+        /* --- DRAWER FILTER BUTTONS --- */
+        .drawer-filter-btn {
+            flex-shrink: 0;
+            height: 32px;
+            padding: 0 12px;
+            background: transparent;
+            border: 1px solid #27272a;
+            border-radius: 4px;
+            color: #a1a1aa;
+            font-size: 11px;
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .drawer-filter-btn:hover {
+            border-color: #52525b;
+        }
+        .drawer-filter-btn.active {
+            background: #F42B4E;
+            border-color: #F42B4E;
+            color: white;
+        }
+        .drawer-filter-btn .filter-arrow {
+            font-size: 8px;
+            opacity: 0.5;
+        }
+        .drawer-filter-btn.active .filter-arrow {
+            opacity: 1;
+        }
+
+        /* Drawer filter dropdown */
+        .drawer-filter-dropdown {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            min-width: 140px;
+            background: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 4px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.9);
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-8px);
+            transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .drawer-filter-dropdown.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        .drawer-filter-option {
+            display: block;
+            width: 100%;
+            padding: 8px 12px;
+            color: #a1a1aa;
+            font-size: 12px;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: background 0.1s;
+            text-align: left;
+            border: none;
+            background: none;
+            font-family: 'Inter', sans-serif;
+        }
+        .drawer-filter-option:hover {
+            background: rgba(255,255,255,0.05);
+            color: white;
+        }
+        .drawer-filter-option.selected {
+            color: #F42B4E;
+            font-weight: 600;
+        }
+
     </style>
 </head>
 <body class="h-screen w-screen relative selection:bg-rose-500 selection:text-white">
@@ -878,51 +964,54 @@
                 <div id="search-results-list" class="max-h-[300px] overflow-y-auto no-scrollbar"></div>
             </div>
         </div>
-
-        <!-- FILTER PILLS (floating below search) -->
-        <div class="filter-pills-container pointer-events-auto">
-            <!-- See All Button -->
-            <button class="filter-pill" id="btn-see-all" onclick="event.stopPropagation(); showAllMics()">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
-                All
-            </button>
-
-            <!-- Borough Filter -->
-            <div class="filter-group">
-                <button class="filter-pill" id="filter-borough" onclick="event.stopPropagation(); toggleFilterDropdown('borough')">
-                    Borough <span class="filter-arrow">▼</span>
-                </button>
-                <div id="dropdown-borough" class="filter-dropdown">
-                    <button class="filter-option" onclick="event.stopPropagation(); applyFilter('borough', 'Manhattan')">Manhattan</button>
-                    <button class="filter-option" onclick="event.stopPropagation(); applyFilter('borough', 'Brooklyn')">Brooklyn</button>
-                    <button class="filter-option" onclick="event.stopPropagation(); applyFilter('borough', 'Queens')">Queens</button>
-                    <button class="filter-option" onclick="event.stopPropagation(); applyFilter('borough', 'Bronx')">Bronx</button>
-                </div>
-            </div>
-
-            <!-- Price Filter (3-state toggle) -->
-            <button class="filter-pill" id="filter-price" onclick="event.stopPropagation(); cycleFilter('price')">
-                Price
-            </button>
-
-            <!-- Time Filter (3-state toggle) -->
-            <button class="filter-pill" id="filter-time" onclick="event.stopPropagation(); cycleFilter('time')">
-                Time
-            </button>
-        </div>
     </div>
 
     <!-- LIST DRAWER -->
     <div id="list-drawer" class="glass-panel rounded-3xl overflow-hidden flex flex-col
         fixed bottom-4 left-3 right-3 z-[900]
-        md:absolute md:top-[120px] md:left-auto md:right-4 md:w-[400px] md:bottom-auto md:z-[999]">
+        md:absolute md:top-[80px] md:left-auto md:right-4 md:w-[400px] md:bottom-auto md:z-[999]">
 
         <!-- HEADER -->
-        <div id="drawer-header" class="bg-[#050505]/95 backdrop-blur-md shrink-0 sticky top-0 z-30 px-5 py-3 flex justify-between items-center">
+        <div id="drawer-header" class="bg-[#050505]/95 backdrop-blur-md shrink-0 sticky top-0 z-30 px-5 py-3 overflow-visible">
             <!-- Drag Handle (mobile only) - tappable to toggle drawer -->
             <div onclick="toggleDrawer()" class="absolute top-2 left-1/2 -translate-x-1/2 w-10 h-1 bg-white/30 rounded-full md:hidden cursor-pointer active:bg-white/50 transition-colors"></div>
-            <h2 class="text-base font-bold text-white font-display" id="header-title">Mics for Today</h2>
-            <span class="text-xl font-bold font-mono text-rose-500" id="clock-display">00:00</span>
+
+            <!-- Title Row -->
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-base font-bold text-white font-display" id="header-title">Mics for Today</h2>
+                <span class="text-xl font-bold font-mono text-rose-500" id="clock-display">00:00</span>
+            </div>
+
+            <!-- Filter Row -->
+            <div class="flex gap-2 overflow-x-auto no-scrollbar" id="drawer-filters">
+                <!-- Home Button -->
+                <button class="drawer-filter-btn active" id="btn-home" onclick="event.stopPropagation(); showAllMics()">
+                    Home
+                </button>
+
+                <!-- Borough Filter -->
+                <div class="filter-group relative">
+                    <button class="drawer-filter-btn" id="filter-borough" onclick="event.stopPropagation(); toggleFilterDropdown('borough')">
+                        Borough <span class="filter-arrow">▼</span>
+                    </button>
+                    <div id="dropdown-borough" class="drawer-filter-dropdown">
+                        <button class="drawer-filter-option" onclick="event.stopPropagation(); applyFilter('borough', 'Manhattan')">Manhattan</button>
+                        <button class="drawer-filter-option" onclick="event.stopPropagation(); applyFilter('borough', 'Brooklyn')">Brooklyn</button>
+                        <button class="drawer-filter-option" onclick="event.stopPropagation(); applyFilter('borough', 'Queens')">Queens</button>
+                        <button class="drawer-filter-option" onclick="event.stopPropagation(); applyFilter('borough', 'Bronx')">Bronx</button>
+                    </div>
+                </div>
+
+                <!-- Price Filter -->
+                <button class="drawer-filter-btn" id="filter-price" onclick="event.stopPropagation(); cycleFilter('price')">
+                    Price
+                </button>
+
+                <!-- Time Filter -->
+                <button class="drawer-filter-btn" id="filter-time" onclick="event.stopPropagation(); cycleFilter('time')">
+                    Time
+                </button>
+            </div>
         </div>
 
         <!-- CONTENT LIST -->
@@ -964,8 +1053,10 @@
         // 1. DATA - Load from JSON
         // --------------------------------------------------------
         let mics = [];
-        const now = new Date();
         const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+        // Always get fresh time (never use a stale cached value)
+        function getNow() { return new Date(); }
 
         // Parse time string to Date object for today
         function parseTime(timeStr) {
@@ -988,11 +1079,20 @@
             return urlMatch ? urlMatch[1] : null;
         }
 
+        // Calculate status based on current time
+        function getStatus(startDate) {
+            const diffMins = startDate ? (startDate - getNow()) / 60000 : 999;
+            if (diffMins > -90 && diffMins <= 0) return 'live';
+            if (diffMins > 0 && diffMins <= 60) return 'urgent';
+            if (diffMins > 60 && diffMins <= 120) return 'soon';
+            return 'future';
+        }
+
         // Process mic data from JSON
         function processMics(rawMics) {
             return rawMics.map(m => {
                 const startDate = parseTime(m.startTime);
-                const diffMins = startDate ? (startDate - now) / 60000 : 999;
+                const diffMins = startDate ? (startDate - getNow()) / 60000 : 999;
 
                 let status = 'future';
                 if (diffMins > -90 && diffMins <= 0) status = 'live';
@@ -1041,6 +1141,14 @@
         }
         setInterval(updateClock, 1000);
         updateClock();
+
+        // Refresh statuses every minute (so "Live" badges update in real-time)
+        function refreshStatuses() {
+            mics.forEach(mic => {
+                mic.status = getStatus(mic.start);
+            });
+        }
+        setInterval(refreshStatuses, 60000); // Every minute
 
         function addDays(date, days) { const r = new Date(date); r.setDate(r.getDate() + days); return r; }
 
@@ -1198,7 +1306,7 @@
         // --------------------------------------------------------
         let currentMode = 'today';
         let isDrawerOpen = false;
-        let selectedCalendarDate = now.toDateString();
+        let selectedCalendarDate = new Date().toDateString();
         let markerLookup = {}; // Store marker references by mic ID
 
         // Filter State
@@ -1237,6 +1345,9 @@
                 }
 
                 if (searchVal && !m.title.toLowerCase().includes(searchVal) && !m.hood.toLowerCase().includes(searchVal) && !(m.name && m.name.toLowerCase().includes(searchVal))) return false;
+
+                // Filter by borough for map markers
+                if (activeFilters.borough !== 'All' && m.type !== activeFilters.borough) return false;
 
                 return true;
             });
@@ -1595,6 +1706,11 @@
             isProgrammaticMove = true;
             map.flyTo([lat, lng], 15, { duration: 1.2, easeLinearity: 0.25 });
 
+            // Minimize drawer on mobile so user can see the map
+            if (window.matchMedia('(max-width: 767px)').matches && isDrawerOpen) {
+                toggleDrawer(false);
+            }
+
             // Open the marker's tooltip after fly animation completes
             setTimeout(() => {
                 const marker = markerLookup[id];
@@ -1613,7 +1729,6 @@
         // --- FILTER FUNCTIONS ---
         function toggleFilterDropdown(type) {
             const dropdown = document.getElementById(`dropdown-${type}`);
-            const btn = document.getElementById(`filter-${type}`);
 
             if (activeFilterDropdown === dropdown) {
                 closeFilterDropdowns();
@@ -1621,20 +1736,12 @@
             }
             closeFilterDropdowns();
 
-            // Smart alignment for edge cases
-            const rect = btn.getBoundingClientRect();
-            if (rect.left + 160 > window.innerWidth) {
-                dropdown.classList.add('align-right');
-            } else {
-                dropdown.classList.remove('align-right');
-            }
-
             dropdown.classList.add('show');
             activeFilterDropdown = dropdown;
         }
 
         function closeFilterDropdowns() {
-            document.querySelectorAll('.filter-dropdown').forEach(d => d.classList.remove('show'));
+            document.querySelectorAll('.filter-dropdown, .drawer-filter-dropdown').forEach(d => d.classList.remove('show'));
             activeFilterDropdown = null;
         }
 
@@ -1733,16 +1840,26 @@
 
             // Update selected state in dropdown (only for borough)
             if (dropdown) {
-                dropdown.querySelectorAll('.filter-option').forEach(opt => {
+                dropdown.querySelectorAll('.filter-option, .drawer-filter-option').forEach(opt => {
                     opt.classList.toggle('selected', opt.textContent.includes(value) ||
                         (value === 'All' && (opt.textContent.includes('All') || opt.textContent.includes('Any'))));
                 });
+            }
+
+            // Update Home button state - active when no filters are applied
+            const homeBtn = document.getElementById('btn-home');
+            if (homeBtn) {
+                const hasActiveFilters = activeFilters.borough !== 'All' || activeFilters.price !== 'All' || activeFilters.time !== 'All';
+                homeBtn.classList.toggle('active', !hasActiveFilters);
             }
         }
 
         function resetFilters() {
             activeFilters = { borough: 'All', price: 'All', time: 'All' };
             ['borough', 'price', 'time'].forEach(type => updateFilterPillUI(type, 'All'));
+            // Ensure Home button is active when all filters are reset
+            const homeBtn = document.getElementById('btn-home');
+            if (homeBtn) homeBtn.classList.add('active');
         }
 
         // Show all mics - reset filters and zoom out
@@ -1765,7 +1882,7 @@
             const days = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 
             for(let i = 0; i < 7; i++) {
-                const date = addDays(now, i);
+                const date = addDays(new Date(), i);
                 const dayStr = days[date.getDay()];
                 const dateNum = date.getDate();
                 const dateString = date.toDateString();
