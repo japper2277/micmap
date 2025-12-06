@@ -219,38 +219,48 @@
 
         /* --- PIN STYLES (Matching Mockup) --- */
 
-        /* LIVE Pin: Red dot with expanding radar rings */
+        /* LIVE Pin: Text badge with pulsing dot */
         .pin-live-container {
             position: relative;
-            width: 40px;
-            height: 40px;
+            cursor: pointer;
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .pin-live-container:hover { transform: scale(1.05) translateY(-2px); }
+
+        .pin-live-badge {
+            background: var(--rose);
+            padding: 8px 12px;
+            border-radius: 8px;
+            box-shadow: 0 8px 20px -4px rgba(244, 63, 94, 0.5);
             display: flex;
             align-items: center;
-            justify-content: center;
+            gap: 8px;
+            position: relative;
+            white-space: nowrap;
         }
-        .pin-live-dot {
-            width: 16px;
-            height: 16px;
-            background: var(--rose);
-            border: 2px solid white;
-            border-radius: 50%;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-            z-index: 2;
-        }
-        .pin-live-ring {
+
+        /* Triangle pointer */
+        .pin-live-badge::after {
+            content: '';
             position: absolute;
-            width: 16px;
-            height: 16px;
-            border: 2px solid var(--rose);
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: var(--rose) transparent transparent transparent;
+        }
+
+        /* Pulsing dot inside badge */
+        .pulse-ring {
+            position: absolute;
             border-radius: 50%;
-            animation: radar-pulse 2s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
+            background: rgba(255,255,255,0.9);
+            animation: radar 2s infinite ease-out;
         }
-        .pin-live-ring-delay {
-            animation-delay: 0.6s;
-        }
-        @keyframes radar-pulse {
-            0% { transform: scale(1); opacity: 1; border-width: 2px; }
-            100% { transform: scale(3.5); opacity: 0; border-width: 1px; }
+        @keyframes radar {
+            0% { width: 6px; height: 6px; opacity: 0.8; }
+            100% { width: 24px; height: 24px; opacity: 0; }
         }
 
         /* SOON Pin: White dot with orange border */
@@ -1260,16 +1270,20 @@
         const createPin = (status) => {
             // Match mockup: LIVE=red with pulse rings, Soon=white with orange border, Later=small gray
             if (status === 'live' || status === 'urgent') {
-                // LIVE: Red dot with radar pulse animation
+                // LIVE: Text badge with pulsing dot
                 return L.divIcon({
                     className: 'bg-transparent',
                     html: `<div class="pin-live-container">
-                            <div class="pin-live-dot"></div>
-                            <div class="pin-live-ring"></div>
-                            <div class="pin-live-ring pin-live-ring-delay"></div>
+                            <div class="pin-live-badge">
+                                <div class="relative flex items-center justify-center w-3 h-3">
+                                    <div class="pulse-ring"></div>
+                                    <div class="relative w-2 h-2 bg-white rounded-full"></div>
+                                </div>
+                                <span class="text-[11px] font-bold text-white tracking-widest leading-none font-mono">LIVE NOW</span>
+                            </div>
                            </div>`,
-                    iconSize: [40, 40],
-                    iconAnchor: [20, 20]
+                    iconSize: [100, 45],
+                    iconAnchor: [50, 40]
                 });
             } else if (status === 'soon') {
                 // SOON: White dot with orange border
@@ -1419,7 +1433,7 @@
                         : `<span style="color: ${bestStatus === 'soon' ? '#f59e0b' : '#fff'};">${timesStr}</span><span style="opacity: 0.5; margin: 0 8px;">|</span><span>${firstMic.title.toUpperCase()}</span>`,
                     {
                         direction: 'top',
-                        offset: [0, -12],
+                        offset: (bestStatus === 'live' || bestStatus === 'urgent') ? [0, -25] : [0, -12],
                         className: (bestStatus === 'live' || bestStatus === 'urgent') ? 'mic-tooltip mic-tooltip-live' : 'mic-tooltip',
                         interactive: false
                     }
