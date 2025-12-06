@@ -162,8 +162,56 @@
         .capsule-btn:not(.active):hover { color: white; background: rgba(255,255,255,0.08); }
         .capsule-btn:active { transform: scale(0.95); }
 
-        /* Drawer Transition */
-        #list-drawer { transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+        /* Drawer Transition - GPU accelerated with transform */
+        #list-drawer {
+            transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1),
+                        opacity 0.25s ease-out;
+            will-change: transform, opacity;
+            opacity: 0; /* Hidden by default until JS initializes */
+        }
+
+        /* Desktop drawer states */
+        @media (min-width: 768px) {
+            #list-drawer {
+                height: calc(100 * var(--vh) - 140px);
+                max-height: none;
+            }
+            #list-drawer.drawer-closed {
+                opacity: 0;
+                transform: translateY(-20px);
+                pointer-events: none;
+            }
+            #list-drawer.drawer-open {
+                opacity: 1;
+                transform: translateY(0);
+                pointer-events: auto;
+            }
+        }
+
+        /* Mobile drawer states */
+        @media (max-width: 767px) {
+            #list-drawer {
+                height: calc(55 * var(--vh));
+                max-height: none;
+            }
+            #list-drawer.drawer-peek {
+                transform: translateY(calc(100% - 56px));
+                opacity: 1;
+                pointer-events: auto;
+            }
+            #list-drawer.drawer-open {
+                transform: translateY(0);
+                opacity: 1;
+                pointer-events: auto;
+            }
+        }
+
+        /* Hide drawer when search is active */
+        #list-drawer.drawer-hidden {
+            opacity: 0 !important;
+            pointer-events: none !important;
+            visibility: hidden;
+        }
 
         /* Pin Pulse - Subtle Glow */
         @keyframes pulse-glow {
@@ -464,26 +512,59 @@
         .filter-option:hover { background: rgba(255,255,255,0.05); color: white; }
         .filter-option.selected { color: var(--rose); font-weight: 600; }
 
-        /* Refresh Button - stands out from filters */
-        .refresh-btn {
-            background: var(--rose);
-            border: 2px solid var(--rose);
+        /* --- LOCATE ME BUTTON --- */
+        .locate-btn {
+            position: fixed;
+            bottom: 100px;
+            left: 16px;
+            z-index: 800;
+            width: 44px;
+            height: 44px;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #a1a1aa;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        }
+        .locate-btn:hover {
+            background: rgba(0, 0, 0, 0.95);
             color: white;
-            font-weight: 700;
-            box-shadow: 0 0 8px var(--rose-glow);
+            border-color: rgba(255, 255, 255, 0.2);
         }
-        .refresh-btn:hover {
-            background: #e11d48;
-            border-color: #e11d48;
-            transform: scale(1.05);
-            box-shadow: 0 0 16px var(--rose-glow);
+        .locate-btn:active {
+            transform: scale(0.95);
         }
+        .locate-btn.active {
+            color: var(--rose);
+            border-color: var(--rose);
+        }
+        @media (min-width: 768px) {
+            .locate-btn {
+                bottom: 24px;
+                left: 24px;
+            }
+        }
+
     </style>
 </head>
 <body class="h-screen w-screen relative selection:bg-rose-500 selection:text-white">
 
     <!-- MAP LAYER -->
     <div id="map" class="absolute inset-0 z-0 bg-[#e8e4dc]"></div>
+
+    <!-- LOCATE ME BUTTON -->
+    <button onclick="centerOnUser()" id="locate-btn" class="locate-btn" aria-label="Center map on my location">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0013 3.06V1h-2v2.06A8.994 8.994 0 003.06 11H1v2h2.06A8.994 8.994 0 0011 20.94V23h2v-2.06A8.994 8.994 0 0020.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"></path>
+        </svg>
+    </button>
 
     <!-- COMMAND BAR -->
     <div class="absolute top-4 left-3 right-3 md:left-auto md:right-4 md:w-[400px] z-[1000] flex flex-col pointer-events-none" role="search">
@@ -530,10 +611,10 @@
 
         <!-- FILTER PILLS (floating below search) -->
         <div class="filter-pills-container pointer-events-auto">
-            <!-- Refresh Mics Button -->
-            <button class="filter-pill refresh-btn" onclick="event.stopPropagation(); searchThisArea()" title="Show mics in current map view">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                Refresh
+            <!-- See All Button -->
+            <button class="filter-pill" id="btn-see-all" onclick="event.stopPropagation(); showAllMics()">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
+                All
             </button>
 
             <!-- Borough Filter -->
@@ -542,7 +623,6 @@
                     Borough <span class="filter-arrow">▼</span>
                 </button>
                 <div id="dropdown-borough" class="filter-dropdown">
-                    <button class="filter-option selected" onclick="event.stopPropagation(); applyFilter('borough', 'All')">All Boroughs</button>
                     <button class="filter-option" onclick="event.stopPropagation(); applyFilter('borough', 'Manhattan')">Manhattan</button>
                     <button class="filter-option" onclick="event.stopPropagation(); applyFilter('borough', 'Brooklyn')">Brooklyn</button>
                     <button class="filter-option" onclick="event.stopPropagation(); applyFilter('borough', 'Queens')">Queens</button>
@@ -563,8 +643,8 @@
     </div>
 
     <!-- LIST DRAWER -->
-    <div id="list-drawer" class="glass-panel rounded-3xl overflow-hidden flex flex-col pointer-events-auto
-        fixed bottom-4 left-3 right-3 z-[900] max-h-0 opacity-0
+    <div id="list-drawer" class="glass-panel rounded-3xl overflow-hidden flex flex-col
+        fixed bottom-4 left-3 right-3 z-[900]
         md:absolute md:top-[120px] md:left-auto md:right-4 md:w-[400px] md:bottom-auto md:z-[999]">
 
         <!-- HEADER -->
@@ -654,6 +734,7 @@
                 mics = processMics(rawMics);
                 console.log(`Loaded ${mics.length} mics`);
                 render('today');
+                zoomToBorough('All', false); // Set initial view without animation
                 setTimeout(() => toggleDrawer(true), 500);
             } catch (err) {
                 console.error('Failed to load mics:', err);
@@ -717,7 +798,6 @@
         let currentMode = 'today';
         let isDrawerOpen = false;
         let selectedCalendarDate = now.toDateString();
-        let filterByMapBounds = false;
         let markerLookup = {}; // Store marker references by mic ID
 
         // Filter State
@@ -739,7 +819,8 @@
             const todayName = dayNames[currentTime.getDay()];
             const tomorrowName = dayNames[(currentTime.getDay() + 1) % 7];
 
-            let filtered = mics.filter(m => {
+            // Base filter for day/time (used for both map and list)
+            let baseMics = mics.filter(m => {
                 const diffMins = m.start ? (m.start - currentTime) / 60000 : 999;
 
                 // Deep past (>1 hour ago): REMOVE from DOM - only for TODAY
@@ -756,13 +837,12 @@
 
                 if (searchVal && !m.title.toLowerCase().includes(searchVal) && !m.hood.toLowerCase().includes(searchVal) && !(m.name && m.name.toLowerCase().includes(searchVal))) return false;
 
-                // Filter by map bounds if enabled
-                if (filterByMapBounds) {
-                    const bounds = map.getBounds();
-                    if (!bounds.contains([m.lat, m.lng])) return false;
-                }
+                return true;
+            });
 
-                // Filter by borough
+            // Additional filters for the LIST only (borough, price, time)
+            let filtered = baseMics.filter(m => {
+                // Filter by borough (list only)
                 if (activeFilters.borough !== 'All' && m.type !== activeFilters.borough) return false;
 
                 // Filter by price
@@ -783,20 +863,18 @@
             });
 
             // Recalculate status based on mode
-            if (mode === 'today') {
-                // For today, calculate live status based on current time
-                filtered = filtered.map(m => {
-                    const diffMins = m.start ? (m.start - currentTime) / 60000 : 999;
-                    let status = 'future';
-                    if (diffMins > -90 && diffMins <= 0) status = 'live';
-                    else if (diffMins > 0 && diffMins <= 60) status = 'urgent';
-                    else if (diffMins > 60 && diffMins <= 120) status = 'soon';
-                    return { ...m, status };
-                });
-            } else {
-                // For tomorrow/calendar, show all mics as 'upcoming' (white, not grayed)
-                filtered = filtered.map(m => ({ ...m, status: 'upcoming' }));
-            }
+            const calcStatus = (m) => {
+                if (mode !== 'today') return 'upcoming';
+                const diffMins = m.start ? (m.start - currentTime) / 60000 : 999;
+                if (diffMins > -90 && diffMins <= 0) return 'live';
+                if (diffMins > 0 && diffMins <= 60) return 'urgent';
+                if (diffMins > 60 && diffMins <= 120) return 'soon';
+                return 'future';
+            };
+
+            // Apply status to both baseMics (for map) and filtered (for list)
+            baseMics = baseMics.map(m => ({ ...m, status: calcStatus(m) }));
+            filtered = filtered.map(m => ({ ...m, status: calcStatus(m) }));
 
             // Update header title
             const headerTitle = document.getElementById('header-title');
@@ -804,9 +882,9 @@
             else if (mode === 'tomorrow') headerTitle.innerText = `Mics for Tomorrow (${filtered.length})`;
             else headerTitle.innerText = `Mics (${filtered.length})`;
 
-            // Group mics by venue (same lat/lng) into one marker
+            // Group mics by venue (same lat/lng) into one marker - use baseMics for ALL map pins
             const venueGroups = {};
-            filtered.forEach(mic => {
+            baseMics.forEach(mic => {
                 const key = `${mic.lat},${mic.lng}`;
                 if (!venueGroups[key]) venueGroups[key] = [];
                 venueGroups[key].push(mic);
@@ -1020,7 +1098,6 @@
         function selectDate(dateString) {
             currentMode = 'calendar';
             selectedCalendarDate = dateString;
-            filterByMapBounds = false;
             hideDateCarousel();
 
             document.querySelectorAll('.capsule-btn').forEach(b => b.classList.remove('active'));
@@ -1033,8 +1110,7 @@
         }
 
         function setMode(mode) {
-            // Reset map filter and filters when changing modes
-            filterByMapBounds = false;
+            // Reset filters when changing modes
             resetFilters();
 
             const currentTime = new Date(); // Fresh timestamp
@@ -1074,36 +1150,34 @@
 
             isDrawerOpen = forceOpen !== undefined ? forceOpen : !isDrawerOpen;
             const isDesktop = window.matchMedia('(min-width: 768px)').matches;
-            const peekHeight = '56px'; // Just header visible on mobile
 
             if(isDrawerOpen) {
                 // If calendar is open, close it and show mics for selected date
                 if(currentMode === 'calendar') {
                     hideDateCarousel();
-                    render('calendar'); // Render mics for selected calendar date
+                    render('calendar');
                 }
-                drawer.style.maxHeight = isDesktop ? 'calc(100 * var(--vh) - 136px)' : 'calc(50 * var(--vh))';
-                drawer.style.opacity = '1';
+                // Open drawer
+                drawer.classList.remove('drawer-closed', 'drawer-peek');
+                drawer.classList.add('drawer-open');
                 icon.style.transform = 'rotate(180deg)';
                 btn.classList.add('bg-white/10', 'text-white');
             } else {
-                // Desktop: fully close. Mobile: peek state (header visible)
-                drawer.style.maxHeight = isDesktop ? '0' : peekHeight;
-                drawer.style.opacity = isDesktop ? '0' : '1';
+                // Close drawer (desktop: hidden, mobile: peek)
+                drawer.classList.remove('drawer-open');
+                drawer.classList.add(isDesktop ? 'drawer-closed' : 'drawer-peek');
                 icon.style.transform = 'rotate(0deg)';
                 btn.classList.remove('bg-white/10', 'text-white');
             }
         }
 
-        // Mobile drag functionality - swipe up to expand, swipe down to peek
-        (function setupMobileDrag() {
-            const drawer = document.getElementById('list-drawer');
+        // Mobile swipe functionality - swipe up to expand, swipe down to peek (no free dragging)
+        (function setupMobileSwipe() {
             const header = document.getElementById('drawer-header');
             let startY = 0;
             let currentY = 0;
-            let isDragging = false;
-            let rafId = null;
-            const threshold = 50;
+            let isSwiping = false;
+            const threshold = 30; // Lower threshold for snappier response
 
             function isMobile() {
                 return window.matchMedia('(max-width: 767px)').matches;
@@ -1112,36 +1186,18 @@
             header.addEventListener('touchstart', (e) => {
                 if (!isMobile()) return;
                 if (e.target.closest('button') || e.target.closest('a') || e.target.closest('input')) return;
-
                 startY = e.touches[0].clientY;
-                currentY = startY;
-                isDragging = true;
-                drawer.style.transition = 'none';
-                drawer.style.willChange = 'transform';
+                isSwiping = true;
             }, { passive: true });
 
             header.addEventListener('touchmove', (e) => {
-                if (!isDragging || !isMobile()) return;
+                if (!isSwiping || !isMobile()) return;
                 currentY = e.touches[0].clientY;
-                if (rafId) cancelAnimationFrame(rafId);
-                rafId = requestAnimationFrame(() => {
-                    const deltaY = currentY - startY;
-                    // When expanded: only allow drag down. When peeked: only allow drag up
-                    if (isDrawerOpen && deltaY > 0) {
-                        drawer.style.transform = `translateY(${deltaY}px)`;
-                    } else if (!isDrawerOpen && deltaY < 0) {
-                        drawer.style.transform = `translateY(${deltaY}px)`;
-                    }
-                });
             }, { passive: true });
 
             header.addEventListener('touchend', () => {
-                if (!isDragging || !isMobile()) return;
-                isDragging = false;
-                if (rafId) cancelAnimationFrame(rafId);
-                drawer.style.willChange = 'auto';
-                drawer.style.transition = 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)';
-                drawer.style.transform = 'translateY(0)';
+                if (!isSwiping || !isMobile()) return;
+                isSwiping = false;
 
                 const deltaY = currentY - startY;
                 if (isDrawerOpen && deltaY > threshold) {
@@ -1168,18 +1224,10 @@
             }, 1300); // Slightly longer than fly duration
         }
 
-        function searchThisArea() {
-            filterByMapBounds = true;
-            render(currentMode);
-        }
-
-        // Refresh button is now always visible in filter pills - no need for dynamic button
         map.on('moveend', () => {
             if (isProgrammaticMove) {
                 isProgrammaticMove = false;
-                return;
             }
-            // No longer showing floating button - user can use Refresh pill instead
         });
 
         // --- FILTER FUNCTIONS ---
@@ -1210,36 +1258,46 @@
             activeFilterDropdown = null;
         }
 
-        // Borough bounds - automatically fit all mics in view
-        const boroughBounds = {
-            'Manhattan': [
-                [40.6992, -74.0209],
-                [40.9321, -73.7884]
-            ],
-            'Brooklyn': [
-                [40.6556, -74.0015],
-                [40.7277, -73.9004]
-            ],
-            'Queens': [
-                [40.6966, -73.9352],
-                [40.7814, -73.9026]
-            ],
-            'All': [
-                [40.6478, -74.0149],
-                [40.9289, -73.7944]
-            ]
-        };
+        function zoomToBorough(borough, animate = true) {
+            const currentTime = new Date();
+            const todayName = dayNames[currentTime.getDay()];
+            const tomorrowName = dayNames[(currentTime.getDay() + 1) % 7];
 
-        function zoomToBorough(borough) {
-            // For Bronx, zoom directly to the one mic at iNINE Bistro
-            if (borough === 'Bronx') {
-                map.flyTo([40.8067535, -73.9266818], 16, { duration: 0.8 });
-                return;
+            // Get mics for current mode
+            let currentMics = mics.filter(m => {
+                if (currentMode === 'today') return m.day === todayName;
+                if (currentMode === 'tomorrow') return m.day === tomorrowName;
+                if (currentMode === 'calendar') {
+                    const selectedDate = new Date(selectedCalendarDate);
+                    return m.day === dayNames[selectedDate.getDay()];
+                }
+                return true;
+            });
+
+            // Filter by borough if not "All"
+            if (borough !== 'All') {
+                currentMics = currentMics.filter(m => m.type === borough);
             }
 
-            const bounds = boroughBounds[borough];
-            if (bounds) {
-                map.fitBounds(bounds, { padding: [20, 20], duration: 0.8 });
+            // Calculate bounds from mics
+            if (currentMics.length === 0) {
+                return; // No mics to show
+            } else if (currentMics.length === 1) {
+                // Single mic - zoom directly to it
+                if (animate) {
+                    map.flyTo([currentMics[0].lat, currentMics[0].lng], 16, { duration: 0.8 });
+                } else {
+                    map.setView([currentMics[0].lat, currentMics[0].lng], 16);
+                }
+            } else {
+                // Multiple mics - fit to bounds
+                const lats = currentMics.map(m => m.lat);
+                const lngs = currentMics.map(m => m.lng);
+                const bounds = [
+                    [Math.min(...lats), Math.min(...lngs)],
+                    [Math.max(...lats), Math.max(...lngs)]
+                ];
+                map.fitBounds(bounds, { padding: [50, 50], animate: animate });
             }
         }
 
@@ -1307,6 +1365,14 @@
             ['borough', 'price', 'time'].forEach(type => updateFilterPillUI(type, 'All'));
         }
 
+        // Show all mics - reset filters and zoom out
+        function showAllMics() {
+            resetFilters();
+            closeFilterDropdowns();
+            zoomToBorough('All');
+            render(currentMode);
+        }
+
         // Close filter dropdowns on outside click
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.filter-group')) {
@@ -1359,6 +1425,60 @@
                         console.log('Geolocation error:', error);
                     }
                 );
+            }
+        }
+
+        // User location marker
+        let userMarker = null;
+
+        // Center map on user's location
+        function centerOnUser() {
+            const btn = document.getElementById('locate-btn');
+
+            if (userLocation) {
+                // We have location - fly to it
+                isProgrammaticMove = true;
+                map.flyTo([userLocation.lat, userLocation.lng], 14, { duration: 1 });
+                btn.classList.add('active');
+
+                // Add/update user marker
+                if (userMarker) {
+                    userMarker.setLatLng([userLocation.lat, userLocation.lng]);
+                } else {
+                    userMarker = L.circleMarker([userLocation.lat, userLocation.lng], {
+                        radius: 8,
+                        fillColor: '#3b82f6',
+                        fillOpacity: 1,
+                        color: 'white',
+                        weight: 3
+                    }).addTo(map);
+                }
+
+                // Remove active state after animation
+                setTimeout(() => btn.classList.remove('active'), 1500);
+            } else {
+                // Request location
+                if (navigator.geolocation) {
+                    btn.style.opacity = '0.5';
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            userLocation = {
+                                lat: position.coords.latitude,
+                                lng: position.coords.longitude
+                            };
+                            btn.style.opacity = '1';
+                            centerOnUser(); // Recurse now that we have location
+                        },
+                        (error) => {
+                            btn.style.opacity = '1';
+                            console.log('Location denied:', error);
+                            alert('Unable to get your location. Please enable location services.');
+                        },
+                        { enableHighAccuracy: true, timeout: 10000 }
+                    );
+                } else {
+                    alert('Geolocation is not supported by your browser.');
+                }
             }
         }
 
@@ -1496,21 +1616,13 @@
         // Show search dropdown
         function showSearchDropdown() {
             document.getElementById('search-dropdown').classList.remove('hidden');
-            const drawer = document.getElementById('list-drawer');
-            drawer.style.opacity = '0';
-            drawer.style.pointerEvents = 'none';
-            drawer.style.visibility = 'hidden';
+            document.getElementById('list-drawer').classList.add('drawer-hidden');
         }
 
         // Hide search dropdown
         function hideSearchDropdown() {
             document.getElementById('search-dropdown').classList.add('hidden');
-            if (isDrawerOpen) {
-                const drawer = document.getElementById('list-drawer');
-                drawer.style.opacity = '1';
-                drawer.style.pointerEvents = 'auto';
-                drawer.style.visibility = 'visible';
-            }
+            document.getElementById('list-drawer').classList.remove('drawer-hidden');
         }
 
         // Show search history (only when search bar is focused)
@@ -1870,6 +1982,13 @@
         });
 
         // Initialize
+        // Initialize drawer state based on screen size
+        (function initDrawerState() {
+            const drawer = document.getElementById('list-drawer');
+            const isDesktop = window.matchMedia('(min-width: 768px)').matches;
+            drawer.classList.add(isDesktop ? 'drawer-closed' : 'drawer-peek');
+        })();
+
         getUserLocation();
         generateDateCarousel();
         loadData(); // Load mics from JSON and render
