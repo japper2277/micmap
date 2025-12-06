@@ -1030,12 +1030,14 @@
             }
         }
 
-        // Live Clock
+        // Live Clock (12-hour format)
         function updateClock() {
             const d = new Date();
-            const h = d.getHours().toString().padStart(2, '0');
+            let h = d.getHours();
             const m = d.getMinutes().toString().padStart(2, '0');
-            document.getElementById('clock-display').innerText = `${h}:${m}`;
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            h = h % 12 || 12;
+            document.getElementById('clock-display').innerText = `${h}:${m} ${ampm}`;
         }
         setInterval(updateClock, 1000);
         updateClock();
