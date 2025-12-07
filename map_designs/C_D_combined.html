@@ -528,88 +528,6 @@
             outline-offset: 2px;
         }
 
-        /* --- FLOATING FILTER PILLS --- */
-        .filter-pills-container {
-            display: flex;
-            justify-content: center;
-            gap: 8px;
-            padding: 8px 0;
-            overflow: visible;
-        }
-
-        .filter-group { position: relative; }
-
-        .filter-pill {
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            color: #a1a1aa;
-            padding: 6px 12px;
-            border-radius: 99px;
-            font-size: 12px;
-            font-family: 'Space Grotesk', sans-serif;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            white-space: nowrap;
-            transition: all 0.2s ease;
-        }
-        .filter-pill:hover { border-color: white; color: white; }
-        .filter-pill:active { transform: scale(0.95); opacity: 0.8; }
-        .filter-pill.active {
-            background: var(--rose);
-            border-color: var(--rose);
-            color: white;
-            box-shadow: 0 0 10px var(--rose-glow);
-        }
-
-        .filter-arrow { font-size: 8px; transition: transform 0.2s; }
-        .filter-pill.active .filter-arrow { transform: rotate(180deg); }
-
-        /* Filter Dropdown */
-        .filter-dropdown {
-            position: absolute;
-            top: calc(100% + 8px);
-            left: 0;
-            min-width: 160px;
-            background: rgba(10, 10, 10, 0.95);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 6px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.9);
-            z-index: 1001;
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(-8px);
-            transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .filter-dropdown.show {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0);
-        }
-        .filter-dropdown.align-right { left: auto; right: 0; }
-
-        .filter-option {
-            display: block;
-            width: 100%;
-            padding: 8px 12px;
-            color: #a1a1aa;
-            font-size: 13px;
-            cursor: pointer;
-            border-radius: 8px;
-            transition: background 0.1s;
-            text-align: left;
-            border: none;
-            background: none;
-            font-family: 'Inter', sans-serif;
-        }
-        .filter-option:hover { background: rgba(255,255,255,0.05); color: white; }
-        .filter-option.selected { color: var(--rose); font-weight: 600; }
-
         /* --- LOCATE ME BUTTON --- */
         .locate-btn {
             position: fixed;
@@ -864,58 +782,6 @@
             border-color: #F42B4E;
             color: white;
         }
-        .drawer-filter-btn .filter-arrow {
-            font-size: 8px;
-            opacity: 0.5;
-        }
-        .drawer-filter-btn.active .filter-arrow {
-            opacity: 1;
-        }
-
-        /* Drawer filter dropdown */
-        .drawer-filter-dropdown {
-            position: fixed;
-            min-width: 140px;
-            background: rgba(10, 10, 10, 0.95);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            padding: 4px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.9);
-            z-index: 9999;
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(-8px);
-            transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .drawer-filter-dropdown.show {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0);
-        }
-        .drawer-filter-option {
-            display: block;
-            width: 100%;
-            padding: 8px 12px;
-            color: #a1a1aa;
-            font-size: 12px;
-            cursor: pointer;
-            border-radius: 6px;
-            transition: background 0.1s;
-            text-align: left;
-            border: none;
-            background: none;
-            font-family: 'Inter', sans-serif;
-        }
-        .drawer-filter-option:hover {
-            background: rgba(255,255,255,0.05);
-            color: white;
-        }
-        .drawer-filter-option.selected {
-            color: #F42B4E;
-            font-weight: 600;
-        }
-
     </style>
 </head>
 <body class="h-screen w-screen relative selection:bg-rose-500 selection:text-white">
@@ -934,9 +800,9 @@
     <div class="absolute top-4 left-3 right-3 md:left-auto md:right-4 md:w-[400px] z-[1000] flex flex-col pointer-events-none" role="search">
         <div class="glass-panel h-[56px] rounded-full flex items-center p-1.5 pointer-events-auto relative z-20">
             <!-- Search -->
-            <div class="flex-1 flex items-center h-full pl-4 pr-2 group cursor-text" onclick="document.getElementById('search-input').focus()">
-                <svg class="w-4 h-4 text-neutral-500 group-focus-within:text-rose-500 transition-colors shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                <input type="text" id="search-input" placeholder="Search venues..." autocomplete="off" maxlength="100" aria-label="Search venues" class="w-full bg-transparent border-none text-sm text-white placeholder-neutral-600 ml-2 font-medium h-full focus:outline-none focus:ring-0" style="font-size: 16px;">
+            <div class="flex-1 flex items-center h-[44px] px-4 rounded-full cursor-text" style="background: #2a2a2d;" onclick="document.getElementById('search-input').focus()">
+                <svg class="w-[18px] h-[18px] text-neutral-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <input type="text" id="search-input" placeholder="Search venues, hosts..." autocomplete="off" maxlength="100" aria-label="Search venues" class="w-full bg-transparent border-none text-[15px] text-white placeholder-neutral-500 ml-3 font-normal focus:outline-none focus:ring-0" style="font-size: 16px;">
             </div>
             <!-- Toggle -->
             <div class="flex items-center bg-black/40 rounded-full p-1 border border-white/5 shrink-0">
@@ -986,8 +852,7 @@
 
             <!-- Title Row -->
             <div class="flex justify-between items-center mb-3">
-                <h2 class="text-base font-bold text-white font-display" id="header-title">Mics for Today</h2>
-                <span class="text-xl font-bold font-mono text-rose-500" id="clock-display">00:00</span>
+                <h2 class="text-base font-bold text-white font-display" id="header-title">Mics</h2>
             </div>
 
             <!-- Filter Row -->
@@ -996,14 +861,6 @@
                 <button class="drawer-filter-btn active" id="btn-home" onclick="event.stopPropagation(); showAllMics()">
                     Home
                 </button>
-
-                <!-- Borough Filter -->
-                <div class="filter-group relative">
-                    <button class="drawer-filter-btn" id="filter-borough" onclick="event.stopPropagation(); toggleFilterDropdown('borough')">
-                        Borough <span class="filter-arrow">▼</span>
-                    </button>
-                    <!-- Dropdown moved to body to escape stacking context -->
-                </div>
 
                 <!-- Price Filter -->
                 <button class="drawer-filter-btn" id="filter-price" onclick="event.stopPropagation(); cycleFilter('price')">
@@ -1126,7 +983,6 @@
                 mics = processMics(rawMics);
                 console.log(`Loaded ${mics.length} mics`);
                 render('today');
-                zoomToBorough('All', false); // Set initial view without animation
                 setTimeout(() => toggleDrawer(true), 500);
             } catch (err) {
                 console.error('Failed to load mics:', err);
@@ -1317,8 +1173,7 @@
         let markerLookup = {}; // Store marker references by mic ID
 
         // Filter State
-        let activeFilters = { borough: 'All', price: 'All', time: 'All' };
-        let activeFilterDropdown = null;
+        let activeFilters = { price: 'All', time: 'All' };
 
         function render(mode) {
             const container = document.getElementById('list-content');
@@ -1353,17 +1208,11 @@
 
                 if (searchVal && !m.title.toLowerCase().includes(searchVal) && !m.hood.toLowerCase().includes(searchVal) && !(m.name && m.name.toLowerCase().includes(searchVal))) return false;
 
-                // Filter by borough for map markers
-                if (activeFilters.borough !== 'All' && m.type !== activeFilters.borough) return false;
-
                 return true;
             });
 
-            // Additional filters for the LIST only (borough, price, time)
+            // Additional filters for the LIST only (price, time)
             let filtered = baseMics.filter(m => {
-                // Filter by borough (list only)
-                if (activeFilters.borough !== 'All' && m.type !== activeFilters.borough) return false;
-
                 // Filter by price
                 if (activeFilters.price !== 'All') {
                     const isFree = m.price.toLowerCase().includes('free');
@@ -1395,11 +1244,7 @@
             baseMics = baseMics.map(m => ({ ...m, status: calcStatus(m) }));
             filtered = filtered.map(m => ({ ...m, status: calcStatus(m) }));
 
-            // Update header title
-            const headerTitle = document.getElementById('header-title');
-            if (mode === 'today') headerTitle.innerText = `Mics for Today (${filtered.length})`;
-            else if (mode === 'tomorrow') headerTitle.innerText = `Mics for Tomorrow (${filtered.length})`;
-            else headerTitle.innerText = `Mics (${filtered.length})`;
+            // Header title is now static "Mics" - no dynamic update needed
 
             // Group mics by venue (same lat/lng) into one marker - use baseMics for ALL map pins
             const venueGroups = {};
@@ -1734,84 +1579,9 @@
         });
 
         // --- FILTER FUNCTIONS ---
-        function toggleFilterDropdown(type) {
-            const dropdown = document.getElementById(`dropdown-${type}`);
-            const btn = document.getElementById(`filter-${type}`);
-
-            if (activeFilterDropdown === dropdown) {
-                closeFilterDropdowns();
-                return;
-            }
-            closeFilterDropdowns();
-
-            // Position dropdown using fixed positioning to escape overflow:hidden
-            const rect = btn.getBoundingClientRect();
-            dropdown.style.position = 'fixed';
-            dropdown.style.top = `${rect.bottom + 8}px`;
-            dropdown.style.left = `${rect.left}px`;
-
-            dropdown.classList.add('show');
-            activeFilterDropdown = dropdown;
-        }
-
-        function closeFilterDropdowns() {
-            document.querySelectorAll('.filter-dropdown, .drawer-filter-dropdown').forEach(d => d.classList.remove('show'));
-            activeFilterDropdown = null;
-        }
-
-        function zoomToBorough(borough, animate = true) {
-            const currentTime = new Date();
-            const todayName = dayNames[currentTime.getDay()];
-            const tomorrowName = dayNames[(currentTime.getDay() + 1) % 7];
-
-            // Get mics for current mode
-            let currentMics = mics.filter(m => {
-                if (currentMode === 'today') return m.day === todayName;
-                if (currentMode === 'tomorrow') return m.day === tomorrowName;
-                if (currentMode === 'calendar') {
-                    const selectedDate = new Date(selectedCalendarDate);
-                    return m.day === dayNames[selectedDate.getDay()];
-                }
-                return true;
-            });
-
-            // Filter by borough if not "All"
-            if (borough !== 'All') {
-                currentMics = currentMics.filter(m => m.type === borough);
-            }
-
-            // Calculate bounds from mics
-            if (currentMics.length === 0) {
-                return; // No mics to show
-            } else if (currentMics.length === 1) {
-                // Single mic - zoom directly to it
-                if (animate) {
-                    map.flyTo([currentMics[0].lat, currentMics[0].lng], 16, { duration: 0.8 });
-                } else {
-                    map.setView([currentMics[0].lat, currentMics[0].lng], 16);
-                }
-            } else {
-                // Multiple mics - fit to bounds
-                const lats = currentMics.map(m => m.lat);
-                const lngs = currentMics.map(m => m.lng);
-                const bounds = [
-                    [Math.min(...lats), Math.min(...lngs)],
-                    [Math.max(...lats), Math.max(...lngs)]
-                ];
-                map.fitBounds(bounds, { padding: [50, 50], animate: animate });
-            }
-        }
-
         function applyFilter(type, value) {
             activeFilters[type] = value;
             updateFilterPillUI(type, value);
-            closeFilterDropdowns();
-
-            // Zoom to borough when borough filter is applied
-            if (type === 'borough') {
-                zoomToBorough(value);
-            }
-
             render(currentMode);
         }
 
@@ -1832,64 +1602,38 @@
 
         function updateFilterPillUI(type, value) {
             const btn = document.getElementById(`filter-${type}`);
-            const dropdown = document.getElementById(`dropdown-${type}`);
 
             // Labels for display
             const labels = {
-                borough: { All: 'Borough', Manhattan: 'Manhattan', Brooklyn: 'Brooklyn', Queens: 'Queens', Bronx: 'Bronx' },
                 price: { All: 'Price', Free: 'Free', Paid: '< $5' },
                 time: { All: 'Time', early: '< 5pm', late: '5pm+' }
             };
 
             const label = labels[type][value] || value;
-
-            // Borough keeps dropdown arrow, Price/Time are simple toggles
-            if (type === 'borough') {
-                btn.innerHTML = `${label} <span class="filter-arrow">▼</span>`;
-            } else {
-                btn.textContent = label;
-            }
-
+            btn.textContent = label;
             btn.classList.toggle('active', value !== 'All');
-
-            // Update selected state in dropdown (only for borough)
-            if (dropdown) {
-                dropdown.querySelectorAll('.filter-option, .drawer-filter-option').forEach(opt => {
-                    opt.classList.toggle('selected', opt.textContent.includes(value) ||
-                        (value === 'All' && (opt.textContent.includes('All') || opt.textContent.includes('Any'))));
-                });
-            }
 
             // Update Home button state - active when no filters are applied
             const homeBtn = document.getElementById('btn-home');
             if (homeBtn) {
-                const hasActiveFilters = activeFilters.borough !== 'All' || activeFilters.price !== 'All' || activeFilters.time !== 'All';
+                const hasActiveFilters = activeFilters.price !== 'All' || activeFilters.time !== 'All';
                 homeBtn.classList.toggle('active', !hasActiveFilters);
             }
         }
 
         function resetFilters() {
-            activeFilters = { borough: 'All', price: 'All', time: 'All' };
-            ['borough', 'price', 'time'].forEach(type => updateFilterPillUI(type, 'All'));
+            activeFilters = { price: 'All', time: 'All' };
+            ['price', 'time'].forEach(type => updateFilterPillUI(type, 'All'));
             // Ensure Home button is active when all filters are reset
             const homeBtn = document.getElementById('btn-home');
             if (homeBtn) homeBtn.classList.add('active');
         }
 
-        // Show all mics - reset filters and zoom out
+        // Show all mics - reset filters
         function showAllMics() {
             resetFilters();
-            closeFilterDropdowns();
-            zoomToBorough('All');
             render(currentMode);
         }
-
-        // Close filter dropdowns on outside click
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.filter-group')) {
-                closeFilterDropdowns();
-            }
-        });
 
         function generateDateCarousel() {
             const container = document.getElementById('cal-grid');
@@ -2505,12 +2249,5 @@
         loadData(); // Load mics from JSON and render
     </script>
 
-    <!-- BOROUGH DROPDOWN (outside drawer to escape stacking context) -->
-    <div id="dropdown-borough" class="drawer-filter-dropdown">
-        <button class="drawer-filter-option" onclick="event.stopPropagation(); applyFilter('borough', 'Manhattan')">Manhattan</button>
-        <button class="drawer-filter-option" onclick="event.stopPropagation(); applyFilter('borough', 'Brooklyn')">Brooklyn</button>
-        <button class="drawer-filter-option" onclick="event.stopPropagation(); applyFilter('borough', 'Queens')">Queens</button>
-        <button class="drawer-filter-option" onclick="event.stopPropagation(); applyFilter('borough', 'Bronx')">Bronx</button>
-    </div>
 </body>
 </html>
