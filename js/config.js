@@ -49,9 +49,7 @@ const DEFAULTS = {
     mapZoom: 13,                  // Initial map zoom level
     userLocationZoom: 14,         // Zoom level when showing user location
     panelHeightMobile: 0.4,       // Mobile panel height as % of screen (0.4 = 40%)
-    searchHistoryLimit: 5,        // How many recent searches to store
-    toastDuration: 3000,          // Toast notification display time (ms)
-    debounceDelay: 300            // Search debounce delay (ms)
+    toastDuration: 3000           // Toast notification display time (ms)
 };
 
 // Map Configuration
@@ -71,7 +69,6 @@ const FEATURES = {
     topPicksEnabled: true,          // Show "Top Picks" section
     favoritesEnabled: true,         // Enable favorites system
     checkInsEnabled: true,          // Enable check-in feature
-    searchHistoryEnabled: true,     // Enable search history
     toastNotificationsEnabled: true, // Enable toast notifications
     userLocationEnabled: true       // Enable "Near Me" feature
 };
@@ -112,8 +109,7 @@ const MIC_TIMING = {
 
 // localStorage Keys
 const STORAGE_KEYS = {
-    favorites: 'micFavorites',
-    searchHistory: 'searchHistory'
+    favorites: 'micFavorites'
 };
 
 // DOM Element IDs (for reference)

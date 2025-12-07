@@ -9,7 +9,6 @@ const state = {
     userLocationMarker: null,     // Leaflet marker object
 
     // Filters
-    searchQuery: '',
     selectedDay: DEFAULTS.selectedDay,
     selectedTime: DEFAULTS.selectedTime,
     selectedSort: DEFAULTS.selectedSort,
@@ -20,7 +19,6 @@ const state = {
 
     // Data
     favorites: loadFromLocalStorage(STORAGE_KEYS.favorites, []),
-    searchHistory: loadFromLocalStorage(STORAGE_KEYS.searchHistory, []),
     mics: [],                     // Processed/filtered mics
     topPicks: [],                 // Calculated top picks
 

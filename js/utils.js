@@ -139,28 +139,6 @@ function isFavorite(micId) {
 }
 
 // =============================================================================
-// SEARCH HISTORY
-// =============================================================================
-
-function addToSearchHistory(query) {
-    if (!query || query.trim() === '' || !FEATURES.searchHistoryEnabled) return;
-
-    // Remove duplicates and add to front
-    state.searchHistory = state.searchHistory.filter(q => q !== query);
-    state.searchHistory.unshift(query);
-
-    // Keep only last N searches
-    state.searchHistory = state.searchHistory.slice(0, DEFAULTS.searchHistoryLimit);
-
-    saveToLocalStorage(STORAGE_KEYS.searchHistory, state.searchHistory);
-}
-
-function clearSearchHistory() {
-    state.searchHistory = [];
-    localStorage.removeItem(STORAGE_KEYS.searchHistory);
-}
-
-// =============================================================================
 // NEIGHBORHOODS
 // =============================================================================
 

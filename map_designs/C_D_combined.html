@@ -155,17 +155,6 @@
             filter: grayscale(0);
         }
 
-        /* Capsule Buttons */
-        .capsule-btn { transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
-        .capsule-btn.active {
-            background: var(--rose);
-            color: white;
-            font-weight: 700;
-        }
-        .capsule-btn:not(.active) { color: #71717a; }
-        .capsule-btn:not(.active):hover { color: white; background: rgba(255,255,255,0.08); }
-        .capsule-btn:active { transform: scale(0.95); }
-
         /* Drawer Transition - GPU accelerated with transform */
         #list-drawer {
             transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1),
@@ -208,13 +197,6 @@
                 opacity: 1;
                 pointer-events: auto;
             }
-        }
-
-        /* Hide drawer when search is active */
-        #list-drawer.drawer-hidden {
-            opacity: 0 !important;
-            pointer-events: none !important;
-            visibility: hidden;
         }
 
         /* --- PIN STYLES (Matching Mockup) --- */
@@ -297,24 +279,6 @@
             box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
         }
 
-        /* Legacy pulse (keep for compatibility) */
-        @keyframes pulse-glow {
-            0%, 100% { filter: drop-shadow(0 0 2px currentColor); }
-            50% { filter: drop-shadow(0 0 8px currentColor) drop-shadow(0 0 12px currentColor); }
-        }
-        .pin-pulse {
-            animation: pulse-glow 2s ease-in-out infinite;
-        }
-
-        /* Badge pulse animation */
-        .badge-pulse {
-            animation: badgePulse 2s ease-in-out infinite;
-        }
-        @keyframes badgePulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-
         /* Map pin tooltip - Styled like mockup */
         .mic-tooltip {
             background: var(--deep-void) !important;
@@ -384,121 +348,6 @@
         .directions-btn:hover {
             background: #e11d48;
             transform: scale(1.02);
-        }
-
-        /* Search dropdown items */
-        .search-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 16px;
-            cursor: pointer;
-            transition: all 0.2s;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        .search-item:last-child {
-            border-bottom: none;
-        }
-        .search-item:hover {
-            background: rgba(255, 255, 255, 0.05);
-        }
-        .search-item-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-        .search-item-content {
-            flex: 1;
-            min-width: 0;
-        }
-        .search-item-title {
-            font-weight: 600;
-            font-size: 14px;
-            color: white;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .search-item-title mark {
-            background: transparent;
-            color: var(--rose);
-            font-weight: 700;
-        }
-        .search-item-subtitle {
-            font-size: 11px;
-            color: #71717a;
-            margin-top: 2px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .search-item-meta {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 4px;
-        }
-        .search-item-distance {
-            font-size: 11px;
-            color: #71717a;
-            font-family: 'Space Mono', monospace;
-        }
-        .search-item-status {
-            font-size: 9px;
-            font-weight: 700;
-            padding: 2px 6px;
-            border-radius: 4px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        .status-live {
-            background: rgba(244, 63, 94, 0.2);
-            color: #f43f5e;
-        }
-        .status-soon {
-            background: rgba(245, 158, 11, 0.2);
-            color: #f59e0b;
-        }
-        .status-upcoming {
-            background: rgba(255, 255, 255, 0.1);
-            color: #71717a;
-        }
-        .history-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px 16px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .history-item:hover {
-            background: rgba(255, 255, 255, 0.05);
-        }
-        .history-item-left {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .history-item-remove {
-            opacity: 0;
-            transition: opacity 0.2s;
-            color: #71717a;
-        }
-        .history-item:hover .history-item-remove {
-            opacity: 1;
-        }
-        .history-item-remove:hover {
-            color: var(--rose);
-        }
-
-        /* Mobile touch feedback */
-        .search-item:active, .history-item:active {
-            transform: scale(0.98);
-            opacity: 0.8;
         }
 
         /* Respect reduced motion preference */
@@ -754,6 +603,106 @@
             fill: currentColor;
         }
 
+        /* --- MICS HEADER ROW (New Sliding Toggle Design) --- */
+        .mics-header-row {
+            background-color: #0f0f0f;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .title-group {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+
+        .title-text {
+            font-size: 24px;
+            font-weight: 800;
+            color: #ffffff;
+            margin: 0;
+            letter-spacing: -0.5px;
+        }
+
+        .count-text {
+            font-size: 18px;
+            font-weight: 500;
+            color: #8e8e93;
+        }
+
+        .controls-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .toggle-container {
+            background: #1c1c1e;
+            border-radius: 24px;
+            padding: 4px;
+            display: flex;
+            position: relative;
+            width: 140px;
+            height: 40px;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
+        }
+
+        .toggle-slider {
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: 66px;
+            height: 32px;
+            background: var(--rose);
+            border-radius: 20px;
+            z-index: 1;
+            transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+            box-shadow: 0 0 15px var(--rose-glow);
+        }
+
+        .toggle-btn {
+            flex: 1;
+            z-index: 2;
+            background: transparent;
+            border: none;
+            color: #8e8e93;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: color 0.2s;
+            text-align: center;
+            padding: 0;
+        }
+
+        .toggle-btn.active {
+            color: #ffffff;
+        }
+
+        .calendar-icon-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #1c1c1e;
+            border: none;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .calendar-icon-btn:hover {
+            background: #2c2c2e;
+        }
+
+        .calendar-icon-btn.active {
+            background: var(--rose);
+            box-shadow: 0 0 15px var(--rose-glow);
+        }
+
         /* --- DRAWER FILTER BUTTONS --- */
         .drawer-filter-btn {
             flex-shrink: 0;
@@ -782,6 +731,83 @@
             border-color: #F42B4E;
             color: white;
         }
+
+        /* --- NEW SEARCH BAR DESIGN --- */
+        .search-wrapper {
+            position: relative;
+            width: 100%;
+            height: 48px;
+            background: #1c1c1e;
+            border-radius: 24px;
+            border: 1px solid rgba(255,255,255,0.08);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .search-wrapper:focus-within,
+        .search-wrapper.active {
+            background: #2c2c2e;
+            border-color: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+
+        .search-wrapper .search-icon {
+            color: #8e8e93;
+            transition: color 0.2s;
+            flex-shrink: 0;
+        }
+
+        .search-wrapper:focus-within .search-icon,
+        .search-wrapper.active .search-icon {
+            color: #ffffff;
+        }
+
+        .search-wrapper .search-input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: #ffffff;
+            font-size: 16px;
+            margin-left: 10px;
+            font-weight: 500;
+            caret-color: #0a84ff;
+            outline: none;
+        }
+
+        .search-wrapper .search-input::placeholder {
+            color: #8e8e93;
+            opacity: 1;
+        }
+
+        /* Clear button inside search */
+        .search-clear-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #3a3a3c;
+            border: none;
+            color: #8e8e93;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            margin-left: 8px;
+            transition: all 0.15s ease;
+        }
+        .search-clear-btn:hover {
+            background: #4a4a4c;
+            color: #ffffff;
+        }
+        .search-clear-btn:active {
+            transform: scale(0.9);
+        }
+        .search-clear-btn.visible {
+            display: flex;
+        }
     </style>
 </head>
 <body class="h-screen w-screen relative selection:bg-rose-500 selection:text-white">
@@ -798,46 +824,27 @@
 
     <!-- COMMAND BAR -->
     <div class="absolute top-4 left-3 right-3 md:left-auto md:right-4 md:w-[400px] z-[1000] flex flex-col pointer-events-none" role="search">
-        <div class="glass-panel h-[56px] rounded-full flex items-center p-1.5 pointer-events-auto relative z-20">
-            <!-- Search -->
-            <div class="flex-1 flex items-center h-[44px] px-4 rounded-full cursor-text" style="background: #2a2a2d;" onclick="document.getElementById('search-input').focus()">
-                <svg class="w-[18px] h-[18px] text-neutral-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                <input type="text" id="search-input" placeholder="Search venues, hosts..." autocomplete="off" maxlength="100" aria-label="Search venues" class="w-full bg-transparent border-none text-[15px] text-white placeholder-neutral-500 ml-3 font-normal focus:outline-none focus:ring-0" style="font-size: 16px;">
-            </div>
-            <!-- Toggle -->
-            <div class="flex items-center bg-black/40 rounded-full p-1 border border-white/5 shrink-0">
-                <button onclick="setMode('today')" id="btn-today" class="capsule-btn active px-3 py-1.5 rounded-full text-[10px] uppercase tracking-wider leading-none">Today</button>
-                <button onclick="setMode('tomorrow')" id="btn-tomorrow" class="capsule-btn px-3 py-1.5 rounded-full text-[10px] uppercase tracking-wider leading-none">Tmrw</button>
-                <button onclick="setMode('calendar')" id="btn-calendar" class="capsule-btn w-7 h-7 flex items-center justify-center rounded-full">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                </button>
-            </div>
+        <div class="search-wrapper pointer-events-auto relative z-20">
+            <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" id="search-input" class="search-input" placeholder="Search venues, hosts..." autocomplete="off" maxlength="100" aria-label="Search venues">
+            <!-- Clear button -->
+            <button id="search-clear-btn" class="search-clear-btn" onclick="clearSearchInput()" aria-label="Clear search">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
             <!-- Divider (hidden on mobile) -->
-            <div class="w-[1px] h-5 bg-white/10 mx-2 hidden md:block"></div>
+            <div class="w-[1px] h-5 bg-white/10 mx-3 hidden md:block flex-shrink-0"></div>
             <!-- Drawer Btn (hidden on mobile - use drag handle instead) -->
-            <button onclick="toggleDrawer()" id="drawer-btn" class="hidden md:flex w-10 h-10 rounded-full hover:bg-white/10 items-center justify-center text-neutral-400 hover:text-white transition-all active:scale-90">
+            <button onclick="toggleDrawer()" id="drawer-btn" class="hidden md:flex w-8 h-8 rounded-full hover:bg-white/10 items-center justify-center text-neutral-400 hover:text-white transition-all active:scale-90 flex-shrink-0">
                 <svg id="chevron-icon" class="w-5 h-5 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
             </button>
         </div>
 
-        <!-- AUTOCOMPLETE DROPDOWN -->
-        <div id="search-dropdown" class="rounded-2xl mt-2 pointer-events-auto hidden overflow-hidden z-[1001] bg-[#0a0a0a] border border-white/10 shadow-2xl" role="listbox" aria-live="polite">
-            <!-- Search History Section -->
-            <div id="search-history-section" class="hidden">
-                <div class="flex justify-between items-center px-4 py-2 border-b border-white/10">
-                    <span class="text-[10px] uppercase tracking-wider text-neutral-500 font-bold">Recent Searches</span>
-                    <button onclick="clearSearchHistory()" class="text-[10px] uppercase tracking-wider text-rose-500 hover:text-rose-400">Clear</button>
-                </div>
-                <div id="search-history-list"></div>
-            </div>
-            <!-- Results Section -->
-            <div id="search-results-section" class="hidden">
-                <div class="px-4 py-2 border-b border-white/10">
-                    <span class="text-[10px] uppercase tracking-wider text-neutral-500 font-bold">Venues</span>
-                </div>
-                <div id="search-results-list" class="max-h-[300px] overflow-y-auto no-scrollbar"></div>
-            </div>
-        </div>
     </div>
 
     <!-- LIST DRAWER -->
@@ -846,17 +853,41 @@
         md:absolute md:top-[80px] md:left-auto md:right-4 md:w-[400px] md:bottom-auto md:z-[999]">
 
         <!-- HEADER -->
-        <div id="drawer-header" class="bg-[#050505]/95 backdrop-blur-md shrink-0 sticky top-0 z-30 px-5 py-3 overflow-visible">
+        <div id="drawer-header" class="shrink-0 sticky top-0 z-30 overflow-visible">
             <!-- Drag Handle (mobile only) - tappable to toggle drawer -->
-            <div onclick="toggleDrawer()" class="absolute top-2 left-1/2 -translate-x-1/2 w-10 h-1 bg-white/30 rounded-full md:hidden cursor-pointer active:bg-white/50 transition-colors"></div>
+            <div onclick="toggleDrawer()" class="absolute top-2 left-1/2 -translate-x-1/2 w-10 h-1 bg-white/30 rounded-full md:hidden cursor-pointer active:bg-white/50 transition-colors z-10"></div>
 
-            <!-- Title Row -->
-            <div class="flex justify-between items-center mb-3">
-                <h2 class="text-base font-bold text-white font-display" id="header-title">Mics</h2>
+            <!-- Mics Header Row (New Design) -->
+            <div class="mics-header-row">
+                <!-- Left: Title & Count -->
+                <div class="title-group">
+                    <h1 class="title-text">Mics</h1>
+                    <span class="count-text" id="mic-count">0</span>
+                </div>
+
+                <!-- Right: Controls -->
+                <div class="controls-group">
+                    <!-- Segmented Toggle -->
+                    <div class="toggle-container">
+                        <div class="toggle-slider" id="header-slider"></div>
+                        <button class="toggle-btn active" id="btn-today" onclick="setModeFromToggle('today')">Today</button>
+                        <button class="toggle-btn" id="btn-tomorrow" onclick="setModeFromToggle('tomorrow')">Tmrw</button>
+                    </div>
+
+                    <!-- Calendar Button -->
+                    <button class="calendar-icon-btn" id="btn-calendar" onclick="setMode('calendar')">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                    </button>
+                </div>
             </div>
 
             <!-- Filter Row -->
-            <div class="flex gap-2 overflow-x-auto no-scrollbar" id="drawer-filters">
+            <div class="flex gap-2 overflow-x-auto no-scrollbar px-4 py-2 bg-[#0f0f0f]" id="drawer-filters">
                 <!-- Home Button -->
                 <button class="drawer-filter-btn active" id="btn-home" onclick="event.stopPropagation(); showAllMics()">
                     Home
@@ -939,6 +970,13 @@
             return urlMatch ? urlMatch[1] : null;
         }
 
+        // Extract email from signup text
+        function extractSignupEmail(signupText) {
+            if (!signupText) return null;
+            const emailMatch = signupText.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
+            return emailMatch ? emailMatch[1] : null;
+        }
+
         // Calculate status based on current time
         function getStatus(startDate) {
             const diffMins = startDate ? (startDate - getNow()) / 60000 : 999;
@@ -970,6 +1008,7 @@
                     type: m.borough || 'NYC', // Use borough as type for now
                     status: status,
                     signupUrl: extractSignupUrl(m.signup),
+                    signupEmail: extractSignupEmail(m.signup),
                     signupInstructions: m.signup || 'No signup info available'
                 };
             });
@@ -988,18 +1027,6 @@
                 console.error('Failed to load mics:', err);
             }
         }
-
-        // Live Clock (12-hour format)
-        function updateClock() {
-            const d = new Date();
-            let h = d.getHours();
-            const m = d.getMinutes().toString().padStart(2, '0');
-            const ampm = h >= 12 ? 'PM' : 'AM';
-            h = h % 12 || 12;
-            document.getElementById('clock-display').innerText = `${h}:${m} ${ampm}`;
-        }
-        setInterval(updateClock, 1000);
-        updateClock();
 
         // Refresh statuses every minute (so "Live" badges update in real-time)
         function refreshStatuses() {
@@ -1177,7 +1204,6 @@
 
         function render(mode) {
             const container = document.getElementById('list-content');
-            const searchVal = document.getElementById('search-input').value.toLowerCase();
 
             markersGroup.clearLayers();
             markerLookup = {}; // Clear marker lookup
@@ -1205,8 +1231,6 @@
                     const selectedDayName = dayNames[selectedDate.getDay()];
                     if (m.day !== selectedDayName) return false;
                 }
-
-                if (searchVal && !m.title.toLowerCase().includes(searchVal) && !m.hood.toLowerCase().includes(searchVal) && !(m.name && m.name.toLowerCase().includes(searchVal))) return false;
 
                 return true;
             });
@@ -1244,7 +1268,8 @@
             baseMics = baseMics.map(m => ({ ...m, status: calcStatus(m) }));
             filtered = filtered.map(m => ({ ...m, status: calcStatus(m) }));
 
-            // Header title is now static "Mics" - no dynamic update needed
+            // Update mic count in header
+            document.getElementById('mic-count').textContent = filtered.length;
 
             // Group mics by venue (same lat/lng) into one marker - use baseMics for ALL map pins
             const venueGroups = {};
@@ -1363,12 +1388,18 @@
                             </div>
                         </div>
 
-                        <!-- RIGHT: Link + Instagram -->
+                        <!-- RIGHT: Link/Email/Info + Instagram -->
                         <div class="flex flex-col items-center justify-center gap-2 relative z-10">
                             ${mic.signupUrl
-                                ? `<a href="${mic.signupUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation();" class="w-10 h-10 rounded-full bg-white/10 hover:bg-rose-500 flex items-center justify-center transition-all group-hover:bg-black/20" title="Sign up">
+                                ? `<a href="${mic.signupUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation();" class="w-10 h-10 rounded-full bg-white/10 hover:bg-rose-500 flex items-center justify-center transition-all group-hover:bg-black/20" title="Go to site">
                                     <svg class="w-4 h-4 text-neutral-400 group-hover:text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                    </svg>
+                                </a>`
+                                : mic.signupEmail
+                                ? `<a href="mailto:${mic.signupEmail}" onclick="event.stopPropagation();" class="w-10 h-10 rounded-full bg-white/10 hover:bg-rose-500 flex items-center justify-center transition-all group-hover:bg-black/20" title="Email ${mic.signupEmail}">
+                                    <svg class="w-4 h-4 text-neutral-400 group-hover:text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                                     </svg>
                                 </a>`
                                 : `<button onclick="event.stopPropagation(); toggleSignupInfo('${mic.id}');" class="w-10 h-10 rounded-full bg-white/10 hover:bg-rose-500 flex items-center justify-center transition-all group-hover:bg-black/20" title="Signup info">
@@ -1443,13 +1474,61 @@
             selectedCalendarDate = dateString;
             hideDateCarousel();
 
-            document.querySelectorAll('.capsule-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
             document.getElementById('btn-calendar').classList.add('active');
 
             if(!isDrawerOpen) toggleDrawer(true);
 
             updateDateCarouselHighlight(dateString);
             render('calendar');
+        }
+
+        // Update the sliding toggle UI
+        function updateToggleUI(mode) {
+            const slider = document.getElementById('header-slider');
+            const btnToday = document.getElementById('btn-today');
+            const btnTomorrow = document.getElementById('btn-tomorrow');
+            const btnCalendar = document.getElementById('btn-calendar');
+
+            // Reset all states
+            btnToday.classList.remove('active');
+            btnTomorrow.classList.remove('active');
+            btnCalendar.classList.remove('active');
+
+            if (mode === 'today') {
+                slider.style.transform = 'translateX(0px)';
+                btnToday.classList.add('active');
+            } else if (mode === 'tomorrow') {
+                slider.style.transform = 'translateX(66px)';
+                btnTomorrow.classList.add('active');
+            } else if (mode === 'calendar') {
+                btnCalendar.classList.add('active');
+            }
+        }
+
+        // Called from the toggle buttons
+        function setModeFromToggle(mode) {
+            const carousel = document.getElementById('date-carousel');
+            const isCarouselOpen = carousel.style.transform === 'translateY(0)' || carousel.style.transform === 'translateY(0px)';
+
+            document.getElementById('btn-calendar').classList.remove('active');
+
+            // Update selected date based on mode
+            const currentTime = new Date();
+            if (mode === 'today') {
+                selectedCalendarDate = currentTime.toDateString();
+            } else if (mode === 'tomorrow') {
+                selectedCalendarDate = addDays(currentTime, 1).toDateString();
+            }
+
+            // Update calendar highlight if it's open
+            if (isCarouselOpen) {
+                updateDateCarouselHighlight(selectedCalendarDate);
+            } else {
+                hideDateCarousel();
+            }
+
+            setMode(mode);
         }
 
         function setMode(mode) {
@@ -1464,21 +1543,17 @@
                     hideDateCarousel();
                     // Switch back to today mode
                     mode = 'today';
-                    document.querySelectorAll('.capsule-btn').forEach(b => b.classList.remove('active'));
-                    document.getElementById('btn-today').classList.add('active');
+                    updateToggleUI('today');
                     currentMode = 'today';
                     selectedCalendarDate = currentTime.toDateString();
                     render('today');
                 } else {
-                    document.querySelectorAll('.capsule-btn').forEach(b => b.classList.remove('active'));
-                    document.getElementById(`btn-${mode}`).classList.add('active');
-                    toggleDrawer(false);
+                    updateToggleUI('calendar');
                     showDateCarousel();
                     currentMode = 'calendar';
                 }
             } else {
-                document.querySelectorAll('.capsule-btn').forEach(b => b.classList.remove('active'));
-                document.getElementById(`btn-${mode}`).classList.add('active');
+                updateToggleUI(mode);
                 hideDateCarousel();
                 currentMode = mode;
                 selectedCalendarDate = (mode === 'today') ? currentTime.toDateString() : addDays(currentTime, 1).toDateString();
@@ -1490,6 +1565,7 @@
             const drawer = document.getElementById('list-drawer');
             const icon = document.getElementById('chevron-icon');
             const btn = document.getElementById('drawer-btn');
+            const searchWrapper = document.querySelector('.search-wrapper');
 
             isDrawerOpen = forceOpen !== undefined ? forceOpen : !isDrawerOpen;
             const isDesktop = window.matchMedia('(min-width: 768px)').matches;
@@ -1505,12 +1581,14 @@
                 drawer.classList.add('drawer-open');
                 icon.style.transform = 'rotate(180deg)';
                 btn.classList.add('bg-white/10', 'text-white');
+                searchWrapper.classList.add('active');
             } else {
                 // Close drawer (desktop: hidden, mobile: peek)
                 drawer.classList.remove('drawer-open');
                 drawer.classList.add(isDesktop ? 'drawer-closed' : 'drawer-peek');
                 icon.style.transform = 'rotate(0deg)';
                 btn.classList.remove('bg-white/10', 'text-white');
+                searchWrapper.classList.remove('active');
             }
         }
 
@@ -1578,13 +1656,21 @@
             }
         });
 
-        // --- FILTER FUNCTIONS ---
-        function applyFilter(type, value) {
-            activeFilters[type] = value;
-            updateFilterPillUI(type, value);
-            render(currentMode);
-        }
+        // Click on map dismisses date carousel
+        map.on('click', () => {
+            const carousel = document.getElementById('date-carousel');
+            // Check if carousel is visible (not translated off screen)
+            if (carousel.style.transform === 'translateY(0)' || carousel.style.transform === 'translateY(0px)') {
+                hideDateCarousel();
+                // Reset to today mode
+                updateToggleUI('today');
+                currentMode = 'today';
+                selectedCalendarDate = new Date().toDateString();
+                render('today');
+            }
+        });
 
+        // --- FILTER FUNCTIONS ---
         // Cycle through filter states (for Price and Time toggles)
         const filterCycles = {
             price: ['All', 'Free', 'Paid'],
@@ -1663,7 +1749,6 @@
         // ENHANCED SEARCH FUNCTIONALITY
         // --------------------------------------------------------
         let userLocation = null;
-        const SEARCH_HISTORY_KEY = 'micfinder_search_history';
 
         // Get user location
         function getUserLocation() {
@@ -1756,487 +1841,59 @@
             return `${Math.round(miles)} mi`;
         }
 
-        // Get search history from localStorage
-        function getSearchHistory() {
-            try {
-                return JSON.parse(localStorage.getItem(SEARCH_HISTORY_KEY)) || [];
-            } catch {
-                return [];
-            }
-        }
-
-        // Save search to history
-        function saveToSearchHistory(query) {
-            if (!query.trim()) return;
-            let history = getSearchHistory();
-            // Remove if exists, add to front
-            history = history.filter(h => h.toLowerCase() !== query.toLowerCase());
-            history.unshift(query);
-            // Keep only last 5
-            history = history.slice(0, 5);
-            localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(history));
-        }
-
-        // Remove item from history
-        function removeFromHistory(query) {
-            let history = getSearchHistory();
-            history = history.filter(h => h !== query);
-            localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(history));
-            showSearchHistory();
-        }
-
-        // Clear all history
-        function clearSearchHistory() {
-            localStorage.removeItem(SEARCH_HISTORY_KEY);
-            showSearchHistory();
-        }
-
-        // Get status for a mic
-        function getMicStatus(mic) {
-            const diffMins = (mic.start - new Date()) / 60000;
-            if (diffMins > -90 && diffMins <= 0) return { label: 'Live', class: 'status-live' };
-            if (diffMins > 0 && diffMins <= 60) return { label: 'Soon', class: 'status-soon' };
-            if (diffMins > 60 && diffMins <= 120) return { label: '1-2 hr', class: 'status-soon' };
-            return { label: mic.timeStr, class: 'status-upcoming' };
-        }
-
-        // Fuzzy match score (lower is better, -1 means no match)
-        function fuzzyMatch(text, query) {
-            text = text.toLowerCase();
-            query = query.toLowerCase();
-
-            // Exact match
-            if (text.includes(query)) return 0;
-
-            // Check if all characters appear in order (fuzzy)
-            let textIndex = 0;
-            let matchCount = 0;
-            for (let i = 0; i < query.length; i++) {
-                const char = query[i];
-                const foundIndex = text.indexOf(char, textIndex);
-                if (foundIndex !== -1) {
-                    matchCount++;
-                    textIndex = foundIndex + 1;
-                }
-            }
-
-            // Need at least 70% of characters to match in order
-            if (matchCount / query.length >= 0.7) {
-                return 1 + (query.length - matchCount); // Score based on missing chars
-            }
-
-            // Levenshtein distance for short queries
-            if (query.length <= 8) {
-                const distance = levenshteinDistance(text.substring(0, Math.min(text.length, query.length + 3)), query);
-                if (distance <= Math.ceil(query.length * 0.4)) { // Allow ~40% errors
-                    return 2 + distance;
-                }
-            }
-
-            return -1; // No match
-        }
-
-        // Levenshtein distance calculation
-        function levenshteinDistance(a, b) {
-            const matrix = [];
-            for (let i = 0; i <= b.length; i++) {
-                matrix[i] = [i];
-            }
-            for (let j = 0; j <= a.length; j++) {
-                matrix[0][j] = j;
-            }
-            for (let i = 1; i <= b.length; i++) {
-                for (let j = 1; j <= a.length; j++) {
-                    if (b.charAt(i - 1) === a.charAt(j - 1)) {
-                        matrix[i][j] = matrix[i - 1][j - 1];
-                    } else {
-                        matrix[i][j] = Math.min(
-                            matrix[i - 1][j - 1] + 1,
-                            matrix[i][j - 1] + 1,
-                            matrix[i - 1][j] + 1
-                        );
-                    }
-                }
-            }
-            return matrix[b.length][a.length];
-        }
-
-        // Highlight matching text
-        function highlightMatch(text, query) {
-            if (!query) return text;
-            const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-            return text.replace(regex, '<mark>$1</mark>');
-        }
-
-        // Show search dropdown
-        function showSearchDropdown() {
-            document.getElementById('search-dropdown').classList.remove('hidden');
-            document.getElementById('list-drawer').classList.add('drawer-hidden');
-        }
-
-        // Hide search dropdown
-        function hideSearchDropdown() {
-            document.getElementById('search-dropdown').classList.add('hidden');
-            document.getElementById('list-drawer').classList.remove('drawer-hidden');
-        }
-
-        // Show search history (only when search bar is focused)
-        function showSearchHistory() {
-            const history = getSearchHistory();
-            const historySection = document.getElementById('search-history-section');
-            const historyList = document.getElementById('search-history-list');
-            const resultsSection = document.getElementById('search-results-section');
-
-            resultsSection.classList.add('hidden');
-
-            if (history.length === 0) {
-                historySection.classList.add('hidden');
-                hideSearchDropdown();
-                return;
-            }
-
-            historySection.classList.remove('hidden');
-            showSearchDropdown();
-
-            // Use data attributes instead of inline onclick to prevent XSS
-            historyList.innerHTML = history.map(query => `
-                <div class="history-item" data-history-query="${encodeURIComponent(query)}">
-                    <div class="history-item-left">
-                        <svg class="w-4 h-4 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        <span class="text-sm text-white">${query}</span>
-                    </div>
-                    <button class="history-item-remove">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                    </button>
-                </div>
-            `).join('');
-
-            // Attach event listeners safely (no inline JS)
-            historyList.querySelectorAll('.history-item').forEach(item => {
-                item.addEventListener('click', (e) => {
-                    if (!e.target.closest('.history-item-remove')) {
-                        selectHistoryItem(decodeURIComponent(item.dataset.historyQuery));
-                    }
-                });
-            });
-            historyList.querySelectorAll('.history-item-remove').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const query = decodeURIComponent(btn.closest('.history-item').dataset.historyQuery);
-                    removeFromHistory(query);
-                });
-            });
-        }
-
-        // Show all mics in dropdown (when clicking off search bar)
-        function showAllMicsDropdown() {
-            const resultsSection = document.getElementById('search-results-section');
-            const resultsList = document.getElementById('search-results-list');
-            const historySection = document.getElementById('search-history-section');
-
-            historySection.classList.add('hidden');
-            resultsSection.classList.remove('hidden');
-            showSearchDropdown();
-
-            // Get mics for current mode, sorted by time
-            const currentTime = new Date(); // Fresh timestamp for accurate calculations
-            let filtered = mics.filter(m => {
-                // Skip mics with no valid start time
-                if (!m.start) return false;
-
-                const micDateStr = m.start.toDateString();
-                const todayStr = currentTime.toDateString();
-                const tmrwStr = addDays(currentTime, 1).toDateString();
-                const diffMins = (m.start - currentTime) / 60000;
-
-                // Skip past mics
-                if (diffMins < -60) return false;
-
-                if (currentMode === 'today' && micDateStr !== todayStr) return false;
-                if (currentMode === 'tomorrow' && micDateStr !== tmrwStr) return false;
-                if (currentMode === 'calendar' && micDateStr !== selectedCalendarDate) return false;
-                return true;
-            });
-
-            // Add distance if user location available
-            if (userLocation) {
-                filtered = filtered.map(m => ({
-                    ...m,
-                    distance: calculateDistance(userLocation.lat, userLocation.lng, m.lat, m.lng)
-                }));
-            }
-
-            // Limit display
-            filtered = filtered.slice(0, 10);
-
-            if (filtered.length === 0) {
-                resultsList.innerHTML = `<div class="p-4 text-center text-neutral-500 text-sm">No mics found</div>`;
-                return;
-            }
-
-            // Use data attributes for consistency with other click handlers
-            resultsList.innerHTML = filtered.map(mic => {
-                const status = getMicStatus(mic);
-                const distanceStr = mic.distance ? formatDistance(mic.distance) : '';
-                const iconBg = (mic.status === 'live' || mic.status === 'urgent') ? 'bg-rose-500/20' :
-                               (mic.status === 'soon' ? 'bg-amber-500/20' : 'bg-white/10');
-                const iconColor = (mic.status === 'live' || mic.status === 'urgent') ? 'text-rose-500' :
-                                  (mic.status === 'soon' ? 'text-amber-500' : 'text-neutral-400');
-
-                return `
-                    <div class="search-item" data-mic-id="${mic.id}">
-                        <div class="search-item-icon ${iconBg}">
-                            <svg class="w-4 h-4 ${iconColor}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                            </svg>
-                        </div>
-                        <div class="search-item-content">
-                            <div class="search-item-title">${mic.title}</div>
-                            <div class="search-item-subtitle">
-                                <span>${mic.hood}</span>
-                                <span>·</span>
-                                <span>${mic.type}</span>
-                            </div>
-                        </div>
-                        <div class="search-item-meta">
-                            <span class="search-item-status ${status.class}">${status.label}</span>
-                            ${distanceStr ? `<span class="search-item-distance">${distanceStr}</span>` : ''}
-                        </div>
-                    </div>
-                `;
-            }).join('');
-
-            // Attach event listeners safely (no inline JS)
-            resultsList.querySelectorAll('.search-item').forEach(item => {
-                item.addEventListener('click', () => {
-                    selectSearchResultDirect(item.dataset.micId);
-                });
-            });
-        }
-
-        // Select search result without saving to history
-        function selectSearchResultDirect(micId) {
-            hideSearchDropdown();
-
-            const mic = mics.find(m => m.id === micId);
-            if (mic) {
-                isProgrammaticMove = true;
-                map.flyTo([mic.lat, mic.lng], 15, { duration: 1 });
-                if(!isDrawerOpen) toggleDrawer(true);
-                setTimeout(() => {
-                    const card = document.getElementById(`card-${micId}`);
-                    if (card) {
-                        card.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }
-                }, 150);
-            }
-        }
-
-        // Select history item
-        function selectHistoryItem(query) {
-            document.getElementById('search-input').value = query;
-            performSearch(query);
-        }
-
-        // Perform search
-        function performSearch(query) {
-            // Truncate very long queries to prevent performance issues
-            if (query.length > 100) query = query.substring(0, 100);
-
-            const resultsSection = document.getElementById('search-results-section');
-            const resultsList = document.getElementById('search-results-list');
-            const historySection = document.getElementById('search-history-section');
-
-            if (!query.trim()) {
-                resultsSection.classList.add('hidden');
-                showSearchHistory();
-                render(currentMode);
-                return;
-            }
-
-            historySection.classList.add('hidden');
-            resultsSection.classList.remove('hidden');
-            showSearchDropdown();
-
-            // Filter mics by query with fuzzy matching
-            // Title matches are weighted higher than neighborhood matches
-            let results = mics.map(m => {
-                const titleScore = fuzzyMatch(m.title, query);
-                const hoodScore = fuzzyMatch(m.hood, query);
-                // Add penalty for hood-only matches so title matches rank higher
-                const adjustedTitleScore = titleScore === -1 ? 999 : titleScore;
-                const adjustedHoodScore = hoodScore === -1 ? 999 : hoodScore + 0.5;
-                const bestScore = Math.min(adjustedTitleScore, adjustedHoodScore);
-                return { ...m, matchScore: bestScore };
-            }).filter(m => m.matchScore < 999);
-
-            // Sort by match score first, then by distance if available
-            if (userLocation) {
-                results = results.map(m => ({
-                    ...m,
-                    distance: calculateDistance(userLocation.lat, userLocation.lng, m.lat, m.lng)
-                }));
-                results.sort((a, b) => {
-                    if (a.matchScore !== b.matchScore) return a.matchScore - b.matchScore;
-                    return a.distance - b.distance;
-                });
-            } else {
-                results.sort((a, b) => a.matchScore - b.matchScore);
-            }
-
-            // Limit to 8 results
-            results = results.slice(0, 8);
-
-            if (results.length === 0) {
-                resultsList.innerHTML = `<div class="p-4 text-center text-neutral-500 text-sm">No venues found</div>`;
-                return;
-            }
-
-            // Use data attributes instead of inline onclick to prevent XSS
-            const encodedQuery = encodeURIComponent(query);
-            resultsList.innerHTML = results.map(mic => {
-                const status = getMicStatus(mic);
-                const distanceStr = mic.distance ? formatDistance(mic.distance) : '';
-                const iconBg = (mic.status === 'live' || mic.status === 'urgent') ? 'bg-rose-500/20' :
-                               (mic.status === 'soon' ? 'bg-amber-500/20' : 'bg-white/10');
-                const iconColor = (mic.status === 'live' || mic.status === 'urgent') ? 'text-rose-500' :
-                                  (mic.status === 'soon' ? 'text-amber-500' : 'text-neutral-400');
-
-                return `
-                    <div class="search-item" data-mic-id="${mic.id}" data-search-query="${encodedQuery}">
-                        <div class="search-item-icon ${iconBg}">
-                            <svg class="w-4 h-4 ${iconColor}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                            </svg>
-                        </div>
-                        <div class="search-item-content">
-                            <div class="search-item-title">${highlightMatch(mic.title, query)}</div>
-                            <div class="search-item-subtitle">
-                                <span>${mic.hood}</span>
-                                <span>·</span>
-                                <span>${mic.type}</span>
-                            </div>
-                        </div>
-                        <div class="search-item-meta">
-                            <span class="search-item-status ${status.class}">${status.label}</span>
-                            ${distanceStr ? `<span class="search-item-distance">${distanceStr}</span>` : ''}
-                        </div>
-                    </div>
-                `;
-            }).join('');
-
-            // Attach event listeners safely (no inline JS)
-            resultsList.querySelectorAll('.search-item').forEach(item => {
-                item.addEventListener('click', () => {
-                    const micId = item.dataset.micId;
-                    const searchQuery = decodeURIComponent(item.dataset.searchQuery);
-                    selectSearchResult(micId, searchQuery);
-                });
-            });
-        }
-
-        // Select search result
-        function selectSearchResult(micId, query) {
-            saveToSearchHistory(query);
-            hideSearchDropdown();
-
-            const mic = mics.find(m => m.id === micId);
-            if (mic) {
-                // Fly to mic on map
-                isProgrammaticMove = true;
-                map.flyTo([mic.lat, mic.lng], 15, { duration: 1 });
-
-                // Open drawer and scroll to card
-                if(!isDrawerOpen) toggleDrawer(true);
-                setTimeout(() => {
-                    const card = document.getElementById(`card-${micId}`);
-                    if (card) {
-                        card.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }
-                }, 150);
-            }
-
-            // Clear search input
+        // Search functionality removed - stub functions to prevent errors
+        function clearSearchInput() {
             document.getElementById('search-input').value = '';
-            render(currentMode);
+            document.getElementById('search-clear-btn').classList.remove('visible');
         }
 
-        // Search input event listeners
-        const searchInput = document.getElementById('search-input');
-        let searchTimeout = null;
-
-        searchInput.addEventListener('input', (e) => {
-            const query = e.target.value;
-
-            // Immediate UI feedback (no delay)
-            hideDateCarousel();
-            if(!isDrawerOpen) toggleDrawer(true);
-
-            // Show loading state immediately if there's a query
-            if (query.trim()) {
-                const resultsSection = document.getElementById('search-results-section');
-                const resultsList = document.getElementById('search-results-list');
-                const historySection = document.getElementById('search-history-section');
-                historySection.classList.add('hidden');
-                resultsSection.classList.remove('hidden');
-                resultsList.innerHTML = '<div class="p-4 text-center text-neutral-500 text-sm">Searching...</div>';
-                showSearchDropdown();
-            }
-
-            // Debounce search to prevent lag on fast typing
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                performSearch(query);
-
-                // Only render main list if dropdown is hidden (user isn't browsing results)
-                if (document.getElementById('search-dropdown').classList.contains('hidden')) {
-                    render(currentMode);
-                }
-            }, 300);
-        });
-
-        // Track search input focus state
-        let isSearchFocused = false;
-
-        searchInput.addEventListener('focus', () => {
-            isSearchFocused = true;
-            const query = searchInput.value;
-            if (query) {
-                performSearch(query);
-            }
-            // Don't show anything on empty focus - user must type to search
-        });
-
-        searchInput.addEventListener('blur', () => {
-            isSearchFocused = false;
-        });
-
-        // Handle clicks - hide dropdown when clicking outside
-        document.addEventListener('click', (e) => {
-            const dropdown = document.getElementById('search-dropdown');
-            const searchBar = document.querySelector('.glass-panel');
-
-            // Clicked outside search area - hide dropdown
-            if (!dropdown.contains(e.target) && !searchBar.contains(e.target)) {
-                hideSearchDropdown();
-            }
-        });
+        function clearSearchHistory() {
+            // No-op: search history disabled
+        }
 
         // Handle orientation change - recalculate drawer height
         window.addEventListener('orientationchange', () => {
             setTimeout(() => {
                 map.invalidateSize();
-                if (isDrawerOpen) toggleDrawer(true);
+                fixDrawerStateForViewport();
             }, 100);
         });
 
-        // Initialize
+        // Handle window resize (for split screen, etc)
+        let resizeTimeout = null;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                map.invalidateSize();
+                fixDrawerStateForViewport();
+            }, 150);
+        });
+
+        // Fix drawer state when viewport changes between mobile/desktop
+        function fixDrawerStateForViewport() {
+            const drawer = document.getElementById('list-drawer');
+            const searchWrapper = document.querySelector('.search-wrapper');
+            const icon = document.getElementById('chevron-icon');
+            const btn = document.getElementById('drawer-btn');
+            const isDesktop = window.matchMedia('(min-width: 768px)').matches;
+
+            // Remove all state classes first
+            drawer.classList.remove('drawer-closed', 'drawer-peek', 'drawer-open');
+
+            if (isDrawerOpen) {
+                drawer.classList.add('drawer-open');
+                icon.style.transform = 'rotate(180deg)';
+                btn.classList.add('bg-white/10', 'text-white');
+                searchWrapper.classList.add('active');
+            } else {
+                // Use appropriate closed state for viewport
+                drawer.classList.add(isDesktop ? 'drawer-closed' : 'drawer-peek');
+                icon.style.transform = 'rotate(0deg)';
+                btn.classList.remove('bg-white/10', 'text-white');
+                searchWrapper.classList.remove('active');
+            }
+        }
+
         // Initialize drawer state based on screen size
         (function initDrawerState() {
             const drawer = document.getElementById('list-drawer');

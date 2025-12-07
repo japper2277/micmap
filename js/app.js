@@ -9,17 +9,6 @@ let dom = {};
 // EVENT HANDLERS
 // =============================================================================
 
-function handleLocationSearch() {
-    state.searchQuery = dom.locationSearchInput.value;
-    if (state.searchQuery.trim()) {
-        addToSearchHistory(state.searchQuery);
-    }
-    filterMics();
-}
-
-// Debounced version for input event
-const debouncedSearch = debounce(handleLocationSearch, DEFAULTS.debounceDelay);
-
 function handleDayPillClick(event) {
     dom.dayPillButtons.forEach(btn => btn.classList.remove('active'));
     event.target.classList.add('active');
@@ -99,7 +88,6 @@ function handleFavoritesOnlyChange() {
 
 function handleClearFilters() {
     // Reset all filter states
-    state.searchQuery = '';
     state.selectedDay = DEFAULTS.selectedDay;
     state.selectedTime = DEFAULTS.selectedTime;
     state.selectedSort = DEFAULTS.selectedSort;
@@ -109,7 +97,6 @@ function handleClearFilters() {
     state.favoritesOnly = false;
 
     // Reset UI elements
-    dom.locationSearchInput.value = '';
     dom.sortFilter.value = DEFAULTS.selectedSort;
     dom.boroughFilter.value = '';
     dom.neighborhoodFilter.value = '';
@@ -229,8 +216,7 @@ function updateViewToggle() {
 // =============================================================================
 
 function setupEventListeners() {
-    // Search & Filters
-    dom.locationSearchInput.addEventListener('input', debouncedSearch);
+    // Filters
     dom.sortFilter.addEventListener('change', handleSortChange);
     dom.nearMeButton.addEventListener('click', handleNearMeClick);
     dom.dayPillButtons.forEach(button => {

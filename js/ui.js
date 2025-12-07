@@ -247,17 +247,6 @@ function filterMics() {
         return a.distance - b.distance;
     });
 
-    // Search query filter
-    if (state.searchQuery) {
-        const query = state.searchQuery.toLowerCase();
-        filtered = filtered.filter(mic =>
-            mic.name.toLowerCase().includes(query) ||
-            mic.borough.toLowerCase().includes(query) ||
-            mic.neighborhood.toLowerCase().includes(query) ||
-            (mic.tags && mic.tags.some(tag => tag.toLowerCase().includes(query)))
-        );
-    }
-
     // Day filter (empty string = "Any Day", shows all days)
     if (state.selectedDay) {
         filtered = filtered.filter(mic => mic.day === state.selectedDay);
@@ -393,18 +382,6 @@ function renderFilterChips() {
         });
     }
 
-    // Search chip
-    if (state.searchQuery) {
-        chips.push({
-            label: `"${state.searchQuery}"`,
-            remove: () => {
-                state.searchQuery = '';
-                document.getElementById(DOM_IDS.searchInput).value = '';
-                filterMics();
-            }
-        });
-    }
-
     // Render chips
     if (chips.length === 0) {
         container.classList.add('hidden');
@@ -443,7 +420,6 @@ function updateFilterBadge() {
 
     let activeFilters = 0;
 
-    if (state.searchQuery) activeFilters++;
     if (state.selectedDay) activeFilters++;
     if (state.selectedTime && state.selectedTime !== 'any') activeFilters++;
     if (state.selectedBorough) activeFilters++;
