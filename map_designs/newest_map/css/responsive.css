@@ -1,0 +1,12 @@
+/* =================================================================
+   RESPONSIVE STYLES
+   Media queries, desktop/mobile adjustments
+   ================================================================= */
+
+/* Desktop: Locate button positioning */
+@media (min-width: 768px) {
+    .locate-btn {
+        bottom: 24px;
+        left: 24px;
+    }
+}

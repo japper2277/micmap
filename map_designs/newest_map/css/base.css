@@ -1,0 +1,51 @@
+/* =================================================================
+   BASE STYLES
+   Variables, fonts, body, utilities
+   ================================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+:root {
+    --rose: #f43f5e;
+    --rose-glow: rgba(244, 63, 94, 0.5);
+    --amber: #f59e0b;
+    --amber-glow: rgba(245, 158, 11, 0.5);
+    --blue: #3b82f6;
+    --blue-muted: #52525b;
+    --deep-void: #09090b;
+    --vh: 1vh; /* Fallback for older browsers */
+}
+
+/* iOS Safari dynamic viewport fix */
+@supports (height: 100dvh) {
+    :root { --vh: 1dvh; }
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--deep-void);
+    overflow: hidden;
+    color: white;
+}
+
+/* Font utilities */
+.font-mono { font-family: 'Space Mono', monospace; }
+.font-display { font-family: 'Space Grotesk', sans-serif; }
+
+/* Hide scrollbar */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Focus-visible styles for accessibility */
+input:focus-visible, button:focus-visible {
+    outline: 2px solid rgba(251, 113, 133, 0.8);
+    outline-offset: 2px;
+}

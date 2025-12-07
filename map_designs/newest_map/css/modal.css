@@ -1,0 +1,190 @@
+/* =================================================================
+   MODAL STYLES
+   Venue modal overlay, card, buttons, instructions
+   ================================================================= */
+
+/* --- VENUE MODAL (Glassmorphism) --- */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    z-index: 2000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+.modal-overlay.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.venue-card {
+    width: 100%;
+    max-width: 360px;
+    background: rgba(10, 10, 10, 0.92);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: white;
+    border-radius: 24px;
+    padding: 28px;
+    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8), 0 4px 20px rgba(0, 0, 0, 0.4);
+    transform: scale(0.95) translateY(20px);
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+}
+.modal-overlay.active .venue-card {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+}
+
+.venue-card h2 {
+    margin: 0 0 4px 0;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+.venue-card .venue-address {
+    margin: 0 0 20px 0;
+    color: #71717a;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.venue-card .venue-time-row {
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 20px;
+    font-family: 'Space Grotesk', sans-serif;
+}
+.venue-card .venue-time-row span {
+    color: var(--amber);
+}
+.venue-card .venue-time-row span.live {
+    color: var(--rose);
+}
+
+/* Action Row */
+.modal-action-row {
+    display: flex;
+    gap: 10px;
+}
+
+.modal-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    padding: 14px;
+    border-radius: 12px;
+    text-decoration: none;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    transition: all 0.2s;
+    cursor: pointer;
+    border: none;
+    outline: none;
+}
+
+.modal-btn-secondary {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+.modal-btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.modal-btn-primary {
+    flex: 1;
+    background: white;
+    color: black;
+}
+.modal-btn-primary:hover {
+    background: #e0e0e0;
+    transform: translateY(-1px);
+}
+
+.modal-btn-icon {
+    width: 46px;
+    flex: 0 0 46px;
+    background: transparent;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 0;
+    font-size: 18px;
+    font-family: 'Times New Roman', serif;
+    font-style: italic;
+    font-weight: 700;
+}
+.modal-btn-icon:hover {
+    border-color: white;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* Instructions Panel */
+.modal-instructions {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 12px;
+    display: none;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    animation: modalSlideDown 0.3s cubic-bezier(0.2, 1, 0.3, 1);
+}
+.modal-instructions.show {
+    display: block;
+}
+.modal-instructions-header {
+    font-size: 10px;
+    color: #71717a;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    display: block;
+    font-family: 'Space Mono', monospace;
+}
+.modal-instructions-text {
+    font-size: 14px;
+    color: #d4d4d4;
+    line-height: 1.5;
+}
+
+.modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    font-size: 28px;
+    color: #525252;
+    background: none;
+    border: none;
+    cursor: pointer;
+    line-height: 1;
+    padding: 4px;
+    transition: color 0.2s;
+}
+.modal-close:hover {
+    color: white;
+}
+
+@keyframes modalSlideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.modal-btn svg {
+    width: 14px;
+    height: 14px;
+    fill: currentColor;
+}

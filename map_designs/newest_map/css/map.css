@@ -1,0 +1,165 @@
+/* =================================================================
+   MAP STYLES
+   Leaflet overrides, pins, tooltips, popups
+   ================================================================= */
+
+/* Map Warm Voyager - Natural colors, slightly dimmed */
+.leaflet-layer {
+    filter: brightness(0.92) saturate(0.85);
+}
+.leaflet-container { background: #e8e4dc; }
+
+/* --- PIN STYLES (Matching Mockup) --- */
+
+/* LIVE Pin: Text badge with pulsing dot */
+.pin-live-container {
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.pin-live-container:hover { transform: scale(1.05) translateY(-2px); }
+
+.pin-live-badge {
+    background: var(--rose);
+    padding: 8px 12px;
+    border-radius: 8px;
+    box-shadow: 0 8px 20px -4px rgba(244, 63, 94, 0.5);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+    white-space: nowrap;
+}
+
+/* Triangle pointer */
+.pin-live-badge::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: var(--rose) transparent transparent transparent;
+}
+
+/* Pulsing dot inside badge */
+.pulse-ring {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.9);
+    animation: radar 2s infinite ease-out;
+}
+@keyframes radar {
+    0% { width: 6px; height: 6px; opacity: 0.8; }
+    100% { width: 24px; height: 24px; opacity: 0; }
+}
+
+/* SOON Pin: White dot with orange border */
+.pin-soon-container {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.pin-soon-dot {
+    width: 14px;
+    height: 14px;
+    background: white;
+    border: 3px solid var(--amber);
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+/* LATER Pin: Small gray dot */
+.pin-later-container {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.7;
+}
+.pin-later-dot {
+    width: 10px;
+    height: 10px;
+    background: #8e8e93;
+    border-radius: 50%;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Map pin tooltip - Styled like mockup */
+.mic-tooltip {
+    background: var(--deep-void) !important;
+    border: none !important;
+    border-radius: 6px !important;
+    padding: 10px 14px !important;
+    font-family: 'Space Mono', monospace !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    color: white !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+    white-space: nowrap !important;
+}
+.mic-tooltip::before {
+    border-top-color: var(--deep-void) !important;
+}
+
+/* Live tooltip - rose/pink background */
+.mic-tooltip-live {
+    background: var(--rose) !important;
+}
+.mic-tooltip-live::before {
+    border-top-color: var(--rose) !important;
+}
+
+/* Soon tooltip - amber accent */
+.mic-tooltip-soon .tooltip-time {
+    color: var(--amber) !important;
+}
+
+/* Map pin popup */
+.mic-popup-container .leaflet-popup-content-wrapper {
+    background: rgba(0, 0, 0, 0.95) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
+    color: white !important;
+}
+.mic-popup-container .leaflet-popup-content {
+    margin: 12px 14px !important;
+    font-family: 'Space Grotesk', sans-serif !important;
+}
+.mic-popup-container .leaflet-popup-tip {
+    background: rgba(0, 0, 0, 0.95) !important;
+}
+.mic-popup-container .leaflet-popup-close-button {
+    color: white !important;
+    opacity: 0.5;
+}
+.mic-popup-container .leaflet-popup-close-button:hover {
+    opacity: 1;
+}
+
+/* Directions button in popup */
+.directions-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    padding: 8px 12px;
+    background: var(--rose);
+    color: white !important;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none !important;
+    transition: all 0.2s;
+}
+.directions-btn:hover {
+    background: #e11d48;
+    transform: scale(1.02);
+}
