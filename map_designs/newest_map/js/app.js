@@ -7,7 +7,8 @@
 async function loadData() {
     try {
         const response = await fetch(CONFIG.apiPath);
-        const rawMics = await response.json();
+        const data = await response.json();
+        const rawMics = data.mics || data; // Handle both { mics: [...] } and raw array
         STATE.mics = processMics(rawMics);
         console.log(`Loaded ${STATE.mics.length} mics`);
         render('today');
@@ -69,6 +70,26 @@ function init() {
 
     // Generate date carousel
     generateDateCarousel();
+
+    // Initialize toast notifications
+    if (typeof toastService !== 'undefined') {
+        toastService.init();
+    }
+
+    // Initialize search service
+    if (typeof searchService !== 'undefined') {
+        searchService.init();
+    }
+
+    // Initialize settings modal
+    if (typeof settingsService !== 'undefined') {
+        settingsService.init();
+    }
+
+    // Load transit data (for matrix-based estimates)
+    if (typeof loadTransitData === 'function') {
+        loadTransitData();
+    }
 
     // Load data and render
     loadData();

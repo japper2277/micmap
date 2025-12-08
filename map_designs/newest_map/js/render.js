@@ -122,17 +122,47 @@ function render(mode) {
         return;
     }
 
-    // Sort: by transit time (if in transit mode) OR by start time
-    if (STATE.isTransitMode) {
-        filtered.sort((a, b) => (a.transitMins || 999) - (b.transitMins || 999));
+    // Sort: Transit time (if in transit mode) OR start time
+    if (STATE.isTransitMode && STATE.userOrigin) {
+        // Sort by transit time - closest first, then by start time for ties
+        filtered.sort((a, b) =>
+            (a.transitMins || 999) - (b.transitMins || 999) ||
+            (a.start || 0) - (b.start || 0)
+        );
     } else {
+        // Default: Sort by start time
         filtered.sort((a, b) => (a.start || 0) - (b.start || 0));
+    }
+
+    // In transit mode: split into visible and hidden for "Show more" functionality
+    const searchQuery = document.getElementById('search-input')?.value?.toLowerCase() || '';
+    let visibleMics = filtered;
+    let hiddenMics = [];
+
+    if (STATE.isTransitMode && !STATE.transitExpanded) {
+        visibleMics = [];
+        hiddenMics = [];
+
+        // filtered is already sorted by transitMins at this point
+        filtered.forEach((mic, index) => {
+            const title = (mic.title || mic.venue || '').toLowerCase();
+            const isSearchTarget = title.includes(searchQuery) && searchQuery.length > 2;
+            const isTop5 = index < 5;  // ALWAYS show top 5 closest
+            const hasBlueOrGreenBadge = mic.transitType === 'transit' || mic.transitType === 'walk';
+
+            // Show if: search target OR top 5 OR has live data
+            if (isSearchTarget || isTop5 || hasBlueOrGreenBadge) {
+                visibleMics.push(mic);
+            } else {
+                hiddenMics.push(mic);
+            }
+        });
     }
 
     // Group by Hour with Sticky Headers
     let currentHour = -1;
 
-    filtered.forEach(mic => {
+    visibleMics.forEach(mic => {
         const micHour = mic.start ? mic.start.getHours() : 0;
         const diffMins = mic.start ? (mic.start - currentTime) / 60000 : 999;
         const isRecentPast = (mode === 'today') && diffMins < 0 && diffMins >= -60;
@@ -178,13 +208,15 @@ function render(mode) {
 
                 <!-- MIDDLE: Details -->
                 <div class="flex flex-col justify-center relative z-10">
-                    <h3 class="font-bold text-base leading-tight text-white transition-colors font-display group-hover:text-black">${mic.title}</h3>
+                    <div class="flex items-center gap-2">
+                        <h3 class="font-bold text-base leading-tight text-white transition-colors font-display group-hover:text-black">${mic.title}</h3>
+                        ${mic.transitMins !== undefined ? `<span class="transit-badge transit-${mic.transitType || 'transit'}">${mic.transitType === 'walk' ? '🚶' : '🚇'} ${mic.transitType === 'estimate' ? '~' : ''}${mic.transitMins}m</span>` : ''}
+                    </div>
                     <div class="flex items-center gap-2 mt-1 text-[10px] ${subTextColor} font-mono uppercase tracking-wide">
                         <span class="sub-text">${mic.hood}</span>
                         <span class="w-0.5 h-0.5 bg-neutral-600 rounded-full"></span>
                         <span class="tag-text px-1 py-0.5 border border-white/20 rounded transition-colors">${mic.price}</span>
                         <span class="tag-text px-1 py-0.5 border border-white/20 rounded transition-colors">${mic.type}</span>
-                        ${mic.transitMins !== undefined ? `<span class="transit-badge">🚇 ${mic.transitMins}m</span>` : ''}
                     </div>
                 </div>
 
@@ -233,6 +265,18 @@ function render(mode) {
         `;
         container.appendChild(card);
     });
+
+    // Add "Show more" button if there are hidden mics
+    if (STATE.isTransitMode && !STATE.transitExpanded && hiddenMics.length > 0) {
+        const showMoreContainer = document.createElement('div');
+        showMoreContainer.className = 'show-more-container';
+        showMoreContainer.innerHTML = `
+            <button class="show-more-btn" onclick="transitService.expandNeighborhoods()">
+                + ${hiddenMics.length} more venues further away
+            </button>
+        `;
+        container.appendChild(showMoreContainer);
+    }
 }
 
 // Toggle signup info display

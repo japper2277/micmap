@@ -288,6 +288,47 @@ app.post('/api/proxy/transit', async (req, res) => {
   }
 });
 
+// =================================================================
+// GEOCODING PROXY - Nominatim (OpenStreetMap) - FREE, no API key
+// =================================================================
+app.get('/api/proxy/geocode', async (req, res) => {
+  const { query } = req.query;
+
+  if (!query || query.length < 2) {
+    return res.status(400).json({ error: 'Query too short' });
+  }
+
+  // Sanitize input (XSS protection)
+  const sanitized = query.replace(/[<>"']/g, '').substring(0, 100);
+
+  try {
+    // Nominatim API - free, no key required
+    // viewbox = NYC bounding box, bounded=1 restricts to that area
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(sanitized)}&format=json&limit=4&viewbox=-74.3,40.95,-73.6,40.45&bounded=1&addressdetails=1`;
+
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'MicMapNYC/1.0 (https://micmap.nyc)' // Required by Nominatim
+      }
+    });
+    const data = await response.json();
+
+    const results = data.map(item => ({
+      name: item.name || item.display_name.split(',')[0],
+      address: item.display_name,
+      lat: parseFloat(item.lat),
+      lng: parseFloat(item.lon)
+    }));
+
+    console.log(`✅ Geocoded "${sanitized}" -> ${results.length} results`);
+    res.json({ results });
+
+  } catch (error) {
+    console.error('❌ Geocode error:', error);
+    res.status(500).json({ error: 'Geocoding failed' });
+  }
+});
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({ error: 'Endpoint not found' });
