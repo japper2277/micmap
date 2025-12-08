@@ -72,7 +72,9 @@ const searchService = {
         });
 
         this.input.addEventListener('focus', () => {
-            if (this.input.value.length >= 2) {
+            if (this.input.value.trim() === '') {
+                this.renderEmptyState();
+            } else if (this.input.value.length >= 2) {
                 this.showDropdown();
             }
         });
@@ -91,6 +93,47 @@ const searchService = {
         if (this.selectedIndex >= 0) {
             items[this.selectedIndex].scrollIntoView({ block: 'nearest' });
         }
+    },
+
+    // SVG Icons
+    icons: {
+        nav: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>`,
+        mic: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line></svg>`,
+        pin: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>`
+    },
+
+    // Popular neighborhoods for empty state
+    popularHoods: [
+        { name: 'East Village', sub: 'Manhattan' },
+        { name: 'Williamsburg', sub: 'Brooklyn' },
+        { name: 'Hell\'s Kitchen', sub: 'Manhattan' },
+        { name: 'Bushwick', sub: 'Brooklyn' }
+    ],
+
+    renderEmptyState() {
+        let html = `
+            <div class="dropdown-item current-location" data-action="location">
+                <div class="item-icon">${this.icons.nav}</div>
+                <div class="item-text">
+                    <span class="item-name">Use Current Location</span>
+                </div>
+            </div>
+            <div class="section-header">Popular Neighborhoods</div>`;
+
+        this.popularHoods.forEach(hood => {
+            html += `
+                <div class="dropdown-item location-type" data-action="hood" data-name="${this.escapeHtml(hood.name)}" data-sub="${this.escapeHtml(hood.sub)}">
+                    <div class="item-icon">${this.icons.pin}</div>
+                    <div class="item-text">
+                        <span class="item-name">${this.escapeHtml(hood.name)}</span>
+                    </div>
+                    <span class="item-subtext">${this.escapeHtml(hood.sub)}</span>
+                </div>`;
+        });
+
+        this.dropdown.innerHTML = html;
+        this.bindDropdownClicks();
+        this.showDropdown();
     },
 
     async search(query) {
@@ -126,69 +169,54 @@ const searchService = {
     renderDropdown(results) {
         let html = '';
 
-        // "Use My Location" option (always show, triggers geolocation API)
+        // "Use My Location" option (always show)
         html += `
-            <div class="dropdown-section">
-                <div class="dropdown-item use-location" onclick="searchService.useMyLocation()">
-                    <div class="item-icon location-icon">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="10"/>
-                            <circle cx="12" cy="12" r="3"/>
-                            <line x1="12" y1="2" x2="12" y2="5"/>
-                            <line x1="12" y1="19" x2="12" y2="22"/>
-                            <line x1="2" y1="12" x2="5" y2="12"/>
-                            <line x1="19" y1="12" x2="22" y2="12"/>
-                        </svg>
-                    </div>
-                    <div class="item-text">
-                        <span class="item-name">Use My Location</span>
-                    </div>
+            <div class="dropdown-item current-location" data-action="location">
+                <div class="item-icon">${this.icons.nav}</div>
+                <div class="item-text">
+                    <span class="item-name">Use Current Location</span>
                 </div>
             </div>`;
 
         // Venues section
         if (results.venues.length > 0) {
-            html += `<div class="dropdown-section"><div class="section-header">Venues</div>`;
+            html += `<div class="section-header">Venues</div>`;
             results.venues.forEach(v => {
                 const title = v.title || v.venue || 'Unknown';
                 const hood = v.hood || v.neighborhood || '';
                 html += `
-                    <div class="dropdown-item" onclick="searchService.selectVenue('${v.id || v._id}')">
-                        <div class="item-icon venue-icon">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
-                                <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-                                <line x1="12" y1="19" x2="12" y2="23"/>
-                            </svg>
-                        </div>
+                    <div class="dropdown-item venue-type" data-action="venue" data-id="${v.id || v._id}">
+                        <div class="item-icon">${this.icons.mic}</div>
                         <div class="item-text">
                             <span class="item-name">${this.escapeHtml(title)}</span>
-                            <span class="item-sub">${this.escapeHtml(hood)}</span>
                         </div>
+                        <span class="item-subtext">${this.escapeHtml(hood)}</span>
                     </div>`;
             });
-            html += '</div>';
         }
 
         // Locations section
         if (results.locations.length > 0) {
-            html += `<div class="dropdown-section"><div class="section-header">Locations</div>`;
+            html += `<div class="section-header">Locations</div>`;
             results.locations.forEach(l => {
+                // Clean up address - remove "Community Board" references and simplify
+                const addressParts = (l.address || '').split(',').map(p => p.trim());
+                // Filter out community board, keep useful parts like borough/city
+                const cleanParts = addressParts
+                    .slice(1) // skip the name (already shown)
+                    .filter(p => !p.toLowerCase().includes('community board'))
+                    .filter(p => !p.match(/^\d{5}$/)) // skip zip codes
+                    .slice(0, 2); // take first 2 useful parts
+                const subtext = cleanParts.join(', ');
                 html += `
-                    <div class="dropdown-item" onclick="searchService.selectLocation(${l.lat}, ${l.lng}, '${this.escapeHtml(l.name).replace(/'/g, "\\'")}')">
-                        <div class="item-icon pin-icon">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                                <circle cx="12" cy="10" r="3"/>
-                            </svg>
-                        </div>
+                    <div class="dropdown-item location-type" data-action="geo" data-lat="${l.lat}" data-lng="${l.lng}" data-name="${this.escapeHtml(l.name)}">
+                        <div class="item-icon">${this.icons.pin}</div>
                         <div class="item-text">
                             <span class="item-name">${this.escapeHtml(l.name)}</span>
-                            <span class="item-sub">${this.escapeHtml(l.address || '')}</span>
                         </div>
+                        <span class="item-subtext">${this.escapeHtml(subtext)}</span>
                     </div>`;
             });
-            html += '</div>';
         }
 
         if (results.venues.length === 0 && results.locations.length === 0) {
@@ -196,7 +224,35 @@ const searchService = {
         }
 
         this.dropdown.innerHTML = html;
+        this.bindDropdownClicks();
         this.showDropdown();
+    },
+
+    // Event delegation for dropdown clicks (more reliable than inline onclick)
+    bindDropdownClicks() {
+        this.dropdown.querySelectorAll('.dropdown-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const action = item.dataset.action;
+
+                if (action === 'location') {
+                    this.useMyLocation();
+                } else if (action === 'venue') {
+                    this.selectVenue(item.dataset.id);
+                } else if (action === 'geo') {
+                    const lat = parseFloat(item.dataset.lat);
+                    const lng = parseFloat(item.dataset.lng);
+                    const name = item.dataset.name;
+                    this.selectLocation(lat, lng, name);
+                } else if (action === 'hood') {
+                    // Search for neighborhood as location
+                    const name = item.dataset.name;
+                    this.input.value = name;
+                    this.search(name);
+                }
+            });
+        });
     },
 
     selectVenue(micId) {
@@ -221,10 +277,16 @@ const searchService = {
     },
 
     selectLocation(lat, lng, name) {
+        console.log('🚀 selectLocation called:', { lat, lng, name });
         this.hideDropdown();
         this.input.value = name;
         // Auto-fire transit calculation (no button needed)
-        transitService.calculateFromOrigin(lat, lng, name, null);
+        if (typeof transitService !== 'undefined' && transitService.calculateFromOrigin) {
+            console.log('📍 Calling transitService.calculateFromOrigin...');
+            transitService.calculateFromOrigin(lat, lng, name, null);
+        } else {
+            console.error('❌ transitService not available!');
+        }
     },
 
     // Handle "Use My Location" with geolocation API

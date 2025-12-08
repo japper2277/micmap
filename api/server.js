@@ -289,7 +289,7 @@ app.post('/api/proxy/transit', async (req, res) => {
 });
 
 // =================================================================
-// GEOCODING PROXY - Nominatim (OpenStreetMap) - FREE, no API key
+// GEOCODING PROXY - Mapbox (100k free/month, supports business names)
 // =================================================================
 app.get('/api/proxy/geocode', async (req, res) => {
   const { query } = req.query;
@@ -298,26 +298,34 @@ app.get('/api/proxy/geocode', async (req, res) => {
     return res.status(400).json({ error: 'Query too short' });
   }
 
+  const mapboxToken = process.env.MAPBOX_ACCESS_TOKEN;
+  if (!mapboxToken) {
+    console.error('❌ MAPBOX_ACCESS_TOKEN not configured');
+    return res.status(500).json({ error: 'Geocoding not configured' });
+  }
+
   // Sanitize input (XSS protection)
   const sanitized = query.replace(/[<>"']/g, '').substring(0, 100);
 
   try {
-    // Nominatim API - free, no key required
-    // viewbox = NYC bounding box, bounded=1 restricts to that area
-    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(sanitized)}&format=json&limit=4&viewbox=-74.3,40.95,-73.6,40.45&bounded=1&addressdetails=1`;
+    // Mapbox Geocoding API - includes POIs (businesses like Trader Joe's)
+    // bbox = NYC bounding box (minLng,minLat,maxLng,maxLat)
+    const bbox = '-74.3,40.45,-73.6,40.95';
+    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(sanitized)}.json?access_token=${mapboxToken}&bbox=${bbox}&limit=5&types=poi,address,neighborhood,place`;
 
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'MicMapNYC/1.0 (https://micmap.nyc)' // Required by Nominatim
-      }
-    });
+    const response = await fetch(url);
     const data = await response.json();
 
-    const results = data.map(item => ({
-      name: item.name || item.display_name.split(',')[0],
-      address: item.display_name,
-      lat: parseFloat(item.lat),
-      lng: parseFloat(item.lon)
+    if (data.message) {
+      console.error('❌ Mapbox error:', data.message);
+      return res.status(500).json({ error: 'Geocoding failed' });
+    }
+
+    const results = (data.features || []).map(item => ({
+      name: item.text || item.place_name.split(',')[0],
+      address: item.place_name,
+      lat: item.center[1],
+      lng: item.center[0]
     }));
 
     console.log(`✅ Geocoded "${sanitized}" -> ${results.length} results`);
