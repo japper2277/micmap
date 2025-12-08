@@ -26,5 +26,9 @@ const STATE = {
     userMarker: null,
 
     // Timers
-    resizeTimeout: null
+    resizeTimeout: null,
+
+    // Transit Search (MVP)
+    userOrigin: null,       // { lat, lng } - user's search origin
+    isTransitMode: false    // true when sorting by transit time
 };

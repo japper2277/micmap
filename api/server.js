@@ -25,6 +25,9 @@ const PORT = process.env.PORT || 3001;
 // Enable CORS for all origins (restrict in production)
 app.use(cors());
 
+// Parse JSON bodies
+app.use(express.json());
+
 // Request logging with unique IDs
 app.use(requestLoggingMiddleware);
 
@@ -215,6 +218,73 @@ app.get('/api/v1/mics', cacheMiddleware, async (req, res) => {
       success: false,
       error: 'Failed to fetch open mic data. Please try again later.'
     });
+  }
+});
+
+// =================================================================
+// TRANSIT PROXY - Google Distance Matrix API
+// =================================================================
+app.post('/api/proxy/transit', async (req, res) => {
+  const { originLat, originLng, destinations } = req.body;
+
+  // Validate inputs
+  if (!originLat || !originLng || !destinations?.length) {
+    return res.status(400).json({ error: 'Missing required parameters' });
+  }
+
+  if (destinations.length > 25) {
+    return res.status(400).json({ error: 'Max 25 destinations per request' });
+  }
+
+  // Validate coordinates are in NYC area
+  const isValidCoord = (lat, lng) =>
+    lat >= 40.45 && lat <= 40.95 && lng >= -74.3 && lng <= -73.6;
+
+  if (!isValidCoord(originLat, originLng)) {
+    return res.status(400).json({ error: 'Origin outside NYC area' });
+  }
+
+  // Check API key exists
+  if (!process.env.GOOGLE_MAPS_API_KEY) {
+    console.error('❌ GOOGLE_MAPS_API_KEY not configured');
+    return res.status(500).json({ error: 'Transit service not configured' });
+  }
+
+  try {
+    const destinationsStr = destinations.map(d => `${d.lat},${d.lng}`).join('|');
+
+    const params = new URLSearchParams({
+      origins: `${originLat},${originLng}`,
+      destinations: destinationsStr,
+      mode: 'transit',
+      departure_time: 'now',
+      key: process.env.GOOGLE_MAPS_API_KEY
+    });
+
+    const url = `https://maps.googleapis.com/maps/api/distancematrix/json?${params}`;
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (data.status !== 'OK') {
+      console.error('Google API error:', data.status, data.error_message);
+      return res.status(500).json({ error: `Google API: ${data.status}` });
+    }
+
+    // Map results back to destinations
+    const times = data.rows[0].elements.map((el, i) => ({
+      lat: destinations[i].lat,
+      lng: destinations[i].lng,
+      seconds: el.status === 'OK' ? el.duration.value : null,
+      text: el.status === 'OK' ? el.duration.text : 'N/A',
+      status: el.status
+    }));
+
+    console.log(`✅ Transit times calculated for ${times.length} destinations`);
+    res.json({ times });
+
+  } catch (error) {
+    console.error('❌ Transit proxy error:', error);
+    res.status(500).json({ error: 'Transit calculation failed' });
   }
 });
 

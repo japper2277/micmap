@@ -99,6 +99,108 @@ function formatDistance(miles) {
     return `${Math.round(miles)} mi`;
 }
 
+/* =================================================================
+   TRANSIT CALCULATION (MVP)
+   ================================================================= */
+
+async function calculateTransitTimes(originLat, originLng) {
+    // Get currently visible mics (we'll filter same as render does)
+    const currentTime = new Date();
+    const todayName = CONFIG.dayNames[currentTime.getDay()];
+    const tomorrowName = CONFIG.dayNames[(currentTime.getDay() + 1) % 7];
+
+    // Filter to visible mics
+    const visibleMics = STATE.mics.filter(mic => {
+        const diffMins = mic.start ? (mic.start - currentTime) / 60000 : 999;
+
+        // Day filter
+        if (STATE.currentMode === 'today') {
+            if (mic.day !== todayName) return false;
+            if (diffMins < -60) return false;
+        }
+        if (STATE.currentMode === 'tomorrow' && mic.day !== tomorrowName) return false;
+        if (STATE.currentMode === 'calendar') {
+            const selectedDate = new Date(STATE.selectedCalendarDate);
+            const selectedDayName = CONFIG.dayNames[selectedDate.getDay()];
+            if (mic.day !== selectedDayName) return false;
+        }
+
+        // Price filter
+        if (STATE.activeFilters.price !== 'All') {
+            const isFree = mic.price.toLowerCase().includes('free');
+            if (STATE.activeFilters.price === 'Free' && !isFree) return false;
+            if (STATE.activeFilters.price === 'Paid' && isFree) return false;
+        }
+
+        // Time filter
+        if (STATE.activeFilters.time !== 'All' && mic.start) {
+            const hour = mic.start.getHours();
+            if (STATE.activeFilters.time === 'early' && hour >= 17) return false;
+            if (STATE.activeFilters.time === 'late' && hour < 17) return false;
+        }
+
+        return true;
+    });
+
+    if (visibleMics.length === 0) return;
+
+    // Build destinations array (limit to 25 per Google API)
+    const destinations = visibleMics.slice(0, 25).map(mic => ({
+        lat: mic.lat,
+        lng: mic.lng,
+        id: mic.id
+    }));
+
+    try {
+        const response = await fetch('/api/proxy/transit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                originLat,
+                originLng,
+                destinations
+            })
+        });
+
+        if (!response.ok) {
+            const err = await response.json();
+            throw new Error(err.error || 'Transit API error');
+        }
+
+        const data = await response.json();
+
+        // Apply transit times to mics
+        data.times.forEach((result, i) => {
+            const mic = visibleMics[i];
+            if (mic && result.seconds !== null) {
+                mic.transitSeconds = result.seconds;
+                mic.transitMins = Math.round(result.seconds / 60);
+            }
+        });
+
+        console.log(`✅ Transit times calculated for ${data.times.length} mics`);
+
+    } catch (error) {
+        console.error('Transit calculation failed:', error);
+        // Fallback: estimate based on distance (~4 min per mile by subway)
+        visibleMics.forEach(mic => {
+            const dist = calculateDistance(originLat, originLng, mic.lat, mic.lng);
+            mic.transitMins = Math.round(dist * 4 + 5); // 4 min/mile + 5 min buffer
+            mic.transitSeconds = mic.transitMins * 60;
+        });
+    }
+}
+
+// Clear transit data from all mics
+function clearTransitData() {
+    STATE.mics.forEach(mic => {
+        delete mic.transitMins;
+        delete mic.transitSeconds;
+    });
+    STATE.userOrigin = null;
+    STATE.isTransitMode = false;
+}
+
 // Open directions in native Google Maps app
 function openDirections(lat, lng) {
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);

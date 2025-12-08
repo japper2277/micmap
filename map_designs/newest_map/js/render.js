@@ -122,8 +122,12 @@ function render(mode) {
         return;
     }
 
-    // Sort by start time before rendering
-    filtered.sort((a, b) => (a.start || 0) - (b.start || 0));
+    // Sort: by transit time (if in transit mode) OR by start time
+    if (STATE.isTransitMode) {
+        filtered.sort((a, b) => (a.transitMins || 999) - (b.transitMins || 999));
+    } else {
+        filtered.sort((a, b) => (a.start || 0) - (b.start || 0));
+    }
 
     // Group by Hour with Sticky Headers
     let currentHour = -1;
@@ -180,6 +184,7 @@ function render(mode) {
                         <span class="w-0.5 h-0.5 bg-neutral-600 rounded-full"></span>
                         <span class="tag-text px-1 py-0.5 border border-white/20 rounded transition-colors">${mic.price}</span>
                         <span class="tag-text px-1 py-0.5 border border-white/20 rounded transition-colors">${mic.type}</span>
+                        ${mic.transitMins !== undefined ? `<span class="transit-badge">🚇 ${mic.transitMins}m</span>` : ''}
                     </div>
                 </div>
 
