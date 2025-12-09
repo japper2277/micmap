@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MicFinder - Map Clarity Demo</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        /* FONTS */
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Space+Mono:wght@400;700&display=swap');
+
+        :root {
+            --map-bg: #e8e4dc;
+            --map-grid: #d4d1c9;
+            --rose: #f43f5e;
+            --amber: #f59e0b;
+            --zinc: #71717a;
+            --dark-glass: rgba(5, 5, 5, 0.9);
+        }
+
+        body { 
+            font-family: 'Space Grotesk', sans-serif; 
+            background-color: #050505; 
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        /* --- OPTIMIZED MAP LAYER --- */
+        .map-layer {
+            position: absolute; inset: 0; 
+            background-color: var(--map-bg);
+            /* sharper, retina-ready grid pattern */
+            background-image: radial-gradient(var(--map-grid) 1.5px, transparent 1.5px);
+            background-size: 24px 24px;
+        }
+
+        /* --- COMPONENT: THE LEGEND HUD --- */
+        .hud-container {
+            position: fixed;
+            bottom: 40px; 
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            width: max-content;
+            /* iOS Safe Area adjustment */
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        .hud-glass {
+            background: var(--dark-glass);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 10px 24px;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            box-shadow: 0 20px 40px -4px rgba(0,0,0,0.4);
+            transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        /* Subtle interactive bounce */
+        .hud-glass:active { transform: scale(0.98); }
+
+        .legend-item {
+            display: flex; align-items: center; gap: 10px;
+        }
+        
+        .legend-label {
+            font-family: 'Space Mono', monospace;
+            font-size: 11px; font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .dot { width: 8px; height: 8px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.2); }
+        .dot.live { background: var(--rose); box-shadow: 0 0 12px rgba(244, 63, 94, 0.6); }
+        .dot.soon { background: var(--amber); }
+        .dot.later { background: var(--zinc); }
+
+        /* --- COMPONENT: PINS --- */
+        
+        /* PIN TYPE 1: LIVE BADGE (Priority High) */
+        .pin-live-container {
+            position: absolute; transform: translate(-50%, -50%);
+            z-index: 50; cursor: pointer;
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .pin-live-container:hover { transform: translate(-50%, -60%) scale(1.05); }
+
+        .pin-live-badge {
+            background: var(--rose);
+            padding: 8px 12px;
+            border-radius: 8px;
+            box-shadow: 0 8px 20px -4px rgba(244, 63, 94, 0.5);
+            display: flex; align-items: center; gap: 8px;
+            position: relative;
+        }
+        /* Triangle Arrow */
+        .pin-live-badge::after {
+            content: ''; position: absolute;
+            top: 100%; left: 50%; margin-left: -5px;
+            border-width: 5px; border-style: solid;
+            border-color: var(--rose) transparent transparent transparent;
+        }
+
+        /* Radar Pulse Animation */
+        .pulse-ring {
+            position: absolute; border-radius: 50%;
+            background: rgba(255,255,255,0.9);
+            animation: radar 2s infinite ease-out;
+        }
+        @keyframes radar {
+            0% { width: 6px; height: 6px; opacity: 0.8; }
+            100% { width: 24px; height: 24px; opacity: 0; }
+        }
+
+        /* PIN TYPE 2: SOON (Priority Medium) */
+        .pin-soon {
+            position: absolute; transform: translate(-50%, -50%);
+            width: 16px; height: 16px;
+            background: var(--amber);
+            border: 3px solid white;
+            border-radius: 50%;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            z-index: 40; cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        .pin-soon:hover { transform: translate(-50%, -50%) scale(1.2); }
+
+        /* PIN TYPE 3: LATER (Priority Low) */
+        .pin-later {
+            position: absolute; transform: translate(-50%, -50%);
+            width: 12px; height: 12px;
+            background: var(--zinc);
+            border: 2px solid white;
+            border-radius: 50%;
+            opacity: 0.8;
+            z-index: 30;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- MAP LAYER -->
+    <div class="map-layer">
+
+        <!-- PIN A: LIVE (Text Badge) -->
+        <!-- Placed top-center-ish for visibility -->
+        <div class="pin-live-container" style="top: 35%; left: 50%;">
+            <div class="pin-live-badge">
+                <!-- Icon: Beating Dot -->
+                <div class="relative flex items-center justify-center w-3 h-3">
+                    <div class="pulse-ring"></div>
+                    <div class="relative w-2 h-2 bg-white rounded-full"></div>
+                </div>
+                <!-- Text -->
+                <span class="text-[11px] font-bold text-white tracking-widest leading-none font-mono">LIVE NOW</span>
+            </div>
+        </div>
+
+        <!-- PIN B: SOON -->
+        <div class="pin-soon" style="top: 52%; left: 65%;"></div>
+
+        <!-- PIN C: LATER -->
+        <div class="pin-later" style="top: 60%; left: 35%;"></div>
+        <div class="pin-later" style="top: 25%; left: 25%;"></div>
+        <div class="pin-later" style="top: 68%; left: 75%;"></div>
+    </div>
+
+
+    <!-- UI: LEGEND HUD -->
+    <div class="hud-container">
+        <div class="hud-glass">
+            
+            <!-- Live Item -->
+            <div class="legend-item">
+                <div class="dot live"></div>
+                <span class="legend-label text-rose-500">Live</span>
+            </div>
+
+            <!-- Divider -->
+            <div class="w-[1px] h-3 bg-white/20"></div>
+
+            <!-- Soon Item -->
+            <div class="legend-item">
+                <div class="dot soon"></div>
+                <span class="legend-label text-amber-500">Soon</span>
+            </div>
+
+            <!-- Divider -->
+            <div class="w-[1px] h-3 bg-white/20"></div>
+
+            <!-- Later Item -->
+            <div class="legend-item">
+                <div class="dot later"></div>
+                <span class="legend-label text-zinc-400">Later</span>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>

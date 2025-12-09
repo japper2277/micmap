@@ -1,0 +1,471 @@
+NYC COMEDY OPEN MIC VENUES - ADDRESS LIST
+==========================================
+Generated: December 7, 2025
+Total Venues: 102
+
+
+=== BRONX ===
+
+iNINE Bistro
+  53 Bruckner Blvd, Bronx, NY 10454
+  (South Bronx)
+  Lat: 40.8067535, Lng: -73.9266818
+
+
+=== BROOKLYN ===
+
+Alligator Lounge
+  600 Metropolitan Ave, Brooklyn, NY 11211
+  (Williamsburg)
+  Lat: 40.7139062, Lng: -73.9489165
+
+Alphaville
+  1288 Myrtle Ave, Brooklyn, NY 11221
+  (Bushwick)
+  Lat: 40.698006, Lng: -73.925272
+
+Alphaville Bar
+  140 Wilson Ave, Brooklyn, NY 11237
+  (Bushwick)
+  Lat: 40.7005289, Lng: -73.9258157
+
+BKLYN Made Comedy
+  1241 Halsey St, New York, NY 11237
+  (Bushwick)
+  Lat: 40.6939773, Lng: -73.9073961
+
+Block Hill Station
+  718 5th Ave, Brooklyn, NY 11215
+  (Park Slope/South Slope)
+  Lat: 40.6605429, Lng: -73.9945714
+
+Branded Saloon
+  603 Vanderbilt Ave, Brooklyn, NY 11238
+  (Park Slope)
+  Lat: 40.6792534, Lng: -73.968081
+
+Brooklyn Art Haus
+  24 Marcy Ave, Brooklyn, NY 11211
+  (Williamsburg)
+  Lat: 40.7133906, Lng: -73.9549636
+
+Brooklyn Comedy Collective
+  167 Graham Ave, Brooklyn, NY 11206
+  (East Williamsburg)
+  Lat: 40.7077362, Lng: -73.9434301
+
+Brooklyn Dreams Juice Lounge
+  1276 Broadway, Brooklyn, NY 11221
+  (Bushwick)
+  Lat: 40.6910162, Lng: -73.9249124
+
+Bushwick Comedy Club
+  259 Melrose St, Brooklyn, NY 11206
+  (Bushwick)
+  Lat: 40.702, Lng: -73.9299503
+
+Caffeine Underground
+  447 Central Ave Suite A, Brooklyn, NY 11221
+  (Bushwick)
+  Lat: 40.6922369, Lng: -73.9144937
+
+Cobra Club
+  6 Wyckoff Ave, Brooklyn, NY 11237
+  (East Williamsburg)
+  Lat: 40.7066852, Lng: -73.9235217
+
+Commune BK
+  415 Classon Ave, Brooklyn, NY 11238
+  (Bed Stuy)
+  Lat: 40.686831, Lng: -73.9593734
+
+Corner Store BK
+  753 Nostrand Ave, Brooklyn NY 11216
+  (Crown Heights)
+  Lat: 40.6715078, Lng: -73.9502019
+
+Eastville Comedy Club
+  487 Atlantic Ave, Brooklyn, NY 11217
+  (Downtown Brooklyn)
+  Lat: 40.6859068, Lng: -73.9816185
+
+Easy Lover BK
+  790 Metropolitan Ave, Brooklyn, NY 11211
+  (Williamsburg)
+  Lat: 40.7145615, Lng: -73.9425485
+
+Echo Bravo
+  445 Troutman St, Brooklyn, NY 11237
+  (Bushwick)
+  Lat: 40.7079355, Lng: -73.9216365
+
+Fiction Bar
+  308 Hooper St, Brooklyn, NY 11211
+  (East Williamsburg)
+  Lat: 40.7073204, Lng: -73.9537223
+
+Flop House Comedy Club
+  362 Grand St, Brooklyn, NY 11211
+  (Williamsburg)
+  Lat: 40.7122083, Lng: -73.9557789
+
+Freddy's
+  627 5th Ave, Brooklyn, NY 11215
+  (Park Slope)
+  Lat: 40.6632901, Lng: -73.9911383
+
+Good Judy
+  563 5th Ave, Brooklyn, NY 11215
+  (Park Slope)
+  Lat: 40.6652417, Lng: -73.9892672
+
+Gutter Bar
+  200 N 14th St, Brooklyn, NY 11249
+  (Williamsburg)
+  Lat: 40.7227408, Lng: -73.9554759
+
+Halyards
+  406 3rd Ave, Brooklyn, NY 11215
+  (Gowanus)
+  Lat: 40.6732561, Lng: -73.9897416
+
+Hell Phone
+  247 Varet St, Brooklyn, NY 11206
+  (Williamsburg)
+  Lat: 40.7042359, Lng: -73.934179
+
+Island Ribhouse
+  611 Nostrand Ave, Brooklyn, NY 11216
+  (Crown Heights)
+  Lat: 40.6762978, Lng: -73.9496345
+
+Isola
+  361 Metropolitan Ave, Brooklyn NY 11211
+  (Williamsburg)
+  Lat: 40.7142437, Lng: -73.9558401
+
+Logan's Run Bar
+  375a 5th Ave, Brooklyn, NY 11215
+  (Park Slope)
+  Lat: 40.662189, Lng: -73.9925465
+
+O'Keefe's Bar
+  62 Court St, Brooklyn, NY 11201
+  (Downtown Brooklyn)
+  Lat: 40.6920277, Lng: -73.9914226
+
+Pete's Candy Store
+  709 Lorimer St, Brooklyn, NY 11211
+  (Williamsburg)
+  Lat: 40.7180926, Lng: -73.9502883
+
+Pine Box Rock Shop
+  12 Grattan St, Brooklyn, NY 11206
+  (East Williamsburg)
+  Lat: 40.7052293, Lng: -73.9326664
+
+Rose R&R Bar
+  457 Graham Ave, Brooklyn, NY 11222
+  (Williamsburg)
+  Lat: 40.719117, Lng: -73.9454171
+
+Second City BlackBox
+  64 N 9th Street, Brooklyn, NY 11249
+  (Williamsburg)
+  Lat: 40.7207729, Lng: -73.9596507
+
+Secret Pour
+  1114 DeKalb Ave, Brooklyn, NY 11221
+  (Bushwick)
+  Lat: 40.6937282, Lng: -73.9298594
+
+Starr Bar
+  214 Starr St, Brooklyn, NY 11237
+  (Bushwick)
+  Lat: 40.7049722, Lng: -73.9229059
+
+Talon Bar
+  220 Wyckoff Ave, Brooklyn, NY 11237
+  (Bushwick)
+  Lat: 40.7011038, Lng: -73.9143729
+
+The Daily Press
+  38 Somers St, Brooklyn, NY 11233
+  (Clinton Hill)
+  Lat: 40.6787074, Lng: -73.9107399
+
+The Gutter Williamsburg
+  200 N 14th St, Brooklyn, NY 11249
+  (Greenpoint/Williamsburg)
+  Lat: 40.7227408, Lng: -73.9554759
+
+The Tiny Cupboard
+  10 Cooper St, Brooklyn, NY 11207
+  (Bushwick)
+  Lat: 40.6836915, Lng: -73.9112136
+
+
+=== MANHATTAN ===
+
+Black Cat LES
+  140 Eldridge St, New York, NY 10002
+  (LES)
+  Lat: 40.7190777, Lng: -73.9912865
+
+Broadway Comedy Club
+  318 W 53rd St, New York, NY 10019
+  (Hell's Kitchen)
+  Lat: 40.7644391, Lng: -73.9856707
+
+Caravan of Dreams
+  405 E 6th St, New York, NY 10009
+  (East Village)
+  Lat: 40.7264058, Lng: -73.9856462
+
+Comedy in Harlem
+  750A St Nicholas Ave, New York, NY 10031
+  (Harlem)
+  Lat: 40.8255092, Lng: -73.9433543
+
+Comedy Shop
+  167 Bleecker St REAR, New York, NY 10012
+  (Greenwich Village)
+  Lat: 40.7288305, Lng: -74.0001342
+
+Comedy Village
+  352 W 44th St, New York, NY 10036
+  (Hell's Kitchen)
+  Lat: 40.7593093, Lng: -73.9911149
+
+Comic Strip Live
+  1568 2nd Ave, New York, NY 10028
+  (UES)
+  Lat: 40.7748581, Lng: -73.9536956
+
+Eastpoint Bar
+  25 Avenue B, New York, NY 10009
+  (East Village)
+  Lat: 40.7222419, Lng: -73.9830182
+
+Enoch's
+  480 10th Ave, New York, NY 10018
+  (Hudson Yards)
+  Lat: 40.7562531, Lng: -73.9976964
+
+Fear City Comedy Club
+  17 Essex St, New York, NY 10002
+  (LES)
+  Lat: 40.7152631, Lng: -73.9901598
+
+FRIGID Theater
+  94 St Marks Pl, New York, NY 10009
+  (East Village)
+  Lat: 40.7272575, Lng: -73.9847924
+
+Greenwich Village Comedy Club
+  99 MacDougal St, New York, NY 10012
+  (Greenwich Village)
+  Lat: 40.7296565, Lng: -74.001091
+
+Grey Mare
+  61 2nd Ave, New York, NY 10003
+  (LES)
+  Lat: 40.7260295, Lng: -73.9899072
+
+Grisly Pear
+  107 MacDougal St, New York, NY 10012
+  (Greenwich Village)
+  Lat: 40.7298491, Lng: -74.0008199
+
+Grisly Pear Midtown
+  243 W 54th St, New York, NY 10019
+  (Midtown)
+  Lat: 40.7645366, Lng: -73.9833266
+
+Harlem Nights Bar
+  2361 Adam Clayton Powell Jr Blvd, New York, NY 10030
+  (Harlem)
+  Lat: 40.8172204, Lng: -73.9419721
+
+Hotel Edison
+  228 W 47th St, New York, NY 10036
+  (Midtown)
+  Lat: 40.759647, Lng: -73.9862944
+
+Housewatch
+  50 Avenue B, New York, NY 10009
+  (East Village)
+  Lat: 40.7231925, Lng: -73.982715
+
+Idaho Bar
+  349 E 13th St, New York, NY 10003
+  (East Village)
+  Lat: 40.7309458, Lng: -73.9833528
+
+Janice's apt
+  247 W 46th St Apt 1701, New York, NY 10036
+  (Hell's Kitchen)
+  Lat: 40.7598818, Lng: -73.9874267
+
+Judy Z's
+  1 7th Ave S, New York, NY 10014
+  (West Village)
+  Lat: 40.7297052, Lng: -74.0048523
+
+KGB Bar
+  85 E 4th St, New York, NY 10003
+  (East Village)
+  Lat: 40.7265891, Lng: -73.9898025
+
+Luxor Lounge
+  118 MacDougal St, New York, NY 10012
+  (Greenwich Village)
+  Lat: 40.7297418, Lng: -74.0004218
+
+New York Comedy Club East Village
+  85 E 4th St, New York, NY 10003
+  (East Village)
+  Lat: 40.7265891, Lng: -73.9898025
+
+New York Comedy Club Midtown
+  241 E 24th St, New York, NY 10010
+  (Gramercy)
+  Lat: 40.7389213, Lng: -73.9808057
+
+NYC Suite Bar
+  992 Amsterdam Ave, New York, NY 10025
+  (UWS)
+  Lat: 40.8026454, Lng: -73.964587
+
+Oh Craft Beer Harlem
+  1739 Amsterdam Ave, New York, NY 10031
+  (Harlem)
+  Lat: 40.8259371, Lng: -73.9468664
+
+One and One
+  76 E 1st St, New York, NY 10009
+  (East Village)
+  Lat: 40.7232525, Lng: -73.9881492
+
+Phoenix Bar
+  50 Avenue B, New York, NY 10009
+  (East Village)
+  Lat: 40.7231925, Lng: -73.982715
+
+Phoenix Bar Avenue A
+  447 E 13th St, New York, NY 10009
+  (East Village)
+  Lat: 40.7299744, Lng: -73.9811697
+
+Producer's Club
+  358 W 44th St, New York, NY 10036
+  (Hell's Kitchen)
+  Lat: 40.7595017, Lng: -73.9914437
+
+Pubkey
+  85 Washington Pl, New York, NY 10011
+  (Greenwich Village)
+  Lat: 40.732185, Lng: -74.0000205
+
+Rodney's
+  1118 1st Ave, New York, NY 10065
+  (UES)
+  Lat: 40.7610441, Lng: -73.960624
+
+Sesh Comedy
+  140 Eldridge St, New York, NY 10002
+  (LES)
+  Lat: 40.7190777, Lng: -73.9912865
+
+SkyBox Sports Bar & Grill
+  2241 1st Ave, New York, NY 10029
+  (UES)
+  Lat: 40.7955865, Lng: -73.9360676
+
+Soho Playhouse
+  15 Vandam St, New York, NY 10013
+  (SoHo)
+  Lat: 40.7264507, Lng: -74.0043756
+
+St. Marks Comedy Club
+  12 St Marks Pl, New York, NY 10003
+  (East Village)
+  Lat: 40.7290207, Lng: -73.9893198
+
+Stella & Fly
+  1705 1st Ave, New York, NY 10128
+  (Upper East Side)
+  Lat: 40.7785553, Lng: -73.9485889
+
+Stumble Inn
+  1454 2nd Ave, New York, NY 10021
+  (UES)
+  Lat: 40.771213, Lng: -73.9563888
+
+Tara Mor
+  150 W 30th St, New York, NY 10001
+  (Chelsea)
+  Lat: 40.7480429, Lng: -73.9919743
+
+The Buddha Room
+  410 8th Ave 2nd Floor, New York, NY 10001
+  (Midtown)
+  Lat: 40.7498782, Lng: -73.9947359
+
+The Pit Midtown
+  154 W. 29th St., New York, NY 10001
+  (Midtown)
+  Lat: 40.7474462, Lng: -73.9922022
+
+The Stand
+  116 E 16th St, New York, NY 10003
+  (Union Square)
+  Lat: 40.7353379, Lng: -73.988463
+
+Tommy Figz
+  1000 Eighth Ave, New York, NY 10019
+  (Hell's Kitchen)
+  Lat: 40.7685, Lng: -73.9835
+
+UCB
+  239 E 14th St, New York, NY 10003
+  (East Village)
+  Lat: 40.7328695, Lng: -73.9853584
+
+West Side Comedy Club
+  201 W 75th St, New York, NY 10023
+  (UWS)
+  Lat: 40.7808191, Lng: -73.9805102
+
+
+=== QUEENS ===
+
+Cool Beans Coffee
+  50-20 39th Ave, Woodside, NY 11377
+  (Astoria)
+  Lat: 40.7486201, Lng: -73.9130718
+
+Grove 34
+  31-83 34th St, Astoria, NY 11106
+  (Astoria)
+  Lat: 40.7674298, Lng: -73.9329303
+
+QED Astoria
+  27-16 23rd Ave, Astoria, NY 11105
+  (Astoria)
+  Lat: 40.775548, Lng: -73.9149401
+
+Sanger Hall
+  4820 Skillman Ave, Sunnyside, NY 11104
+  (Sunnyside)
+  Lat: 40.7463932, Lng: -73.9164999
+
+Scorpion Records
+  792 Onderdonk Ave, Queens, NY 11385
+  (Ridgewood)
+  Lat: 40.7024343, Lng: -73.9048087
+
+Windjammer
+  5-52 Grandview Ave, Ridgewood, NY 11385
+  (Ridgewood)
+  Lat: 40.7093075, Lng: -73.9070026

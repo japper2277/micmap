@@ -1,0 +1,132 @@
+Here is your complete Mapbox Commercial Launch Kit.
+
+This code creates a full-screen map with a functional Google-style search bar. It is ready for your paid app.
+
+Step 1: The Code
+
+Copy this entire block and save it as an index.html file.
+
+code
+Html
+play_circle
+download
+content_copy
+expand_less
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Venue Search App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <!-- 1. Mapbox GL JS (The Map) -->
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+    
+    <!-- 2. Mapbox Geocoder (The Search Bar) -->
+    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js"></script>
+    <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.css" type="text/css">
+    
+    <style>
+        body { margin: 0; padding: 0; }
+        
+        /* Full Screen Map */
+        #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+        
+        /* Optional: Customize the search bar position/width */
+        .mapboxgl-ctrl-geocoder {
+            min-width: 300px;
+            font-family: sans-serif;
+        }
+    </style>
+</head>
+<body>
+
+<!-- The Map Container -->
+<div id="map"></div>
+
+<script>
+    // TO DO: Replace with your actual Access Token from Mapbox Dashboard
+    mapboxgl.accessToken = 'YOUR_MAPBOX_ACCESS_TOKEN_HERE';
+
+    // Initialize the Map
+    const map = new mapboxgl.Map({
+        container: 'map', // matches <div id="map">
+        style: 'mapbox://styles/mapbox/streets-v12', // Standard Google Maps look
+        center: [-74.006, 40.7128], // Starting position [lng, lat] (New York)
+        zoom: 11
+    });
+
+    // Initialize the Search Bar
+    const geocoder = new MapboxGeocoder({
+        accessToken: mapboxgl.accessToken,
+        mapboxgl: mapboxgl,
+        marker: true, // Show a blue pin on result
+        placeholder: 'Search venues, hosts...', // Custom text in bar
+        collapsed: false // Keep the search bar open always
+    });
+
+    // Add Search Bar to Top-Left
+    map.addControl(geocoder, 'top-left');
+
+    // Add Zoom Controls (+/- buttons)
+    map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
+
+    // OPTIONAL: Capture the result for your app logic
+    geocoder.on('result', (e) => {
+        const placeName = e.result.place_name;
+        const coords = e.result.center; // [lng, lat]
+        console.log(`User selected: ${placeName} at ${coords}`);
+        // You can add code here to save this location to your database
+    });
+</script>
+
+</body>
+</html>
+Step 2: The Security Setup (Crucial)
+
+Since you are paying if you go over the limit, you must stop other people from stealing your API key and using your quota.
+
+Log in to Mapbox.com.
+
+Scroll down to the "Access Tokens" section.
+
+Click the "Create a token" button (It is better to make a new one specifically for this app rather than using the 'Default' one).
+
+Name it: e.g., "Production Web App".
+
+URL Restrictions (The Important Part):
+
+In the URLs box, add the domains where your app will live.
+
+For Testing: Add localhost and 127.0.0.1.
+
+For Production: Add your actual website, e.g., https://www.my-app.com/.
+
+Note: You can use wildcards. https://*.my-app.com/* covers all pages.
+
+Click Create Token.
+
+Copy this new token string (starts with pk.) and paste it into the code above where it says 'YOUR_MAPBOX_ACCESS_TOKEN_HERE'.
+
+Step 3: Launch & Billing Reality Check
+
+You are now set up.
+
+Free Allowance: You can have roughly 100,000 searches and 50,000 map loads per month for free.
+
+Safety Check: Since you put in URL restrictions, only visitors on your website count toward this limit.
+
+The Cost: If your app becomes a hit and you do 150,000 searches next month:
+
+First 100k: Free
+
+Next 50k: **~
+38
+∗
+∗
+(
+38∗∗(
+0.75 per 1,000).
+
+Since you are charging for the app, the revenue from those thousands of users should easily cover the $38 bill.

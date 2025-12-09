@@ -1,0 +1,1441 @@
+{
+  "scrapedAt": "2025-12-07T15:29:19.441Z",
+  "source": "The PIT NYC",
+  "sourceUrl": "https://thepit-nyc.com/calendar/",
+  "address": "154 W 29th St, New York, NY 10001",
+  "micsAndJams": [
+    {
+      "name": "Monday OPEN MIC! w/ Obi O'Brien",
+      "date": "December 1, 2025",
+      "day": "Monday",
+      "time": "4:30pm",
+      "venue": "The Fishbowl",
+      "isMicOrJam": true,
+      "type": "open_mic"
+    },
+    {
+      "name": "Monday Musical Jam!",
+      "date": "December 1, 2025",
+      "day": "Monday",
+      "time": "10:00pm",
+      "venue": "The PIT Loft",
+      "isMicOrJam": true,
+      "type": "jam"
+    },
+    {
+      "name": "The Wednesday Show MIC",
+      "date": "December 3, 2025",
+      "day": "Wednesday",
+      "time": "4:00pm",
+      "venue": "The PIT LAB",
+      "isMicOrJam": true,
+      "type": "open_mic"
+    },
+    {
+      "name": "Wednesday Night Scene Jam!",
+      "date": "December 3, 2025",
+      "day": "Wednesday",
+      "time": "10:00pm",
+      "venue": "The PIT Loft",
+      "isMicOrJam": true,
+      "type": "jam"
+    },
+    {
+      "name": "THURSDAY IN N' OUT IMPROV JAM",
+      "date": "December 4, 2025",
+      "day": "Thursday",
+      "time": "6:00pm",
+      "venue": "The PIT Loft",
+      "isMicOrJam": true,
+      "type": "jam"
+    },
+    {
+      "name": "Friday Feel-GOOD IMPROV JAM",
+      "date": "December 5, 2025",
+      "day": "Friday",
+      "time": "5:00pm",
+      "venue": "The PIT Loft",
+      "isMicOrJam": true,
+      "type": "jam"
+    },
+    {
+      "name": "CHARACTER COUNTS OPEN MIC",
+      "date": "December 5, 2025",
+      "day": "Friday",
+      "time": "6:30pm",
+      "venue": "The Fishbowl",
+      "isMicOrJam": true,
+      "type": "open_mic"
+    },
+    {
+      "name": "Ladies Stand-Up! (Men Sit Down) Open Mic",
+      "date": "December 6, 2025",
+      "day": "Saturday",
+      "time": "6:30pm",
+      "venue": "The Fishbowl",
+      "isMicOrJam": true,
+      "type": "open_mic"
+    },
+    {
+      "name": "The SUNDAY JAM",
+      "date": "December 7, 2025",
+      "day": "Sunday",
+      "time": "8:30pm",
+      "venue": "The PIT LAB",
+      "isMicOrJam": true,
+      "type": "jam"
+    },
+    {
+      "name": "Monday OPEN MIC! w/ Obi O'Brien",
+      "date": "December 8, 2025",
+      "day": "Monday",
+      "time": "4:30pm",
+      "venue": "The Fishbowl",
+      "isMicOrJam": true,
+      "type": "open_mic"
+    },
+    {
+      "name": "Monday Musical Jam!",
+      "date": "December 8, 2025",
+      "day": "Monday",
+      "time": "10:00pm",
+      "venue": "The PIT Loft",
+      "isMicOrJam": true,
+      "type": "jam"
+    },
+    {
+      "name": "The Wednesday Show MIC",
+      "date": "December 10, 2025",
+      "day": "Wednesday",
+      "time": "4:00pm",
+      "venue": "The PIT LAB",
+      "isMicOrJam": true,
+      "type": "open_mic"
+    },
+    {
+      "name": "Wednesday Night Scene Jam!",
+      "date": "December 10, 2025",
+      "day": "Wednesday",
+      "time": "10:00pm",
+      "venue": "The PIT Loft",
+      "isMicOrJam": true,
+      "type": "jam"
+    },
+    {
+      "name": "THURSDAY IN N' OUT IMPROV JAM",
+      "date": "December 11, 2025",
+      "day": "Thursday",
+      "time": "6:00pm",
+      "venue": "The PIT Loft",
+      "isMicOrJam": true,
+      "type": "jam"
+    },
+    {
+      "name": "Friday Feel-GOOD IMPROV JAM",
+      "date": "December 12, 2025",
+      "day": "Friday",
+      "time": "5:00pm",
+      "venue": "The PIT Loft",
+      "isMicOrJam": true,
+      "type": "jam"
+    },
+    {
+      "name": "CHARACTER COUNTS OPEN MIC",
+      "date": "December 12, 2025",
+      "day": "Friday",
+      "time": "6:30pm",
+      "venue": "The Fishbowl",
+      "isMicOrJam": true,
+      "type": "open_mic"
+    },
+    {
+      "name": "Ladies Stand-Up! (Men Sit Down) Open Mic",
+      "date": "December 13, 2025",
+      "day": "Saturday",
+      "time": "6:30pm",
+      "venue": "The Fishbowl",
+      "isMicOrJam": true,
+      "type": "open_mic"
+    },
+    {
+      "name": "The SUNDAY JAM",
+      "date": "December 14, 2025",
+      "day": "Sunday",
+      "time": "8:30pm",
+      "venue": "The PIT LAB",
+      "isMicOrJam": true,
+      "type": "jam"
+    },
+    {
+      "name": "Monday OPEN MIC! w/ Obi O'Brien",
+      "date": "December 15, 2025",
+      "day": "Monday",
+      "time": "4:30pm",
+      "venue": "The Fishbowl",
+      "isMicOrJam": true,
+      "type": "open_mic"
+    },
+    {
+      "name": "Monday Musical Jam!",
+      "date": "December 15, 2025",
+      "day": "Monday",
+      "time": "10:00pm",
+      "venue": "The PIT Loft",
+      "isMicOrJam": true,
+      "type": "jam"
+    },
+    {
+      "name": "The Wednesday Show MIC",
+      "date": "December 17, 2025",
+      "day": "Wednesday",
+      "time": "4:00pm",
+      "venue": "The PIT LAB",
+      "isMicOrJam": true,
+      "type": "open_mic"
+    },
+    {
+      "name": "Wednesday Night Scene Jam!",
+      "date": "December 17, 2025",
+      "day": "Wednesday",
+      "time": "10:00pm",
+      "venue": "The PIT Loft",
+      "isMicOrJam": true,
+      "type": "jam"
+    },
+    {
+      "name": "THURSDAY IN N' OUT IMPROV JAM",
+      "date": "December 18, 2025",
+      "day": "Thursday",
+      "time": "6:00pm",
+      "venue": "The PIT Loft",
+      "isMicOrJam": true,
+      "type": "jam"
+    },
+    {
+      "name": "Friday Feel-GOOD IMPROV JAM",
+      "date": "December 19, 2025",
+      "day": "Friday",
+      "time": "5:00pm",
+      "venue": "The PIT Loft",
+      "isMicOrJam": true,
+      "type": "jam"
+    },
+    {
+      "name": "CHARACTER COUNTS OPEN MIC",
+      "date": "December 19, 2025",
+      "day": "Friday",
+      "time": "6:30pm",
+      "venue": "The Fishbowl",
+      "isMicOrJam": true,
+      "type": "open_mic"
+    },
+    {
+      "name": "Michael John Ciszewski: TGIF",
+      "date": "December 19, 2025",
+      "day": "Friday",
+      "time": "7:00pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": true,
+      "type": "open_mic"
+    },
+    {
+      "name": "Ladies Stand-Up! (Men Sit Down) Open Mic",
+      "date": "December 20, 2025",
+      "day": "Saturday",
+      "time": "6:30pm",
+      "venue": "The Fishbowl",
+      "isMicOrJam": true,
+      "type": "open_mic"
+    },
+    {
+      "name": "The Wayfaring Strangers Present Your Improvised Bluegrass Musical Jambalooza!",
+      "date": "December 21, 2025",
+      "day": "Sunday",
+      "time": "7:00pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": true,
+      "type": "jam"
+    },
+    {
+      "name": "The SUNDAY JAM",
+      "date": "December 21, 2025",
+      "day": "Sunday",
+      "time": "8:30pm",
+      "venue": "The PIT LAB",
+      "isMicOrJam": true,
+      "type": "jam"
+    },
+    {
+      "name": "Monday OPEN MIC! w/ Obi O'Brien",
+      "date": "December 22, 2025",
+      "day": "Monday",
+      "time": "4:30pm",
+      "venue": "The Fishbowl",
+      "isMicOrJam": true,
+      "type": "open_mic"
+    },
+    {
+      "name": "Monday Musical Jam!",
+      "date": "December 22, 2025",
+      "day": "Monday",
+      "time": "10:00pm",
+      "venue": "The PIT Loft",
+      "isMicOrJam": true,
+      "type": "jam"
+    },
+    {
+      "name": "The Wednesday Show MIC",
+      "date": "December 24, 2025",
+      "day": "Wednesday",
+      "time": "4:00pm",
+      "venue": "The PIT LAB",
+      "isMicOrJam": true,
+      "type": "open_mic"
+    },
+    {
+      "name": "Friday Feel-GOOD IMPROV JAM",
+      "date": "December 26, 2025",
+      "day": "Friday",
+      "time": "5:00pm",
+      "venue": "The PIT Loft",
+      "isMicOrJam": true,
+      "type": "jam"
+    },
+    {
+      "name": "Ladies Stand-Up! (Men Sit Down) Open Mic",
+      "date": "December 27, 2025",
+      "day": "Saturday",
+      "time": "6:30pm",
+      "venue": "The Fishbowl",
+      "isMicOrJam": true,
+      "type": "open_mic"
+    },
+    {
+      "name": "The SUNDAY JAM",
+      "date": "December 28, 2025",
+      "day": "Sunday",
+      "time": "8:30pm",
+      "venue": "The PIT LAB",
+      "isMicOrJam": true,
+      "type": "jam"
+    },
+    {
+      "name": "Monday OPEN MIC! w/ Obi O'Brien",
+      "date": "December 29, 2025",
+      "day": "Monday",
+      "time": "4:30pm",
+      "venue": "The Fishbowl",
+      "isMicOrJam": true,
+      "type": "open_mic"
+    },
+    {
+      "name": "The Wednesday Show MIC",
+      "date": "December 31, 2025",
+      "day": "Wednesday",
+      "time": "4:00pm",
+      "venue": "The PIT LAB",
+      "isMicOrJam": true,
+      "type": "open_mic"
+    },
+    {
+      "name": "THURSDAY IN N' OUT IMPROV JAM",
+      "date": "January 1, 2025",
+      "day": "Wednesday",
+      "time": "6:00pm",
+      "venue": "The PIT Loft",
+      "isMicOrJam": true,
+      "type": "jam"
+    }
+  ],
+  "allEvents": [
+    {
+      "name": "Monday OPEN MIC! w/ Obi O'Brien",
+      "date": "December 1, 2025",
+      "day": "Monday",
+      "time": "4:30pm",
+      "venue": "The Fishbowl",
+      "isMicOrJam": true,
+      "type": "open_mic"
+    },
+    {
+      "name": "GRAD SHOW: Level 1 Stand-Up | Griggs",
+      "date": "December 1, 2025",
+      "day": "Monday",
+      "time": "5:30pm",
+      "venue": "The PIT Loft",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "Redshirts: An Improvised Sci-Fi Musical",
+      "date": "December 1, 2025",
+      "day": "Monday",
+      "time": "7:00pm",
+      "venue": "The PIT Loft",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "Unheard Of! Musical Improv",
+      "date": "December 1, 2025",
+      "day": "Monday",
+      "time": "8:30pm",
+      "venue": "The PIT Loft",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "Monday Musical Jam!",
+      "date": "December 1, 2025",
+      "day": "Monday",
+      "time": "10:00pm",
+      "venue": "The PIT Loft",
+      "isMicOrJam": true,
+      "type": "jam"
+    },
+    {
+      "name": "GRAD SHOW: Level 1 Improv | Masters",
+      "date": "December 2, 2025",
+      "day": "Tuesday",
+      "time": "7:00pm",
+      "venue": "The PIT Loft",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "QueerProv NYC",
+      "date": "December 2, 2025",
+      "day": "Tuesday",
+      "time": "8:30pm",
+      "venue": "The PIT Loft",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "The Wednesday Show MIC",
+      "date": "December 3, 2025",
+      "day": "Wednesday",
+      "time": "4:00pm",
+      "venue": "The PIT LAB",
+      "isMicOrJam": true,
+      "type": "open_mic"
+    },
+    {
+      "name": "WE'RE SO CLOSE",
+      "date": "December 3, 2025",
+      "day": "Wednesday",
+      "time": "7:00pm",
+      "venue": "The PIT Loft",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "CABIN FEVER: CAMPFIRE",
+      "date": "December 3, 2025",
+      "day": "Wednesday",
+      "time": "8:30pm",
+      "venue": "The PIT Loft",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "Bob and Larry's",
+      "date": "December 3, 2025",
+      "day": "Wednesday",
+      "time": "8:30pm",
+      "venue": "The PIT Loft",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "Wednesday Night Scene Jam!",
+      "date": "December 3, 2025",
+      "day": "Wednesday",
+      "time": "10:00pm",
+      "venue": "The PIT Loft",
+      "isMicOrJam": true,
+      "type": "jam"
+    },
+    {
+      "name": "THURSDAY IN N' OUT IMPROV JAM",
+      "date": "December 4, 2025",
+      "day": "Thursday",
+      "time": "6:00pm",
+      "venue": "The PIT Loft",
+      "isMicOrJam": true,
+      "type": "jam"
+    },
+    {
+      "name": "PIT ENSEMBLES",
+      "date": "December 4, 2025",
+      "day": "Thursday",
+      "time": "7:00pm",
+      "venue": "The PIT Loft",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "PIT ENSEMBLES",
+      "date": "December 4, 2025",
+      "day": "Thursday",
+      "time": "8:00pm",
+      "venue": "The PIT Loft",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "Horse Beef",
+      "date": "December 4, 2025",
+      "day": "Thursday",
+      "time": "9:00pm",
+      "venue": "The PIT Loft",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "Friday Feel-GOOD IMPROV JAM",
+      "date": "December 5, 2025",
+      "day": "Friday",
+      "time": "5:00pm",
+      "venue": "The PIT Loft",
+      "isMicOrJam": true,
+      "type": "jam"
+    },
+    {
+      "name": "The No Duds Failure Hour",
+      "date": "December 5, 2025",
+      "day": "Friday",
+      "time": "6:00pm",
+      "venue": "The PIT Loft",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "CHARACTER COUNTS OPEN MIC",
+      "date": "December 5, 2025",
+      "day": "Friday",
+      "time": "6:30pm",
+      "venue": "The Fishbowl",
+      "isMicOrJam": true,
+      "type": "open_mic"
+    },
+    {
+      "name": "Great Gatsby!",
+      "date": "December 5, 2025",
+      "day": "Friday",
+      "time": "7:00pm",
+      "venue": "The PIT Loft",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "Obi Comedy Hour",
+      "date": "December 5, 2025",
+      "day": "Friday",
+      "time": "8:00pm",
+      "venue": "The Fishbowl",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "That's Our Show!",
+      "date": "December 5, 2025",
+      "day": "Friday",
+      "time": "8:30pm",
+      "venue": "The PIT Loft",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "Your Father and I",
+      "date": "December 5, 2025",
+      "day": "Friday",
+      "time": "9:00pm",
+      "venue": "The PIT LAB",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "Livin 4 Laughs",
+      "date": "December 5, 2025",
+      "day": "Friday",
+      "time": "9:30pm",
+      "venue": "The Fishbowl",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "NYC Drawn To Stories",
+      "date": "December 5, 2025",
+      "day": "Friday",
+      "time": "10:00pm",
+      "venue": "The PIT Loft",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "Fantasy Game Night",
+      "date": "December 6, 2025",
+      "day": "Saturday",
+      "time": "6:00pm",
+      "venue": "The PIT Loft",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "Sotto Voce & Friends",
+      "date": "December 6, 2025",
+      "day": "Saturday",
+      "time": "6:00pm",
+      "venue": "The PIT LAB",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "Ladies Stand-Up! (Men Sit Down) Open Mic",
+      "date": "December 6, 2025",
+      "day": "Saturday",
+      "time": "6:30pm",
+      "venue": "The Fishbowl",
+      "isMicOrJam": true,
+      "type": "open_mic"
+    },
+    {
+      "name": "The Baldwins",
+      "date": "December 6, 2025",
+      "day": "Saturday",
+      "time": "7:30pm",
+      "venue": "The PIT Loft",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "TWO MUCH w/Peter & Matt",
+      "date": "December 6, 2025",
+      "day": "Saturday",
+      "time": "8:00pm",
+      "venue": "The PIT LAB",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "Backdoor Barbecue",
+      "date": "December 6, 2025",
+      "day": "Saturday",
+      "time": "9:00pm",
+      "venue": "The PIT Loft",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "Potty Humor- A Sh*tty Comedy Variety Show",
+      "date": "December 6, 2025",
+      "day": "Saturday",
+      "time": "9:30pm",
+      "venue": "The PIT LAB",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "PROFOUND: The Improvised Experimental Experience",
+      "date": "December 6, 2025",
+      "day": "Saturday",
+      "time": "10:30pm",
+      "venue": "The PIT Loft",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "Amelia Earhart Lands the Plane",
+      "date": "December 7, 2025",
+      "day": "Sunday",
+      "time": "7:00pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "The SUNDAY JAM",
+      "date": "December 7, 2025",
+      "day": "Sunday",
+      "time": "8:30pm",
+      "venue": "The PIT LAB",
+      "isMicOrJam": true,
+      "type": "jam"
+    },
+    {
+      "name": "Alexa Springman 5'4\"",
+      "date": "December 7, 2025",
+      "day": "Sunday",
+      "time": "8:30pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "Monday OPEN MIC! w/ Obi O'Brien",
+      "date": "December 8, 2025",
+      "day": "Monday",
+      "time": "4:30pm",
+      "venue": "The Fishbowl",
+      "isMicOrJam": true,
+      "type": "open_mic"
+    },
+    {
+      "name": "Elevator Pitch: Improvised Musical",
+      "date": "December 8, 2025",
+      "day": "Monday",
+      "time": "7:00pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "Whimsync",
+      "date": "December 8, 2025",
+      "day": "Monday",
+      "time": "8:30pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "Monday Musical Jam!",
+      "date": "December 8, 2025",
+      "day": "Monday",
+      "time": "10:00pm",
+      "venue": "The PIT Loft",
+      "isMicOrJam": true,
+      "type": "jam"
+    },
+    {
+      "name": "Bad Advice",
+      "date": "December 9, 2025",
+      "day": "Tuesday",
+      "time": "8:00pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "The Wednesday Show MIC",
+      "date": "December 10, 2025",
+      "day": "Wednesday",
+      "time": "4:00pm",
+      "venue": "The PIT LAB",
+      "isMicOrJam": true,
+      "type": "open_mic"
+    },
+    {
+      "name": "Benchwarmers",
+      "date": "December 10, 2025",
+      "day": "Wednesday",
+      "time": "7:00pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "Corner Office Sketch Show",
+      "date": "December 10, 2025",
+      "day": "Wednesday",
+      "time": "8:30pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "SKETCHY",
+      "date": "December 10, 2025",
+      "day": "Wednesday",
+      "time": "8:30pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "Wednesday Night Scene Jam!",
+      "date": "December 10, 2025",
+      "day": "Wednesday",
+      "time": "10:00pm",
+      "venue": "The PIT Loft",
+      "isMicOrJam": true,
+      "type": "jam"
+    },
+    {
+      "name": "THURSDAY IN N' OUT IMPROV JAM",
+      "date": "December 11, 2025",
+      "day": "Thursday",
+      "time": "6:00pm",
+      "venue": "The PIT Loft",
+      "isMicOrJam": true,
+      "type": "jam"
+    },
+    {
+      "name": "PIT ENSEMBLES",
+      "date": "December 11, 2025",
+      "day": "Thursday",
+      "time": "7:00pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "PIT ENSEMBLES",
+      "date": "December 11, 2025",
+      "day": "Thursday",
+      "time": "8:00pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "Found Footage: An Improvised David Lynch Movie",
+      "date": "December 11, 2025",
+      "day": "Thursday",
+      "time": "9:00pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "Friday Feel-GOOD IMPROV JAM",
+      "date": "December 12, 2025",
+      "day": "Friday",
+      "time": "5:00pm",
+      "venue": "The PIT Loft",
+      "isMicOrJam": true,
+      "type": "jam"
+    },
+    {
+      "name": "Thorn and Petal Stick Present: Completely UN-Scripted Shakespeare!",
+      "date": "December 12, 2025",
+      "day": "Friday",
+      "time": "6:00pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "CHARACTER COUNTS OPEN MIC",
+      "date": "December 12, 2025",
+      "day": "Friday",
+      "time": "6:30pm",
+      "venue": "The Fishbowl",
+      "isMicOrJam": true,
+      "type": "open_mic"
+    },
+    {
+      "name": "Diversity Hire’s live group interview (or just a really awesome comedy show!)",
+      "date": "December 12, 2025",
+      "day": "Friday",
+      "time": "7:00pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "The Sunny & Mike Hour",
+      "date": "December 12, 2025",
+      "day": "Friday",
+      "time": "8:30pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "The World According To Pat Presents: A Whole New World",
+      "date": "December 12, 2025",
+      "day": "Friday",
+      "time": "9:00pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "The Benny Winner Show",
+      "date": "December 12, 2025",
+      "day": "Friday",
+      "time": "10:00pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "FoMo: Formerly Mormon",
+      "date": "December 13, 2025",
+      "day": "Saturday",
+      "time": "6:00pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "Ladies Stand-Up! (Men Sit Down) Open Mic",
+      "date": "December 13, 2025",
+      "day": "Saturday",
+      "time": "6:30pm",
+      "venue": "The Fishbowl",
+      "isMicOrJam": true,
+      "type": "open_mic"
+    },
+    {
+      "name": "Comedy on the Fly",
+      "date": "December 13, 2025",
+      "day": "Saturday",
+      "time": "7:30pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "Scripts on Stage",
+      "date": "December 13, 2025",
+      "day": "Saturday",
+      "time": "8:00pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "Bragging Rights",
+      "date": "December 13, 2025",
+      "day": "Saturday",
+      "time": "9:00pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "GRAD SHOW: Level 1 Musical Improv | Gostow",
+      "date": "December 14, 2025",
+      "day": "Sunday",
+      "time": "4:00pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "GRAD SHOW: Level 1 Stand-Up | Korkolis",
+      "date": "December 14, 2025",
+      "day": "Sunday",
+      "time": "5:30pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "Ben Hawes : Unwrapped",
+      "date": "December 14, 2025",
+      "day": "Sunday",
+      "time": "7:00pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "The SUNDAY JAM",
+      "date": "December 14, 2025",
+      "day": "Sunday",
+      "time": "8:30pm",
+      "venue": "The PIT LAB",
+      "isMicOrJam": true,
+      "type": "jam"
+    },
+    {
+      "name": "An Evening With Joan",
+      "date": "December 14, 2025",
+      "day": "Sunday",
+      "time": "8:30pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "Monday OPEN MIC! w/ Obi O'Brien",
+      "date": "December 15, 2025",
+      "day": "Monday",
+      "time": "4:30pm",
+      "venue": "The Fishbowl",
+      "isMicOrJam": true,
+      "type": "open_mic"
+    },
+    {
+      "name": "GRAD SHOW: Level 1 Improv | Duncan",
+      "date": "December 15, 2025",
+      "day": "Monday",
+      "time": "5:30pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "Nero's Fiddle: Musical Improv",
+      "date": "December 15, 2025",
+      "day": "Monday",
+      "time": "7:00pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "VERN & Friends!",
+      "date": "December 15, 2025",
+      "day": "Monday",
+      "time": "8:30pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "Monday Musical Jam!",
+      "date": "December 15, 2025",
+      "day": "Monday",
+      "time": "10:00pm",
+      "venue": "The PIT Loft",
+      "isMicOrJam": true,
+      "type": "jam"
+    },
+    {
+      "name": "The Wednesday Show MIC",
+      "date": "December 17, 2025",
+      "day": "Wednesday",
+      "time": "4:00pm",
+      "venue": "The PIT LAB",
+      "isMicOrJam": true,
+      "type": "open_mic"
+    },
+    {
+      "name": "GRAD SHOW: Level 1 Improv | Outlaw",
+      "date": "December 17, 2025",
+      "day": "Wednesday",
+      "time": "5:30pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "Welcome to The Fourth Space",
+      "date": "December 17, 2025",
+      "day": "Wednesday",
+      "time": "7:00pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "FACE TAPE",
+      "date": "December 17, 2025",
+      "day": "Wednesday",
+      "time": "8:30pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "Wednesday Night Scene Jam!",
+      "date": "December 17, 2025",
+      "day": "Wednesday",
+      "time": "10:00pm",
+      "venue": "The PIT Loft",
+      "isMicOrJam": true,
+      "type": "jam"
+    },
+    {
+      "name": "THURSDAY IN N' OUT IMPROV JAM",
+      "date": "December 18, 2025",
+      "day": "Thursday",
+      "time": "6:00pm",
+      "venue": "The PIT Loft",
+      "isMicOrJam": true,
+      "type": "jam"
+    },
+    {
+      "name": "PIT ENSEMBLES",
+      "date": "December 18, 2025",
+      "day": "Thursday",
+      "time": "7:00pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "PIT ENSEMBLES",
+      "date": "December 18, 2025",
+      "day": "Thursday",
+      "time": "8:00pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "Improv Fun",
+      "date": "December 18, 2025",
+      "day": "Thursday",
+      "time": "9:00pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "Friday Feel-GOOD IMPROV JAM",
+      "date": "December 19, 2025",
+      "day": "Friday",
+      "time": "5:00pm",
+      "venue": "The PIT Loft",
+      "isMicOrJam": true,
+      "type": "jam"
+    },
+    {
+      "name": "Super 8",
+      "date": "December 19, 2025",
+      "day": "Friday",
+      "time": "6:00pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "CHARACTER COUNTS OPEN MIC",
+      "date": "December 19, 2025",
+      "day": "Friday",
+      "time": "6:30pm",
+      "venue": "The Fishbowl",
+      "isMicOrJam": true,
+      "type": "open_mic"
+    },
+    {
+      "name": "Michael John Ciszewski: TGIF",
+      "date": "December 19, 2025",
+      "day": "Friday",
+      "time": "7:00pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": true,
+      "type": "open_mic"
+    },
+    {
+      "name": "Wigs!",
+      "date": "December 19, 2025",
+      "day": "Friday",
+      "time": "8:30pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "Little Darlings",
+      "date": "December 19, 2025",
+      "day": "Friday",
+      "time": "9:00pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "Livin 4 Laughs",
+      "date": "December 19, 2025",
+      "day": "Friday",
+      "time": "9:30pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "Tap and Friends Play the Hits!",
+      "date": "December 19, 2025",
+      "day": "Friday",
+      "time": "10:00pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "The Omnivores Present: Eating Everything!",
+      "date": "December 19, 2025",
+      "day": "Friday",
+      "time": "10:30pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "GRAD SHOW: Level 2 Improv | Belton",
+      "date": "December 20, 2025",
+      "day": "Saturday",
+      "time": "3:00pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "GRAD SHOW: Level 1 Improv | Ashey",
+      "date": "December 20, 2025",
+      "day": "Saturday",
+      "time": "4:30pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "The Awakening",
+      "date": "December 20, 2025",
+      "day": "Saturday",
+      "time": "6:00pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "Ladies Stand-Up! (Men Sit Down) Open Mic",
+      "date": "December 20, 2025",
+      "day": "Saturday",
+      "time": "6:30pm",
+      "venue": "The Fishbowl",
+      "isMicOrJam": true,
+      "type": "open_mic"
+    },
+    {
+      "name": "Meanwhile in NYC",
+      "date": "December 20, 2025",
+      "day": "Saturday",
+      "time": "7:30pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "Fowl Play",
+      "date": "December 20, 2025",
+      "day": "Saturday",
+      "time": "9:00pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "The Mid-Life Crisis Show",
+      "date": "December 20, 2025",
+      "day": "Saturday",
+      "time": "10:30pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "GRAD SHOW: Level 4 Improv | Alu",
+      "date": "December 21, 2025",
+      "day": "Sunday",
+      "time": "4:00pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "GRAD SHOW: Level 3 Improv | Alu",
+      "date": "December 21, 2025",
+      "day": "Sunday",
+      "time": "5:30pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "The Wayfaring Strangers Present Your Improvised Bluegrass Musical Jambalooza!",
+      "date": "December 21, 2025",
+      "day": "Sunday",
+      "time": "7:00pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": true,
+      "type": "jam"
+    },
+    {
+      "name": "Tell Me I'm Special: Gestalt Therapy Intro To Acting",
+      "date": "December 21, 2025",
+      "day": "Sunday",
+      "time": "8:30pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "The SUNDAY JAM",
+      "date": "December 21, 2025",
+      "day": "Sunday",
+      "time": "8:30pm",
+      "venue": "The PIT LAB",
+      "isMicOrJam": true,
+      "type": "jam"
+    },
+    {
+      "name": "Monday OPEN MIC! w/ Obi O'Brien",
+      "date": "December 22, 2025",
+      "day": "Monday",
+      "time": "4:30pm",
+      "venue": "The Fishbowl",
+      "isMicOrJam": true,
+      "type": "open_mic"
+    },
+    {
+      "name": "Monday Musical Jam!",
+      "date": "December 22, 2025",
+      "day": "Monday",
+      "time": "10:00pm",
+      "venue": "The PIT Loft",
+      "isMicOrJam": true,
+      "type": "jam"
+    },
+    {
+      "name": "Meanwhile in NYC Presents: Your Hometown",
+      "date": "December 23, 2025",
+      "day": "Tuesday",
+      "time": "7:00pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "The Wednesday Show MIC",
+      "date": "December 24, 2025",
+      "day": "Wednesday",
+      "time": "4:00pm",
+      "venue": "The PIT LAB",
+      "isMicOrJam": true,
+      "type": "open_mic"
+    },
+    {
+      "name": "Friday Feel-GOOD IMPROV JAM",
+      "date": "December 26, 2025",
+      "day": "Friday",
+      "time": "5:00pm",
+      "venue": "The PIT Loft",
+      "isMicOrJam": true,
+      "type": "jam"
+    },
+    {
+      "name": "Awkward Family Dinner",
+      "date": "December 26, 2025",
+      "day": "Friday",
+      "time": "7:00pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "Ladies Stand-Up! (Men Sit Down) Open Mic",
+      "date": "December 27, 2025",
+      "day": "Saturday",
+      "time": "6:30pm",
+      "venue": "The Fishbowl",
+      "isMicOrJam": true,
+      "type": "open_mic"
+    },
+    {
+      "name": "Girl Who Is Doing A Show",
+      "date": "December 27, 2025",
+      "day": "Saturday",
+      "time": "7:00pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "DUCK SHOW",
+      "date": "December 27, 2025",
+      "day": "Saturday",
+      "time": "9:30pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "More Slaney! A Solo Cabaret",
+      "date": "December 28, 2025",
+      "day": "Sunday",
+      "time": "7:00pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "The SUNDAY JAM",
+      "date": "December 28, 2025",
+      "day": "Sunday",
+      "time": "8:30pm",
+      "venue": "The PIT LAB",
+      "isMicOrJam": true,
+      "type": "jam"
+    },
+    {
+      "name": "Monday OPEN MIC! w/ Obi O'Brien",
+      "date": "December 29, 2025",
+      "day": "Monday",
+      "time": "4:30pm",
+      "venue": "The Fishbowl",
+      "isMicOrJam": true,
+      "type": "open_mic"
+    },
+    {
+      "name": "The Understudies Presents: The Demon ____ of ____",
+      "date": "December 29, 2025",
+      "day": "Monday",
+      "time": "7:00pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "Regis Philbin's Rockin' New Years Eve-Eve From Heaven",
+      "date": "December 30, 2025",
+      "day": "Tuesday",
+      "time": "7:00pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "The Wednesday Show MIC",
+      "date": "December 31, 2025",
+      "day": "Wednesday",
+      "time": "4:00pm",
+      "venue": "The PIT LAB",
+      "isMicOrJam": true,
+      "type": "open_mic"
+    },
+    {
+      "name": "THURSDAY IN N' OUT IMPROV JAM",
+      "date": "January 1, 2025",
+      "day": "Wednesday",
+      "time": "6:00pm",
+      "venue": "The PIT Loft",
+      "isMicOrJam": true,
+      "type": "jam"
+    },
+    {
+      "name": "Wigs!",
+      "date": "January 2, 2025",
+      "day": "Thursday",
+      "time": "7:00pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "CRYING LAUGHING",
+      "date": "January 3, 2025",
+      "day": "Friday",
+      "time": "8:00pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    },
+    {
+      "name": "The Oldest Profession",
+      "date": "January 4, 2025",
+      "day": "Saturday",
+      "time": "8:30pm",
+      "venue": "The PIT NYC",
+      "isMicOrJam": false,
+      "type": "show"
+    }
+  ]
+}

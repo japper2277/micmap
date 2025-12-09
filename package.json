@@ -1,0 +1,12 @@
+{
+  "scripts": {
+    "watch": "node scripts/watch-mics.js",
+    "generate": "node scripts/generate-venue-list.js"
+  },
+  "dependencies": {
+    "axios": "^1.13.2",
+    "csv-parse": "^6.1.0",
+    "dotenv": "^17.2.3",
+    "puppeteer": "^24.32.0"
+  }
+}

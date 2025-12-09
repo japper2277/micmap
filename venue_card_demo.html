@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mic Logistics Card</title>
+    <style>
+        :root {
+            /* APP THEME */
+            --bg-body: #000000;
+            --bg-card: #121212;
+            --surface: #1E1E1E;
+            --border: #333;
+            
+            /* TEXT COLORS */
+            --text-main: #FFFFFF;
+            --text-sec: #A1A1AA;
+            --text-ter: #52525B;
+            
+            /* FUNCTIONAL COLORS */
+            --mic-red: #FF3B30;
+            --map-blue: #0A84FF;
+            --link-blue: #4facfe;
+            --ig-grad: linear-gradient(45deg, #f09433, #bc1888);
+            --status-good: #30D158;
+            --status-delay: #FF453A;
+            --delay-bg: rgba(255, 69, 58, 0.08);
+
+            /* BADGE COLORS */
+            --badge-web-bg: rgba(79, 172, 254, 0.2); --badge-web-text: #4facfe;
+            --badge-svc-local: #333; --badge-svc-text: #ccc;
+            --badge-svc-express: #fff; --badge-svc-text-exp: #000;
+
+            /* MTA COLORS */
+            --mta-L: #A7A9AC;
+            --mta-N: #FCCC0A;
+
+            --font-stack: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            font-family: var(--font-stack);
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; margin: 0; padding: 20px;
+            color: var(--text-main);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .card {
+            width: 100%; max-width: 380px;
+            background-color: var(--bg-card);
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            display: flex; flex-direction: column;
+            box-shadow: 0 40px 80px rgba(0,0,0,0.9);
+        }
+
+        /* --- 1. HEADER --- */
+        .hero-section {
+            padding: 20px 24px;
+            display: flex; justify-content: space-between; align-items: flex-start;
+            border-bottom: 1px solid #1a1a1a;
+        }
+
+        .venue-info { flex: 1; margin-right: 12px; }
+        .venue-info h1 { 
+            margin: 0; font-size: 22px; 
+            font-weight: 800; 
+            letter-spacing: -0.5px; line-height: 1.1; margin-bottom: 6px; 
+        }
+        .venue-info .addr { font-size: 13px; color: var(--text-sec); font-weight: 500; display: block; }
+
+        .maps-btn {
+            background: rgba(10, 132, 255, 0.15);
+            border: 1px solid rgba(10, 132, 255, 0.3);
+            padding: 10px 14px; border-radius: 14px;
+            text-decoration: none;
+            display: flex; flex-direction: column; align-items: flex-end;
+            min-width: 64px;
+            transition: all 0.2s;
+        }
+        .maps-btn:active { background: rgba(10, 132, 255, 0.25); transform: scale(0.98); }
+        .maps-time { font-size: 18px; font-weight: 700; color: var(--map-blue); line-height: 1; margin-bottom: 4px; }
+        .maps-label { 
+            font-size: 10px; font-weight: 700; color: var(--map-blue); 
+            text-transform: uppercase; letter-spacing: 0.5px;
+            display: flex; align-items: center; gap: 4px; 
+        }
+
+        /* --- 2. MIC PROTOCOL --- */
+        details.mic-row {
+            background: #181818;
+            border-bottom: 1px solid #2a2a2a;
+            cursor: pointer; transition: background 0.2s;
+        }
+        details.mic-row[open] { background: #1c1c1c; }
+        
+        summary {
+            padding: 18px 24px;
+            display: flex; align-items: center; gap: 14px;
+            list-style: none;
+            position: relative;
+        }
+        summary::-webkit-details-marker { display: none; }
+
+        .mic-icon { color: var(--mic-red); display: grid; place-items: center; }
+        
+        .mic-data { flex: 1; display: flex; align-items: center; gap: 12px; }
+        .start-time { font-size: 16px; font-weight: 600; color: #fff; }
+        
+        .signup-badge {
+            font-size: 11px; font-weight: 600; letter-spacing: 0.3px;
+            padding: 4px 8px; border-radius: 6px;
+        }
+        .type-web { background: var(--badge-web-bg); color: var(--badge-web-text); }
+
+        /* The Animated Chevron */
+        summary::after {
+            content: "";
+            width: 8px; height: 8px;
+            border-right: 2px solid var(--text-sec);
+            border-bottom: 2px solid var(--text-sec);
+            transform: rotate(45deg);
+            transition: transform 0.2s ease;
+            margin-right: 4px;
+        }
+        details[open] summary::after { transform: rotate(-135deg); }
+
+        /* Expanded Content */
+        .expanded-content { padding: 0 24px 24px; animation: slide 0.2s ease-out; }
+        @keyframes slide { from {opacity:0; transform:translateY(-8px);} to {opacity:1; transform:translateY(0);} }
+
+        .instructions-box {
+            background: #222; border-radius: 12px; padding: 18px;
+            border-left: 3px solid var(--mic-red);
+        }
+        .raw-text { font-size: 13px; color: #e5e5e5; line-height: 1.5; margin-bottom: 18px; }
+
+        .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .action-btn {
+            height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+            font-size: 13px; font-weight: 600; text-decoration: none; color: #fff;
+            transition: opacity 0.2s;
+        }
+        .action-btn:hover { opacity: 0.9; }
+        .btn-signup { background: var(--link-blue); color: #000; font-weight: 700; }
+        .btn-ig { background: var(--ig-grad); }
+
+        /* --- 3. TRANSIT SECTION --- */
+        .transit-section { padding: 8px 0; background: var(--bg-card); }
+
+        .transit-row {
+            padding: 16px 24px;
+            border-bottom: 1px solid #1a1a1a;
+            display: grid;
+            grid-template-columns: 36px 1fr auto; 
+            gap: 14px;
+            align-items: center;
+        }
+        .transit-row:last-child { border-bottom: none; }
+        
+        .transit-row.delayed-row { 
+            background: var(--delay-bg); 
+            border-left: 3px solid var(--status-delay);
+            padding-left: 21px; /* Adjust for border */
+        }
+
+        .bullet {
+            width: 32px; height: 32px; border-radius: 50%;
+            display: grid; place-items: center;
+            font-size: 14px; font-weight: 800; color: #fff; z-index: 1;
+        }
+        .b-L { background: var(--mta-L); color: #fff; }
+        .b-N { background: var(--mta-N); color: #000; }
+
+        .station-header { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; }
+        .st-name { font-size: 15px; font-weight: 600; color: #fff; }
+        
+        .svc-badge {
+            font-size: 9px; font-weight: 700; text-transform: uppercase;
+            padding: 2px 6px; border-radius: 4px; letter-spacing: 0.5px;
+        }
+        .svc-local { background: var(--badge-svc-local); color: var(--badge-svc-text); border: 1px solid #444; }
+        .svc-express { background: var(--badge-svc-express); color: var(--badge-svc-text-exp); }
+
+        .arrival-data { font-size: 15px; font-variant-numeric: tabular-nums; display: flex; flex-direction: column; }
+        
+        /* UPDATED: Equal weight for all times */
+        .time-row { color: #fff; font-weight: 600; }
+        .time-row span { color: #fff; margin: 0 1px; } /* Override previous grey */
+        .time-row .unit { font-size: 13px; font-weight: 400; color: var(--text-sec); margin-left: 2px;} 
+        
+        .delay-msg { 
+            font-size: 12px; color: var(--status-delay); font-weight: 600; 
+            display: flex; align-items: center; gap: 4px; margin-top: 4px;
+        }
+
+        .walk-info { text-align: right; display: flex; align-items: center; gap: 6px; opacity: 0.8; }
+        .walk-icon { color: var(--text-sec); }
+        .walk-time { font-size: 14px; font-weight: 600; color: #fff; }
+
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        
+        <div class="hero-section">
+            <div class="venue-info">
+                <h1>The Gray Mare</h1>
+                <span class="addr">61 2nd Ave · East Village</span>
+            </div>
+            <a href="#" class="maps-btn">
+                <span class="maps-time">26m</span>
+                <span class="maps-label">Directions <svg width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+            </a>
+        </div>
+
+        <details class="mic-row">
+            <summary>
+                <div class="mic-icon">
+                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+                </div>
+                <div class="mic-data">
+                    <span class="start-time">7:00 PM</span>
+                    <span class="signup-badge type-web">Web Signup</span>
+                </div>
+            </summary>
+            
+            <div class="expanded-content">
+                <div class="instructions-box">
+                    <div class="raw-text">
+                        $7.62 fee (includes drink/fries). List opens online at 6:30 PM.
+                    </div>
+                    <div class="action-grid">
+                        <a href="#" class="action-btn btn-signup">Sign Up Link</a>
+                        <a href="#" class="action-btn btn-ig">Host IG</a>
+                    </div>
+                </div>
+            </div>
+        </details>
+
+        <div class="transit-section">
+            
+            <div class="transit-row">
+                <div class="bullet b-L">L</div>
+                <div>
+                    <div class="station-header">
+                        <span class="st-name">Bedford Av</span>
+                        <span class="svc-badge svc-local">Local</span>
+                    </div>
+                    <div class="arrival-data">
+                        <div class="time-row">3, 11, 18 <span class="unit">min</span></div>
+                    </div>
+                </div>
+                <div class="walk-info">
+                    <svg class="walk-icon" width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7z"/></svg>
+                    <div class="walk-time">6 min</div>
+                </div>
+            </div>
+
+            <div class="transit-row delayed-row">
+                <div class="bullet b-N">N</div>
+                <div>
+                    <div class="station-header">
+                        <span class="st-name">Union Sq</span>
+                        <span class="svc-badge svc-express">Express</span>
+                    </div>
+                    <div class="arrival-data">
+                        <div class="time-row">5, 14, 22 <span class="unit">min</span></div>
+                        <div class="delay-msg">
+                            <svg width="12" height="12" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L1 21h22L12 2zm1 16h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
+                            Signal Problems
+                        </div>
+                    </div>
+                </div>
+                <div class="walk-info">
+                    <svg class="walk-icon" width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7z"/></svg>
+                    <div class="walk-time">9 min</div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</body>
+</html>

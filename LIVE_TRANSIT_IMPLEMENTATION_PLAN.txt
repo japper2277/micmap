@@ -1,0 +1,327 @@
+LIVE TRANSIT DEPARTURE ASSISTANT - IMPLEMENTATION PLAN
+======================================================
+
+OVERVIEW
+--------
+Add a "departure assistant" section to the venue modal that shows:
+- Nearby stations to USER'S ORIGIN (not the venue)
+- Live train arrivals filtered to direction TOWARD the venue
+- Calculated total commute time (walk + wait + ride + walk)
+
+Only appears when: STATE.isTransitMode === true (user has set their location)
+
+
+UI DESIGN REFERENCE
+-------------------
+Using venue_card_demo.html as the design template:
+
+┌─────────────────────────────────────────┐
+│ THE GRAY MARE                    26m    │
+│ 61 2nd Ave · East Village    Directions │
+├─────────────────────────────────────────┤
+│ 🎤 7:00 PM  [Web Signup]            ▼   │  ← Collapsible
+│   ┌─────────────────────────────────┐   │
+│   │ $7.62 fee. List opens 6:30 PM   │   │  ← Expanded content
+│   │ [Sign Up Link]  [Host IG]       │   │
+│   └─────────────────────────────────┘   │
+├─────────────────────────────────────────┤
+│ (L) Bedford Av [Local]      🚶 6 min    │
+│     3, 11, 18 min                       │
+│─────────────────────────────────────────│
+│ (N) Union Sq [Express]      🚶 9 min    │  ← Red border if delayed
+│     5, 14, 22 min                       │
+│     ⚠️ Signal Problems                  │
+└─────────────────────────────────────────┘
+
+Key design elements:
+- Hero section: venue name + tappable "Xm Directions" badge
+- Collapsible mic row with <details> element
+- Transit rows: bullet | station+arrivals | walk time
+- Inline delay indicator (red left border + message on affected row)
+- No separate alert footer
+
+
+FILES TO MODIFY
+---------------
+| File        | Changes                                                      |
+|-------------|--------------------------------------------------------------|
+| modal.js    | Add loadDepartureAssistant() function, call from openVenueModal() |
+| modal.js    | Add UI rendering for transit rows                            |
+| utils.js    | Add getStationsNearUser() helper (returns array of stations) |
+| index.html  | Add transit section container in modal                       |
+| stream.css  | Add styles from venue_card_demo.html                         |
+
+
+IMPLEMENTATION STEPS
+====================
+
+STEP 1: Update Modal HTML Structure
+-----------------------------------
+In index.html, modify #venue-modal .venue-card:
+
+A. Update hero section - Add tappable directions badge:
+
+<div class="hero-section">
+  <div class="venue-info">
+    <h2 id="modal-title">VENUE NAME</h2>
+    <p class="venue-address" id="modal-address">ADDRESS</p>
+  </div>
+  <a href="#" class="maps-btn" id="modal-directions">
+    <span class="maps-time" id="modal-total-time">--</span>
+    <span class="maps-label">Directions →</span>
+  </a>
+</div>
+
+B. Add transit section container:
+
+<div id="transit-section" class="transit-section hidden">
+  <!-- Rows injected by JS -->
+</div>
+
+
+STEP 2: Add getStationsNearUser() to utils.js
+---------------------------------------------
+function getStationsNearUser(lat, lng, count = 3) {
+  // Similar to getNearestStation but returns array of top N
+  // Each station: { id, name, lat, lng, distance, gtfsStopId, lines }
+  // Extract lines from name: "Bedford Av (L)" → ["L"]
+}
+
+
+STEP 3: Add loadDepartureAssistant(mic) to modal.js
+---------------------------------------------------
+Logic:
+1. Check if (!STATE.isTransitMode || !STATE.userOrigin) → hide panel, return
+2. Get user's nearest stations: getStationsNearUser(STATE.userOrigin.lat, STATE.userOrigin.lng, 3)
+3. Get venue's cluster ID: resolveClusterId(mic)
+4. For each station:
+   - Calculate walk time: station.distance * 20 mins
+   - Extract lines from station name
+   - For each line, fetch arrivals: mtaService.fetchArrivals(line, gtfsStopId)
+   - Filter arrivals to correct direction (toward venue)
+   - Calculate total commute for best option
+5. Fetch alerts: mtaService.fetchAlerts()
+6. Render UI
+
+
+STEP 4: Direction Filtering Logic
+---------------------------------
+function getDirectionToward(station, destCluster, line) {
+  // East-west lines (L)
+  if (line === 'L') {
+    return destCluster.lng > station.lng ? 'Manhattan' : 'Brooklyn';
+  }
+  // North-south lines (most others)
+  return destCluster.lat > station.lat ? 'Uptown' : 'Downtown';
+  // Special cases: G, J, Z, M, S handled per customDirections
+}
+
+V1 simplification: Show BOTH directions, but sort correct direction first. Don't filter/hide.
+
+
+STEP 5: Total Commute Calculation
+---------------------------------
+function calculateLiveCommute(walkToStation, arrivals, stationId, clusterId, venueLat, venueLng) {
+  // Find train user would catch (first arrival >= walkToStation)
+  const trainCatch = arrivals.find(t => t >= walkToStation) || arrivals[0];
+  const waitTime = Math.max(0, trainCatch - walkToStation);
+
+  // Ride time from pre-computed matrix
+  const rideSeconds = TRANSIT_DATA.matrix[stationId][clusterId];
+  const rideTime = Math.ceil(rideSeconds / 60);
+
+  // Walk from cluster to venue
+  const cluster = TRANSIT_DATA.clusters.find(c => c.id == clusterId);
+  const walkToVenue = Math.ceil(
+    calculateDistance(cluster.lat, cluster.lng, venueLat, venueLng) * 20
+  );
+
+  return {
+    total: walkToStation + waitTime + rideTime + walkToVenue,
+    breakdown: { walkToStation, waitTime, rideTime, walkToVenue }
+  };
+}
+
+
+STEP 6: UI Rendering
+--------------------
+function renderTransitSection(stations, alerts) {
+  const section = document.getElementById('transit-section');
+  if (!stations.length) {
+    section.classList.add('hidden');
+    return;
+  }
+
+  // Check which lines have alerts
+  const delayedLines = new Set(alerts.flatMap(a => a.lines));
+
+  section.innerHTML = stations.map(station => {
+    const hasDelay = station.lines.some(l => delayedLines.has(l.line));
+    const delayAlert = alerts.find(a =>
+      a.lines.some(l => station.lines.map(sl => sl.line).includes(l))
+    );
+
+    // Build bullet stack for multi-line stations (e.g., Times Sq: 1,2,3,7,N,Q,R,W)
+    const bulletHtml = station.lines.length === 1
+      ? `<div class="bullet b-${station.lines[0].line}">${station.lines[0].line}</div>`
+      : `<div class="bullet-stack">
+           ${station.lines.map(l => `<div class="bullet b-${l.line}">${l.line}</div>`).join('')}
+         </div>`;
+
+    // Show arrivals for primary line (first in list, sorted by soonest)
+    const primaryLine = station.lines[0];
+
+    return `
+      <div class="transit-row ${hasDelay ? 'delayed-row' : ''}">
+        ${bulletHtml}
+        <div>
+          <div class="station-header">
+            <span class="st-name">${station.name}</span>
+          </div>
+          <div class="arrival-data">
+            <div class="time-row">${primaryLine.arrivals.join(', ')} <span class="unit">min</span></div>
+            ${hasDelay ? `<div class="delay-msg">⚠️ ${delayAlert?.text || 'Delays'}</div>` : ''}
+          </div>
+        </div>
+        <div class="walk-info">
+          <svg class="walk-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="12" cy="4" r="2"/>
+            <path d="M14 7h-4l-1 5h2v8h2v-8h2z"/>
+          </svg>
+          <div class="walk-time">${station.walkMins} min</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  section.classList.remove('hidden');
+}
+
+Note: For multi-line stations like Times Sq (1,2,3,7,N,Q,R,W), bullets overlap horizontally.
+Only show arrivals for the PRIMARY line (whichever gets user there fastest).
+
+
+STEP 7: CSS Styling (from venue_card_demo.html)
+-----------------------------------------------
+Key styles to port:
+
+.transit-section { padding: 8px 0; background: var(--bg-card); }
+
+.transit-row {
+  padding: 16px 24px;
+  border-bottom: 1px solid #1a1a1a;
+  display: grid;
+  grid-template-columns: auto 1fr auto;  /* auto width for bullet stack */
+  gap: 14px;
+  align-items: center;
+}
+
+.transit-row.delayed-row {
+  background: rgba(255, 69, 58, 0.08);
+  border-left: 3px solid #FF453A;
+}
+
+/* Single bullet */
+.bullet {
+  width: 28px; height: 28px; border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: 13px; font-weight: 800; color: #fff;
+}
+
+/* Multi-line bullet stack (overlapping circles) */
+.bullet-stack {
+  display: flex;
+}
+.bullet-stack .bullet {
+  border: 2px solid #121212;  /* Match card background */
+}
+.bullet-stack .bullet:not(:first-child) {
+  margin-left: -8px;  /* Overlap */
+}
+
+/* MTA line colors */
+.b-1, .b-2, .b-3 { background: #EE352E; }
+.b-4, .b-5, .b-6 { background: #00933C; }
+.b-7 { background: #B933AD; }
+.b-A, .b-C, .b-E { background: #0039A6; }
+.b-B, .b-D, .b-F, .b-M { background: #FF6319; }
+.b-G { background: #6CBE45; }
+.b-J, .b-Z { background: #996633; }
+.b-L { background: #A7A9AC; }
+.b-N, .b-Q, .b-R, .b-W { background: #FCCC0A; color: #000; }
+.b-S { background: #808183; }
+
+.time-row { color: #fff; font-weight: 600; }
+.delay-msg { font-size: 12px; color: #FF453A; font-weight: 600; }
+
+
+API CALL STRATEGY (V1)
+----------------------
+No batching for V1. Accept 3-6 sequential/parallel fetches:
+- 3 stations × ~2 lines = 6 calls max
+- Each call is cached 30 seconds on backend
+- Fetch in parallel with Promise.all()
+
+Future optimization: Add GET /api/mta/batch?stops=L-L08,G-G29 endpoint
+
+
+EDGE CASES
+----------
+1. No stations within 0.5 miles of user → Show "No nearby stations" message
+2. No arrivals returned → Show "No trains scheduled"
+3. Transit mode not active → Hide entire panel
+4. API error → Fail silently, hide panel (don't break modal)
+
+
+DATA INTEGRITY STRATEGY
+-----------------------
+Context: transit_data.json stores parent stop IDs (e.g., L08) while MTA feed
+uses suffixed IDs (L08N, L08S). Server already handles this via prefix matching:
+
+// server.js line 430
+if (stu.stopId?.startsWith(stopId)) { ... }
+
+Validation approach: Defensive runtime logging (not proactive validation)
+
+// In loadDepartureAssistant() - after fetching arrivals
+const arrivals = await mtaService.fetchArrivals(line, gtfsStopId);
+if (arrivals.length === 0) {
+    console.warn(`⚠️ No arrivals for ${line}/${gtfsStopId} - possible bad stop ID or no service`);
+}
+
+Why not proactive validation:
+- 97 stations × API calls = slow, rate-limit risk
+- Only catches issues at build time, not runtime
+- Runtime logging catches real issues when they happen, costs nothing
+
+If warnings appear repeatedly for a station: Fix the gtfsStopId in transit_data.json manually.
+
+
+TESTING CHECKLIST
+-----------------
+[ ] Panel hidden when STATE.isTransitMode = false
+[ ] Panel shows when transit mode active + modal opens
+[ ] Walk times calculate correctly
+[ ] Arrivals fetch and display
+[ ] Direction sorting works for L train (east-west)
+[ ] Direction sorting works for 1/2/3 (north-south)
+[ ] Total commute math is correct
+[ ] Alerts display for relevant lines
+[ ] Graceful failure on API errors
+
+
+FILE PATHS QUICK REFERENCE
+--------------------------
+map_designs/newest_map/
+├── index.html          ← Add transit section HTML
+├── css/
+│   └── stream.css      ← Add transit row styles
+└── js/
+    ├── modal.js        ← Add loadDepartureAssistant()
+    ├── utils.js        ← Add getStationsNearUser()
+    ├── mta.js          ← Existing (fetchArrivals, fetchAlerts)
+    ├── transit.js      ← Existing (transit calculations)
+    └── transit_data.json ← Existing (matrix, stations)
+
+api/
+└── server.js           ← Existing MTA endpoints (no changes needed)

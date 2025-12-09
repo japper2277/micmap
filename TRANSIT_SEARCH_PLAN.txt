@@ -1,0 +1,2367 @@
+================================================================================
+REAL-TIME TRANSIT SEARCH - COMPLETE IMPLEMENTATION PLAN
+================================================================================
+Version: 5.2 (Micro-Cluster System + 3-Hour Threshold + 12 Patches)
+Last Updated: 12/7 - Added: mic_id lookup, borough-based river logic,
+                      distance-based cache, collapsed venues, geolocation toast,
+                      secondary sort, Cache-Control header, comedy day 4AM cutoff,
+                      top-5 always visible, iOS zoom prevention
+                      PATCH 12: XSS fix, race condition guard, calculateDistance in utils,
+                      Bronx/Staten Island boroughs, constants defined in transit.js
+Target: map_designs/newest_map/
+================================================================================
+
+ARCHITECTURE OVERVIEW (FINAL)
+-----------------------------
+User Input --> 500ms Debounce --> Mapbox Geocoding (FREE) --> Origin Coords
+                                                                    |
+                                                                    v
+                                              Check mic start time vs current time
+                                                                    |
+                                              +---------------------|---------------------+
+                                              |                                          |
+                                        < 3 HOURS                                   > 3 HOURS
+                                              |                                          |
+                                              v                                          v
+                                    Google Distance Matrix                    MICRO-CLUSTER MATRIX
+                                    (Live API, $0.025)                        (JSON lookup, FREE)
+                                              |                                          |
+                                              v                                          v
+                                         Blue Badge                              Gray Badge (~)
+                                              |                                          |
+                                              +---------------------|---------------------+
+                                                                    |
+                                                                    v
+                                              Dynamic Walk Threshold (user preference)
+                                                                    |
+                                                                    v
+                                                    Sort by TRANSIT TIME (not distance)
+                                                                    |
+                                                                    v
+                                                    STATE.transitTimes --> render() --> UI Badges
+
+MICRO-CLUSTER SYSTEM:
+- 102 venues compressed to ~45 clusters (0.15 mile radius)
+- Pre-computed cluster-to-cluster transit times
+- Density-first algorithm ensures accurate groupings
+- Cost: ~$10/month to regenerate
+
+
+================================================================================
+KEY DECISIONS FROM DISCUSSION
+================================================================================
+
+1. AUTO-SEARCH (NO COMPUTE BUTTON)
+   - User types location -> 500ms debounce -> auto-fire transit calculation
+   - No intermediate "Sort by Transit" button
+   - Users expect Google Maps / Uber behavior
+
+2. NO DISTANCE SORTING (THE RIVER PROBLEM)
+   - "As the crow flies" is a lie in NYC
+   - LES to Williamsburg: 0.5 miles but 20+ min transit (East River)
+   - Default sort: TRANSIT TIME only
+   - Never offer distance-based sorting
+
+3. SMART DELTA CACHING
+   - Cache structure: Option A (location -> hub times)
+   - On filter change: only query NEW neighborhoods not in cache
+   - Same neighborhoods: $0.00 (cache hit)
+
+4. DYNAMIC WALK THRESHOLD (USER PREFERENCE)
+   - Settings gear icon next to calendar button
+   - Options: 10min (~0.5mi), 15min (~0.75mi), 20min (~1.0mi), Always transit
+   - Same-cluster bonus: Extended threshold within same cluster
+   - River protection: BOROUGH-BASED (different borough = force transit, no walking)
+
+5. COLLAPSED DISTANT VENUES (NOT GRAY BADGES)
+   - Venues beyond the 5 closest clusters are HIDDEN, not shown with gray badges
+   - User sees: "+ 4 more venues further away" button
+   - Click expands list and fetches real times for those venues
+   - Ghost Venue Fix: Searched venue is ALWAYS visible, even if distant
+
+6. 3-HOUR THRESHOLD + MICRO-CLUSTERS
+   - Mics < 3 hours out: Live API (Blue badge, $0.025)
+   - Mics > 3 hours out: Matrix lookup (Gray badge with ~, FREE)
+   - Matrix uses ~45 micro-clusters instead of 31 neighborhood hubs
+   - ~98% accuracy vs ~85% with old hub system
+
+
+================================================================================
+COST MODEL (FINAL - MICRO-CLUSTER + 3-HOUR THRESHOLD)
+================================================================================
+
+Google Distance Matrix Pricing:
+- $5.00 per 1,000 elements
+- 1 element = 1 origin x 1 destination
+
+MONTHLY COSTS:
+| Item                              | Cost     |
+|-----------------------------------|----------|
+| Matrix regeneration (~45x45)      | ~$10     |
+| Remaining for live searches       | $190     |
+
+PER-SEARCH COSTS:
+| Scenario                          | Cost     |
+|-----------------------------------|----------|
+| Mics > 3 hours out (matrix)       | $0.00    |
+| Mics < 3 hours out (5 clusters)   | $0.025   |
+| "Show more" expansion             | $0.025   |
+| Tomorrow/Calendar view            | $0.00    |
+
+CAPACITY:
+- Live searches: ~7,600/month (~250/day)
+- Planning mode (>3 hrs): Unlimited (matrix is free)
+- Most users browse 3+ hours ahead = mostly free
+
+TRANSIT CONSTANTS (top of transit.js):
+const WALK_MINS_PER_MILE = 20;      // ~3 mph walking pace
+const SUBWAY_MINS_PER_MILE = 4;     // ~15 mph avg including stops
+const CLUSTER_SNAP_RADIUS = 0.15;   // Must match generator exactly
+
+
+================================================================================
+"SHOW MORE VENUES" UX (COLLAPSED DESIGN)
+================================================================================
+
+Initial State (after search):
+┌─────────────────────────────────────┐
+│ 🚇 12m  Comedy Cellar (Greenwich)   │  ← Blue (API data)
+│ 🚇 15m  The Stand (Gramercy)        │  ← Blue
+│ 🚇 18m  Eastville (East Village)    │  ← Blue
+│ 🚇 22m  Creek & Cave (LIC)          │  ← Blue
+│ 🚇 25m  Knitting Factory (Wburg)    │  ← Blue
+├─────────────────────────────────────┤
+│   [ + 4 more venues further away ]  │  ← Collapsed (hidden venues)
+└─────────────────────────────────────┘
+
+Distant venues are HIDDEN, not shown with gray badges.
+This prevents user confusion about "low quality" data.
+
+After clicking "+ 4 more venues further away":
+┌─────────────────────────────────────┐
+│ 🚇 12m  Comedy Cellar (Greenwich)   │
+│ 🚇 15m  The Stand (Gramercy)        │
+│ 🚇 18m  Eastville (East Village)    │
+│ 🚇 22m  Creek & Cave (LIC)          │
+│ 🚇 25m  Knitting Factory (Wburg)    │
+│ 🚇 28m  Tiny Cupboard (Bushwick)    │  ← Now visible with blue!
+│ 🚇 38m  QED (Astoria)               │  ← Now visible with blue!
+└─────────────────────────────────────┘
+
+Button disappears after expansion.
+
+GHOST VENUE FIX:
+If user searches for "QED Astoria" specifically, it is ALWAYS visible
+in the top list (not collapsed), even if it's in a distant cluster.
+
+
+================================================================================
+SEARCH TYPE LOGIC
+================================================================================
+
+ADDRESS/LOCATION SEARCH ("Union Square", "My Location"):
+- Query: 5 closest neighborhoods
+- Cost: $0.025
+- Remaining neighborhoods: Gray estimates
+- "Show more neighborhoods" available
+
+VENUE SEARCH ("Comedy Cellar"):
+- Query: 5 closest neighborhoods + target venue's neighborhood
+- Cost: $0.025-0.03 (5-6 hubs)
+- Guarantees: Target venue ALWAYS gets blue badge
+- Remaining neighborhoods: Gray estimates
+- "Show more neighborhoods" available
+
+This ensures users who explicitly search for a venue never see
+a gray badge on the exact venue they asked for (Ghost Venue fix).
+
+
+================================================================================
+PHASE 1: STATE MANAGEMENT
+================================================================================
+
+File: map_designs/newest_map/js/state.js
+Add to existing STATE object:
+
+const STATE = {
+    // ... existing properties ...
+
+    // Transit Search State
+    userOrigin: null,           // { lat, lng, name }
+    transitTimes: {},           // { 0: 1245, 12: 2100, ... } (seconds by cluster ID)
+    searchMarker: null,         // Leaflet marker for origin
+    isTransitMode: false,       // True when sorted by transit
+    transitCache: {},           // { 'lat,lng': { 0: 1245, 12: 2100, ... } } (cluster ID -> seconds)
+    isCalculatingTransit: false, // Loading state
+    transitExpanded: false,     // Has user clicked "Show more neighborhoods"?
+    targetVenueHood: null,      // Neighborhood of explicitly searched venue
+    isWaitingForMapClick: false, // True when waiting for user to tap map (geolocation fallback)
+
+    // User Preferences (persisted to localStorage)
+    walkPreference: localStorage.getItem('walkPref') || '15min'
+};
+
+
+================================================================================
+PHASE 2: MICRO-CLUSTER DATA (REPLACES NEIGHBORHOOD_HUBS)
+================================================================================
+
+File: map_designs/newest_map/js/transit_data.json (GENERATED)
+
+The old NEIGHBORHOOD_HUBS object is replaced by a generated JSON file
+containing micro-clusters. This file is created by scripts/generate_transit_data.js
+
+STRUCTURE:
+{
+  "venue_map": {
+    "mic_123": 0,               // Mic ID -> Cluster ID (PRIMARY LOOKUP)
+    "mic_456": 0,               // Same cluster as mic_123
+    "mic_789": 12,
+    ...
+  },
+  "slug_map": {
+    "comedycellar": 0,          // Slug -> Cluster ID (FALLBACK for new venues)
+    "grislypear": 0,
+    "qedastoria": 12,
+    ...
+  },
+  "clusters": [
+    {
+      "id": 0,
+      "lat": 40.7295,           // Centroid (avg of all members)
+      "lng": -74.0005,
+      "borough": "Manhattan",   // For river protection logic
+      "name": "Cluster 0 (Comedy Cellar)",
+      "memberIds": ["mic_123", "mic_456", ...]
+    },
+    {
+      "id": 12,
+      "lat": 40.7282,
+      "lng": -73.9300,
+      "borough": "Queens",
+      "name": "Cluster 12 (QED Astoria)",
+      "memberIds": ["mic_789", ...]
+    },
+    ...
+  ],
+  "matrix": {
+    "0": { "0": 0, "1": 12, "2": 25, ... },   // Cluster 0 -> all others (minutes)
+    "1": { "0": 14, "1": 0, "2": 18, ... },   // Asymmetric (direction matters)
+    ...
+  }
+}
+
+ID vs SLUG LOOKUP:
+- Primary: mic.id -> venue_map (exact match, no string manipulation)
+- Fallback: slug -> slug_map (for venues added after JSON generation)
+- Slug function: str.toLowerCase().replace(/[^a-z0-9]/g, '')
+
+NOTE: WALK_PREFERENCES constant is defined in transit.js (Phase 5)
+
+
+================================================================================
+PHASE 3: VISIBILITY HELPER
+================================================================================
+
+File: map_designs/newest_map/js/utils.js
+Add helper functions:
+
+/* =========================================================================
+   calculateDistance - Haversine formula for distance between two points
+   ========================================================================= */
+
+function calculateDistance(lat1, lng1, lat2, lng2) {
+    const R = 3959; // Earth radius in miles
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLng/2) * Math.sin(dLng/2);
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+/* =========================================================================
+   isMicVisible - Determines if a mic passes current filters
+   =========================================================================
+   IMPORTANT: This must mirror the exact filtering logic in render().
+   Used by both render() and fetchBatchTransitTimes() to stay in sync.
+   ========================================================================= */
+
+function isMicVisible(mic) {
+    const currentTime = new Date();
+
+    // COMEDY DAY LOGIC: Day ends at 4AM, not midnight
+    // At 12:30 AM Sunday, we're still showing Saturday's late-night mics
+    const adjustedTime = new Date(currentTime);
+    if (adjustedTime.getHours() < 4) {
+        adjustedTime.setDate(adjustedTime.getDate() - 1);
+    }
+
+    const todayName = CONFIG.dayNames[adjustedTime.getDay()];
+    const tomorrowName = CONFIG.dayNames[(adjustedTime.getDay() + 1) % 7];
+
+    // Day filter
+    if (STATE.currentMode === 'today') {
+        if (mic.day !== todayName) return false;
+        // Deep past filter (>1 hour ago)
+        const diffMins = mic.start ? (mic.start - currentTime) / 60000 : 999;
+        if (diffMins < -60) return false;
+    }
+    if (STATE.currentMode === 'tomorrow' && mic.day !== tomorrowName) return false;
+    if (STATE.currentMode === 'calendar') {
+        const selectedDate = new Date(STATE.selectedCalendarDate);
+        const selectedDayName = CONFIG.dayNames[selectedDate.getDay()];
+        if (mic.day !== selectedDayName) return false;
+    }
+
+    // Price filter
+    if (STATE.activeFilters.price !== 'All') {
+        const isFree = mic.price.toLowerCase().includes('free');
+        if (STATE.activeFilters.price === 'Free' && !isFree) return false;
+        if (STATE.activeFilters.price === 'Paid' && isFree) return false;
+    }
+
+    // Time filter
+    if (STATE.activeFilters.time !== 'All' && mic.start) {
+        const hour = mic.start.getHours();
+        if (STATE.activeFilters.time === 'early' && hour >= 17) return false;
+        if (STATE.activeFilters.time === 'late' && hour < 17) return false;
+    }
+
+    return true;
+}
+
+/* =========================================================================
+   resolveClusterId - Find which cluster a venue belongs to
+   =========================================================================
+   Handles both known venues (in venue_map) and new venues (dynamic snap).
+   ========================================================================= */
+
+function createSlug(str) {
+    return str.toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+function resolveClusterId(venue) {
+    if (!TRANSIT_DATA) return null;
+
+    // 1. PRIMARY: Check venue_map by mic ID (exact match)
+    if (venue.id && TRANSIT_DATA.venue_map[venue.id] !== undefined) {
+        return TRANSIT_DATA.venue_map[venue.id];
+    }
+
+    // 2. FALLBACK: Check slug_map (for venues added after JSON generation)
+    const slug = createSlug(venue.title);
+    if (TRANSIT_DATA.slug_map && TRANSIT_DATA.slug_map[slug] !== undefined) {
+        return TRANSIT_DATA.slug_map[slug];
+    }
+
+    // 3. LAST RESORT: Dynamic snap to closest cluster within 0.15 miles
+    let closestId = null;
+    let minDist = Infinity;
+
+    TRANSIT_DATA.clusters.forEach(c => {
+        const d = calculateDistance(venue.lat, venue.lng, c.lat, c.lng);
+        if (d <= CLUSTER_SNAP_RADIUS && d < minDist) {
+            minDist = d;
+            closestId = c.id;
+        }
+    });
+
+    return closestId; // null if no nearby cluster
+}
+
+function getUserClusterId(originLat, originLng) {
+    if (!TRANSIT_DATA) return null;
+
+    let closestId = null;
+    let minDist = Infinity;
+
+    TRANSIT_DATA.clusters.forEach(c => {
+        const d = calculateDistance(originLat, originLng, c.lat, c.lng);
+        if (d < minDist) {
+            minDist = d;
+            closestId = c.id;
+        }
+    });
+
+    return closestId;
+}
+
+/* =========================================================================
+   MAP CLICK FALLBACK - Geolocation denied/failed fallback
+   ========================================================================= */
+
+function enableMapClickMode() {
+    const btn = document.getElementById('btn-transit');
+    btn.textContent = '📍 Tap Map';
+    btn.disabled = false;
+    btn.classList.add('active');
+
+    STATE.isWaitingForMapClick = true;
+    document.getElementById('map').style.cursor = 'crosshair';
+    map.on('click', onMapClickForTransit);
+}
+
+function disableMapClickMode() {
+    STATE.isWaitingForMapClick = false;
+    document.getElementById('map').style.cursor = '';
+    map.off('click', onMapClickForTransit);
+}
+
+async function onMapClickForTransit(e) {
+    if (!STATE.isWaitingForMapClick) return;
+    const { lat, lng } = e.latlng;
+
+    // Use clicked location as origin
+    STATE.userOrigin = { lat, lng, name: 'Selected Location' };
+    STATE.isTransitMode = true;
+
+    const btn = document.getElementById('btn-transit');
+    btn.textContent = '⏳ Calculating...';
+    btn.disabled = true;
+
+    await calculateTransitTimes(lat, lng);
+
+    disableMapClickMode();
+    updateTransitButtonUI(true);
+    render(STATE.currentMode);
+}
+
+
+================================================================================
+PHASE 4: SEARCH SERVICE
+================================================================================
+
+File: map_designs/newest_map/js/search.js (NEW FILE)
+
+/* =================================================================
+   SEARCH SERVICE
+   Local venue search + Mapbox geocoding via backend proxy
+
+   KEY BEHAVIOR:
+   - Auto-fires transit calculation on location select (no button)
+   - 500ms debounce on typing
+   - Keyboard navigation (ArrowUp/Down/Enter/Escape)
+   ================================================================= */
+
+class SearchService {
+    constructor() {
+        this.debounceTimer = null;
+        this.dropdown = null;
+        this.input = null;
+        this.selectedIndex = -1;
+    }
+
+    init() {
+        this.input = document.getElementById('search-input');
+        this.createDropdown();
+        this.bindEvents();
+    }
+
+    createDropdown() {
+        this.dropdown = document.createElement('div');
+        this.dropdown.id = 'search-dropdown';
+        this.dropdown.className = 'search-dropdown';
+
+        const wrapper = document.querySelector('.search-wrapper');
+        wrapper.parentNode.insertBefore(this.dropdown, wrapper.nextSibling);
+    }
+
+    bindEvents() {
+        // Input handler with 500ms debounce
+        this.input.addEventListener('input', (e) => {
+            clearTimeout(this.debounceTimer);
+            const query = e.target.value.trim();
+
+            if (query.length < 2) {
+                this.hideDropdown();
+                return;
+            }
+
+            this.debounceTimer = setTimeout(() => this.search(query), 500);
+        });
+
+        // Keyboard navigation
+        this.input.addEventListener('keydown', (e) => {
+            const items = this.dropdown.querySelectorAll('.dropdown-item');
+            if (!items.length) return;
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                this.selectedIndex = Math.min(this.selectedIndex + 1, items.length - 1);
+                this.highlightItem(items);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                this.selectedIndex = Math.max(this.selectedIndex - 1, 0);
+                this.highlightItem(items);
+            } else if (e.key === 'Enter' && this.selectedIndex >= 0) {
+                e.preventDefault();
+                items[this.selectedIndex].click();
+            } else if (e.key === 'Escape') {
+                this.hideDropdown();
+            }
+        });
+
+        this.input.addEventListener('focus', () => {
+            if (this.input.value.length >= 2) {
+                this.showDropdown();
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.search-wrapper') && !e.target.closest('.search-dropdown')) {
+                this.hideDropdown();
+            }
+        });
+    }
+
+    highlightItem(items) {
+        items.forEach((item, i) => {
+            item.classList.toggle('highlighted', i === this.selectedIndex);
+        });
+        if (this.selectedIndex >= 0) {
+            items[this.selectedIndex].scrollIntoView({ block: 'nearest' });
+        }
+    }
+
+    async search(query) {
+        this.selectedIndex = -1;
+        const results = { venues: [], locations: [] };
+
+        // 1. Local venue search (FREE)
+        const q = query.toLowerCase();
+        results.venues = STATE.mics
+            .filter(m => m.title.toLowerCase().includes(q) || m.hood.toLowerCase().includes(q))
+            .slice(0, 3)
+            .map(m => ({ ...m, type: 'venue' }));
+
+        // 2. Mapbox geocoding via backend proxy
+        if (query.length > 2) {
+            try {
+                const res = await fetch(`/api/proxy/geocode?query=${encodeURIComponent(query)}`);
+                if (!res.ok) throw new Error(`Proxy error: ${res.status}`);
+                const data = await res.json();
+                results.locations = data.results.map(r => ({ ...r, type: 'location' }));
+            } catch (e) {
+                console.warn('Geocode failed:', e.message);
+            }
+        }
+
+        this.renderDropdown(results);
+    }
+
+    renderDropdown(results) {
+        let html = '';
+
+        // "Use My Location" option (always show, triggers geolocation API)
+        html += `
+            <div class="dropdown-section">
+                <div class="dropdown-item use-location" onclick="searchService.useMyLocation()">
+                        <div class="item-icon location-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2L2 22l10-2 10 2L12 2z"/>
+                            </svg>
+                        </div>
+                        <div class="item-text">
+                            <span class="item-name">Use My Location</span>
+                        </div>
+                    </div>
+                </div>`;
+
+        // Venues section
+        if (results.venues.length > 0) {
+            html += `<div class="dropdown-section"><div class="section-header">Venues</div>`;
+            results.venues.forEach(v => {
+                html += `
+                    <div class="dropdown-item" onclick="searchService.selectVenue(${v.id})">
+                        <div class="item-icon venue-icon">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                                <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                                <line x1="12" y1="19" x2="12" y2="23"/>
+                            </svg>
+                        </div>
+                        <div class="item-text">
+                            <span class="item-name">${this.escapeHtml(v.title)}</span>
+                            <span class="item-sub">${this.escapeHtml(v.hood)}</span>
+                        </div>
+                    </div>`;
+            });
+            html += '</div>';
+        }
+
+        // Locations section
+        if (results.locations.length > 0) {
+            html += `<div class="dropdown-section"><div class="section-header">Locations</div>`;
+            results.locations.forEach(l => {
+                html += `
+                    <div class="dropdown-item" onclick="searchService.selectLocation(${l.lat}, ${l.lng}, '${this.escapeHtml(l.name).replace(/'/g, "\\'")}')">
+                        <div class="item-icon pin-icon">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                                <circle cx="12" cy="10" r="3"/>
+                            </svg>
+                        </div>
+                        <div class="item-text">
+                            <span class="item-name">${this.escapeHtml(l.name)}</span>
+                            <span class="item-sub">${this.escapeHtml(l.address)}</span>
+                        </div>
+                    </div>`;
+            });
+            html += '</div>';
+        }
+
+        if (!html) {
+            html = '<div class="dropdown-empty">No results found</div>';
+        }
+
+        this.dropdown.innerHTML = html;
+        this.showDropdown();
+    }
+
+    selectVenue(micId) {
+        const mic = STATE.mics.find(m => m.id === micId);
+        if (mic) {
+            this.hideDropdown();
+            this.input.value = mic.title;
+            locateMic(mic.lat, mic.lng, mic.id);
+            openVenueModal(mic);
+            // Ghost Venue Fix: Pass mic so its neighborhood is always queried
+            transitService.calculateFromOrigin(mic.lat, mic.lng, mic.title, mic);
+        }
+    }
+
+    selectLocation(lat, lng, name) {
+        this.hideDropdown();
+        this.input.value = name;
+        // Auto-fire transit calculation (no button needed)
+        transitService.calculateFromOrigin(lat, lng, name, null);
+    }
+
+    // Handle "Use My Location" with geolocation API
+    useMyLocation() {
+        if (!navigator.geolocation) {
+            toastService.show('Geolocation not supported by your browser', 'error');
+            return;
+        }
+
+        this.input.value = 'Locating...';
+        this.hideDropdown();
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const { latitude, longitude } = position.coords;
+                STATE.userLocation = { lat: latitude, lng: longitude };
+                this.selectLocation(latitude, longitude, 'My Location');
+            },
+            (error) => {
+                this.input.value = '';
+                if (error.code === error.PERMISSION_DENIED) {
+                    toastService.show('Location access denied. Tap map to set location.', 'warning');
+                } else {
+                    toastService.show('Could not get location. Tap map to set location.', 'error');
+                }
+                // FALLBACK: Enable map click mode
+                enableMapClickMode();
+            },
+            { enableHighAccuracy: true, timeout: 8000 }
+        );
+    }
+
+    // =========================================================================
+    // MAP CLICK FALLBACK - When geolocation fails/denied
+    // =========================================================================
+    // If geolocation is unavailable or denied:
+    // 1. Button changes to "📍 Tap Map"
+    // 2. Map cursor changes to crosshair
+    // 3. User clicks anywhere on map to set their origin
+    // 4. That location becomes their "current location" for transit calc
+    //
+    // STATE.isWaitingForMapClick = true when in this mode
+    // =========================================================================
+
+    showDropdown() { this.dropdown.classList.add('active'); }
+    hideDropdown() {
+        this.dropdown.classList.remove('active');
+        this.selectedIndex = -1;
+    }
+
+    clear() {
+        this.input.value = '';
+        this.hideDropdown();
+        transitService.clearTransitMode();
+    }
+
+    escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+}
+
+const searchService = new SearchService();
+
+
+================================================================================
+PHASE 5: TRANSIT SERVICE (3-HOUR THRESHOLD + MICRO-CLUSTERS)
+================================================================================
+
+File: map_designs/newest_map/js/transit.js (NEW FILE)
+
+/* =================================================================
+   TRANSIT SERVICE
+
+   KEY FEATURES:
+   1. 3-Hour Threshold - Live API for urgent, Matrix for planning
+   2. Micro-Cluster Matrix - ~45 clusters, ~98% accuracy
+   3. Dynamic Walk Threshold - User preference + same-cluster bonus
+   4. Slug-based Matching - Handles "The Grisly Pear" vs "Grisly Pear"
+   5. Dynamic Snapping - New venues auto-snap to nearest cluster
+
+   ================================================================= */
+
+// CONSTANTS (must match generator)
+const WALK_MINS_PER_MILE = 20;      // ~3 mph walking pace
+const SUBWAY_MINS_PER_MILE = 4;     // ~15 mph avg including stops
+const CLUSTER_SNAP_RADIUS = 0.15;   // Must match generator exactly
+
+const WALK_PREFERENCES = {
+    '10min': 0.5,   // ~10 min walk
+    '15min': 0.75,  // ~15 min walk (default)
+    '20min': 1.0,   // ~20 min walk
+    'none': 0       // Always show transit times
+};
+
+// Load transit data once on app start (with race condition guard)
+let TRANSIT_DATA = null;
+let transitDataPromise = null;
+
+async function loadTransitData() {
+    try {
+        const res = await fetch('js/transit_data.json');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        TRANSIT_DATA = await res.json();
+        console.log(`Transit data loaded: ${TRANSIT_DATA.clusters.length} clusters`);
+    } catch (error) {
+        console.error('Failed to load transit data:', error);
+        // App will fall back to distance-based estimates
+    }
+}
+transitDataPromise = loadTransitData();
+
+const transitService = {
+
+    // Hub limits
+    INITIAL_HUB_LIMIT: 5,
+    EXPANDED_HUB_LIMIT: 10,
+
+    isOffline() {
+        return !navigator.onLine;
+    },
+
+    async calculateFromOrigin(lat, lng, name, targetMic = null) {
+        // Wait for transit data if not loaded yet
+        if (!TRANSIT_DATA && transitDataPromise) {
+            await transitDataPromise;
+        }
+
+        STATE.userOrigin = { lat, lng, name };
+        STATE.isTransitMode = true;
+        STATE.isCalculatingTransit = true;
+
+        // Track target venue's neighborhood for guaranteed blue badge
+        STATE.targetVenueHood = targetMic ? (targetMic.neighborhood || targetMic.hood) : null;
+
+        // Reset expansion state for new search
+        STATE.transitExpanded = false;
+
+        this.showLoadingState();
+        this.addOriginMarker(lat, lng, name);
+        map.flyTo([lat, lng], 13, { duration: 1.2 });
+
+        // Distance-based cache: reuse if within 0.1 miles of last search
+        let cacheKey = null;
+        const CACHE_REUSE_THRESHOLD = 0.1; // miles
+
+        for (const key in STATE.transitCache) {
+            const [cachedLat, cachedLng] = key.split(',').map(Number);
+            if (calculateDistance(lat, lng, cachedLat, cachedLng) < CACHE_REUSE_THRESHOLD) {
+                cacheKey = key;
+                break;
+            }
+        }
+
+        // No nearby cache found, create new entry
+        if (!cacheKey) {
+            cacheKey = `${lat},${lng}`;
+            STATE.transitCache[cacheKey] = {};
+        }
+
+        // Offline Mode
+        if (this.isOffline()) {
+            toastService.show('Offline - using estimated times', 'warning');
+            STATE.transitTimes = this.getAllFallbackTimes(lat, lng);
+            this.applyTransitTimesToMics();
+            STATE.isCalculatingTransit = false;
+            render(STATE.currentMode);
+            return;
+        }
+
+        try {
+            // Smart Delta: Fetch only missing hubs (respects 5-hub limit)
+            const hubTimes = await this.fetchBatchTransitTimes(lat, lng, cacheKey, targetMic);
+
+            // Merge into cache
+            Object.assign(STATE.transitCache[cacheKey], hubTimes);
+            STATE.transitTimes = STATE.transitCache[cacheKey];
+
+            this.applyTransitTimesToMics();
+        } catch (error) {
+            console.error('Transit calculation failed:', error);
+            toastService.show('Using estimated times', 'warning');
+            STATE.transitTimes = this.getAllFallbackTimes(lat, lng);
+            this.applyTransitTimesToMics();
+        }
+
+        STATE.isCalculatingTransit = false;
+        render(STATE.currentMode);
+    },
+
+    // Called when user clicks "Show more neighborhoods"
+    async expandNeighborhoods() {
+        if (!STATE.userOrigin) return;
+
+        STATE.transitExpanded = true;
+        STATE.isCalculatingTransit = true;
+        this.showLoadingState();
+
+        const { lat, lng, name } = STATE.userOrigin;
+
+        // Find existing cache key for this origin
+        let cacheKey = null;
+        const CACHE_REUSE_THRESHOLD = 0.1;
+        for (const key in STATE.transitCache) {
+            const [cachedLat, cachedLng] = key.split(',').map(Number);
+            if (calculateDistance(lat, lng, cachedLat, cachedLng) < CACHE_REUSE_THRESHOLD) {
+                cacheKey = key;
+                break;
+            }
+        }
+        if (!cacheKey) cacheKey = `${lat},${lng}`;
+
+        try {
+            // Fetch remaining hubs (delta will skip already-cached ones)
+            const hubTimes = await this.fetchBatchTransitTimes(lat, lng, cacheKey, null);
+
+            Object.assign(STATE.transitCache[cacheKey], hubTimes);
+            STATE.transitTimes = STATE.transitCache[cacheKey];
+
+            this.applyTransitTimesToMics();
+        } catch (error) {
+            console.error('Expand failed:', error);
+            toastService.show('Could not load more neighborhoods', 'error');
+        }
+
+        STATE.isCalculatingTransit = false;
+        render(STATE.currentMode);
+    },
+
+    async fetchBatchTransitTimes(originLat, originLng, cacheKey, targetMic = null) {
+        if (!TRANSIT_DATA) return {};
+
+        // 1. Get visible mics + target mic (Ghost Venue fix)
+        const visibleMics = STATE.mics.filter(mic => isMicVisible(mic));
+        if (targetMic && !visibleMics.find(m => m.id === targetMic.id)) {
+            visibleMics.push(targetMic);
+        }
+
+        // 2. Get unique cluster IDs needed for visible mics
+        const neededClusterIds = new Set();
+        visibleMics.forEach(mic => {
+            const clusterId = resolveClusterId(mic);
+            if (clusterId !== null) neededClusterIds.add(clusterId);
+        });
+
+        // 3. SMART DELTA: Filter out already-cached clusters
+        const currentCache = STATE.transitCache[cacheKey] || {};
+        const clustersToFetch = [...neededClusterIds].filter(clusterId => {
+            return currentCache[clusterId] === undefined;
+        });
+
+        // If everything is cached, return empty (cost: $0)
+        if (clustersToFetch.length === 0) {
+            console.log('All clusters cached - no API call needed');
+            return {};
+        }
+
+        // 4. Map cluster IDs to coordinates and calculate distances
+        let targets = clustersToFetch
+            .map(clusterId => {
+                const cluster = TRANSIT_DATA.clusters[clusterId];
+                if (!cluster) return null;
+                return {
+                    id: clusterId,
+                    name: cluster.name,
+                    lat: cluster.lat,
+                    lng: cluster.lng,
+                    dist: calculateDistance(originLat, originLng, cluster.lat, cluster.lng)
+                };
+            })
+            .filter(t => t !== null);
+
+        // 5. PATCH 2: Urgent Mic Priority
+        // Collect clusters containing urgent mics (<3 hrs) - these MUST be fetched
+        const now = new Date();
+        const urgentClusterIds = new Set();
+        visibleMics.forEach(mic => {
+            if (mic.start && (mic.start - now) / 36e5 <= 3) {
+                const clusterId = resolveClusterId(mic);
+                if (clusterId !== null) urgentClusterIds.add(clusterId);
+            }
+        });
+
+        // Separate urgent vs non-urgent targets
+        const urgentTargets = targets.filter(t => urgentClusterIds.has(t.id));
+        const nonUrgentTargets = targets.filter(t => !urgentClusterIds.has(t.id));
+
+        // Sort non-urgent by distance
+        nonUrgentTargets.sort((a, b) => a.dist - b.dist);
+
+        // 6. APPLY CLUSTER LIMIT (5 default, 10 if expanded)
+        const clusterLimit = STATE.transitExpanded ? this.EXPANDED_HUB_LIMIT : this.INITIAL_HUB_LIMIT;
+
+        // 7. Combine: urgent first, then fill with closest non-urgent
+        let finalTargets = [...urgentTargets, ...nonUrgentTargets].slice(0, clusterLimit);
+
+        // 8. For venue search: ALWAYS include target venue's cluster
+        if (targetMic) {
+            const targetClusterId = resolveClusterId(targetMic);
+            const targetInList = finalTargets.some(t => t.id === targetClusterId);
+            if (!targetInList && targetClusterId !== null) {
+                const targetCluster = TRANSIT_DATA.clusters[targetClusterId];
+                if (targetCluster) {
+                    finalTargets = [...finalTargets.slice(0, clusterLimit - 1), {
+                        id: targetClusterId,
+                        name: targetCluster.name,
+                        lat: targetCluster.lat,
+                        lng: targetCluster.lng,
+                        dist: calculateDistance(originLat, originLng, targetCluster.lat, targetCluster.lng)
+                    }];
+                }
+            }
+        }
+
+        console.log(`Fetching ${finalTargets.length} clusters (${STATE.transitExpanded ? 'expanded' : 'initial'} query)`);
+
+        // If no targets after filtering, return empty
+        if (finalTargets.length === 0) {
+            return {};
+        }
+
+        // 10. API call
+        const res = await fetch('/api/proxy/transit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                originLat,
+                originLng,
+                destinations: finalTargets.map(t => ({ name: t.name, lat: t.lat, lng: t.lng }))
+            })
+        });
+
+        if (!res.ok) throw new Error(`Transit proxy error: ${res.status}`);
+
+        const data = await res.json();
+        const clusterTimes = {};
+
+        if (data.times) {
+            data.times.forEach((t, i) => {
+                // Cache by cluster ID, not neighborhood name
+                clusterTimes[finalTargets[i].id] = t.seconds;
+            });
+        }
+
+        return clusterTimes;
+    },
+
+    applyTransitTimesToMics() {
+        const now = new Date();
+        const userWalkMiles = WALK_PREFERENCES[STATE.walkPreference] || 0.75;
+        const userClusterId = getUserClusterId(STATE.userOrigin.lat, STATE.userOrigin.lng);
+
+        STATE.mics.forEach(mic => {
+            const directDist = calculateDistance(
+                STATE.userOrigin.lat, STATE.userOrigin.lng,
+                mic.lat, mic.lng
+            );
+
+            // ============================================================
+            // DYNAMIC WALK THRESHOLD (BOROUGH-BASED RIVER PROTECTION)
+            // ============================================================
+            const micClusterId = resolveClusterId(mic);
+            const isSameCluster = micClusterId === userClusterId;
+
+            // Get boroughs for origin and destination clusters
+            const userCluster = TRANSIT_DATA?.clusters[userClusterId];
+            const micCluster = TRANSIT_DATA?.clusters[micClusterId];
+            const sameBorough = userCluster?.borough === micCluster?.borough;
+
+            let walkThreshold;
+            if (STATE.walkPreference === 'none') {
+                walkThreshold = 0; // Force transit for everything
+            } else if (!sameBorough) {
+                walkThreshold = 0; // Different boroughs = force transit (river protection)
+            } else {
+                // Same borough: use user preference, with bonus for same cluster
+                walkThreshold = isSameCluster ? userWalkMiles : userWalkMiles * 0.5;
+            }
+
+            if (directDist < walkThreshold) {
+                mic.transitMins = Math.round(directDist * WALK_MINS_PER_MILE);
+                mic.transitSeconds = mic.transitMins * 60;
+                mic.transitType = 'walk';
+                return;
+            }
+
+            // ============================================================
+            // 3-HOUR THRESHOLD: LIVE API vs MATRIX
+            // ============================================================
+            const timeUntilStart = mic.start ? (mic.start - now) / (1000 * 60 * 60) : 999;
+
+            if (timeUntilStart <= 3 || STATE.transitExpanded) {
+                // URGENT (<3 hrs) or user clicked "Show More" -> Use Live API data
+                this.applyLiveApiTime(mic);
+            } else {
+                // PLANNING (>3 hrs) -> Use Matrix (FREE)
+                this.applyMatrixTime(mic);
+            }
+        });
+    },
+
+    // Blue badge - Live API data
+    applyLiveApiTime(mic) {
+        const clusterId = resolveClusterId(mic);
+
+        // Look up by cluster ID (not neighborhood name)
+        let clusterTime = clusterId !== null ? STATE.transitTimes[clusterId] : undefined;
+
+        if (clusterTime !== undefined && clusterTime !== null) {
+            if (clusterId !== null && TRANSIT_DATA) {
+                const cluster = TRANSIT_DATA.clusters[clusterId];
+                const walkDistMiles = calculateDistance(cluster.lat, cluster.lng, mic.lat, mic.lng);
+                const walkSeconds = Math.ceil(walkDistMiles * WALK_MINS_PER_MILE * 60);
+                mic.transitSeconds = clusterTime + walkSeconds;
+                mic.transitMins = Math.round(mic.transitSeconds / 60);
+            } else {
+                mic.transitSeconds = clusterTime;
+                mic.transitMins = Math.round(clusterTime / 60);
+            }
+            mic.transitType = 'transit';  // Blue badge
+        } else {
+            // No live data yet, fall back to matrix
+            this.applyMatrixTime(mic);
+        }
+    },
+
+    // Gray badge - Matrix lookup (FREE)
+    applyMatrixTime(mic) {
+        if (!TRANSIT_DATA) {
+            // No matrix loaded, use distance fallback
+            const dist = calculateDistance(STATE.userOrigin.lat, STATE.userOrigin.lng, mic.lat, mic.lng);
+            mic.transitMins = Math.round(dist * WALK_MINS_PER_MILE);
+            mic.transitSeconds = mic.transitMins * 60;
+            mic.transitType = 'estimate';
+            return;
+        }
+
+        // 1. Resolve destination cluster
+        const destClusterId = resolveClusterId(mic);
+        if (destClusterId === null) {
+            // No cluster found, use distance fallback
+            const dist = calculateDistance(STATE.userOrigin.lat, STATE.userOrigin.lng, mic.lat, mic.lng);
+            mic.transitMins = Math.round(dist * WALK_MINS_PER_MILE);
+            mic.transitSeconds = mic.transitMins * 60;
+            mic.transitType = 'estimate';
+            return;
+        }
+
+        // 2. Resolve user's origin cluster
+        const originClusterId = getUserClusterId(STATE.userOrigin.lat, STATE.userOrigin.lng);
+        const originCluster = TRANSIT_DATA.clusters[originClusterId];
+        const destCluster = TRANSIT_DATA.clusters[destClusterId];
+
+        // 3. Bridge calculation: Walk A + Subway + Walk B
+        const userToOriginCluster = calculateDistance(
+            STATE.userOrigin.lat, STATE.userOrigin.lng,
+            originCluster.lat, originCluster.lng
+        );
+        const walkToOrigin = Math.ceil(userToOriginCluster * WALK_MINS_PER_MILE);
+
+        // Matrix lookup (with distance-based fallback)
+        let rideTime = TRANSIT_DATA.matrix[originClusterId]?.[destClusterId];
+        if (rideTime === undefined || rideTime === null) {
+            const clusterDist = calculateDistance(
+                originCluster.lat, originCluster.lng,
+                destCluster.lat, destCluster.lng
+            );
+            rideTime = Math.round(clusterDist * SUBWAY_MINS_PER_MILE);
+        }
+
+        // PATCH 3: Night Owl Penalty (+15 min for late night mics)
+        const hour = mic.start ? mic.start.getHours() : 0;
+        if (rideTime && (hour >= 23 || hour < 5)) {
+            rideTime += 15; // Late night subway frequency buffer
+        }
+
+        const destClusterToVenue = calculateDistance(
+            destCluster.lat, destCluster.lng,
+            mic.lat, mic.lng
+        );
+        const walkToDest = Math.ceil(destClusterToVenue * WALK_MINS_PER_MILE);
+
+        mic.transitMins = walkToOrigin + rideTime + walkToDest;
+        mic.transitSeconds = mic.transitMins * 60;
+        mic.transitType = 'estimate';  // Gray badge with ~
+    },
+
+    addOriginMarker(lat, lng, name) {
+        if (STATE.searchMarker) {
+            map.removeLayer(STATE.searchMarker);
+        }
+
+        const originIcon = L.divIcon({
+            className: 'origin-marker',
+            html: `
+                <div class="origin-pin">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+                        <path d="M12 2L2 22l10-2 10 2L12 2z"/>
+                    </svg>
+                </div>
+            `,
+            iconSize: [36, 36],
+            iconAnchor: [18, 18]
+        });
+
+        STATE.searchMarker = L.marker([lat, lng], { icon: originIcon, zIndexOffset: 2000 })
+            .addTo(map)
+            .bindTooltip(name, { direction: 'top', offset: [0, -20], className: 'origin-tooltip' });
+    },
+
+    clearTransitMode() {
+        STATE.userOrigin = null;
+        STATE.isTransitMode = false;
+        STATE.transitTimes = {};
+
+        if (STATE.searchMarker) {
+            map.removeLayer(STATE.searchMarker);
+            STATE.searchMarker = null;
+        }
+
+        STATE.mics.forEach(mic => {
+            delete mic.transitSeconds;
+            delete mic.transitMins;
+            delete mic.transitType;
+        });
+
+        document.getElementById('search-input').value = '';
+        render(STATE.currentMode);
+    },
+
+    showLoadingState() {
+        const container = document.getElementById('list-content');
+        if (container) {
+            container.innerHTML = `
+                <div class="transit-loading">
+                    <div class="loading-spinner"></div>
+                    <span>Calculating transit times...</span>
+                </div>
+            `;
+        }
+    },
+
+    getAllFallbackTimes(originLat, originLng) {
+        if (!TRANSIT_DATA) return {};
+
+        const clusterTimes = {};
+        TRANSIT_DATA.clusters.forEach(cluster => {
+            const distMiles = calculateDistance(originLat, originLng, cluster.lat, cluster.lng);
+            // Rough estimate: 4 min per mile by subway
+            clusterTimes[cluster.id] = Math.round(distMiles * SUBWAY_MINS_PER_MILE * 60);
+        });
+        return clusterTimes;
+    }
+};
+
+
+================================================================================
+PHASE 6: SETTINGS MODAL (WALK PREFERENCE)
+================================================================================
+
+File: map_designs/newest_map/js/settings.js (NEW FILE)
+
+/* =================================================================
+   SETTINGS SERVICE
+   User preferences stored in localStorage
+   ================================================================= */
+
+const settingsService = {
+    modal: null,
+
+    init() {
+        this.createModal();
+    },
+
+    createModal() {
+        this.modal = document.createElement('div');
+        this.modal.className = 'settings-modal-overlay';
+        this.modal.id = 'settings-modal';
+        this.modal.innerHTML = `
+            <div class="settings-modal">
+                <div class="settings-header">
+                    <h2>Settings</h2>
+                    <button class="settings-close" onclick="settingsService.close()">&times;</button>
+                </div>
+                <div class="settings-content">
+                    <div class="settings-section">
+                        <h3>Walking Threshold</h3>
+                        <p class="settings-description">How far are you willing to walk?</p>
+                        <div class="settings-options" id="walk-options">
+                            <label class="settings-option">
+                                <input type="radio" name="walkPref" value="10min">
+                                <span class="option-label">10 min</span>
+                                <span class="option-detail">~0.5 miles</span>
+                            </label>
+                            <label class="settings-option">
+                                <input type="radio" name="walkPref" value="15min">
+                                <span class="option-label">15 min</span>
+                                <span class="option-detail">~0.75 miles</span>
+                            </label>
+                            <label class="settings-option">
+                                <input type="radio" name="walkPref" value="20min">
+                                <span class="option-label">20 min</span>
+                                <span class="option-detail">~1.0 miles</span>
+                            </label>
+                            <label class="settings-option">
+                                <input type="radio" name="walkPref" value="none">
+                                <span class="option-label">Always transit</span>
+                                <span class="option-detail">Show all times</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(this.modal);
+
+        // Set initial value
+        const currentPref = STATE.walkPreference || '15min';
+        const radio = this.modal.querySelector(`input[value="${currentPref}"]`);
+        if (radio) radio.checked = true;
+
+        // Listen for changes
+        this.modal.querySelectorAll('input[name="walkPref"]').forEach(input => {
+            input.addEventListener('change', (e) => {
+                STATE.walkPreference = e.target.value;
+                localStorage.setItem('walkPref', e.target.value);
+
+                // Recalculate if in transit mode
+                if (STATE.isTransitMode && STATE.userOrigin) {
+                    transitService.applyTransitTimesToMics();
+                    render(STATE.currentMode);
+                }
+            });
+        });
+
+        // Close on overlay click
+        this.modal.addEventListener('click', (e) => {
+            if (e.target === this.modal) this.close();
+        });
+    },
+
+    open() {
+        this.modal.classList.add('active');
+    },
+
+    close() {
+        this.modal.classList.remove('active');
+    }
+};
+
+
+================================================================================
+PHASE 7: RENDER UPDATES (TRANSIT SORT + SHOW MORE BUTTON)
+================================================================================
+
+File: map_designs/newest_map/js/render.js
+Modify the render function to sort by transit time and add "Show more" button:
+
+FIND the line:
+    // Sort by start time before rendering
+    filtered.sort((a, b) => (a.start || 0) - (b.start || 0));
+
+REPLACE WITH:
+    // Sort: Transit time (if in transit mode) OR start time
+    if (STATE.isTransitMode && STATE.userOrigin) {
+        // Sort by transit time - closest first, then by start time for ties
+        filtered.sort((a, b) =>
+            (a.transitMins || 999) - (b.transitMins || 999) ||
+            (a.start || 0) - (b.start || 0)
+        );
+    } else {
+        // Default: Sort by start time
+        filtered.sort((a, b) => (a.start || 0) - (b.start || 0));
+    }
+
+
+FIND the card HTML section with tags (around line 180):
+    <span class="tag-text px-1 py-0.5 border border-white/20 rounded transition-colors">${mic.type}</span>
+
+ADD AFTER:
+    ${mic.transitMins !== undefined ? `
+        <span class="transit-badge transit-${mic.transitType || 'transit'}">
+            ${mic.transitType === 'walk' ? '🚶' : '🚇'} ${mic.transitType === 'estimate' ? '~' : ''}${mic.transitMins}m
+        </span>
+    ` : ''}
+
+
+ADD COLLAPSE LOGIC for distant venues (before rendering cards):
+
+// In transit mode: split into visible and hidden
+// CRITICAL: Always show at least top 5 closest, even if all are gray badges
+// Ghost Venue Fix: searched venue is ALWAYS visible, even if distant
+const searchQuery = document.getElementById('search-input')?.value?.toLowerCase() || '';
+
+let visibleMics = filtered;
+let hiddenMics = [];
+
+if (STATE.isTransitMode && !STATE.transitExpanded) {
+    visibleMics = [];
+    hiddenMics = [];
+
+    // filtered is already sorted by transitMins at this point
+    filtered.forEach((mic, index) => {
+        const isSearchTarget = mic.title.toLowerCase().includes(searchQuery) && searchQuery.length > 2;
+        const isTop5 = index < 5;  // ALWAYS show top 5 closest
+        const hasBlueOrGreenBadge = mic.transitType === 'transit' || mic.transitType === 'walk';
+
+        // Show if: search target OR top 5 OR has live data
+        if (isSearchTarget || isTop5 || hasBlueOrGreenBadge) {
+            visibleMics.push(mic);
+        } else {
+            hiddenMics.push(mic);
+        }
+    });
+}
+
+// Render visibleMics cards here...
+
+// After the card loop, add collapse row if hidden venues exist
+if (STATE.isTransitMode && !STATE.transitExpanded && hiddenMics.length > 0) {
+    html += `
+        <div class="show-more-container">
+            <button class="show-more-btn" onclick="transitService.expandNeighborhoods()">
+                + ${hiddenMics.length} more venues further away
+            </button>
+        </div>
+    `;
+}
+
+
+================================================================================
+PHASE 8: HTML UPDATES
+================================================================================
+
+File: map_designs/newest_map/index.html
+
+ADD settings gear button (around line 97, after calendar button):
+                    <!-- Settings Button -->
+                    <button class="settings-icon-btn" id="btn-settings" onclick="settingsService.open()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                        </svg>
+                    </button>
+
+
+UPDATE script order (around line 155):
+    <script src="js/config.js"></script>
+    <script src="js/state.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/map.js"></script>
+    <script src="js/modal.js"></script>
+    <script src="js/drawer.js"></script>
+    <script src="js/filters.js"></script>
+    <script src="js/calendar.js"></script>
+    <script src="js/toast.js"></script>      <!-- NEW -->
+    <script src="js/search.js"></script>     <!-- NEW -->
+    <script src="js/transit.js"></script>    <!-- NEW -->
+    <script src="js/settings.js"></script>   <!-- NEW -->
+    <script src="js/render.js"></script>
+    <script src="js/app.js"></script>
+
+
+UPDATE clear button onclick (around line 47):
+    <button id="search-clear-btn" class="search-clear-btn" onclick="searchService.clear()" aria-label="Clear search">
+
+
+================================================================================
+PHASE 9: CSS STYLES
+================================================================================
+
+File: map_designs/newest_map/css/controls.css
+Add search dropdown and settings styles:
+
+/* Search Dropdown */
+.search-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    background: rgba(15, 15, 15, 0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    max-height: 60vh;
+    overflow-y: auto;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    transition: all 0.2s ease;
+    z-index: 1001;
+}
+
+.search-dropdown.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.dropdown-section {
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.dropdown-section:last-child { border-bottom: none; }
+
+.section-header {
+    padding: 8px 16px 4px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: background 0.1s;
+}
+
+.dropdown-item:hover,
+.dropdown-item.highlighted { background: rgba(255, 255, 255, 0.05); }
+
+.item-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    flex-shrink: 0;
+}
+
+.location-icon { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
+.venue-icon { background: rgba(244, 63, 94, 0.2); color: var(--rose); }
+.pin-icon { background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.6); }
+
+.item-text { display: flex; flex-direction: column; min-width: 0; }
+.item-name { font-size: 14px; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.item-sub { font-size: 12px; color: rgba(255, 255, 255, 0.4); margin-top: 2px; }
+.dropdown-empty { padding: 24px; text-align: center; color: rgba(255, 255, 255, 0.4); font-size: 13px; }
+
+/* Settings Button */
+.settings-icon-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.settings-icon-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+/* Settings Modal */
+.settings-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s;
+}
+
+.settings-modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.settings-modal {
+    background: #0f0f0f;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    width: 90%;
+    max-width: 360px;
+    overflow: hidden;
+}
+
+.settings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.settings-header h2 {
+    font-size: 18px;
+    font-weight: 600;
+    color: white;
+    margin: 0;
+}
+
+.settings-close {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.settings-content {
+    padding: 20px;
+}
+
+.settings-section h3 {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255, 255, 255, 0.5);
+    margin: 0 0 8px 0;
+}
+
+.settings-description {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0 0 16px 0;
+}
+
+.settings-options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.settings-option {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.settings-option:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.settings-option input {
+    margin-right: 12px;
+    accent-color: var(--rose);
+}
+
+.settings-option .option-label {
+    font-size: 14px;
+    color: white;
+    flex: 1;
+}
+
+.settings-option .option-detail {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+/* iOS Zoom Prevention */
+#search-input {
+    font-size: 16px; /* Prevents iOS force-zoom on focus */
+}
+
+/* Mobile Keyboard Fix */
+@media (max-width: 600px) {
+    .search-dropdown {
+        position: fixed;
+        top: 60px;
+        left: 8px;
+        right: 8px;
+        max-height: calc(100vh - 120px);
+        max-height: calc(100dvh - 120px);
+        border-radius: 12px;
+    }
+}
+
+
+File: map_designs/newest_map/css/stream.css
+Add transit badge styles:
+
+/* Transit Badges */
+.transit-badge {
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    margin-left: 4px;
+}
+
+.transit-transit {
+    background: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+}
+
+.transit-walk {
+    background: rgba(34, 197, 94, 0.2);
+    color: #4ade80;
+}
+
+.transit-estimate {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* Show More Neighborhoods Button */
+.show-more-container {
+    padding: 16px;
+    display: flex;
+    justify-content: center;
+}
+
+.show-more-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 12px 24px;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.show-more-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+/* Transit Loading */
+.transit-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 13px;
+}
+
+.loading-spinner {
+    width: 24px;
+    height: 24px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-top-color: var(--rose);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 12px;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+
+File: map_designs/newest_map/css/map.css
+Add origin marker styles:
+
+/* Origin Marker */
+.origin-marker {
+    background: transparent !important;
+    border: none !important;
+}
+
+.origin-pin {
+    width: 36px;
+    height: 36px;
+    background: #3b82f6;
+    border-radius: 50%;
+    border: 3px solid white;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.origin-tooltip {
+    background: rgba(59, 130, 246, 0.9) !important;
+    border: none !important;
+    color: white !important;
+    font-weight: 600;
+}
+
+
+File: map_designs/newest_map/css/base.css
+Add toast styles:
+
+/* Toast Notifications */
+.toast-container {
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    pointer-events: none;
+}
+
+.toast {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: rgba(15, 15, 15, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    font-size: 13px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.3s ease;
+    pointer-events: auto;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.toast-icon { display: flex; align-items: center; }
+.toast-success .toast-icon { color: #22c55e; }
+.toast-error .toast-icon { color: #ef4444; }
+.toast-warning .toast-icon { color: #f59e0b; }
+.toast-info .toast-icon { color: #3b82f6; }
+
+
+================================================================================
+PHASE 10: TOAST SERVICE
+================================================================================
+
+File: map_designs/newest_map/js/toast.js (NEW FILE)
+
+const toastService = {
+    container: null,
+
+    init() {
+        this.container = document.createElement('div');
+        this.container.id = 'toast-container';
+        this.container.className = 'toast-container';
+        document.body.appendChild(this.container);
+    },
+
+    show(message, type = 'info', duration = 3000) {
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+
+        const icons = {
+            success: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>',
+            error: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+            warning: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+            info: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>'
+        };
+
+        toast.innerHTML = `
+            <span class="toast-icon">${icons[type] || icons.info}</span>
+            <span class="toast-message">${message}</span>
+        `;
+
+        this.container.appendChild(toast);
+        requestAnimationFrame(() => toast.classList.add('show'));
+
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, duration);
+    }
+};
+
+
+================================================================================
+PHASE 11: APP.JS INITIALIZATION
+================================================================================
+
+File: map_designs/newest_map/js/app.js
+Add service initialization:
+
+// In the init() or DOMContentLoaded handler, add:
+toastService.init();
+searchService.init();
+settingsService.init();
+
+
+================================================================================
+PHASE 12: BACKEND API PROXY
+================================================================================
+
+File: api/routes/proxy.js (NEW FILE)
+
+const express = require('express');
+const router = express.Router();
+const rateLimit = require('express-rate-limit');
+
+// PATCH 1: Removed VALID_HUBS array - now using coordinate bounding box only
+// The micro-cluster system uses cluster IDs, not neighborhood names
+
+const apiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    message: { error: 'Too many requests' }
+});
+
+// Mapbox Geocoding
+router.get('/geocode', apiLimiter, async (req, res) => {
+    const { query } = req.query;
+    if (!query || query.length < 2) {
+        return res.status(400).json({ error: 'Query too short' });
+    }
+
+    const sanitized = query.replace(/[<>\"\']/g, '').substring(0, 100);
+
+    try {
+        const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(sanitized)}.json?access_token=${process.env.MAPBOX_SECRET_TOKEN}&types=poi,address,neighborhood&proximity=-74.006,40.7128&bbox=-74.3,40.45,-73.6,40.95&limit=4`;
+
+        const response = await fetch(url);
+        const data = await response.json();
+
+        const results = data.features?.map(f => ({
+            name: f.text,
+            address: f.place_name.replace(f.text + ', ', ''),
+            lat: f.center[1],
+            lng: f.center[0]
+        })) || [];
+
+        res.json({ results });
+    } catch (error) {
+        console.error('Geocode error:', error);
+        res.status(500).json({ error: 'Geocoding failed' });
+    }
+});
+
+// Google Distance Matrix
+router.post('/transit', apiLimiter, async (req, res) => {
+    const { originLat, originLng, destinations } = req.body;
+
+    if (!originLat || !originLng || !destinations?.length) {
+        return res.status(400).json({ error: 'Missing parameters' });
+    }
+
+    if (destinations.length > 10) {
+        return res.status(400).json({ error: 'Max 10 destinations' });
+    }
+
+    // PATCH 1: Coordinate bounding box validation (replaces VALID_HUBS check)
+    const isValidCoord = (lat, lng) =>
+        lat >= 40.45 && lat <= 40.95 && lng >= -74.3 && lng <= -73.6;
+
+    if (!isValidCoord(originLat, originLng)) {
+        return res.status(400).json({ error: 'Origin outside NYC' });
+    }
+
+    // Validate ALL destination coordinates
+    const allDestsValid = destinations.every(d => isValidCoord(d.lat, d.lng));
+    if (!allDestsValid) {
+        return res.status(400).json({ error: 'Destination outside NYC' });
+    }
+
+    try {
+        const destinationsStr = destinations.map(d => `${d.lat},${d.lng}`).join('|');
+
+        const params = new URLSearchParams({
+            origins: `${originLat},${originLng}`,
+            destinations: destinationsStr,
+            mode: 'transit',
+            transit_mode: 'subway|bus',
+            departure_time: 'now',
+            key: process.env.GOOGLE_MAPS_SECRET_KEY
+        });
+
+        const url = `https://maps.googleapis.com/maps/api/distancematrix/json?${params}`;
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (data.status !== 'OK') {
+            throw new Error(`Google API: ${data.status}`);
+        }
+
+        const times = data.rows[0].elements.map((el, i) => ({
+            neighborhood: destinations[i].name,
+            seconds: el.status === 'OK' ? el.duration.value : null,
+            text: el.status === 'OK' ? el.duration.text : 'N/A'
+        }));
+
+        res.json({ times });
+    } catch (error) {
+        console.error('Transit error:', error);
+        res.status(500).json({ error: 'Transit calculation failed' });
+    }
+});
+
+module.exports = router;
+
+
+File: api/server.js (ADD)
+
+const proxyRoutes = require('./routes/proxy');
+app.use('/api/proxy', proxyRoutes);
+
+// Cache-Control for transit_data.json (cache for 24 hours)
+// NOTE: Adjust path based on your express.static() configuration
+// If serving newest_map/ as root: '/js/transit_data.json'
+// If serving full path: '/map_designs/newest_map/js/transit_data.json'
+app.use('/js/transit_data.json', (req, res, next) => {
+    res.set('Cache-Control', 'public, max-age=86400');
+    next();
+});
+
+
+================================================================================
+PHASE 13: CLUSTER GENERATOR SCRIPT
+================================================================================
+
+File: scripts/generate_transit_data.js (NEW FILE)
+
+/* =================================================================
+   TRANSIT DATA GENERATOR
+
+   Creates the micro-cluster JSON file with:
+   1. venue_map: mic_id -> cluster_id
+   2. slug_map: slug -> cluster_id (fallback)
+   3. clusters: array with id, lat, lng, borough, name, memberIds
+   4. matrix: cluster-to-cluster transit times
+
+   USAGE:
+   DRY_RUN=true node scripts/generate_transit_data.js   # Preview only
+   node scripts/generate_transit_data.js                 # Generate + API calls
+
+   COST: ~$10 for 45x45 matrix (~2,025 elements)
+   ================================================================= */
+
+require('dotenv').config();
+const fs = require('fs');
+const path = require('path');
+
+const DRY_RUN = process.env.DRY_RUN === 'true';
+const CLUSTER_RADIUS = 0.15; // miles
+const OUTPUT_PATH = path.join(__dirname, '../map_designs/newest_map/js/transit_data.json');
+
+// Load mics from your database/JSON
+const micsPath = path.join(__dirname, '../api/mics.json');
+const mics = JSON.parse(fs.readFileSync(micsPath, 'utf-8'));
+
+// Borough lookup by neighborhood (expand as needed)
+const BOROUGH_MAP = {
+    'Greenwich Village': 'Manhattan',
+    'East Village': 'Manhattan',
+    'West Village': 'Manhattan',
+    'Chelsea': 'Manhattan',
+    'Midtown': 'Manhattan',
+    'Hell\'s Kitchen': 'Manhattan',
+    'Upper West Side': 'Manhattan',
+    'Upper East Side': 'Manhattan',
+    'Harlem': 'Manhattan',
+    'Lower East Side': 'Manhattan',
+    'SoHo': 'Manhattan',
+    'Tribeca': 'Manhattan',
+    'Williamsburg': 'Brooklyn',
+    'Bushwick': 'Brooklyn',
+    'Park Slope': 'Brooklyn',
+    'DUMBO': 'Brooklyn',
+    'Brooklyn Heights': 'Brooklyn',
+    'Crown Heights': 'Brooklyn',
+    'Greenpoint': 'Brooklyn',
+    'Astoria': 'Queens',
+    'Long Island City': 'Queens',
+    'LIC': 'Queens',
+    'Jackson Heights': 'Queens',
+    'Flushing': 'Queens',
+    // Bronx
+    'South Bronx': 'Bronx',
+    'Mott Haven': 'Bronx',
+    'Fordham': 'Bronx',
+    'Riverdale': 'Bronx',
+    'Kingsbridge': 'Bronx',
+    // Staten Island
+    'St. George': 'Staten Island',
+    'Stapleton': 'Staten Island',
+    'Tompkinsville': 'Staten Island',
+    // Add more as needed...
+};
+
+function calculateDistance(lat1, lng1, lat2, lng2) {
+    const R = 3959; // Earth radius in miles
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLng/2) * Math.sin(dLng/2);
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function createSlug(str) {
+    return str.toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+function getBoroughForMic(mic) {
+    const hood = mic.neighborhood || mic.hood;
+    return BOROUGH_MAP[hood] || 'Manhattan'; // Default to Manhattan
+}
+
+// ============================================================
+// STEP 1: Build clusters using density-first algorithm
+// ============================================================
+function buildClusters(venues) {
+    const clusters = [];
+    const assigned = new Set();
+
+    // Sort venues by density (venues with most neighbors first)
+    const venuesByDensity = venues.map(v => ({
+        ...v,
+        neighborCount: venues.filter(other =>
+            other.id !== v.id &&
+            calculateDistance(v.lat, v.lng, other.lat, other.lng) <= CLUSTER_RADIUS
+        ).length
+    })).sort((a, b) => b.neighborCount - a.neighborCount);
+
+    venuesByDensity.forEach(venue => {
+        if (assigned.has(venue.id)) return;
+
+        // Find all unassigned venues within radius
+        const members = venues.filter(v =>
+            !assigned.has(v.id) &&
+            calculateDistance(venue.lat, venue.lng, v.lat, v.lng) <= CLUSTER_RADIUS
+        );
+
+        if (members.length > 0) {
+            // Calculate centroid
+            const centroid = {
+                lat: members.reduce((sum, m) => sum + m.lat, 0) / members.length,
+                lng: members.reduce((sum, m) => sum + m.lng, 0) / members.length
+            };
+
+            const clusterId = clusters.length;
+            const borough = getBoroughForMic(members[0]);
+
+            clusters.push({
+                id: clusterId,
+                lat: centroid.lat,
+                lng: centroid.lng,
+                borough: borough,
+                name: `Cluster ${clusterId} (${members[0].title})`,
+                memberIds: members.map(m => m.id)
+            });
+
+            members.forEach(m => assigned.add(m.id));
+        }
+    });
+
+    return clusters;
+}
+
+// ============================================================
+// STEP 2: Build venue_map and slug_map
+// ============================================================
+function buildVenueMaps(clusters) {
+    const venue_map = {};
+    const slug_map = {};
+
+    clusters.forEach(cluster => {
+        cluster.memberIds.forEach(micId => {
+            venue_map[micId] = cluster.id;
+
+            // Find the mic to get its title for slug
+            const mic = mics.find(m => m.id === micId);
+            if (mic) {
+                const slug = createSlug(mic.title);
+                slug_map[slug] = cluster.id;
+            }
+        });
+    });
+
+    return { venue_map, slug_map };
+}
+
+// ============================================================
+// STEP 3: Fetch transit times from Google Distance Matrix
+// ============================================================
+async function fetchTransitMatrix(clusters) {
+    if (DRY_RUN) {
+        console.log(`[DRY RUN] Would fetch ${clusters.length}x${clusters.length} = ${clusters.length * clusters.length} elements`);
+        console.log(`[DRY RUN] Estimated cost: $${((clusters.length * clusters.length) / 1000 * 5).toFixed(2)}`);
+        return null;
+    }
+
+    const matrix = {};
+    const BATCH_SIZE = 10; // Google allows max 25 destinations per request
+
+    for (let i = 0; i < clusters.length; i++) {
+        const origin = clusters[i];
+        matrix[origin.id] = {};
+
+        // Batch destinations
+        for (let j = 0; j < clusters.length; j += BATCH_SIZE) {
+            const batch = clusters.slice(j, j + BATCH_SIZE);
+            const destinations = batch.map(c => `${c.lat},${c.lng}`).join('|');
+
+            const url = new URL('https://maps.googleapis.com/maps/api/distancematrix/json');
+            url.searchParams.set('origins', `${origin.lat},${origin.lng}`);
+            url.searchParams.set('destinations', destinations);
+            url.searchParams.set('mode', 'transit');
+            url.searchParams.set('transit_mode', 'subway|bus');
+            url.searchParams.set('departure_time', getFridayEvening().toString());
+            url.searchParams.set('key', process.env.GOOGLE_MAPS_SECRET_KEY);
+
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (data.status !== 'OK') {
+                console.error(`API Error for cluster ${origin.id}:`, data.status);
+                continue;
+            }
+
+            data.rows[0].elements.forEach((el, idx) => {
+                const destCluster = batch[idx];
+                if (el.status === 'OK') {
+                    // Store as minutes (not seconds)
+                    matrix[origin.id][destCluster.id] = Math.round(el.duration.value / 60);
+                } else {
+                    // Fallback: estimate based on distance
+                    const dist = calculateDistance(origin.lat, origin.lng, destCluster.lat, destCluster.lng);
+                    matrix[origin.id][destCluster.id] = Math.round(dist * 4); // ~4 min per mile
+                }
+            });
+
+            // Rate limit: 1 request per 100ms
+            await new Promise(r => setTimeout(r, 100));
+        }
+
+        console.log(`Processed cluster ${i + 1}/${clusters.length}`);
+    }
+
+    return matrix;
+}
+
+function getFridayEvening() {
+    // Next Friday at 7pm EST
+    const now = new Date();
+    const dayOfWeek = now.getDay();
+    const daysUntilFriday = (5 - dayOfWeek + 7) % 7 || 7;
+    const friday = new Date(now);
+    friday.setDate(now.getDate() + daysUntilFriday);
+    friday.setHours(19, 0, 0, 0);
+    return Math.floor(friday.getTime() / 1000);
+}
+
+// ============================================================
+// MAIN
+// ============================================================
+async function main() {
+    console.log(`Processing ${mics.length} venues...`);
+
+    // Step 1: Build clusters
+    const clusters = buildClusters(mics);
+    console.log(`Created ${clusters.length} clusters`);
+
+    // Step 2: Build venue maps
+    const { venue_map, slug_map } = buildVenueMaps(clusters);
+    console.log(`Mapped ${Object.keys(venue_map).length} venues by ID`);
+    console.log(`Mapped ${Object.keys(slug_map).length} venues by slug`);
+
+    // Step 3: Fetch transit matrix
+    const matrix = await fetchTransitMatrix(clusters);
+
+    // Step 4: Write output
+    const output = {
+        generated_at: new Date().toISOString(),
+        venue_map,
+        slug_map,
+        clusters: clusters.map(c => ({
+            id: c.id,
+            lat: c.lat,
+            lng: c.lng,
+            borough: c.borough,
+            name: c.name,
+            memberIds: c.memberIds
+        })),
+        matrix: matrix || {}
+    };
+
+    if (DRY_RUN) {
+        console.log('\n[DRY RUN] Sample output:');
+        console.log(JSON.stringify(output, null, 2).slice(0, 2000) + '...');
+    } else {
+        fs.writeFileSync(OUTPUT_PATH, JSON.stringify(output, null, 2));
+        console.log(`\nWritten to ${OUTPUT_PATH}`);
+    }
+}
+
+main().catch(console.error);
+
+
+================================================================================
+FILES SUMMARY
+================================================================================
+
+NEW FILES (7):
+- scripts/generate_transit_data.js    (Cluster generator with dry-run mode)
+- map_designs/newest_map/js/transit_data.json  (Generated matrix, ~50KB)
+- map_designs/newest_map/js/search.js (~150 lines)
+- map_designs/newest_map/js/transit.js (~250 lines)
+- map_designs/newest_map/js/settings.js (~80 lines)
+- map_designs/newest_map/js/toast.js (~50 lines)
+- api/routes/proxy.js (~100 lines)
+
+MODIFIED FILES:
+- map_designs/newest_map/js/state.js (+10 lines)
+- map_designs/newest_map/js/utils.js (+60 lines - includes resolveClusterId, createSlug)
+- map_designs/newest_map/js/render.js (+15 lines)
+- map_designs/newest_map/js/app.js (+5 lines)
+- map_designs/newest_map/css/controls.css (+150 lines)
+- map_designs/newest_map/css/stream.css (+40 lines)
+- map_designs/newest_map/css/map.css (+20 lines)
+- map_designs/newest_map/css/base.css (+40 lines)
+- map_designs/newest_map/index.html (+15 lines)
+- api/server.js (+2 lines)
+
+TOTAL: ~950 lines new code
+
+
+================================================================================
+TESTING CHECKLIST
+================================================================================
+
+SEARCH:
+[ ] Type location -> 500ms debounce -> dropdown appears
+[ ] Select location -> auto-fires transit calculation (no button)
+[ ] "Use My Location" works when geolocation available
+[ ] Keyboard navigation (arrows, enter, escape)
+[ ] Clear button resets to default view
+
+TRANSIT (3-HOUR THRESHOLD + MICRO-CLUSTERS):
+[ ] Transit times appear as badges on cards
+[ ] List sorts by transit time (closest first)
+[ ] Blue badge = Live API data (mics < 3 hours out)
+[ ] Green badge = walking (within threshold)
+[ ] Gray badge with ~ = Matrix estimate (mics > 3 hours out)
+[ ] Console shows cluster IDs being resolved
+
+COLLAPSED VENUES:
+[ ] Distant venues are HIDDEN (not gray badges inline)
+[ ] Button shows "+ X more venues further away"
+[ ] Click expands list and fetches real times
+[ ] All expanded venues get blue badges
+[ ] Button disappears after expansion
+[ ] Console shows "Fetching X hubs (expanded query)"
+
+VENUE SEARCH:
+[ ] Search for venue in distant neighborhood (e.g., "QED Astoria" from Union Sq)
+[ ] Target venue gets BLUE badge even if in 6th+ closest neighborhood
+[ ] Other distant venues still show gray until "Show more" clicked
+
+MICRO-CLUSTER MATRIX:
+[ ] Run generator with DRY_RUN=true first
+[ ] Verify MacDougal venues are in same cluster
+[ ] Slug matching works ("The Grisly Pear" matches "grislypear")
+[ ] New venue snaps to nearest cluster dynamically
+[ ] Matrix lookup returns correct times between clusters
+
+WALK PREFERENCE:
+[ ] Settings gear opens modal
+[ ] Changing preference updates badges immediately
+[ ] Preference persists across sessions (localStorage)
+
+EDGE CASES:
+[ ] Ghost Venue: Search venue in distant cluster -> visible (not collapsed)
+[ ] River crossing: Manhattan to Brooklyn/Queens = force transit (borough check)
+[ ] Same cluster: Extended walk threshold applies
+[ ] Same borough, different cluster: Reduced walk threshold (0.5x user pref)
+[ ] Offline: Falls back to estimates with toast
+[ ] Geolocation denied: Shows "📍 Tap Map" button, cursor becomes crosshair
+[ ] Map click fallback: Tap anywhere on map -> sets origin -> calculates transit
+[ ] Comedy Day: At 12:30 AM Sunday, shows Saturday late-night mics (4AM cutoff)
+[ ] All Gray Badges: Top 5 always visible even if all mics are >3 hours out
+[ ] iOS Zoom: Search input has 16px font-size to prevent force-zoom
+
+CRITICAL PATCHES:
+[ ] PATCH 1: Backend accepts cluster coords (no VALID_HUBS rejection)
+[ ] PATCH 2: Urgent mic (30 min out) in distant cluster gets blue badge
+[ ] PATCH 3: Late night mic (1am) shows +15 min buffer on estimate
+[ ] PATCH 4: "Always Transit" preference bypasses walk threshold entirely
+[ ] PATCH 5: mic_id lookup (primary), slug lookup (fallback)
+[ ] PATCH 6: Borough-based river protection (replaces 0.4mi floor)
+[ ] PATCH 7: Distance-based cache (< 0.1mi reuses cache)
+[ ] PATCH 8: Secondary sort by start time for transit ties
+[ ] PATCH 9: Comedy Day logic (4AM cutoff, not midnight)
+[ ] PATCH 10: Top 5 always visible (prevents blank screen when all gray)
+[ ] PATCH 11: iOS 16px font-size (prevents force-zoom)
+[ ] PATCH 12: XSS fix (single quotes in location names), race condition guard,
+              calculateDistance in utils.js, Bronx/Staten Island in BOROUGH_MAP
+
+
+================================================================================
+SECURITY CHECKLIST
+================================================================================
+
+[ ] API keys in .env only (never in client code)
+[ ] Backend proxy validates all inputs
+[ ] NYC bounding box enforced
+[ ] Max 10 destinations enforced (even after expand)
+[ ] Rate limiting active (100/15min)
+[ ] Google Cloud quota set to 1,300 elements/day
+
+GOOGLE CLOUD CONSOLE SETUP (CRITICAL):
+[ ] Application Restrictions: Set to "IP addresses" (your server's IP)
+    - Do NOT use HTTP referrers (frontend is not calling Google directly)
+    - This prevents spoofed requests from draining your quota
+[ ] API Restrictions: Limit key to ONLY "Distance Matrix API"
+    - Do NOT allow Places, Geocoding, or Maps JS API on this key
+    - Create separate keys for any other Google services

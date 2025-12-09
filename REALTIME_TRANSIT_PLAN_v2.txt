@@ -1,0 +1,64 @@
+REAL-TIME MTA TRANSIT - v2 PLAN
+================================
+
+WHAT WE'RE BUILDING
+-------------------
+1. Service alerts banner ("L train suspended")
+2. Live arrivals on card expand ("L train: 3 min, 11 min")
+
+BACKEND (server.js)
+-------------------
+Two endpoints:
+
+GET /api/mta/alerts
+- Fetches: https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/camsys%2Fsubway-alerts
+- Decodes Protobuf via gtfs-realtime-bindings
+- Returns: [{ id, lines, text, type }]
+- Cache: 90 seconds
+
+GET /api/mta/arrivals/:line/:stopId
+- Fetches MTA realtime feed for that line (e.g., nyct%2Fgtfs-l for L train)
+- Matches stopId prefix (L08 matches L08N and L08S)
+- Returns: [{ line, direction, minsAway }] - next 6 trains within 30 min
+- Clamps negative times to 0 ("boarding")
+- Cache: 30 seconds per line
+
+Feed URLs by line:
+- 1,2,3,4,5,6,S: nyct%2Fgtfs
+- A,C,E: nyct%2Fgtfs-ace
+- N,Q,R,W: nyct%2Fgtfs-nqrw
+- B,D,F,M: nyct%2Fgtfs-bdfm
+- L: nyct%2Fgtfs-l
+- G: nyct%2Fgtfs-g
+- J,Z: nyct%2Fgtfs-jz
+- 7: nyct%2Fgtfs-7
+
+DATA WORK
+---------
+Add gtfsStopIds to transit_data.json for 97 stations.
+Method: Spreadsheet comparison of station names + lat/lng.
+Time: ~45 minutes manual work.
+
+Example mapping:
+  "Bedford Av (L)" -> gtfsStopId: "L08"
+  API will match L08N (northbound) and L08S (southbound) automatically.
+
+FRONTEND
+--------
+- Alerts banner at top of list (dismissible, stored by alert ID in sessionStorage)
+- Arrivals section in expanded venue cards
+- Fetch arrivals only on card expand (not on load)
+- Show "0 min" for boarding, filter out trains > 30 min away
+
+DONE
+----
+[x] npm install gtfs-realtime-bindings
+
+TODO
+----
+[ ] Add /api/mta/alerts endpoint
+[ ] Add /api/mta/arrivals endpoint
+[ ] Test both with curl
+[ ] Map 97 station stop IDs
+[ ] Frontend alerts banner
+[ ] Frontend arrivals display

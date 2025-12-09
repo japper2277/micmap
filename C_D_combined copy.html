@@ -1,0 +1,2377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MicFinder - Chrono Swiss</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+        :root {
+            --rose: #f43f5e;
+            --rose-glow: rgba(244, 63, 94, 0.5);
+            --amber: #f59e0b;
+            --amber-glow: rgba(245, 158, 11, 0.5);
+            --blue: #3b82f6;
+            --blue-muted: #52525b;
+            --deep-void: #09090b;
+            --vh: 1vh; /* Fallback for older browsers */
+        }
+
+        /* iOS Safari dynamic viewport fix */
+        @supports (height: 100dvh) {
+            :root { --vh: 1dvh; }
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--deep-void);
+            overflow: hidden;
+            color: white;
+        }
+
+        .font-mono { font-family: 'Space Mono', monospace; }
+        .font-display { font-family: 'Space Grotesk', sans-serif; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Map Warm Voyager - Natural colors, slightly dimmed */
+        .leaflet-layer {
+            filter: brightness(0.92) saturate(0.85);
+        }
+        .leaflet-container { background: #e8e4dc; }
+
+        /* --- GLASS PANEL --- */
+        .glass-panel {
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.9);
+        }
+
+        /* --- STICKY TIME HEADER (from D) --- */
+        .time-header {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(5, 5, 5, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 8px 20px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* --- STREAM ITEM (D's grid layout + C's hover) --- */
+        .stream-item {
+            display: grid;
+            grid-template-columns: 4.5rem 1fr auto;
+            gap: 12px;
+            padding: 14px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            scroll-margin-top: 50px;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        /* Kinetic Hover: Slide & Invert (from C) */
+        .stream-item:hover {
+            background: #ffffff;
+            color: #000000;
+            padding-left: 2rem !important;
+        }
+
+        /* Touch feedback for mobile */
+        .stream-item:active {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Disable hover effect when signup info is expanded */
+        .stream-item.signup-expanded:hover {
+            background: transparent;
+            color: white;
+            padding-left: 14px !important;
+        }
+
+        /* The sliding accent bar (from C) */
+        .stream-accent-bar {
+            position: absolute;
+            left: 0; top: 0; bottom: 0; width: 6px;
+            transform: translateX(-100%);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 20;
+        }
+        .stream-item:hover .stream-accent-bar {
+            transform: translateX(0);
+        }
+
+        /* Text Color Inversion on Hover */
+        .stream-item:hover h3,
+        .stream-item:hover .time-display { color: #000000 !important; }
+        .stream-item:hover .sub-text { color: #52525b !important; }
+        .stream-item:hover .tag-text { color: #000000 !important; border-color: #000000 !important; }
+
+        /* Travel Connector (from D) */
+        .travel-connector {
+            position: absolute;
+            left: 2.25rem;
+            bottom: -14px;
+            top: 60%;
+            width: 1px;
+            background: rgba(255,255,255,0.1);
+            z-index: 0;
+        }
+        .stream-item:last-child .travel-connector { display: none; }
+        .stream-item:hover .travel-connector { background: rgba(0,0,0,0.2); }
+
+        /* Touch feedback for stream item buttons */
+        .stream-item button:active,
+        .stream-item a:active {
+            transform: scale(0.9);
+            opacity: 0.8;
+        }
+
+        /* Past events fade (from D) */
+        .is-past {
+            opacity: 0.4;
+            filter: grayscale(0.5);
+        }
+        .is-past:hover {
+            opacity: 1;
+            filter: grayscale(0);
+        }
+
+        /* Capsule Buttons */
+        .capsule-btn { transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+        .capsule-btn.active {
+            background: var(--rose);
+            color: white;
+            font-weight: 700;
+        }
+        .capsule-btn:not(.active) { color: #71717a; }
+        .capsule-btn:not(.active):hover { color: white; background: rgba(255,255,255,0.08); }
+        .capsule-btn:active { transform: scale(0.95); }
+
+        /* Drawer Transition - GPU accelerated with transform */
+        #list-drawer {
+            transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1),
+                        opacity 0.25s ease-out;
+            will-change: transform, opacity;
+            opacity: 0; /* Hidden by default until JS initializes */
+        }
+
+        /* Desktop drawer states */
+        @media (min-width: 768px) {
+            #list-drawer {
+                height: calc(100 * var(--vh) - 140px);
+                max-height: none;
+            }
+            #list-drawer.drawer-closed {
+                opacity: 0;
+                transform: translateY(-20px);
+                pointer-events: none;
+            }
+            #list-drawer.drawer-open {
+                opacity: 1;
+                transform: translateY(0);
+                pointer-events: auto;
+            }
+        }
+
+        /* Mobile drawer states */
+        @media (max-width: 767px) {
+            #list-drawer {
+                height: calc(55 * var(--vh));
+                max-height: none;
+            }
+            #list-drawer.drawer-peek {
+                transform: translateY(calc(100% - 56px));
+                opacity: 1;
+                pointer-events: auto;
+            }
+            #list-drawer.drawer-open {
+                transform: translateY(0);
+                opacity: 1;
+                pointer-events: auto;
+            }
+        }
+
+        /* Hide drawer when search is active */
+        #list-drawer.drawer-hidden {
+            opacity: 0 !important;
+            pointer-events: none !important;
+            visibility: hidden;
+        }
+
+        /* --- PIN STYLES (Matching Mockup) --- */
+
+        /* LIVE Pin: Red dot with expanding radar rings */
+        .pin-live-container {
+            position: relative;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .pin-live-dot {
+            width: 16px;
+            height: 16px;
+            background: var(--rose);
+            border: 2px solid white;
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            z-index: 2;
+        }
+        .pin-live-ring {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--rose);
+            border-radius: 50%;
+            animation: radar-pulse 2s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
+        }
+        .pin-live-ring-delay {
+            animation-delay: 0.6s;
+        }
+        @keyframes radar-pulse {
+            0% { transform: scale(1); opacity: 1; border-width: 2px; }
+            100% { transform: scale(3.5); opacity: 0; border-width: 1px; }
+        }
+
+        /* SOON Pin: White dot with orange border */
+        .pin-soon-container {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .pin-soon-dot {
+            width: 14px;
+            height: 14px;
+            background: white;
+            border: 3px solid var(--amber);
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+        }
+
+        /* LATER Pin: Small gray dot */
+        .pin-later-container {
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.7;
+        }
+        .pin-later-dot {
+            width: 10px;
+            height: 10px;
+            background: #8e8e93;
+            border-radius: 50%;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Legacy pulse (keep for compatibility) */
+        @keyframes pulse-glow {
+            0%, 100% { filter: drop-shadow(0 0 2px currentColor); }
+            50% { filter: drop-shadow(0 0 8px currentColor) drop-shadow(0 0 12px currentColor); }
+        }
+        .pin-pulse {
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+
+        /* Badge pulse animation */
+        .badge-pulse {
+            animation: badgePulse 2s ease-in-out infinite;
+        }
+        @keyframes badgePulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        /* Map pin tooltip - Styled like mockup */
+        .mic-tooltip {
+            background: var(--deep-void) !important;
+            border: none !important;
+            border-radius: 6px !important;
+            padding: 10px 14px !important;
+            font-family: 'Space Mono', monospace !important;
+            font-size: 11px !important;
+            font-weight: 700 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.05em !important;
+            color: white !important;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+            white-space: nowrap !important;
+        }
+        .mic-tooltip::before {
+            border-top-color: var(--deep-void) !important;
+        }
+        /* Live tooltip - rose/pink background */
+        .mic-tooltip-live {
+            background: var(--rose) !important;
+        }
+        .mic-tooltip-live::before {
+            border-top-color: var(--rose) !important;
+        }
+        /* Soon tooltip - amber accent */
+        .mic-tooltip-soon .tooltip-time {
+            color: var(--amber) !important;
+        }
+
+        /* Map pin popup */
+        .mic-popup-container .leaflet-popup-content-wrapper {
+            background: rgba(0, 0, 0, 0.95) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border-radius: 12px !important;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
+            color: white !important;
+        }
+        .mic-popup-container .leaflet-popup-content {
+            margin: 12px 14px !important;
+            font-family: 'Space Grotesk', sans-serif !important;
+        }
+        .mic-popup-container .leaflet-popup-tip {
+            background: rgba(0, 0, 0, 0.95) !important;
+        }
+        .mic-popup-container .leaflet-popup-close-button {
+            color: white !important;
+            opacity: 0.5;
+        }
+        .mic-popup-container .leaflet-popup-close-button:hover {
+            opacity: 1;
+        }
+        .directions-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 10px;
+            padding: 8px 12px;
+            background: var(--rose);
+            color: white !important;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            text-decoration: none !important;
+            transition: all 0.2s;
+        }
+        .directions-btn:hover {
+            background: #e11d48;
+            transform: scale(1.02);
+        }
+
+        /* Search dropdown items */
+        .search-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .search-item:last-child {
+            border-bottom: none;
+        }
+        .search-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .search-item-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .search-item-content {
+            flex: 1;
+            min-width: 0;
+        }
+        .search-item-title {
+            font-weight: 600;
+            font-size: 14px;
+            color: white;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .search-item-title mark {
+            background: transparent;
+            color: var(--rose);
+            font-weight: 700;
+        }
+        .search-item-subtitle {
+            font-size: 11px;
+            color: #71717a;
+            margin-top: 2px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .search-item-meta {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+        }
+        .search-item-distance {
+            font-size: 11px;
+            color: #71717a;
+            font-family: 'Space Mono', monospace;
+        }
+        .search-item-status {
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .status-live {
+            background: rgba(244, 63, 94, 0.2);
+            color: #f43f5e;
+        }
+        .status-soon {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+        }
+        .status-upcoming {
+            background: rgba(255, 255, 255, 0.1);
+            color: #71717a;
+        }
+        .history-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .history-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .history-item-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .history-item-remove {
+            opacity: 0;
+            transition: opacity 0.2s;
+            color: #71717a;
+        }
+        .history-item:hover .history-item-remove {
+            opacity: 1;
+        }
+        .history-item-remove:hover {
+            color: var(--rose);
+        }
+
+        /* Mobile touch feedback */
+        .search-item:active, .history-item:active {
+            transform: scale(0.98);
+            opacity: 0.8;
+        }
+
+        /* Respect reduced motion preference */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* iOS rubber-banding fix + dynamic viewport height */
+        #list-content {
+            overscroll-behavior: contain;
+            max-height: calc(65 * var(--vh));
+        }
+        @media (min-width: 768px) {
+            #list-content { max-height: calc(100 * var(--vh) - 200px); }
+        }
+
+        /* Safe area insets for iPhone X+ */
+        .glass-panel.rounded-full { padding-top: max(0.375rem, env(safe-area-inset-top)); }
+        #list-drawer { padding-bottom: env(safe-area-inset-bottom); }
+
+        /* Focus-visible styles for accessibility */
+        input:focus-visible, button:focus-visible {
+            outline: 2px solid rgba(251, 113, 133, 0.8);
+            outline-offset: 2px;
+        }
+
+        /* --- FLOATING FILTER PILLS --- */
+        .filter-pills-container {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            padding: 8px 0;
+            overflow: visible;
+        }
+
+        .filter-group { position: relative; }
+
+        .filter-pill {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #a1a1aa;
+            padding: 6px 12px;
+            border-radius: 99px;
+            font-size: 12px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+        .filter-pill:hover { border-color: white; color: white; }
+        .filter-pill:active { transform: scale(0.95); opacity: 0.8; }
+        .filter-pill.active {
+            background: var(--rose);
+            border-color: var(--rose);
+            color: white;
+            box-shadow: 0 0 10px var(--rose-glow);
+        }
+
+        .filter-arrow { font-size: 8px; transition: transform 0.2s; }
+        .filter-pill.active .filter-arrow { transform: rotate(180deg); }
+
+        /* Filter Dropdown */
+        .filter-dropdown {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            min-width: 160px;
+            background: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 6px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.9);
+            z-index: 1001;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-8px);
+            transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .filter-dropdown.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        .filter-dropdown.align-right { left: auto; right: 0; }
+
+        .filter-option {
+            display: block;
+            width: 100%;
+            padding: 8px 12px;
+            color: #a1a1aa;
+            font-size: 13px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background 0.1s;
+            text-align: left;
+            border: none;
+            background: none;
+            font-family: 'Inter', sans-serif;
+        }
+        .filter-option:hover { background: rgba(255,255,255,0.05); color: white; }
+        .filter-option.selected { color: var(--rose); font-weight: 600; }
+
+        /* --- LOCATE ME BUTTON --- */
+        .locate-btn {
+            position: fixed;
+            bottom: 100px;
+            left: 16px;
+            z-index: 800;
+            width: 44px;
+            height: 44px;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #a1a1aa;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        }
+        .locate-btn:hover {
+            background: rgba(0, 0, 0, 0.95);
+            color: white;
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+        .locate-btn:active {
+            transform: scale(0.95);
+        }
+        .locate-btn.active {
+            color: var(--rose);
+            border-color: var(--rose);
+        }
+        @media (min-width: 768px) {
+            .locate-btn {
+                bottom: 24px;
+                left: 24px;
+            }
+        }
+
+        /* --- VENUE MODAL (Glassmorphism) --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 2000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .venue-card {
+            width: 100%;
+            max-width: 360px;
+            background: rgba(10, 10, 10, 0.92);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: white;
+            border-radius: 24px;
+            padding: 28px;
+            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8), 0 4px 20px rgba(0, 0, 0, 0.4);
+            transform: scale(0.95) translateY(20px);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+        }
+        .modal-overlay.active .venue-card {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
+
+        .venue-card h2 {
+            margin: 0 0 4px 0;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+        .venue-card .venue-address {
+            margin: 0 0 20px 0;
+            color: #71717a;
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .venue-card .venue-time-row {
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 20px;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .venue-card .venue-time-row span {
+            color: var(--amber);
+        }
+        .venue-card .venue-time-row span.live {
+            color: var(--rose);
+        }
+
+        /* Action Row */
+        .modal-action-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .modal-btn {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            padding: 14px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 13px;
+            transition: all 0.2s;
+            cursor: pointer;
+            border: none;
+            outline: none;
+        }
+
+        .modal-btn-secondary {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        .modal-btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .modal-btn-primary {
+            flex: 1;
+            background: white;
+            color: black;
+        }
+        .modal-btn-primary:hover {
+            background: #e0e0e0;
+            transform: translateY(-1px);
+        }
+
+        .modal-btn-icon {
+            width: 46px;
+            flex: 0 0 46px;
+            background: transparent;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 0;
+            font-size: 18px;
+            font-family: 'Times New Roman', serif;
+            font-style: italic;
+            font-weight: 700;
+        }
+        .modal-btn-icon:hover {
+            border-color: white;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Instructions Panel */
+        .modal-instructions {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 12px;
+            display: none;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            animation: modalSlideDown 0.3s cubic-bezier(0.2, 1, 0.3, 1);
+        }
+        .modal-instructions.show {
+            display: block;
+        }
+        .modal-instructions-header {
+            font-size: 10px;
+            color: #71717a;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            display: block;
+            font-family: 'Space Mono', monospace;
+        }
+        .modal-instructions-text {
+            font-size: 14px;
+            color: #d4d4d4;
+            line-height: 1.5;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            font-size: 28px;
+            color: #525252;
+            background: none;
+            border: none;
+            cursor: pointer;
+            line-height: 1;
+            padding: 4px;
+            transition: color 0.2s;
+        }
+        .modal-close:hover {
+            color: white;
+        }
+
+        @keyframes modalSlideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-btn svg {
+            width: 14px;
+            height: 14px;
+            fill: currentColor;
+        }
+
+    </style>
+</head>
+<body class="h-screen w-screen relative selection:bg-rose-500 selection:text-white">
+
+    <!-- MAP LAYER -->
+    <div id="map" class="absolute inset-0 z-0 bg-[#e8e4dc]"></div>
+
+    <!-- LOCATE ME BUTTON -->
+    <button onclick="centerOnUser()" id="locate-btn" class="locate-btn" aria-label="Center map on my location">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0013 3.06V1h-2v2.06A8.994 8.994 0 003.06 11H1v2h2.06A8.994 8.994 0 0011 20.94V23h2v-2.06A8.994 8.994 0 0020.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"></path>
+        </svg>
+    </button>
+
+    <!-- COMMAND BAR -->
+    <div class="absolute top-4 left-3 right-3 md:left-auto md:right-4 md:w-[400px] z-[1000] flex flex-col pointer-events-none" role="search">
+        <div class="glass-panel h-[56px] rounded-full flex items-center p-1.5 pointer-events-auto relative z-20">
+            <!-- Search -->
+            <div class="flex-1 flex items-center h-full pl-4 pr-2 group cursor-text" onclick="document.getElementById('search-input').focus()">
+                <svg class="w-4 h-4 text-neutral-500 group-focus-within:text-rose-500 transition-colors shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <input type="text" id="search-input" placeholder="Search venues..." autocomplete="off" maxlength="100" aria-label="Search venues" class="w-full bg-transparent border-none text-sm text-white placeholder-neutral-600 ml-2 font-medium h-full focus:outline-none focus:ring-0" style="font-size: 16px;">
+            </div>
+            <!-- Toggle -->
+            <div class="flex items-center bg-black/40 rounded-full p-1 border border-white/5 shrink-0">
+                <button onclick="setMode('today')" id="btn-today" class="capsule-btn active px-3 py-1.5 rounded-full text-[10px] uppercase tracking-wider leading-none">Today</button>
+                <button onclick="setMode('tomorrow')" id="btn-tomorrow" class="capsule-btn px-3 py-1.5 rounded-full text-[10px] uppercase tracking-wider leading-none">Tmrw</button>
+                <button onclick="setMode('calendar')" id="btn-calendar" class="capsule-btn w-7 h-7 flex items-center justify-center rounded-full">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                </button>
+            </div>
+            <!-- Divider (hidden on mobile) -->
+            <div class="w-[1px] h-5 bg-white/10 mx-2 hidden md:block"></div>
+            <!-- Drawer Btn (hidden on mobile - use drag handle instead) -->
+            <button onclick="toggleDrawer()" id="drawer-btn" class="hidden md:flex w-10 h-10 rounded-full hover:bg-white/10 items-center justify-center text-neutral-400 hover:text-white transition-all active:scale-90">
+                <svg id="chevron-icon" class="w-5 h-5 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+        </div>
+
+        <!-- AUTOCOMPLETE DROPDOWN -->
+        <div id="search-dropdown" class="rounded-2xl mt-2 pointer-events-auto hidden overflow-hidden z-[1001] bg-[#0a0a0a] border border-white/10 shadow-2xl" role="listbox" aria-live="polite">
+            <!-- Search History Section -->
+            <div id="search-history-section" class="hidden">
+                <div class="flex justify-between items-center px-4 py-2 border-b border-white/10">
+                    <span class="text-[10px] uppercase tracking-wider text-neutral-500 font-bold">Recent Searches</span>
+                    <button onclick="clearSearchHistory()" class="text-[10px] uppercase tracking-wider text-rose-500 hover:text-rose-400">Clear</button>
+                </div>
+                <div id="search-history-list"></div>
+            </div>
+            <!-- Results Section -->
+            <div id="search-results-section" class="hidden">
+                <div class="px-4 py-2 border-b border-white/10">
+                    <span class="text-[10px] uppercase tracking-wider text-neutral-500 font-bold">Venues</span>
+                </div>
+                <div id="search-results-list" class="max-h-[300px] overflow-y-auto no-scrollbar"></div>
+            </div>
+        </div>
+
+        <!-- FILTER PILLS (floating below search) -->
+        <div class="filter-pills-container pointer-events-auto">
+            <!-- See All Button -->
+            <button class="filter-pill" id="btn-see-all" onclick="event.stopPropagation(); showAllMics()">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
+                All
+            </button>
+
+            <!-- Borough Filter -->
+            <div class="filter-group">
+                <button class="filter-pill" id="filter-borough" onclick="event.stopPropagation(); toggleFilterDropdown('borough')">
+                    Borough <span class="filter-arrow">▼</span>
+                </button>
+                <div id="dropdown-borough" class="filter-dropdown">
+                    <button class="filter-option" onclick="event.stopPropagation(); applyFilter('borough', 'Manhattan')">Manhattan</button>
+                    <button class="filter-option" onclick="event.stopPropagation(); applyFilter('borough', 'Brooklyn')">Brooklyn</button>
+                    <button class="filter-option" onclick="event.stopPropagation(); applyFilter('borough', 'Queens')">Queens</button>
+                    <button class="filter-option" onclick="event.stopPropagation(); applyFilter('borough', 'Bronx')">Bronx</button>
+                </div>
+            </div>
+
+            <!-- Price Filter (3-state toggle) -->
+            <button class="filter-pill" id="filter-price" onclick="event.stopPropagation(); cycleFilter('price')">
+                Price
+            </button>
+
+            <!-- Time Filter (3-state toggle) -->
+            <button class="filter-pill" id="filter-time" onclick="event.stopPropagation(); cycleFilter('time')">
+                Time
+            </button>
+        </div>
+    </div>
+
+    <!-- LIST DRAWER -->
+    <div id="list-drawer" class="glass-panel rounded-3xl overflow-hidden flex flex-col
+        fixed bottom-4 left-3 right-3 z-[900]
+        md:absolute md:top-[120px] md:left-auto md:right-4 md:w-[400px] md:bottom-auto md:z-[999]">
+
+        <!-- HEADER -->
+        <div id="drawer-header" class="bg-[#050505]/95 backdrop-blur-md shrink-0 sticky top-0 z-30 px-5 py-3 flex justify-between items-center">
+            <!-- Drag Handle (mobile only) - tappable to toggle drawer -->
+            <div onclick="toggleDrawer()" class="absolute top-2 left-1/2 -translate-x-1/2 w-10 h-1 bg-white/30 rounded-full md:hidden cursor-pointer active:bg-white/50 transition-colors"></div>
+            <h2 class="text-base font-bold text-white font-display" id="header-title">Mics for Today</h2>
+            <span class="text-xl font-bold font-mono text-rose-500" id="clock-display">00:00</span>
+        </div>
+
+        <!-- CONTENT LIST -->
+        <div id="list-content" class="overflow-y-auto no-scrollbar scroll-smooth bg-transparent">
+            <!-- CARDS INJECTED HERE -->
+        </div>
+    </div>
+
+    <!-- DATE CAROUSEL -->
+    <div id="date-carousel" class="fixed bottom-0 left-0 right-0 z-[1100] p-4 pointer-events-none transform translate-y-full transition-transform duration-300">
+        <div class="glass-panel mx-auto rounded-xl py-3 px-3 w-full md:max-w-xl pointer-events-auto">
+            <div id="cal-grid" class="flex justify-start overflow-x-auto gap-2 no-scrollbar">
+                <!-- Date Capsules Injected Here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- VENUE MODAL -->
+    <div class="modal-overlay" id="venue-modal">
+        <div class="venue-card">
+            <button class="modal-close" onclick="closeVenueModal()">&times;</button>
+            <h2 id="modal-title">VENUE NAME</h2>
+            <p class="venue-address" id="modal-address">ADDRESS</p>
+            <div class="venue-time-row">
+                OPEN MIC: <span id="modal-time">17:00</span>
+            </div>
+            <div class="modal-action-row" id="modal-actions">
+                <!-- Buttons injected via JS -->
+            </div>
+            <div class="modal-instructions" id="modal-instructions">
+                <span class="modal-instructions-header">SIGNUP INSTRUCTIONS</span>
+                <div class="modal-instructions-text" id="modal-instructions-text"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --------------------------------------------------------
+        // 1. DATA - Load from JSON
+        // --------------------------------------------------------
+        let mics = [];
+        const now = new Date();
+        const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+        // Parse time string to Date object for today
+        function parseTime(timeStr) {
+            const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+            if (!match) return null;
+            let hours = parseInt(match[1]);
+            const mins = parseInt(match[2]);
+            const period = match[3].toUpperCase();
+            if (period === 'PM' && hours !== 12) hours += 12;
+            if (period === 'AM' && hours === 12) hours = 0;
+            const d = new Date();
+            d.setHours(hours, mins, 0, 0);
+            return d;
+        }
+
+        // Extract URL from signup text
+        function extractSignupUrl(signupText) {
+            if (!signupText) return null;
+            const urlMatch = signupText.match(/(https?:\/\/[^\s]+)/);
+            return urlMatch ? urlMatch[1] : null;
+        }
+
+        // Process mic data from JSON
+        function processMics(rawMics) {
+            return rawMics.map(m => {
+                const startDate = parseTime(m.startTime);
+                const diffMins = startDate ? (startDate - now) / 60000 : 999;
+
+                let status = 'future';
+                if (diffMins > -90 && diffMins <= 0) status = 'live';
+                else if (diffMins > 0 && diffMins <= 60) status = 'urgent';
+                else if (diffMins > 60 && diffMins <= 120) status = 'soon';
+
+                return {
+                    ...m,
+                    title: m.venue,
+                    start: startDate,
+                    timeStr: m.startTime.replace(/\s*(AM|PM)/i, '').trim(),
+                    hood: m.neighborhood,
+                    price: m.cost || 'Free',
+                    setTime: m.stageTime || '5min',
+                    type: m.borough || 'NYC', // Use borough as type for now
+                    status: status,
+                    signupUrl: extractSignupUrl(m.signup),
+                    signupInstructions: m.signup || 'No signup info available'
+                };
+            });
+        }
+
+        // Load JSON and initialize
+        async function loadData() {
+            try {
+                const response = await fetch('../api/mics.json');
+                const rawMics = await response.json();
+                mics = processMics(rawMics);
+                console.log(`Loaded ${mics.length} mics`);
+                render('today');
+                zoomToBorough('All', false); // Set initial view without animation
+                setTimeout(() => toggleDrawer(true), 500);
+            } catch (err) {
+                console.error('Failed to load mics:', err);
+            }
+        }
+
+        // Live Clock (12-hour format)
+        function updateClock() {
+            const d = new Date();
+            let h = d.getHours();
+            const m = d.getMinutes().toString().padStart(2, '0');
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            h = h % 12 || 12;
+            document.getElementById('clock-display').innerText = `${h}:${m} ${ampm}`;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        function addDays(date, days) { const r = new Date(date); r.setDate(r.getDate() + days); return r; }
+
+        // Open directions in native Google Maps app
+        function openDirections(lat, lng) {
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            const isAndroid = /Android/.test(navigator.userAgent);
+
+            if (isIOS) {
+                // Try Google Maps app first, falls back to Apple Maps
+                window.location.href = `comgooglemaps://?daddr=${lat},${lng}&directionsmode=driving`;
+                // Fallback after short delay if app not installed
+                setTimeout(() => {
+                    window.location.href = `maps://maps.apple.com/?daddr=${lat},${lng}`;
+                }, 500);
+            } else if (isAndroid) {
+                // Android: use geo intent which opens in default maps app
+                window.location.href = `geo:${lat},${lng}?q=${lat},${lng}`;
+            } else {
+                // Desktop: open in new tab
+                window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, '_blank');
+            }
+        }
+
+        // --------------------------------------------------------
+        // VENUE MODAL FUNCTIONS
+        // --------------------------------------------------------
+        const venueModal = document.getElementById('venue-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalAddress = document.getElementById('modal-address');
+        const modalTime = document.getElementById('modal-time');
+        const modalActions = document.getElementById('modal-actions');
+        const modalInstructions = document.getElementById('modal-instructions');
+        const modalInstructionsText = document.getElementById('modal-instructions-text');
+
+        // SVG Icons for buttons
+        const iconMap = `<svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>`;
+        const iconExternal = `<svg viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>`;
+
+        function openVenueModal(mic) {
+            // Set content
+            modalTitle.innerText = mic.title.toUpperCase();
+            modalAddress.innerText = mic.address.toUpperCase();
+
+            // Time display with status color
+            if (mic.status === 'live') {
+                modalTime.innerText = 'LIVE NOW';
+                modalTime.className = 'live';
+            } else {
+                modalTime.innerText = mic.timeStr;
+                modalTime.className = '';
+            }
+
+            // Hide instructions initially
+            modalInstructions.classList.remove('show');
+
+            // Build action buttons
+            let html = '';
+
+            // DIRECTIONS button (always shown)
+            html += `
+                <a href="#" onclick="openDirections(${mic.lat}, ${mic.lng}); return false;" class="modal-btn modal-btn-secondary">
+                    ${iconMap} DIRECTIONS
+                </a>
+            `;
+
+            // SIGN UP or INFO button
+            if (mic.signupUrl) {
+                html += `
+                    <a href="${mic.signupUrl}" target="_blank" rel="noopener" class="modal-btn modal-btn-primary">
+                        SIGN UP ${iconExternal}
+                    </a>
+                `;
+            } else {
+                html += `
+                    <button class="modal-btn modal-btn-icon" onclick="toggleModalInstructions()">
+                        i
+                    </button>
+                `;
+                // Store instructions text
+                modalInstructionsText.innerText = mic.signupInstructions;
+            }
+
+            modalActions.innerHTML = html;
+            venueModal.classList.add('active');
+        }
+
+        function closeVenueModal() {
+            venueModal.classList.remove('active');
+            modalInstructions.classList.remove('show');
+        }
+
+        function toggleModalInstructions() {
+            modalInstructions.classList.toggle('show');
+        }
+
+        // Close modal on background click
+        venueModal.addEventListener('click', (e) => {
+            if (e.target === venueModal) closeVenueModal();
+        });
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && venueModal.classList.contains('active')) {
+                closeVenueModal();
+            }
+        });
+
+        // --------------------------------------------------------
+        // 2. MAP SETUP
+        // --------------------------------------------------------
+        const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([40.735, -73.99], 13);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 20, subdomains: 'abcd' }).addTo(map);
+        const markersGroup = L.layerGroup().addTo(map);
+
+        const createPin = (status) => {
+            // Match mockup: LIVE=red with pulse rings, Soon=white with orange border, Later=small gray
+            if (status === 'live' || status === 'urgent') {
+                // LIVE: Red dot with radar pulse animation
+                return L.divIcon({
+                    className: 'bg-transparent',
+                    html: `<div class="pin-live-container">
+                            <div class="pin-live-dot"></div>
+                            <div class="pin-live-ring"></div>
+                            <div class="pin-live-ring pin-live-ring-delay"></div>
+                           </div>`,
+                    iconSize: [40, 40],
+                    iconAnchor: [20, 20]
+                });
+            } else if (status === 'soon') {
+                // SOON: White dot with orange border
+                return L.divIcon({
+                    className: 'bg-transparent',
+                    html: `<div class="pin-soon-container">
+                            <div class="pin-soon-dot"></div>
+                           </div>`,
+                    iconSize: [20, 20],
+                    iconAnchor: [10, 10]
+                });
+            } else {
+                // LATER/FUTURE: Small gray dot
+                return L.divIcon({
+                    className: 'bg-transparent',
+                    html: `<div class="pin-later-container">
+                            <div class="pin-later-dot"></div>
+                           </div>`,
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8]
+                });
+            }
+        };
+
+        // --------------------------------------------------------
+        // 3. UI RENDERING (HYBRID)
+        // --------------------------------------------------------
+        let currentMode = 'today';
+        let isDrawerOpen = false;
+        let selectedCalendarDate = now.toDateString();
+        let markerLookup = {}; // Store marker references by mic ID
+
+        // Filter State
+        let activeFilters = { borough: 'All', price: 'All', time: 'All' };
+        let activeFilterDropdown = null;
+
+        function render(mode) {
+            const container = document.getElementById('list-content');
+            const searchVal = document.getElementById('search-input').value.toLowerCase();
+
+            markersGroup.clearLayers();
+            markerLookup = {}; // Clear marker lookup
+            container.innerHTML = '';
+
+            // Use fresh timestamp for accurate calculations
+            const currentTime = new Date();
+
+            // Get day names for filtering
+            const todayName = dayNames[currentTime.getDay()];
+            const tomorrowName = dayNames[(currentTime.getDay() + 1) % 7];
+
+            // Base filter for day/time (used for both map and list)
+            let baseMics = mics.filter(m => {
+                const diffMins = m.start ? (m.start - currentTime) / 60000 : 999;
+
+                // Deep past (>1 hour ago): REMOVE from DOM - only for TODAY
+                if (mode === 'today' && diffMins < -60) return false;
+
+                // Filter by day of week
+                if (mode === 'today' && m.day !== todayName) return false;
+                if (mode === 'tomorrow' && m.day !== tomorrowName) return false;
+                if (mode === 'calendar') {
+                    const selectedDate = new Date(selectedCalendarDate);
+                    const selectedDayName = dayNames[selectedDate.getDay()];
+                    if (m.day !== selectedDayName) return false;
+                }
+
+                if (searchVal && !m.title.toLowerCase().includes(searchVal) && !m.hood.toLowerCase().includes(searchVal) && !(m.name && m.name.toLowerCase().includes(searchVal))) return false;
+
+                return true;
+            });
+
+            // Additional filters for the LIST only (borough, price, time)
+            let filtered = baseMics.filter(m => {
+                // Filter by borough (list only)
+                if (activeFilters.borough !== 'All' && m.type !== activeFilters.borough) return false;
+
+                // Filter by price
+                if (activeFilters.price !== 'All') {
+                    const isFree = m.price.toLowerCase().includes('free');
+                    if (activeFilters.price === 'Free' && !isFree) return false;
+                    if (activeFilters.price === 'Paid' && isFree) return false;
+                }
+
+                // Filter by time
+                if (activeFilters.time !== 'All' && m.start) {
+                    const hour = m.start.getHours();
+                    if (activeFilters.time === 'early' && hour >= 17) return false;
+                    if (activeFilters.time === 'late' && hour < 17) return false;
+                }
+
+                return true;
+            });
+
+            // Recalculate status based on mode
+            const calcStatus = (m) => {
+                if (mode !== 'today') return 'upcoming';
+                const diffMins = m.start ? (m.start - currentTime) / 60000 : 999;
+                if (diffMins > -90 && diffMins <= 0) return 'live';
+                if (diffMins > 0 && diffMins <= 60) return 'urgent';
+                if (diffMins > 60 && diffMins <= 120) return 'soon';
+                return 'future';
+            };
+
+            // Apply status to both baseMics (for map) and filtered (for list)
+            baseMics = baseMics.map(m => ({ ...m, status: calcStatus(m) }));
+            filtered = filtered.map(m => ({ ...m, status: calcStatus(m) }));
+
+            // Update header title
+            const headerTitle = document.getElementById('header-title');
+            if (mode === 'today') headerTitle.innerText = `Mics for Today (${filtered.length})`;
+            else if (mode === 'tomorrow') headerTitle.innerText = `Mics for Tomorrow (${filtered.length})`;
+            else headerTitle.innerText = `Mics (${filtered.length})`;
+
+            // Group mics by venue (same lat/lng) into one marker - use baseMics for ALL map pins
+            const venueGroups = {};
+            baseMics.forEach(mic => {
+                const key = `${mic.lat},${mic.lng}`;
+                if (!venueGroups[key]) venueGroups[key] = [];
+                venueGroups[key].push(mic);
+            });
+
+            // Render one marker per venue with all times
+            Object.values(venueGroups).forEach(venueMics => {
+                venueMics.sort((a, b) => (a.start || 0) - (b.start || 0));
+                const firstMic = venueMics[0];
+
+                // Use best status for pin color
+                const statusPriority = { live: 4, urgent: 3, soon: 2, upcoming: 1, future: 0 };
+                const bestStatus = venueMics.reduce((best, mic) =>
+                    (statusPriority[mic.status] || 0) > (statusPriority[best] || 0) ? mic.status : best
+                , 'future');
+
+                // Combine times: "4:30, 6:00"
+                const timesStr = venueMics.map(m => m.timeStr).join(', ');
+
+                const marker = L.marker([firstMic.lat, firstMic.lng], {
+                    icon: createPin(bestStatus),
+                    zIndexOffset: bestStatus === 'urgent' || bestStatus === 'live' ? 1000 : (bestStatus === 'soon' ? 500 : 100)
+                }).addTo(markersGroup)
+                .bindTooltip(
+                    (bestStatus === 'live' || bestStatus === 'urgent')
+                        ? `<span style="color: white;">LIVE</span><span style="opacity: 0.6; margin: 0 8px;">|</span><span>${firstMic.title.toUpperCase()}</span>`
+                        : `<span style="color: ${bestStatus === 'soon' ? '#f59e0b' : '#fff'};">${timesStr}</span><span style="opacity: 0.5; margin: 0 8px;">|</span><span>${firstMic.title.toUpperCase()}</span>`,
+                    {
+                        direction: 'top',
+                        offset: [0, -12],
+                        className: (bestStatus === 'live' || bestStatus === 'urgent') ? 'mic-tooltip mic-tooltip-live' : 'mic-tooltip',
+                        interactive: false
+                    }
+                )
+                .on('click', () => openVenueModal(firstMic));
+
+                // Store marker reference for each mic at this venue
+                venueMics.forEach(mic => {
+                    markerLookup[mic.id] = marker;
+                });
+            });
+
+            if(filtered.length === 0) {
+                container.innerHTML = `<div class="text-center py-12 text-neutral-600 text-[10px] font-mono uppercase tracking-widest">No Signals Found</div>`;
+                return;
+            }
+
+            // Sort by start time before rendering
+            filtered.sort((a, b) => (a.start || 0) - (b.start || 0));
+
+            // Group by Hour with Sticky Headers
+            let currentHour = -1;
+
+            filtered.forEach(mic => {
+                const micHour = mic.start ? mic.start.getHours() : 0;
+                const diffMins = mic.start ? (mic.start - currentTime) / 60000 : 999;
+                const isRecentPast = (mode === 'today') && diffMins < 0 && diffMins >= -60; // Ghost mode: only for today
+
+                // --- STICKY HOUR HEADER ---
+                if (micHour !== currentHour) {
+                    currentHour = micHour;
+                    // Convert to 12-hour format with AM/PM
+                    const displayHour = micHour === 0 ? 12 : (micHour > 12 ? micHour - 12 : micHour);
+                    const ampm = micHour >= 12 ? 'PM' : 'AM';
+                    const header = document.createElement('div');
+                    header.className = 'time-header text-white/50 text-sm';
+                    header.innerHTML = `
+                        <span class="font-mono text-lg text-white">${displayHour}:00 ${ampm}</span>
+                        <div class="h-[1px] bg-white/10 flex-1"></div>
+                    `;
+                    container.appendChild(header);
+                }
+
+
+                // --- STREAM ITEM (D's grid layout + C's hover) ---
+                // live = happening now (rose), urgent = <1hr (rose), soon = 1-2hr (amber), future = >2hr (muted)
+                const accentColor = (mic.status === 'urgent' || mic.status === 'live') ? 'var(--rose)' : (mic.status === 'soon' ? 'var(--amber)' : (mic.status === 'upcoming' ? 'var(--blue-muted)' : 'var(--blue-muted)'));
+                const timeColor = (mic.status === 'urgent' || mic.status === 'live') ? 'text-rose-500' : (mic.status === 'soon' ? 'text-amber-400' : (mic.status === 'upcoming' ? 'text-white' : 'text-neutral-400'));
+                const subTextColor = (mic.status === 'upcoming') ? 'text-white' : 'text-neutral-500';
+
+
+
+                const card = document.createElement('div');
+                card.id = `card-${mic.id}`;
+                card.onclick = () => locateMic(mic.lat, mic.lng, mic.id);
+
+                card.className = `stream-item group ${isRecentPast ? 'is-past' : ''}`;
+
+                card.innerHTML = `
+                    <!-- Sliding Accent Bar (from C) -->
+                    <div class="stream-accent-bar" style="background-color: ${accentColor}"></div>
+
+                    <!-- Travel Connector (from D) -->
+                    <div class="travel-connector"></div>
+
+                    <!-- Default Card View -->
+                    <div class="card-default-view" style="display: contents;">
+                        <!-- LEFT: Time + Set Length -->
+                        <div class="flex flex-col items-center pt-1 relative z-10">
+                            <span class="time-display font-mono font-bold text-lg ${timeColor} transition-colors">${mic.timeStr}</span>
+                            <span class="sub-text text-[10px] ${subTextColor} font-mono mt-0.5 transition-colors">${mic.setTime}</span>
+                        </div>
+
+                        <!-- MIDDLE: Details -->
+                        <div class="flex flex-col justify-center relative z-10">
+                            <h3 class="font-bold text-base leading-tight text-white transition-colors font-display group-hover:text-black">${mic.title}</h3>
+                            <div class="flex items-center gap-2 mt-1 text-[10px] ${subTextColor} font-mono uppercase tracking-wide">
+                                <span class="sub-text">${mic.hood}</span>
+                                <span class="w-0.5 h-0.5 bg-neutral-600 rounded-full"></span>
+                                <span class="tag-text px-1 py-0.5 border border-white/20 rounded transition-colors">${mic.price}</span>
+                                <span class="tag-text px-1 py-0.5 border border-white/20 rounded transition-colors">${mic.type}</span>
+                            </div>
+                        </div>
+
+                        <!-- RIGHT: Link + Instagram -->
+                        <div class="flex flex-col items-center justify-center gap-2 relative z-10">
+                            ${mic.signupUrl
+                                ? `<a href="${mic.signupUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation();" class="w-10 h-10 rounded-full bg-white/10 hover:bg-rose-500 flex items-center justify-center transition-all group-hover:bg-black/20" title="Sign up">
+                                    <svg class="w-4 h-4 text-neutral-400 group-hover:text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                    </svg>
+                                </a>`
+                                : `<button onclick="event.stopPropagation(); toggleSignupInfo('${mic.id}');" class="w-10 h-10 rounded-full bg-white/10 hover:bg-rose-500 flex items-center justify-center transition-all group-hover:bg-black/20" title="Signup info">
+                                    <svg class="w-4 h-4 text-neutral-400 group-hover:text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                </button>`
+                            }
+                            ${mic.contact ? `<a href="https://instagram.com/${mic.contact.replace(/^@/, '')}" target="_blank" rel="noopener" onclick="event.stopPropagation();" class="w-10 h-10 rounded-full bg-white/10 hover:bg-rose-500 flex items-center justify-center transition-all group-hover:bg-black/20" title="@${mic.contact.replace(/^@/, '')}">
+                                <svg class="w-4 h-4 text-neutral-400 group-hover:text-black" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                                </svg>
+                            </a>` : ''}
+                        </div>
+                    </div>
+
+                    <!-- Expanded Signup Info View -->
+                    <div class="card-signup-view" style="display: none; grid-column: 1 / -1; padding: 16px 20px; background: rgba(0, 0, 0, 0.8); border-radius: 8px; margin: 8px 0;">
+                        <div class="flex justify-between items-start gap-3">
+                            <div class="flex-1">
+                                <div class="text-xs uppercase tracking-wider text-neutral-500 font-bold mb-2" style="color: #71717a !important;">Signup Instructions</div>
+                                <div class="text-sm leading-relaxed" style="color: white !important;">${mic.signupInstructions}</div>
+                            </div>
+                            <button onclick="event.stopPropagation(); toggleSignupInfo('${mic.id}');" class="w-6 h-6 rounded-full bg-white/10 hover:bg-rose-500 flex items-center justify-center transition-all flex-shrink-0" style="color: #a1a1aa;">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Toggle signup info display
+        function toggleSignupInfo(micId) {
+            const card = document.getElementById(`card-${micId}`);
+            if (!card) return;
+
+            const defaultView = card.querySelector('.card-default-view');
+            const signupView = card.querySelector('.card-signup-view');
+
+            if (signupView.style.display === 'none') {
+                // Show signup info
+                defaultView.style.display = 'none';
+                signupView.style.display = 'block';
+                card.classList.add('signup-expanded');
+            } else {
+                // Hide signup info
+                defaultView.style.display = 'contents';
+                signupView.style.display = 'none';
+                card.classList.remove('signup-expanded');
+            }
+        }
+
+        // --------------------------------------------------------
+        // 4. INTERACTIONS
+        // --------------------------------------------------------
+        // Calendar Functions
+        function showDateCarousel() { document.getElementById('date-carousel').style.transform = 'translateY(0)'; }
+        function hideDateCarousel() { document.getElementById('date-carousel').style.transform = 'translateY(100%)'; }
+
+        function updateDateCarouselHighlight(dateString) {
+            document.querySelectorAll('.date-capsule').forEach(cap => {
+                cap.classList.toggle('active-date', cap.dataset.date === dateString);
+            });
+        }
+
+        function selectDate(dateString) {
+            currentMode = 'calendar';
+            selectedCalendarDate = dateString;
+            hideDateCarousel();
+
+            document.querySelectorAll('.capsule-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('btn-calendar').classList.add('active');
+
+            if(!isDrawerOpen) toggleDrawer(true);
+
+            updateDateCarouselHighlight(dateString);
+            render('calendar');
+        }
+
+        function setMode(mode) {
+            // Reset filters when changing modes
+            resetFilters();
+
+            const currentTime = new Date(); // Fresh timestamp
+
+            if (mode === 'calendar') {
+                // Toggle calendar if already in calendar mode
+                if (currentMode === 'calendar') {
+                    hideDateCarousel();
+                    // Switch back to today mode
+                    mode = 'today';
+                    document.querySelectorAll('.capsule-btn').forEach(b => b.classList.remove('active'));
+                    document.getElementById('btn-today').classList.add('active');
+                    currentMode = 'today';
+                    selectedCalendarDate = currentTime.toDateString();
+                    render('today');
+                } else {
+                    document.querySelectorAll('.capsule-btn').forEach(b => b.classList.remove('active'));
+                    document.getElementById(`btn-${mode}`).classList.add('active');
+                    toggleDrawer(false);
+                    showDateCarousel();
+                    currentMode = 'calendar';
+                }
+            } else {
+                document.querySelectorAll('.capsule-btn').forEach(b => b.classList.remove('active'));
+                document.getElementById(`btn-${mode}`).classList.add('active');
+                hideDateCarousel();
+                currentMode = mode;
+                selectedCalendarDate = (mode === 'today') ? currentTime.toDateString() : addDays(currentTime, 1).toDateString();
+                render(mode);
+            }
+        }
+
+        function toggleDrawer(forceOpen) {
+            const drawer = document.getElementById('list-drawer');
+            const icon = document.getElementById('chevron-icon');
+            const btn = document.getElementById('drawer-btn');
+
+            isDrawerOpen = forceOpen !== undefined ? forceOpen : !isDrawerOpen;
+            const isDesktop = window.matchMedia('(min-width: 768px)').matches;
+
+            if(isDrawerOpen) {
+                // If calendar is open, close it and show mics for selected date
+                if(currentMode === 'calendar') {
+                    hideDateCarousel();
+                    render('calendar');
+                }
+                // Open drawer
+                drawer.classList.remove('drawer-closed', 'drawer-peek');
+                drawer.classList.add('drawer-open');
+                icon.style.transform = 'rotate(180deg)';
+                btn.classList.add('bg-white/10', 'text-white');
+            } else {
+                // Close drawer (desktop: hidden, mobile: peek)
+                drawer.classList.remove('drawer-open');
+                drawer.classList.add(isDesktop ? 'drawer-closed' : 'drawer-peek');
+                icon.style.transform = 'rotate(0deg)';
+                btn.classList.remove('bg-white/10', 'text-white');
+            }
+        }
+
+        // Mobile swipe functionality - swipe up to expand, swipe down to peek (no free dragging)
+        (function setupMobileSwipe() {
+            const header = document.getElementById('drawer-header');
+            let startY = 0;
+            let currentY = 0;
+            let isSwiping = false;
+            const threshold = 30; // Lower threshold for snappier response
+
+            function isMobile() {
+                return window.matchMedia('(max-width: 767px)').matches;
+            }
+
+            header.addEventListener('touchstart', (e) => {
+                if (!isMobile()) return;
+                if (e.target.closest('button') || e.target.closest('a') || e.target.closest('input')) return;
+                startY = e.touches[0].clientY;
+                isSwiping = true;
+            }, { passive: true });
+
+            header.addEventListener('touchmove', (e) => {
+                if (!isSwiping || !isMobile()) return;
+                currentY = e.touches[0].clientY;
+            }, { passive: true });
+
+            header.addEventListener('touchend', () => {
+                if (!isSwiping || !isMobile()) return;
+                isSwiping = false;
+
+                const deltaY = currentY - startY;
+                if (isDrawerOpen && deltaY > threshold) {
+                    toggleDrawer(false); // Collapse to peek
+                } else if (!isDrawerOpen && deltaY < -threshold) {
+                    toggleDrawer(true); // Expand from peek
+                }
+            });
+        })();
+
+        // Track programmatic map moves to avoid showing search button
+        let isProgrammaticMove = false;
+
+        function locateMic(lat, lng, id) {
+            isProgrammaticMove = true;
+            map.flyTo([lat, lng], 15, { duration: 1.2, easeLinearity: 0.25 });
+
+            // Open the marker's tooltip after fly animation completes
+            setTimeout(() => {
+                const marker = markerLookup[id];
+                if (marker) {
+                    marker.openTooltip();
+                }
+            }, 1300); // Slightly longer than fly duration
+        }
+
+        map.on('moveend', () => {
+            if (isProgrammaticMove) {
+                isProgrammaticMove = false;
+            }
+        });
+
+        // --- FILTER FUNCTIONS ---
+        function toggleFilterDropdown(type) {
+            const dropdown = document.getElementById(`dropdown-${type}`);
+            const btn = document.getElementById(`filter-${type}`);
+
+            if (activeFilterDropdown === dropdown) {
+                closeFilterDropdowns();
+                return;
+            }
+            closeFilterDropdowns();
+
+            // Smart alignment for edge cases
+            const rect = btn.getBoundingClientRect();
+            if (rect.left + 160 > window.innerWidth) {
+                dropdown.classList.add('align-right');
+            } else {
+                dropdown.classList.remove('align-right');
+            }
+
+            dropdown.classList.add('show');
+            activeFilterDropdown = dropdown;
+        }
+
+        function closeFilterDropdowns() {
+            document.querySelectorAll('.filter-dropdown').forEach(d => d.classList.remove('show'));
+            activeFilterDropdown = null;
+        }
+
+        function zoomToBorough(borough, animate = true) {
+            const currentTime = new Date();
+            const todayName = dayNames[currentTime.getDay()];
+            const tomorrowName = dayNames[(currentTime.getDay() + 1) % 7];
+
+            // Get mics for current mode
+            let currentMics = mics.filter(m => {
+                if (currentMode === 'today') return m.day === todayName;
+                if (currentMode === 'tomorrow') return m.day === tomorrowName;
+                if (currentMode === 'calendar') {
+                    const selectedDate = new Date(selectedCalendarDate);
+                    return m.day === dayNames[selectedDate.getDay()];
+                }
+                return true;
+            });
+
+            // Filter by borough if not "All"
+            if (borough !== 'All') {
+                currentMics = currentMics.filter(m => m.type === borough);
+            }
+
+            // Calculate bounds from mics
+            if (currentMics.length === 0) {
+                return; // No mics to show
+            } else if (currentMics.length === 1) {
+                // Single mic - zoom directly to it
+                if (animate) {
+                    map.flyTo([currentMics[0].lat, currentMics[0].lng], 16, { duration: 0.8 });
+                } else {
+                    map.setView([currentMics[0].lat, currentMics[0].lng], 16);
+                }
+            } else {
+                // Multiple mics - fit to bounds
+                const lats = currentMics.map(m => m.lat);
+                const lngs = currentMics.map(m => m.lng);
+                const bounds = [
+                    [Math.min(...lats), Math.min(...lngs)],
+                    [Math.max(...lats), Math.max(...lngs)]
+                ];
+                map.fitBounds(bounds, { padding: [50, 50], animate: animate });
+            }
+        }
+
+        function applyFilter(type, value) {
+            activeFilters[type] = value;
+            updateFilterPillUI(type, value);
+            closeFilterDropdowns();
+
+            // Zoom to borough when borough filter is applied
+            if (type === 'borough') {
+                zoomToBorough(value);
+            }
+
+            render(currentMode);
+        }
+
+        // Cycle through filter states (for Price and Time toggles)
+        const filterCycles = {
+            price: ['All', 'Free', 'Paid'],
+            time: ['All', 'early', 'late']
+        };
+
+        function cycleFilter(type) {
+            const cycle = filterCycles[type];
+            const currentIndex = cycle.indexOf(activeFilters[type]);
+            const nextIndex = (currentIndex + 1) % cycle.length;
+            activeFilters[type] = cycle[nextIndex];
+            updateFilterPillUI(type, activeFilters[type]);
+            render(currentMode);
+        }
+
+        function updateFilterPillUI(type, value) {
+            const btn = document.getElementById(`filter-${type}`);
+            const dropdown = document.getElementById(`dropdown-${type}`);
+
+            // Labels for display
+            const labels = {
+                borough: { All: 'Borough', Manhattan: 'Manhattan', Brooklyn: 'Brooklyn', Queens: 'Queens', Bronx: 'Bronx' },
+                price: { All: 'Price', Free: 'Free', Paid: '< $5' },
+                time: { All: 'Time', early: '< 5pm', late: '5pm+' }
+            };
+
+            const label = labels[type][value] || value;
+
+            // Borough keeps dropdown arrow, Price/Time are simple toggles
+            if (type === 'borough') {
+                btn.innerHTML = `${label} <span class="filter-arrow">▼</span>`;
+            } else {
+                btn.textContent = label;
+            }
+
+            btn.classList.toggle('active', value !== 'All');
+
+            // Update selected state in dropdown (only for borough)
+            if (dropdown) {
+                dropdown.querySelectorAll('.filter-option').forEach(opt => {
+                    opt.classList.toggle('selected', opt.textContent.includes(value) ||
+                        (value === 'All' && (opt.textContent.includes('All') || opt.textContent.includes('Any'))));
+                });
+            }
+        }
+
+        function resetFilters() {
+            activeFilters = { borough: 'All', price: 'All', time: 'All' };
+            ['borough', 'price', 'time'].forEach(type => updateFilterPillUI(type, 'All'));
+        }
+
+        // Show all mics - reset filters and zoom out
+        function showAllMics() {
+            resetFilters();
+            closeFilterDropdowns();
+            zoomToBorough('All');
+            render(currentMode);
+        }
+
+        // Close filter dropdowns on outside click
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.filter-group')) {
+                closeFilterDropdowns();
+            }
+        });
+
+        function generateDateCarousel() {
+            const container = document.getElementById('cal-grid');
+            const days = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+
+            for(let i = 0; i < 7; i++) {
+                const date = addDays(now, i);
+                const dayStr = days[date.getDay()];
+                const dateNum = date.getDate();
+                const dateString = date.toDateString();
+
+                const capsule = document.createElement('div');
+                capsule.className = `date-capsule flex-shrink-0 w-14 h-16 rounded-xl transition-all cursor-pointer flex flex-col items-center justify-center text-center text-neutral-400 font-bold bg-black/40 hover:bg-white/10 active:scale-95
+                                     ${dateString === selectedCalendarDate ? 'active-date' : ''}`;
+                capsule.dataset.date = dateString;
+                capsule.onclick = () => selectDate(dateString);
+                capsule.innerHTML = `<span class="text-xs uppercase">${dayStr}</span><span class="text-2xl mt-0.5 leading-none text-white">${dateNum}</span>`;
+                container.appendChild(capsule);
+            }
+            // Add active date styles
+            const style = document.createElement('style');
+            style.innerHTML = `.date-capsule.active-date { background: var(--rose); color: white !important; box-shadow: 0 0 15px var(--rose-glow); } .date-capsule.active-date span { color: white !important; }`;
+            document.head.appendChild(style);
+        }
+
+        // --------------------------------------------------------
+        // ENHANCED SEARCH FUNCTIONALITY
+        // --------------------------------------------------------
+        let userLocation = null;
+        const SEARCH_HISTORY_KEY = 'micfinder_search_history';
+
+        // Get user location
+        function getUserLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        userLocation = {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude
+                        };
+                        console.log('User location:', userLocation);
+                    },
+                    (error) => {
+                        console.log('Geolocation error:', error);
+                    }
+                );
+            }
+        }
+
+        // User location marker
+        let userMarker = null;
+
+        // Center map on user's location
+        function centerOnUser() {
+            const btn = document.getElementById('locate-btn');
+
+            if (userLocation) {
+                // We have location - fly to it
+                isProgrammaticMove = true;
+                map.flyTo([userLocation.lat, userLocation.lng], 14, { duration: 1 });
+                btn.classList.add('active');
+
+                // Add/update user marker
+                if (userMarker) {
+                    userMarker.setLatLng([userLocation.lat, userLocation.lng]);
+                } else {
+                    userMarker = L.circleMarker([userLocation.lat, userLocation.lng], {
+                        radius: 8,
+                        fillColor: '#3b82f6',
+                        fillOpacity: 1,
+                        color: 'white',
+                        weight: 3
+                    }).addTo(map);
+                }
+
+                // Remove active state after animation
+                setTimeout(() => btn.classList.remove('active'), 1500);
+            } else {
+                // Request location
+                if (navigator.geolocation) {
+                    btn.style.opacity = '0.5';
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            userLocation = {
+                                lat: position.coords.latitude,
+                                lng: position.coords.longitude
+                            };
+                            btn.style.opacity = '1';
+                            centerOnUser(); // Recurse now that we have location
+                        },
+                        (error) => {
+                            btn.style.opacity = '1';
+                            console.log('Location denied:', error);
+                            alert('Unable to get your location. Please enable location services.');
+                        },
+                        { enableHighAccuracy: true, timeout: 10000 }
+                    );
+                } else {
+                    alert('Geolocation is not supported by your browser.');
+                }
+            }
+        }
+
+        // Calculate distance between two points (Haversine formula)
+        function calculateDistance(lat1, lng1, lat2, lng2) {
+            const R = 3959; // Earth's radius in miles
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLng = (lng2 - lng1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLng/2) * Math.sin(dLng/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+        }
+
+        // Format distance
+        function formatDistance(miles) {
+            if (miles < 0.1) return `${Math.round(miles * 5280)} ft`;
+            if (miles < 10) return `${miles.toFixed(1)} mi`;
+            return `${Math.round(miles)} mi`;
+        }
+
+        // Get search history from localStorage
+        function getSearchHistory() {
+            try {
+                return JSON.parse(localStorage.getItem(SEARCH_HISTORY_KEY)) || [];
+            } catch {
+                return [];
+            }
+        }
+
+        // Save search to history
+        function saveToSearchHistory(query) {
+            if (!query.trim()) return;
+            let history = getSearchHistory();
+            // Remove if exists, add to front
+            history = history.filter(h => h.toLowerCase() !== query.toLowerCase());
+            history.unshift(query);
+            // Keep only last 5
+            history = history.slice(0, 5);
+            localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(history));
+        }
+
+        // Remove item from history
+        function removeFromHistory(query) {
+            let history = getSearchHistory();
+            history = history.filter(h => h !== query);
+            localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(history));
+            showSearchHistory();
+        }
+
+        // Clear all history
+        function clearSearchHistory() {
+            localStorage.removeItem(SEARCH_HISTORY_KEY);
+            showSearchHistory();
+        }
+
+        // Get status for a mic
+        function getMicStatus(mic) {
+            const diffMins = (mic.start - new Date()) / 60000;
+            if (diffMins > -90 && diffMins <= 0) return { label: 'Live', class: 'status-live' };
+            if (diffMins > 0 && diffMins <= 60) return { label: 'Soon', class: 'status-soon' };
+            if (diffMins > 60 && diffMins <= 120) return { label: '1-2 hr', class: 'status-soon' };
+            return { label: mic.timeStr, class: 'status-upcoming' };
+        }
+
+        // Fuzzy match score (lower is better, -1 means no match)
+        function fuzzyMatch(text, query) {
+            text = text.toLowerCase();
+            query = query.toLowerCase();
+
+            // Exact match
+            if (text.includes(query)) return 0;
+
+            // Check if all characters appear in order (fuzzy)
+            let textIndex = 0;
+            let matchCount = 0;
+            for (let i = 0; i < query.length; i++) {
+                const char = query[i];
+                const foundIndex = text.indexOf(char, textIndex);
+                if (foundIndex !== -1) {
+                    matchCount++;
+                    textIndex = foundIndex + 1;
+                }
+            }
+
+            // Need at least 70% of characters to match in order
+            if (matchCount / query.length >= 0.7) {
+                return 1 + (query.length - matchCount); // Score based on missing chars
+            }
+
+            // Levenshtein distance for short queries
+            if (query.length <= 8) {
+                const distance = levenshteinDistance(text.substring(0, Math.min(text.length, query.length + 3)), query);
+                if (distance <= Math.ceil(query.length * 0.4)) { // Allow ~40% errors
+                    return 2 + distance;
+                }
+            }
+
+            return -1; // No match
+        }
+
+        // Levenshtein distance calculation
+        function levenshteinDistance(a, b) {
+            const matrix = [];
+            for (let i = 0; i <= b.length; i++) {
+                matrix[i] = [i];
+            }
+            for (let j = 0; j <= a.length; j++) {
+                matrix[0][j] = j;
+            }
+            for (let i = 1; i <= b.length; i++) {
+                for (let j = 1; j <= a.length; j++) {
+                    if (b.charAt(i - 1) === a.charAt(j - 1)) {
+                        matrix[i][j] = matrix[i - 1][j - 1];
+                    } else {
+                        matrix[i][j] = Math.min(
+                            matrix[i - 1][j - 1] + 1,
+                            matrix[i][j - 1] + 1,
+                            matrix[i - 1][j] + 1
+                        );
+                    }
+                }
+            }
+            return matrix[b.length][a.length];
+        }
+
+        // Highlight matching text
+        function highlightMatch(text, query) {
+            if (!query) return text;
+            const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+            return text.replace(regex, '<mark>$1</mark>');
+        }
+
+        // Show search dropdown
+        function showSearchDropdown() {
+            document.getElementById('search-dropdown').classList.remove('hidden');
+            document.getElementById('list-drawer').classList.add('drawer-hidden');
+        }
+
+        // Hide search dropdown
+        function hideSearchDropdown() {
+            document.getElementById('search-dropdown').classList.add('hidden');
+            document.getElementById('list-drawer').classList.remove('drawer-hidden');
+        }
+
+        // Show search history (only when search bar is focused)
+        function showSearchHistory() {
+            const history = getSearchHistory();
+            const historySection = document.getElementById('search-history-section');
+            const historyList = document.getElementById('search-history-list');
+            const resultsSection = document.getElementById('search-results-section');
+
+            resultsSection.classList.add('hidden');
+
+            if (history.length === 0) {
+                historySection.classList.add('hidden');
+                hideSearchDropdown();
+                return;
+            }
+
+            historySection.classList.remove('hidden');
+            showSearchDropdown();
+
+            // Use data attributes instead of inline onclick to prevent XSS
+            historyList.innerHTML = history.map(query => `
+                <div class="history-item" data-history-query="${encodeURIComponent(query)}">
+                    <div class="history-item-left">
+                        <svg class="w-4 h-4 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span class="text-sm text-white">${query}</span>
+                    </div>
+                    <button class="history-item-remove">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            `).join('');
+
+            // Attach event listeners safely (no inline JS)
+            historyList.querySelectorAll('.history-item').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    if (!e.target.closest('.history-item-remove')) {
+                        selectHistoryItem(decodeURIComponent(item.dataset.historyQuery));
+                    }
+                });
+            });
+            historyList.querySelectorAll('.history-item-remove').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const query = decodeURIComponent(btn.closest('.history-item').dataset.historyQuery);
+                    removeFromHistory(query);
+                });
+            });
+        }
+
+        // Show all mics in dropdown (when clicking off search bar)
+        function showAllMicsDropdown() {
+            const resultsSection = document.getElementById('search-results-section');
+            const resultsList = document.getElementById('search-results-list');
+            const historySection = document.getElementById('search-history-section');
+
+            historySection.classList.add('hidden');
+            resultsSection.classList.remove('hidden');
+            showSearchDropdown();
+
+            // Get mics for current mode, sorted by time
+            const currentTime = new Date(); // Fresh timestamp for accurate calculations
+            let filtered = mics.filter(m => {
+                // Skip mics with no valid start time
+                if (!m.start) return false;
+
+                const micDateStr = m.start.toDateString();
+                const todayStr = currentTime.toDateString();
+                const tmrwStr = addDays(currentTime, 1).toDateString();
+                const diffMins = (m.start - currentTime) / 60000;
+
+                // Skip past mics
+                if (diffMins < -60) return false;
+
+                if (currentMode === 'today' && micDateStr !== todayStr) return false;
+                if (currentMode === 'tomorrow' && micDateStr !== tmrwStr) return false;
+                if (currentMode === 'calendar' && micDateStr !== selectedCalendarDate) return false;
+                return true;
+            });
+
+            // Add distance if user location available
+            if (userLocation) {
+                filtered = filtered.map(m => ({
+                    ...m,
+                    distance: calculateDistance(userLocation.lat, userLocation.lng, m.lat, m.lng)
+                }));
+            }
+
+            // Limit display
+            filtered = filtered.slice(0, 10);
+
+            if (filtered.length === 0) {
+                resultsList.innerHTML = `<div class="p-4 text-center text-neutral-500 text-sm">No mics found</div>`;
+                return;
+            }
+
+            // Use data attributes for consistency with other click handlers
+            resultsList.innerHTML = filtered.map(mic => {
+                const status = getMicStatus(mic);
+                const distanceStr = mic.distance ? formatDistance(mic.distance) : '';
+                const iconBg = (mic.status === 'live' || mic.status === 'urgent') ? 'bg-rose-500/20' :
+                               (mic.status === 'soon' ? 'bg-amber-500/20' : 'bg-white/10');
+                const iconColor = (mic.status === 'live' || mic.status === 'urgent') ? 'text-rose-500' :
+                                  (mic.status === 'soon' ? 'text-amber-500' : 'text-neutral-400');
+
+                return `
+                    <div class="search-item" data-mic-id="${mic.id}">
+                        <div class="search-item-icon ${iconBg}">
+                            <svg class="w-4 h-4 ${iconColor}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                        </div>
+                        <div class="search-item-content">
+                            <div class="search-item-title">${mic.title}</div>
+                            <div class="search-item-subtitle">
+                                <span>${mic.hood}</span>
+                                <span>·</span>
+                                <span>${mic.type}</span>
+                            </div>
+                        </div>
+                        <div class="search-item-meta">
+                            <span class="search-item-status ${status.class}">${status.label}</span>
+                            ${distanceStr ? `<span class="search-item-distance">${distanceStr}</span>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Attach event listeners safely (no inline JS)
+            resultsList.querySelectorAll('.search-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    selectSearchResultDirect(item.dataset.micId);
+                });
+            });
+        }
+
+        // Select search result without saving to history
+        function selectSearchResultDirect(micId) {
+            hideSearchDropdown();
+
+            const mic = mics.find(m => m.id === micId);
+            if (mic) {
+                isProgrammaticMove = true;
+                map.flyTo([mic.lat, mic.lng], 15, { duration: 1 });
+                if(!isDrawerOpen) toggleDrawer(true);
+                setTimeout(() => {
+                    const card = document.getElementById(`card-${micId}`);
+                    if (card) {
+                        card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }, 150);
+            }
+        }
+
+        // Select history item
+        function selectHistoryItem(query) {
+            document.getElementById('search-input').value = query;
+            performSearch(query);
+        }
+
+        // Perform search
+        function performSearch(query) {
+            // Truncate very long queries to prevent performance issues
+            if (query.length > 100) query = query.substring(0, 100);
+
+            const resultsSection = document.getElementById('search-results-section');
+            const resultsList = document.getElementById('search-results-list');
+            const historySection = document.getElementById('search-history-section');
+
+            if (!query.trim()) {
+                resultsSection.classList.add('hidden');
+                showSearchHistory();
+                render(currentMode);
+                return;
+            }
+
+            historySection.classList.add('hidden');
+            resultsSection.classList.remove('hidden');
+            showSearchDropdown();
+
+            // Filter mics by query with fuzzy matching
+            // Title matches are weighted higher than neighborhood matches
+            let results = mics.map(m => {
+                const titleScore = fuzzyMatch(m.title, query);
+                const hoodScore = fuzzyMatch(m.hood, query);
+                // Add penalty for hood-only matches so title matches rank higher
+                const adjustedTitleScore = titleScore === -1 ? 999 : titleScore;
+                const adjustedHoodScore = hoodScore === -1 ? 999 : hoodScore + 0.5;
+                const bestScore = Math.min(adjustedTitleScore, adjustedHoodScore);
+                return { ...m, matchScore: bestScore };
+            }).filter(m => m.matchScore < 999);
+
+            // Sort by match score first, then by distance if available
+            if (userLocation) {
+                results = results.map(m => ({
+                    ...m,
+                    distance: calculateDistance(userLocation.lat, userLocation.lng, m.lat, m.lng)
+                }));
+                results.sort((a, b) => {
+                    if (a.matchScore !== b.matchScore) return a.matchScore - b.matchScore;
+                    return a.distance - b.distance;
+                });
+            } else {
+                results.sort((a, b) => a.matchScore - b.matchScore);
+            }
+
+            // Limit to 8 results
+            results = results.slice(0, 8);
+
+            if (results.length === 0) {
+                resultsList.innerHTML = `<div class="p-4 text-center text-neutral-500 text-sm">No venues found</div>`;
+                return;
+            }
+
+            // Use data attributes instead of inline onclick to prevent XSS
+            const encodedQuery = encodeURIComponent(query);
+            resultsList.innerHTML = results.map(mic => {
+                const status = getMicStatus(mic);
+                const distanceStr = mic.distance ? formatDistance(mic.distance) : '';
+                const iconBg = (mic.status === 'live' || mic.status === 'urgent') ? 'bg-rose-500/20' :
+                               (mic.status === 'soon' ? 'bg-amber-500/20' : 'bg-white/10');
+                const iconColor = (mic.status === 'live' || mic.status === 'urgent') ? 'text-rose-500' :
+                                  (mic.status === 'soon' ? 'text-amber-500' : 'text-neutral-400');
+
+                return `
+                    <div class="search-item" data-mic-id="${mic.id}" data-search-query="${encodedQuery}">
+                        <div class="search-item-icon ${iconBg}">
+                            <svg class="w-4 h-4 ${iconColor}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                        </div>
+                        <div class="search-item-content">
+                            <div class="search-item-title">${highlightMatch(mic.title, query)}</div>
+                            <div class="search-item-subtitle">
+                                <span>${mic.hood}</span>
+                                <span>·</span>
+                                <span>${mic.type}</span>
+                            </div>
+                        </div>
+                        <div class="search-item-meta">
+                            <span class="search-item-status ${status.class}">${status.label}</span>
+                            ${distanceStr ? `<span class="search-item-distance">${distanceStr}</span>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Attach event listeners safely (no inline JS)
+            resultsList.querySelectorAll('.search-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const micId = item.dataset.micId;
+                    const searchQuery = decodeURIComponent(item.dataset.searchQuery);
+                    selectSearchResult(micId, searchQuery);
+                });
+            });
+        }
+
+        // Select search result
+        function selectSearchResult(micId, query) {
+            saveToSearchHistory(query);
+            hideSearchDropdown();
+
+            const mic = mics.find(m => m.id === micId);
+            if (mic) {
+                // Fly to mic on map
+                isProgrammaticMove = true;
+                map.flyTo([mic.lat, mic.lng], 15, { duration: 1 });
+
+                // Open drawer and scroll to card
+                if(!isDrawerOpen) toggleDrawer(true);
+                setTimeout(() => {
+                    const card = document.getElementById(`card-${micId}`);
+                    if (card) {
+                        card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }, 150);
+            }
+
+            // Clear search input
+            document.getElementById('search-input').value = '';
+            render(currentMode);
+        }
+
+        // Search input event listeners
+        const searchInput = document.getElementById('search-input');
+        let searchTimeout = null;
+
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value;
+
+            // Immediate UI feedback (no delay)
+            hideDateCarousel();
+            if(!isDrawerOpen) toggleDrawer(true);
+
+            // Show loading state immediately if there's a query
+            if (query.trim()) {
+                const resultsSection = document.getElementById('search-results-section');
+                const resultsList = document.getElementById('search-results-list');
+                const historySection = document.getElementById('search-history-section');
+                historySection.classList.add('hidden');
+                resultsSection.classList.remove('hidden');
+                resultsList.innerHTML = '<div class="p-4 text-center text-neutral-500 text-sm">Searching...</div>';
+                showSearchDropdown();
+            }
+
+            // Debounce search to prevent lag on fast typing
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                performSearch(query);
+
+                // Only render main list if dropdown is hidden (user isn't browsing results)
+                if (document.getElementById('search-dropdown').classList.contains('hidden')) {
+                    render(currentMode);
+                }
+            }, 300);
+        });
+
+        // Track search input focus state
+        let isSearchFocused = false;
+
+        searchInput.addEventListener('focus', () => {
+            isSearchFocused = true;
+            const query = searchInput.value;
+            if (query) {
+                performSearch(query);
+            }
+            // Don't show anything on empty focus - user must type to search
+        });
+
+        searchInput.addEventListener('blur', () => {
+            isSearchFocused = false;
+        });
+
+        // Handle clicks - hide dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            const dropdown = document.getElementById('search-dropdown');
+            const searchBar = document.querySelector('.glass-panel');
+
+            // Clicked outside search area - hide dropdown
+            if (!dropdown.contains(e.target) && !searchBar.contains(e.target)) {
+                hideSearchDropdown();
+            }
+        });
+
+        // Handle orientation change - recalculate drawer height
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => {
+                map.invalidateSize();
+                if (isDrawerOpen) toggleDrawer(true);
+            }, 100);
+        });
+
+        // Initialize
+        // Initialize drawer state based on screen size
+        (function initDrawerState() {
+            const drawer = document.getElementById('list-drawer');
+            const isDesktop = window.matchMedia('(min-width: 768px)').matches;
+            drawer.classList.add(isDesktop ? 'drawer-closed' : 'drawer-peek');
+        })();
+
+        getUserLocation();
+        generateDateCarousel();
+        loadData(); // Load mics from JSON and render
+    </script>
+</body>
+</html>

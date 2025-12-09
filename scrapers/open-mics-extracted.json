@@ -1,0 +1,75 @@
+[
+  {
+    "source": "Stand Up NY",
+    "name": "Let's Go Mental - Open Mic",
+    "date": "Thu Dec 11",
+    "time": "Thu Dec 11\n5:00 PM",
+    "venue": "Stand Up NY",
+    "address": "236 W 78th St, New York, NY 10024",
+    "link": "https://standupny.com/upcoming-shows/#/events/161588",
+    "type": "open_mic"
+  },
+  {
+    "source": "Stand Up NY",
+    "name": "Let's Go Mental - Open Mic",
+    "date": "Thu Dec 11",
+    "time": "Thu Dec 11\n5:00 PM",
+    "venue": "Stand Up NY",
+    "address": "236 W 78th St, New York, NY 10024",
+    "link": "https://standupny.com/upcoming-shows/",
+    "type": "open_mic"
+  },
+  {
+    "source": "Stand Up NY",
+    "name": "Let's Go Mental - Open Mic",
+    "date": "Thu Dec 18",
+    "time": "Thu Dec 18\n5:00 PM",
+    "venue": "Stand Up NY",
+    "address": "236 W 78th St, New York, NY 10024",
+    "link": "https://standupny.com/upcoming-shows/#/events/161597",
+    "type": "open_mic"
+  },
+  {
+    "source": "Stand Up NY",
+    "name": "Let's Go Mental - Open Mic",
+    "date": "Thu Dec 18",
+    "time": "Thu Dec 18\n5:00 PM",
+    "venue": "Stand Up NY",
+    "address": "236 W 78th St, New York, NY 10024",
+    "link": "https://standupny.com/upcoming-shows/",
+    "type": "open_mic"
+  },
+  {
+    "source": "Comedy Shop NYC",
+    "name": "Comedy Shop Open Mic",
+    "date": "Daily",
+    "time": "Multiple times",
+    "venue": "The Comedy Shop",
+    "address": "167 Bleecker St, New York, NY 10012",
+    "link": "https://comedyshopnyc.com/events/",
+    "type": "open_mic",
+    "notes": "Check website for daily schedule"
+  },
+  {
+    "source": "Laughing Buddha Comedy",
+    "name": "Laughing Buddha Open Mics",
+    "date": "Daily",
+    "time": "Multiple venues/times",
+    "venue": "Various NYC venues",
+    "address": "Multiple locations",
+    "link": "https://www.laughingbuddhacomedy.com/mics",
+    "type": "open_mic",
+    "notes": "Book through their website - $6-7, multiple venues daily"
+  },
+  {
+    "source": "Comedians on the Loose",
+    "name": "COTL Open Mics",
+    "date": "Check website",
+    "time": "Various",
+    "venue": "Various NYC venues",
+    "address": "Multiple locations",
+    "link": "https://www.comediansontheloose.com/open-mics",
+    "type": "open_mic",
+    "notes": "Multiple mics throughout the week"
+  }
+]

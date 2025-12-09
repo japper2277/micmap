@@ -1,0 +1,686 @@
+================================================================================
+REAL-TIME MTA TRANSIT INTEGRATION PLAN
+================================================================================
+Grade: 78/100 (Good feature, moderate complexity, some unknowns)
+
+REVISED APPROACH (12/9/25): Alerts-First MVP
+--------------------------------------------
+Ship alerts banner first (high value, low effort), then incrementally
+add live arrivals starting with top 10 stations.
+
+Key refinements:
+- Fuzzy-match script for GTFS stop IDs instead of manual mapping
+- Parent station IDs (R16) vs platform IDs (R16N/R16S) handling
+- Dismissible alerts with sessionStorage
+- 60-second buffer for "boarding now" trains
+
+================================================================================
+WHAT WE'RE ADDING
+================================================================================
+
+FEATURE 1: Service Alerts Banner
+--------------------------------
+When: Always visible if there are delays affecting visible venues
+What: "⚠️ L train delays - expect +10 min" banner at top of list
+Cost: FREE (1 API call every 90 sec, cached)
+
+FEATURE 2: Live Arrivals in Venue Details
+-----------------------------------------
+When: User taps a venue card to expand it
+What: "Next L train: 3 min, 11 min" under the venue
+Cost: FREE (1 API call per line when user expands card)
+
+================================================================================
+SYSTEM ARCHITECTURE
+================================================================================
+
+Current Flow:
+┌──────────┐    ┌──────────┐    ┌──────────────────┐
+│  User    │───>│ Frontend │───>│ Pre-computed     │
+│ searches │    │          │    │ transit_data.json│
+└──────────┘    └──────────┘    └──────────────────┘
+                                        │
+                                        v
+                               "24 min to venue"
+
+New Flow:
+┌──────────┐    ┌──────────┐    ┌──────────────────┐
+│  User    │───>│ Frontend │───>│ Pre-computed     │
+│ searches │    │          │    │ transit_data.json│
+└──────────┘    └──────────┘    └──────────────────┘
+                     │                  │
+                     │                  v
+                     │         "24 min to venue"
+                     │
+                     v
+              ┌──────────────┐    ┌─────────────────┐
+              │   Backend    │───>│ MTA GTFS-RT     │
+              │   /api/mta/* │    │ (8 feeds)       │
+              └──────────────┘    └─────────────────┘
+                     │
+                     v
+              "L train: 3 min, 11 min"
+              "⚠️ Signal delays"
+
+================================================================================
+BACKEND IMPLEMENTATION
+================================================================================
+
+FILE: /api/routes/mta.js (NEW)
+
+```javascript
+const express = require('express');
+const router = express.Router();
+const GtfsRealtimeBindings = require('gtfs-realtime-bindings');
+
+// ============================================================================
+// CONSTANTS
+// ============================================================================
+
+const MTA_BASE = 'https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds';
+
+const FEED_MAP = {
+    '1': 'nyct%2Fgtfs', '2': 'nyct%2Fgtfs', '3': 'nyct%2Fgtfs',
+    '4': 'nyct%2Fgtfs', '5': 'nyct%2Fgtfs', '6': 'nyct%2Fgtfs',
+    'S': 'nyct%2Fgtfs',
+    'A': 'nyct%2Fgtfs-ace', 'C': 'nyct%2Fgtfs-ace', 'E': 'nyct%2Fgtfs-ace',
+    'N': 'nyct%2Fgtfs-nqrw', 'Q': 'nyct%2Fgtfs-nqrw',
+    'R': 'nyct%2Fgtfs-nqrw', 'W': 'nyct%2Fgtfs-nqrw',
+    'B': 'nyct%2Fgtfs-bdfm', 'D': 'nyct%2Fgtfs-bdfm',
+    'F': 'nyct%2Fgtfs-bdfm', 'M': 'nyct%2Fgtfs-bdfm',
+    'L': 'nyct%2Fgtfs-l',
+    'G': 'nyct%2Fgtfs-g',
+    'J': 'nyct%2Fgtfs-jz', 'Z': 'nyct%2Fgtfs-jz',
+    '7': 'nyct%2Fgtfs-7'
+};
+
+const ALERTS_URL = `${MTA_BASE}/camsys%2Fsubway-alerts`;
+
+// In-memory cache
+const cache = {
+    alerts: { data: null, timestamp: 0 },
+    feeds: {}  // { 'L': { data: null, timestamp: 0 }, ... }
+};
+
+const CACHE_TTL = {
+    alerts: 90 * 1000,    // 90 seconds
+    feed: 30 * 1000       // 30 seconds
+};
+
+// ============================================================================
+// HELPER: Fetch and decode GTFS-RT feed
+// ============================================================================
+
+async function fetchGtfsRt(url) {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`MTA API error: ${response.status}`);
+
+    const buffer = await response.arrayBuffer();
+    const feed = GtfsRealtimeBindings.transit_realtime.FeedMessage.decode(
+        new Uint8Array(buffer)
+    );
+    return feed;
+}
+
+// ============================================================================
+// ENDPOINT 1: GET /api/mta/alerts
+// Returns active service alerts for all lines
+// ============================================================================
+
+router.get('/alerts', async (req, res) => {
+    try {
+        // Check cache
+        if (cache.alerts.data && Date.now() - cache.alerts.timestamp < CACHE_TTL.alerts) {
+            return res.json(cache.alerts.data);
+        }
+
+        const feed = await fetchGtfsRt(ALERTS_URL);
+
+        const alerts = [];
+        feed.entity.forEach(entity => {
+            if (entity.alert) {
+                const alert = entity.alert;
+
+                // Extract affected routes
+                const routes = [];
+                alert.informedEntity?.forEach(ie => {
+                    if (ie.routeId) routes.push(ie.routeId);
+                });
+
+                // Get header text
+                const headerText = alert.headerText?.translation?.[0]?.text || '';
+
+                // Determine severity
+                let severity = 'info';
+                if (headerText.toLowerCase().includes('delay')) severity = 'warning';
+                if (headerText.toLowerCase().includes('suspended')) severity = 'error';
+
+                if (routes.length > 0 && headerText) {
+                    alerts.push({
+                        id: entity.id,
+                        routes,
+                        header: headerText,
+                        severity,
+                        activePeriod: alert.activePeriod
+                    });
+                }
+            }
+        });
+
+        // Cache and return
+        cache.alerts = { data: { alerts, timestamp: Date.now() }, timestamp: Date.now() };
+        res.json(cache.alerts.data);
+
+    } catch (error) {
+        console.error('MTA alerts error:', error);
+        res.status(500).json({ error: 'Failed to fetch alerts' });
+    }
+});
+
+// ============================================================================
+// ENDPOINT 2: GET /api/mta/arrivals/:line/:stopId
+// Returns next arrivals for a specific station
+// Example: GET /api/mta/arrivals/L/L17N (Jefferson St northbound)
+// ============================================================================
+
+router.get('/arrivals/:line/:stopId', async (req, res) => {
+    try {
+        const { line, stopId } = req.params;
+        const feedSuffix = FEED_MAP[line.toUpperCase()];
+
+        if (!feedSuffix) {
+            return res.status(400).json({ error: `Unknown line: ${line}` });
+        }
+
+        // Check cache
+        const cacheKey = line.toUpperCase();
+        if (cache.feeds[cacheKey]?.data &&
+            Date.now() - cache.feeds[cacheKey].timestamp < CACHE_TTL.feed) {
+            // Use cached feed data
+            const arrivals = extractArrivals(cache.feeds[cacheKey].data, stopId);
+            return res.json({ arrivals, cached: true });
+        }
+
+        // Fetch fresh data
+        const feedUrl = `${MTA_BASE}/${feedSuffix}`;
+        const feed = await fetchGtfsRt(feedUrl);
+
+        // Cache the raw feed
+        cache.feeds[cacheKey] = { data: feed, timestamp: Date.now() };
+
+        const arrivals = extractArrivals(feed, stopId);
+        res.json({ arrivals, cached: false });
+
+    } catch (error) {
+        console.error('MTA arrivals error:', error);
+        res.status(500).json({ error: 'Failed to fetch arrivals' });
+    }
+});
+
+function extractArrivals(feed, stopId) {
+    const now = Date.now() / 1000;
+    const arrivals = [];
+
+    feed.entity.forEach(entity => {
+        if (entity.tripUpdate) {
+            const trip = entity.tripUpdate.trip;
+
+            entity.tripUpdate.stopTimeUpdate?.forEach(stu => {
+                // Match both exact stopId and opposite direction
+                const baseStopId = stopId.slice(0, -1); // Remove N/S suffix
+                if (stu.stopId?.startsWith(baseStopId)) {
+                    const arrivalTime = stu.arrival?.time?.low || stu.arrival?.time;
+                    // 60-second buffer for "boarding now" trains
+                    if (arrivalTime && arrivalTime > (now - 60)) {
+                        const minsAway = Math.round((arrivalTime - now) / 60);
+                        if (minsAway <= 30) { // Only show trains within 30 min
+                            arrivals.push({
+                                line: trip.routeId,
+                                direction: stu.stopId.endsWith('N') ? 'uptown' : 'downtown',
+                                minsAway: Math.max(0, minsAway), // Show "0 min" for boarding
+                                arrivalTime: new Date(arrivalTime * 1000).toISOString()
+                            });
+                        }
+                    }
+                }
+            });
+        }
+    });
+
+    // Sort by arrival time and limit to 6 trains
+    arrivals.sort((a, b) => a.minsAway - b.minsAway);
+    return arrivals.slice(0, 6);
+}
+
+// ============================================================================
+// ENDPOINT 3: GET /api/mta/station/:stationName
+// Convenience endpoint - looks up stop IDs by station name
+// ============================================================================
+
+router.get('/station/:stationName', async (req, res) => {
+    // This would need a static GTFS stops.txt mapping
+    // For MVP, we can hardcode the stations we care about
+    res.json({
+        message: 'Not implemented - use stopId directly',
+        example: '/api/mta/arrivals/L/L17N'
+    });
+});
+
+module.exports = router;
+```
+
+FILE: /api/server.js (MODIFY)
+
+```javascript
+// Add to existing server.js
+const mtaRoutes = require('./routes/mta');
+app.use('/api/mta', mtaRoutes);
+```
+
+DEPENDENCIES TO ADD:
+
+```bash
+npm install gtfs-realtime-bindings
+```
+
+================================================================================
+DATA CHANGES NEEDED
+================================================================================
+
+FILE: transit_data.json (MODIFY)
+
+Need to add GTFS stop IDs and lines to each station:
+
+CURRENT:
+```json
+{
+  "id": "subway_30",
+  "name": "Bedford Av (L)",
+  "lat": 40.7173,
+  "lng": -73.95687,
+  "borough": "Brooklyn"
+}
+```
+
+NEW:
+```json
+{
+  "id": "subway_30",
+  "name": "Bedford Av (L)",
+  "lat": 40.7173,
+  "lng": -73.95687,
+  "borough": "Brooklyn",
+  "lines": ["L"],
+  "gtfsStopIds": {
+    "L": { "N": "L08N", "S": "L08S" }
+  }
+}
+```
+
+HOW TO GET GTFS STOP IDS:
+1. Download MTA GTFS Static: https://transitfeeds.com/p/mta/79
+2. Parse stops.txt - maps stop_name to stop_id
+3. Match with our station names
+4. Add to transit_data.json
+
+ESTIMATED EFFORT: 2-3 hours (one-time data enrichment)
+
+================================================================================
+FRONTEND IMPLEMENTATION
+================================================================================
+
+FILE: /js/mta-realtime.js (NEW)
+
+```javascript
+const mtaService = {
+    alertsCache: null,
+    alertsCacheTime: 0,
+
+    // Fetch alerts (cached for 90 sec)
+    async getAlerts() {
+        if (this.alertsCache && Date.now() - this.alertsCacheTime < 90000) {
+            return this.alertsCache;
+        }
+
+        try {
+            const res = await fetch(`${CONFIG.apiBase}/api/mta/alerts`);
+            if (!res.ok) throw new Error('Failed to fetch alerts');
+            const data = await res.json();
+            this.alertsCache = data.alerts;
+            this.alertsCacheTime = Date.now();
+            return data.alerts;
+        } catch (e) {
+            console.error('MTA alerts error:', e);
+            return [];
+        }
+    },
+
+    // Get alerts for specific lines
+    getAlertsForLines(lines) {
+        if (!this.alertsCache) return [];
+        return this.alertsCache.filter(alert =>
+            alert.routes.some(r => lines.includes(r))
+        );
+    },
+
+    // Fetch arrivals for a station
+    async getArrivals(line, stopId) {
+        try {
+            const res = await fetch(`${CONFIG.apiBase}/api/mta/arrivals/${line}/${stopId}`);
+            if (!res.ok) throw new Error('Failed to fetch arrivals');
+            const data = await res.json();
+            return data.arrivals;
+        } catch (e) {
+            console.error('MTA arrivals error:', e);
+            return [];
+        }
+    }
+};
+```
+
+FILE: /js/render.js (MODIFY)
+
+```javascript
+// Add to renderMicCard function:
+
+function renderMicCard(mic) {
+    // ... existing code ...
+
+    // Get nearest station info
+    const nearestStation = getNearestStationForVenue(mic);
+
+    let arrivalsHtml = '';
+    if (nearestStation?.gtfsStopIds) {
+        // Show placeholder, fetch on expand
+        arrivalsHtml = `
+            <div class="arrivals-container" data-station='${JSON.stringify(nearestStation)}'>
+                <div class="arrivals-loading">Loading train times...</div>
+            </div>
+        `;
+    }
+
+    return `
+        <div class="mic-card" data-id="${mic.id}">
+            <!-- existing card content -->
+            ${arrivalsHtml}
+        </div>
+    `;
+}
+
+// Add click handler to fetch arrivals on expand
+async function onCardExpand(card) {
+    const container = card.querySelector('.arrivals-container');
+    if (!container) return;
+
+    const station = JSON.parse(container.dataset.station);
+    const arrivals = [];
+
+    // Fetch arrivals for each line at this station
+    for (const line of station.lines) {
+        const stopIds = station.gtfsStopIds[line];
+        if (stopIds) {
+            const lineArrivals = await mtaService.getArrivals(line, stopIds.N);
+            arrivals.push(...lineArrivals);
+        }
+    }
+
+    // Sort and render
+    arrivals.sort((a, b) => a.minsAway - b.minsAway);
+    container.innerHTML = renderArrivals(arrivals);
+}
+
+function renderArrivals(arrivals) {
+    if (arrivals.length === 0) {
+        return '<div class="no-arrivals">No trains scheduled</div>';
+    }
+
+    return `
+        <div class="arrivals-list">
+            ${arrivals.slice(0, 4).map(a => `
+                <div class="arrival-row">
+                    <span class="train-badge train-${a.line}">${a.line}</span>
+                    <span class="direction">${a.direction}</span>
+                    <span class="mins">${a.minsAway} min</span>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+```
+
+FILE: /css/styles.css (ADD)
+
+```css
+/* Service Alerts Banner */
+.alerts-banner {
+    background: #fff3cd;
+    border-left: 4px solid #ffc107;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    font-size: 13px;
+}
+
+.alerts-banner.error {
+    background: #f8d7da;
+    border-color: #dc3545;
+}
+
+/* Train Arrivals */
+.arrivals-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px 0;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    margin-top: 8px;
+}
+
+.arrival-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+}
+
+.train-badge {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 11px;
+    color: white;
+}
+
+/* MTA Line Colors */
+.train-L { background: #a7a9ac; }
+.train-G { background: #6cbe45; }
+.train-J, .train-Z { background: #996633; }
+.train-N, .train-Q, .train-R, .train-W { background: #fccc0a; color: black; }
+.train-A, .train-C, .train-E { background: #2850ad; }
+.train-B, .train-D, .train-F, .train-M { background: #ff6319; }
+.train-1, .train-2, .train-3 { background: #ee352e; }
+.train-4, .train-5, .train-6 { background: #00933c; }
+.train-7 { background: #b933ad; }
+
+.direction {
+    color: rgba(255,255,255,0.6);
+    flex: 1;
+}
+
+.mins {
+    font-weight: 600;
+}
+```
+
+================================================================================
+GTFS STOP ID MAPPING
+================================================================================
+
+This is the tedious part. Each station needs GTFS stop IDs.
+
+SAMPLE MAPPINGS (for your 14 completed stations):
+
+| Station Name                    | Line(s) | Northbound | Southbound |
+|---------------------------------|---------|------------|------------|
+| Astoria-Ditmars Blvd (N W)      | N, W    | N01N       | N01S       |
+| 57 St-7 Av (N Q R W)            | N,Q,R,W | R14N       | R14S       |
+| 49 St (N R W)                   | N, R, W | R15N       | R15S       |
+| 34 St-Herald Sq (N Q R W)       | N,Q,R,W | R17N       | R17S       |
+| 28 St (R W)                     | R, W    | R18N       | R18S       |
+| 14 St-Union Sq (N Q R W)        | N,Q,R,W | R20N       | R20S       |
+| 8 St-NYU (R W)                  | R, W    | R21N       | R21S       |
+| Court St (R)                    | R       | R28N       | R28S       |
+| Jay St-MetroTech (R)            | R       | R29N       | R29S       |
+| Atlantic Av-Barclays Ctr (D N R)| D,N,R   | R31N       | R31S       |
+| 4 Av-9 St (R)                   | R       | R33N       | R33S       |
+| Prospect Av (R)                 | R       | R34N       | R34S       |
+| 25 St (R)                       | R       | R35N       | R35S       |
+
+AUTOMATION SCRIPT NEEDED:
+```javascript
+// Script to enrich transit_data.json with GTFS stop IDs
+// Would parse stops.txt and match by station name + lat/lng
+```
+
+================================================================================
+IMPLEMENTATION PHASES (REVISED)
+================================================================================
+
+*** SHIP ALERTS FIRST, THEN INCREMENTALLY ADD ARRIVALS ***
+
+PHASE 1: Backend Proxy + Alerts Endpoint
+----------------------------------------
+- [ ] Create /api/routes/mta.js
+- [ ] Add gtfs-realtime-bindings dependency
+- [ ] Implement /api/mta/alerts endpoint ONLY
+- [ ] Add 90-second caching
+- [ ] Test with curl
+
+PHASE 2: Frontend Alerts Integration
+------------------------------------
+- [ ] Create mtaService in mta-realtime.js (alerts only)
+- [ ] Fetch alerts on app load
+- [ ] Display dismissible alerts banner
+- [ ] Store dismissed alert IDs in sessionStorage
+- [ ] Filter alerts by lines serving visible venues
+
+>>> SHIP IT <<<
+
+PHASE 3: GTFS Stop ID Mapping (Later)
+-------------------------------------
+- [ ] Download MTA GTFS static data (stops.txt)
+- [ ] Write fuzzy-match script against transit_data.json station names
+- [ ] Auto-match ~80% of stations
+- [ ] Manually verify ambiguous stations (~10-15)
+- [ ] Store parent station IDs (R16), handle N/S suffix in query logic
+
+PHASE 4: Live Arrivals - Top 10 Stations First
+----------------------------------------------
+- [ ] Implement /api/mta/arrivals/:line/:stopId endpoint
+- [ ] Add 30-second feed caching
+- [ ] Start with top 10 most popular venue stations
+- [ ] Add arrivals container to venue cards
+- [ ] Fetch arrivals on card expand
+- [ ] Render train badges with MTA colors
+
+PHASE 5: Expand Arrivals Coverage
+---------------------------------
+- [ ] Add remaining 87 stations incrementally
+- [ ] Handle complex multi-line stations (Times Sq, etc.)
+- [ ] Handle edge cases (no trains, API down)
+- [ ] Performance optimization
+
+================================================================================
+RISKS & MITIGATIONS
+================================================================================
+
+RISK 1: MTA API Reliability
+---------------------------
+- MTA feeds occasionally go down
+- Mitigation: Cache aggressively, show "unavailable" gracefully
+- Fallback: Hide arrivals section, rely on pre-computed times
+
+RISK 2: Stop ID Matching
+------------------------
+- Station names may not match exactly between our data and MTA GTFS
+- Mitigation: Manual verification of all 97 stations
+- Fallback: Only show arrivals for verified stations
+
+RISK 3: Complex Stations
+------------------------
+- Some stations serve multiple lines with different stop IDs
+- Example: Times Square has 7 different stop IDs
+- Mitigation: Store all stop IDs per station, query multiple
+
+RISK 4: Performance
+-------------------
+- GTFS-RT decoding is CPU-intensive
+- Mitigation: Do decoding on backend, cache results
+- Frontend only receives clean JSON
+
+================================================================================
+GRADE BREAKDOWN: 78/100
+================================================================================
+
+Value Added: 22/25
+- Real-time arrivals are genuinely useful
+- Alerts can prevent wasted trips
+- Differentiates from competitors
+
+Technical Complexity: 18/25
+- Protocol Buffers adds complexity
+- GTFS stop ID mapping is tedious
+- Caching strategy is straightforward
+
+Risk Level: 20/25
+- MTA API is free but not 100% reliable
+- Stop ID matching could have errors
+- Not critical path (pre-computed times still work)
+
+Time vs Benefit: 18/25
+- 14 hours is significant investment
+- Could be spent on other features
+- Nice-to-have, not must-have
+
+RECOMMENDATION:
+---------------
+Build this AFTER completing the pre-computed matrix (83 remaining stations).
+The matrix gives commute estimates for FREE.
+Real-time arrivals add polish but aren't essential for MVP.
+
+================================================================================
+DECISION: ALERTS-FIRST MVP
+================================================================================
+
+CHOSEN APPROACH: Alerts Only first, then incremental arrivals
+
+WHY THIS IS THE RIGHT CALL:
+┌─────────────────────┬─────────────────────┐
+│ Alerts MVP          │ Full Arrivals       │
+├─────────────────────┼─────────────────────┤
+│ 1 endpoint          │ 3+ endpoints        │
+│ No stop ID mapping  │ 97 station mappings │
+│ Static GTFS not     │ Must parse stops.txt│
+│   needed            │                     │
+│ High user value     │ Higher value but    │
+│   immediately       │   delayed           │
+│ Validates backend   │ Complex data work   │
+│   architecture      │   first             │
+└─────────────────────┴─────────────────────┘
+
+ALERTS PROVIDE IMMEDIATE VALUE:
+- "Don't go to Bushwick, the L is down"
+- Prevents wasted trips
+- Zero data enrichment needed
+- Validates our backend proxy pattern
+
+THEN EXPAND INCREMENTALLY:
+1. Ship alerts
+2. Fuzzy-match script for stop IDs (converts manual work to review work)
+3. Add arrivals for top 10 stations
+4. Expand coverage based on usage
+
+================================================================================

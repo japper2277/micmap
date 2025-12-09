@@ -1,0 +1,218 @@
+================================================================================
+NYC OPEN MIC SCRAPING - PROJECT NOTES
+================================================================================
+Created: December 7, 2025
+Project: MicFinder NYC (micmap)
+
+================================================================================
+CURRENT DATA
+================================================================================
+
+Main database: api/mics.json
+- 298 open mics across NYC
+- Fields: id, name, day, startTime, endTime, venue, borough, neighborhood,
+  address, cost, stageTime, signup, contact, notes, lat, lng
+- All entries are geocoded with lat/lng coordinates
+
+Signup links extracted: mic-signup-links.txt (12 unique URLs)
+
+================================================================================
+SITES ANALYZED
+================================================================================
+
+1. SLOTTED.CO
+   -----------
+   URLs: /seshopenmics, /wednesdaymic, /gig-mic, /yve9r1gg
+
+   Status: SCRAPEABLE (with Puppeteer)
+   - Uses Cloudflare protection (blocks simple curl/fetch)
+   - Puppeteer bypasses Cloudflare successfully
+   - Returns full event data: dates, times, available slots, signups
+
+   Scraper: scrapers/slotted-scraper.js
+
+   Legal considerations:
+   - No public API
+   - Free app = low risk
+   - Paid app = medium risk (should get permission or just link to them)
+   - Best approach: Link to Slotted for signups, don't copy slot data
+
+2. THE PIT NYC ✅ WORKING
+   ----------------------
+   URL: https://thepit-nyc.com/calendar/
+   Address: 154 W 29th St, New York, NY 10001
+
+   Status: FULLY WORKING
+   - WordPress site with clean HTML calendar
+   - Easy to parse
+   - Excellent data structure
+
+   Scraper: scrapers/pit-scraper.js
+   Output: scrapers/pit-events.json
+
+   Found 38 open mics & jams:
+   - Monday: OPEN MIC! w/ Obi O'Brien (4:30pm), Musical Jam (10pm)
+   - Wednesday: Show MIC (4pm), Scene Jam (10pm)
+   - Thursday: IN N' OUT IMPROV JAM (6pm)
+   - Friday: Feel-GOOD IMPROV JAM (5pm), CHARACTER COUNTS OPEN MIC (6:30pm)
+   - Saturday: Ladies Stand-Up! Open Mic (6:30pm)
+   - Sunday: SUNDAY JAM (8:30pm)
+
+   Legal: LOW RISK - They want promotion
+
+3. STAND UP NY
+   -----------
+   URL: https://standupny.com/upcoming-shows/
+   Address: 236 W 78th St, New York, NY 10024
+
+   Status: SCRAPEABLE
+   - Uses VenuePilot platform (account ID: 2535)
+   - Events load via JavaScript
+   - Puppeteer works
+
+   Found: "Let's Go Mental" open mic - Thursdays 5pm
+
+   Next step: Could query VenuePilot API directly
+   Legal: LOW RISK
+
+4. COMEDY SHOP NYC
+   ----------------
+   URL: https://comedyshopnyc.com/events/
+   Address: 167 Bleecker St, New York, NY 10012
+
+   Status: SCRAPEABLE
+   - Simple HTML structure
+   - Uses Waivermaster for ticketing
+   - Daily shows, multiple time slots
+
+   Next step: Parse daily schedule from HTML
+   Legal: LOW RISK
+
+5. LAUGHING BUDDHA COMEDY
+   ----------------------
+   URL: https://www.laughingbuddhacomedy.com/mics
+
+   Status: PARTIAL
+   - Squarespace site
+   - /mics page only shows guidelines, not schedule
+   - Actual bookings through their booking system
+   - Need to find calendar/schedule page
+
+   Known info: $6-7 per mic, multiple venues daily
+
+   Next step: Find their actual schedule page or scrape booking flow
+   Legal: LOW RISK
+
+6. COMEDIANS ON THE LOOSE
+   ----------------------
+   URL: https://www.comediansontheloose.com/open-mics
+
+   Status: DIFFICULT
+   - Wix site (heavy JavaScript rendering)
+   - Event data loads dynamically after page render
+   - Puppeteer works but extraction is tricky
+
+   Next step: Wait longer for Wix to render, better selectors
+   Legal: LOW RISK
+
+7. F COMEDY CLUB
+   -------------
+   URL: https://www.fcomedyclub.com/open-mics-calendar/
+
+   Status: DEAD
+   - Redirects to funystandup.com which returns 404
+   - Site may have moved or shut down
+
+   Next step: Remove from list or find new URL
+
+================================================================================
+LEGAL SUMMARY
+================================================================================
+
+SAFE TO SCRAPE (venue sites that want promotion):
+- The PIT NYC
+- Stand Up NY
+- Comedy Shop NYC
+- Laughing Buddha
+- Comedians on the Loose
+
+GRAY AREA (platforms):
+- Slotted.co - OK for free app, risky for paid app
+
+DO NOT SCRAPE:
+- Instagram - Meta actively sues scrapers, sophisticated detection
+
+For a PAID APP:
+- Best approach: Contact sources for permission or data partnership
+- Alternative: Only use signup LINKS (don't scrape actual data)
+- Safest: Let mic hosts submit their own data directly to your app
+
+================================================================================
+FILES CREATED
+================================================================================
+
+scrapers/
+├── slotted-scraper.js      # Slotted.co scraper (Puppeteer)
+├── slotted-screenshot.png  # Debug screenshot
+├── scrape-all.js           # Multi-site scraper (all 5 venues)
+├── scraped-mics.json       # Raw output from all scrapers
+├── extract-open-mics.js    # Parser to extract just open mics
+├── open-mics-extracted.json
+├── open-mics-list.txt
+├── pit-scraper.js          # The PIT dedicated scraper ✅
+└── pit-events.json         # The PIT events output ✅
+
+mic-signup-links.txt        # All signup URLs from mics.json
+
+================================================================================
+NEXT STEPS
+================================================================================
+
+IMMEDIATE (to complete scraping):
+1. [ ] Stand Up NY - Query VenuePilot API or refine Puppeteer scraper
+2. [ ] Comedy Shop NYC - Parse daily schedule HTML
+3. [ ] Laughing Buddha - Find actual schedule page
+4. [ ] Comedians on the Loose - Better Wix parsing
+
+INTEGRATION:
+5. [ ] Create merge script to combine scraped data with mics.json
+6. [ ] Add "source" field to track where data came from
+7. [ ] Add "lastUpdated" timestamp field
+8. [ ] Geocode any new venues (need lat/lng for map)
+
+AUTOMATION:
+9. [ ] Set up daily cron job to run scrapers
+10. [ ] Add error notifications if scraper fails
+11. [ ] Create diff report to show what changed
+
+DATA QUALITY:
+12. [ ] Audit existing mics.json for stale/incorrect data
+13. [ ] Fix St. Mark's Comedy Club address (shows midtown, should be East Village)
+14. [ ] Normalize cost field format
+
+ARCHITECTURE (if scaling):
+15. [ ] Move to server-side scraping (not client)
+16. [ ] Consider SQLite or Postgres instead of JSON file
+17. [ ] Build admin UI for manual data entry/corrections
+18. [ ] API endpoint for mic hosts to submit their own data
+
+================================================================================
+DEPENDENCIES
+================================================================================
+
+Installed:
+- puppeteer (for browser automation)
+
+Node version: Check with `node -v`
+Run scrapers: `node scrapers/pit-scraper.js`
+
+================================================================================
+CONTACTS TO REACH OUT TO
+================================================================================
+
+For data partnerships or API access:
+- Slotted.co - Ask about read-only API for mic aggregator
+- Laughing Buddha - Ask for calendar feed or data export
+- Individual mic hosts - Offer to list their mics with link back
+
+================================================================================

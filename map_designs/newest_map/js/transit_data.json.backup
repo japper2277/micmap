@@ -1,0 +1,2593 @@
+{
+  "meta": {
+    "generated_at": "2025-12-08T19:23:32.132Z",
+    "venue_count": 91,
+    "cluster_count": 71,
+    "origin_station_count": 97
+  },
+  "venue_map": {
+    "mic_0": 0,
+    "mic_1": 1,
+    "mic_2": 2,
+    "mic_3": 3,
+    "mic_4": 4,
+    "mic_5": 5,
+    "mic_6": 6,
+    "mic_7": 7,
+    "mic_8": 8,
+    "mic_9": 9,
+    "mic_10": 10,
+    "mic_11": 11,
+    "mic_12": 12,
+    "mic_13": 13,
+    "mic_14": 14,
+    "mic_15": 15,
+    "mic_16": 16,
+    "mic_17": 12,
+    "mic_18": 17,
+    "mic_19": 7,
+    "mic_20": 18,
+    "mic_21": 19,
+    "mic_22": 20,
+    "mic_23": 21,
+    "mic_24": 22,
+    "mic_25": 23,
+    "mic_26": 7,
+    "mic_27": 18,
+    "mic_28": 24,
+    "mic_29": 25,
+    "mic_30": 22,
+    "mic_31": 26,
+    "mic_32": 27,
+    "mic_33": 28,
+    "mic_34": 29,
+    "mic_35": 30,
+    "mic_36": 31,
+    "mic_37": 20,
+    "mic_38": 32,
+    "mic_39": 33,
+    "mic_40": 34,
+    "mic_41": 35,
+    "mic_42": 36,
+    "mic_43": 37,
+    "mic_44": 38,
+    "mic_45": 39,
+    "mic_46": 40,
+    "mic_47": 41,
+    "mic_48": 42,
+    "mic_49": 35,
+    "mic_50": 37,
+    "mic_51": 43,
+    "mic_52": 37,
+    "mic_53": 34,
+    "mic_54": 44,
+    "mic_55": 45,
+    "mic_56": 40,
+    "mic_57": 46,
+    "mic_58": 45,
+    "mic_59": 47,
+    "mic_60": 43,
+    "mic_61": 37,
+    "mic_62": 43,
+    "mic_63": 48,
+    "mic_64": 49,
+    "mic_65": 50,
+    "mic_66": 51,
+    "mic_67": 40,
+    "mic_68": 46,
+    "mic_69": 38,
+    "mic_70": 52,
+    "mic_71": 53,
+    "mic_72": 33,
+    "mic_73": 54,
+    "mic_74": 55,
+    "mic_75": 56,
+    "mic_76": 57,
+    "mic_77": 58,
+    "mic_78": 59,
+    "mic_79": 60,
+    "mic_80": 59,
+    "mic_81": 61,
+    "mic_82": 62,
+    "mic_83": 63,
+    "mic_84": 64,
+    "mic_85": 65,
+    "mic_86": 66,
+    "mic_87": 67,
+    "mic_88": 68,
+    "mic_89": 69,
+    "mic_90": 70
+  },
+  "slug_map": {
+    "ininebistro": 0,
+    "alligatorlounge": 1,
+    "alphaville": 2,
+    "alphavillebar": 3,
+    "bklynmadecomedy": 4,
+    "blockhillstation": 5,
+    "brandedsaloon": 6,
+    "brooklynarthaus": 7,
+    "brooklyncomedycollective": 8,
+    "brooklyndreamsjuicelounge": 9,
+    "bushwickcomedyclub": 10,
+    "caffeineunderground": 11,
+    "cobraclub": 12,
+    "communebk": 13,
+    "cornerstorebk": 14,
+    "eastvillecomedyclub": 15,
+    "easyloverbk": 16,
+    "echobravo": 12,
+    "fictionbar": 17,
+    "flophousecomedyclub": 7,
+    "freddys": 18,
+    "goodjudy": 19,
+    "gutterbar": 20,
+    "halyards": 21,
+    "hellphone": 22,
+    "islandribhouse": 23,
+    "isola": 7,
+    "logansrunbar": 18,
+    "okeefesbar": 24,
+    "petescandystore": 25,
+    "pineboxrockshop": 22,
+    "roserrbar": 26,
+    "secondcityblackbox": 27,
+    "secretpour": 28,
+    "starrbar": 29,
+    "talonbar": 30,
+    "thedailypress": 31,
+    "thegutterwilliamsburg": 20,
+    "thetinycupboard": 32,
+    "blackcatles": 33,
+    "broadwaycomedyclub": 34,
+    "caravanofdreams": 35,
+    "comedyinharlem": 36,
+    "comedyshop": 37,
+    "comedyvillage": 38,
+    "comicstriplive": 39,
+    "eastpointbar": 40,
+    "enochs": 41,
+    "fearcitycomedyclub": 42,
+    "frigidtheater": 35,
+    "greenwichvillagecomedyclub": 37,
+    "greymare": 43,
+    "grislypear": 37,
+    "grislypearmidtown": 34,
+    "harlemnightsbar": 44,
+    "hoteledison": 45,
+    "housewatch": 40,
+    "idahobar": 46,
+    "janicesapt": 45,
+    "judyzs": 47,
+    "kgbbar": 43,
+    "luxorlounge": 37,
+    "newyorkcomedyclubeastvillage": 43,
+    "newyorkcomedyclubmidtown": 48,
+    "nycsuitebar": 49,
+    "ohcraftbeerharlem": 50,
+    "oneandone": 51,
+    "phoenixbar": 40,
+    "phoenixbaravenuea": 46,
+    "producersclub": 38,
+    "pubkey": 52,
+    "rodneys": 53,
+    "seshcomedy": 33,
+    "skyboxsportsbargrill": 54,
+    "sohoplayhouse": 55,
+    "stmarkscomedyclub": 56,
+    "stellafly": 57,
+    "stumbleinn": 58,
+    "taramor": 59,
+    "thebuddharoom": 60,
+    "thepitmidtown": 59,
+    "thestand": 61,
+    "tommyfigz": 62,
+    "ucb": 63,
+    "westsidecomedyclub": 64,
+    "coolbeanscoffee": 65,
+    "grove34": 66,
+    "qedastoria": 67,
+    "sangerhall": 68,
+    "scorpionrecords": 69,
+    "windjammer": 70
+  },
+  "clusters": [
+    {
+      "id": 0,
+      "lat": 40.80675,
+      "lng": -73.92668,
+      "borough": "Bronx",
+      "name": "Cluster 0 (iNINE Bistro)",
+      "venues": [
+        "iNINE Bistro"
+      ]
+    },
+    {
+      "id": 1,
+      "lat": 40.71391,
+      "lng": -73.94892,
+      "borough": "Brooklyn",
+      "name": "Cluster 1 (Alligator Lounge)",
+      "venues": [
+        "Alligator Lounge"
+      ]
+    },
+    {
+      "id": 2,
+      "lat": 40.69801,
+      "lng": -73.92527,
+      "borough": "Brooklyn",
+      "name": "Cluster 2 (Alphaville)",
+      "venues": [
+        "Alphaville"
+      ]
+    },
+    {
+      "id": 3,
+      "lat": 40.70053,
+      "lng": -73.92582,
+      "borough": "Brooklyn",
+      "name": "Cluster 3 (Alphaville Bar)",
+      "venues": [
+        "Alphaville Bar"
+      ]
+    },
+    {
+      "id": 4,
+      "lat": 40.69398,
+      "lng": -73.9074,
+      "borough": "Brooklyn",
+      "name": "Cluster 4 (BKLYN Made Comedy)",
+      "venues": [
+        "BKLYN Made Comedy"
+      ]
+    },
+    {
+      "id": 5,
+      "lat": 40.66054,
+      "lng": -73.99457,
+      "borough": "Brooklyn",
+      "name": "Cluster 5 (Block Hill Station)",
+      "venues": [
+        "Block Hill Station"
+      ]
+    },
+    {
+      "id": 6,
+      "lat": 40.67925,
+      "lng": -73.96808,
+      "borough": "Brooklyn",
+      "name": "Cluster 6 (Branded Saloon)",
+      "venues": [
+        "Branded Saloon"
+      ]
+    },
+    {
+      "id": 7,
+      "lat": 40.71328,
+      "lng": -73.95553,
+      "borough": "Brooklyn",
+      "name": "Cluster 7 (Brooklyn Art Haus)",
+      "venues": [
+        "Brooklyn Art Haus",
+        "Flop House Comedy Club",
+        "Isola"
+      ]
+    },
+    {
+      "id": 8,
+      "lat": 40.70774,
+      "lng": -73.94343,
+      "borough": "Brooklyn",
+      "name": "Cluster 8 (Brooklyn Comedy Collective)",
+      "venues": [
+        "Brooklyn Comedy Collective"
+      ]
+    },
+    {
+      "id": 9,
+      "lat": 40.69102,
+      "lng": -73.92491,
+      "borough": "Brooklyn",
+      "name": "Cluster 9 (Brooklyn Dreams Juice Lounge)",
+      "venues": [
+        "Brooklyn Dreams Juice Lounge"
+      ]
+    },
+    {
+      "id": 10,
+      "lat": 40.702,
+      "lng": -73.92995,
+      "borough": "Brooklyn",
+      "name": "Cluster 10 (Bushwick Comedy Club)",
+      "venues": [
+        "Bushwick Comedy Club"
+      ]
+    },
+    {
+      "id": 11,
+      "lat": 40.69224,
+      "lng": -73.91449,
+      "borough": "Brooklyn",
+      "name": "Cluster 11 (Caffeine Underground)",
+      "venues": [
+        "Caffeine Underground"
+      ]
+    },
+    {
+      "id": 12,
+      "lat": 40.70731,
+      "lng": -73.92258,
+      "borough": "Brooklyn",
+      "name": "Cluster 12 (Cobra Club)",
+      "venues": [
+        "Cobra Club",
+        "Echo Bravo"
+      ]
+    },
+    {
+      "id": 13,
+      "lat": 40.68683,
+      "lng": -73.95937,
+      "borough": "Brooklyn",
+      "name": "Cluster 13 (Commune BK)",
+      "venues": [
+        "Commune BK"
+      ]
+    },
+    {
+      "id": 14,
+      "lat": 40.67151,
+      "lng": -73.9502,
+      "borough": "Brooklyn",
+      "name": "Cluster 14 (Corner Store BK)",
+      "venues": [
+        "Corner Store BK"
+      ]
+    },
+    {
+      "id": 15,
+      "lat": 40.68591,
+      "lng": -73.98162,
+      "borough": "Brooklyn",
+      "name": "Cluster 15 (Eastville Comedy Club)",
+      "venues": [
+        "Eastville Comedy Club"
+      ]
+    },
+    {
+      "id": 16,
+      "lat": 40.71456,
+      "lng": -73.94255,
+      "borough": "Brooklyn",
+      "name": "Cluster 16 (Easy Lover BK)",
+      "venues": [
+        "Easy Lover BK"
+      ]
+    },
+    {
+      "id": 17,
+      "lat": 40.70732,
+      "lng": -73.95372,
+      "borough": "Brooklyn",
+      "name": "Cluster 17 (Fiction Bar)",
+      "venues": [
+        "Fiction Bar"
+      ]
+    },
+    {
+      "id": 18,
+      "lat": 40.66274,
+      "lng": -73.99184,
+      "borough": "Brooklyn",
+      "name": "Cluster 18 (Freddy's)",
+      "venues": [
+        "Freddy's",
+        "Logan's Run Bar"
+      ]
+    },
+    {
+      "id": 19,
+      "lat": 40.66524,
+      "lng": -73.98927,
+      "borough": "Brooklyn",
+      "name": "Cluster 19 (Good Judy)",
+      "venues": [
+        "Good Judy"
+      ]
+    },
+    {
+      "id": 20,
+      "lat": 40.72274,
+      "lng": -73.95548,
+      "borough": "Brooklyn",
+      "name": "Cluster 20 (Gutter Bar)",
+      "venues": [
+        "Gutter Bar",
+        "The Gutter Williamsburg"
+      ]
+    },
+    {
+      "id": 21,
+      "lat": 40.67326,
+      "lng": -73.98974,
+      "borough": "Brooklyn",
+      "name": "Cluster 21 (Halyards)",
+      "venues": [
+        "Halyards"
+      ]
+    },
+    {
+      "id": 22,
+      "lat": 40.70473,
+      "lng": -73.93342,
+      "borough": "Brooklyn",
+      "name": "Cluster 22 (Hell Phone)",
+      "venues": [
+        "Hell Phone",
+        "Pine Box Rock Shop"
+      ]
+    },
+    {
+      "id": 23,
+      "lat": 40.6763,
+      "lng": -73.94963,
+      "borough": "Brooklyn",
+      "name": "Cluster 23 (Island Ribhouse)",
+      "venues": [
+        "Island Ribhouse"
+      ]
+    },
+    {
+      "id": 24,
+      "lat": 40.69203,
+      "lng": -73.99142,
+      "borough": "Brooklyn",
+      "name": "Cluster 24 (O'Keefe's Bar)",
+      "venues": [
+        "O'Keefe's Bar"
+      ]
+    },
+    {
+      "id": 25,
+      "lat": 40.71809,
+      "lng": -73.95029,
+      "borough": "Brooklyn",
+      "name": "Cluster 25 (Pete's Candy Store)",
+      "venues": [
+        "Pete's Candy Store"
+      ]
+    },
+    {
+      "id": 26,
+      "lat": 40.71912,
+      "lng": -73.94542,
+      "borough": "Brooklyn",
+      "name": "Cluster 26 (Rose R&R Bar)",
+      "venues": [
+        "Rose R&R Bar"
+      ]
+    },
+    {
+      "id": 27,
+      "lat": 40.72077,
+      "lng": -73.95965,
+      "borough": "Brooklyn",
+      "name": "Cluster 27 (Second City BlackBox)",
+      "venues": [
+        "Second City BlackBox"
+      ]
+    },
+    {
+      "id": 28,
+      "lat": 40.69373,
+      "lng": -73.92986,
+      "borough": "Brooklyn",
+      "name": "Cluster 28 (Secret Pour)",
+      "venues": [
+        "Secret Pour"
+      ]
+    },
+    {
+      "id": 29,
+      "lat": 40.70497,
+      "lng": -73.92291,
+      "borough": "Brooklyn",
+      "name": "Cluster 29 (Starr Bar)",
+      "venues": [
+        "Starr Bar"
+      ]
+    },
+    {
+      "id": 30,
+      "lat": 40.7011,
+      "lng": -73.91437,
+      "borough": "Brooklyn",
+      "name": "Cluster 30 (Talon Bar)",
+      "venues": [
+        "Talon Bar"
+      ]
+    },
+    {
+      "id": 31,
+      "lat": 40.67871,
+      "lng": -73.91074,
+      "borough": "Brooklyn",
+      "name": "Cluster 31 (The Daily Press)",
+      "venues": [
+        "The Daily Press"
+      ]
+    },
+    {
+      "id": 32,
+      "lat": 40.68369,
+      "lng": -73.91121,
+      "borough": "Brooklyn",
+      "name": "Cluster 32 (The Tiny Cupboard)",
+      "venues": [
+        "The Tiny Cupboard"
+      ]
+    },
+    {
+      "id": 33,
+      "lat": 40.71908,
+      "lng": -73.99129,
+      "borough": "Manhattan",
+      "name": "Cluster 33 (Black Cat LES)",
+      "venues": [
+        "Black Cat LES",
+        "Sesh Comedy"
+      ]
+    },
+    {
+      "id": 34,
+      "lat": 40.76449,
+      "lng": -73.9845,
+      "borough": "Manhattan",
+      "name": "Cluster 34 (Broadway Comedy Club)",
+      "venues": [
+        "Broadway Comedy Club",
+        "Grisly Pear Midtown"
+      ]
+    },
+    {
+      "id": 35,
+      "lat": 40.72683,
+      "lng": -73.98522,
+      "borough": "Manhattan",
+      "name": "Cluster 35 (Caravan of Dreams)",
+      "venues": [
+        "Caravan of Dreams",
+        "FRIGID Theater"
+      ]
+    },
+    {
+      "id": 36,
+      "lat": 40.82551,
+      "lng": -73.94335,
+      "borough": "Manhattan",
+      "name": "Cluster 36 (Comedy in Harlem)",
+      "venues": [
+        "Comedy in Harlem"
+      ]
+    },
+    {
+      "id": 37,
+      "lat": 40.72952,
+      "lng": -74.00062,
+      "borough": "Manhattan",
+      "name": "Cluster 37 (Comedy Shop)",
+      "venues": [
+        "Comedy Shop",
+        "Greenwich Village Comedy Club",
+        "Grisly Pear",
+        "Luxor Lounge"
+      ]
+    },
+    {
+      "id": 38,
+      "lat": 40.75941,
+      "lng": -73.99128,
+      "borough": "Manhattan",
+      "name": "Cluster 38 (Comedy Village)",
+      "venues": [
+        "Comedy Village",
+        "Producer's Club"
+      ]
+    },
+    {
+      "id": 39,
+      "lat": 40.77486,
+      "lng": -73.9537,
+      "borough": "Manhattan",
+      "name": "Cluster 39 (Comic Strip Live)",
+      "venues": [
+        "Comic Strip Live"
+      ]
+    },
+    {
+      "id": 40,
+      "lat": 40.72288,
+      "lng": -73.98282,
+      "borough": "Manhattan",
+      "name": "Cluster 40 (Eastpoint Bar)",
+      "venues": [
+        "Eastpoint Bar",
+        "Housewatch",
+        "Phoenix Bar"
+      ]
+    },
+    {
+      "id": 41,
+      "lat": 40.75625,
+      "lng": -73.9977,
+      "borough": "Manhattan",
+      "name": "Cluster 41 (Enoch's)",
+      "venues": [
+        "Enoch's"
+      ]
+    },
+    {
+      "id": 42,
+      "lat": 40.71526,
+      "lng": -73.99016,
+      "borough": "Manhattan",
+      "name": "Cluster 42 (Fear City Comedy Club)",
+      "venues": [
+        "Fear City Comedy Club"
+      ]
+    },
+    {
+      "id": 43,
+      "lat": 40.7264,
+      "lng": -73.98984,
+      "borough": "Manhattan",
+      "name": "Cluster 43 (Grey Mare)",
+      "venues": [
+        "Grey Mare",
+        "KGB Bar",
+        "New York Comedy Club East Village"
+      ]
+    },
+    {
+      "id": 44,
+      "lat": 40.81722,
+      "lng": -73.94197,
+      "borough": "Manhattan",
+      "name": "Cluster 44 (Harlem Nights Bar)",
+      "venues": [
+        "Harlem Nights Bar"
+      ]
+    },
+    {
+      "id": 45,
+      "lat": 40.75976,
+      "lng": -73.98686,
+      "borough": "Manhattan",
+      "name": "Cluster 45 (Hotel Edison)",
+      "venues": [
+        "Hotel Edison",
+        "Janice's apt"
+      ]
+    },
+    {
+      "id": 46,
+      "lat": 40.73046,
+      "lng": -73.98226,
+      "borough": "Manhattan",
+      "name": "Cluster 46 (Idaho Bar)",
+      "venues": [
+        "Idaho Bar",
+        "Phoenix Bar Avenue A"
+      ]
+    },
+    {
+      "id": 47,
+      "lat": 40.72971,
+      "lng": -74.00485,
+      "borough": "Manhattan",
+      "name": "Cluster 47 (Judy Z's)",
+      "venues": [
+        "Judy Z's"
+      ]
+    },
+    {
+      "id": 48,
+      "lat": 40.73892,
+      "lng": -73.98081,
+      "borough": "Manhattan",
+      "name": "Cluster 48 (New York Comedy Club Midtown)",
+      "venues": [
+        "New York Comedy Club Midtown"
+      ]
+    },
+    {
+      "id": 49,
+      "lat": 40.80265,
+      "lng": -73.96459,
+      "borough": "Manhattan",
+      "name": "Cluster 49 (NYC Suite Bar)",
+      "venues": [
+        "NYC Suite Bar"
+      ]
+    },
+    {
+      "id": 50,
+      "lat": 40.82594,
+      "lng": -73.94687,
+      "borough": "Manhattan",
+      "name": "Cluster 50 (Oh Craft Beer Harlem)",
+      "venues": [
+        "Oh Craft Beer Harlem"
+      ]
+    },
+    {
+      "id": 51,
+      "lat": 40.72325,
+      "lng": -73.98815,
+      "borough": "Manhattan",
+      "name": "Cluster 51 (One and One)",
+      "venues": [
+        "One and One"
+      ]
+    },
+    {
+      "id": 52,
+      "lat": 40.73219,
+      "lng": -74.00002,
+      "borough": "Manhattan",
+      "name": "Cluster 52 (Pubkey)",
+      "venues": [
+        "Pubkey"
+      ]
+    },
+    {
+      "id": 53,
+      "lat": 40.76104,
+      "lng": -73.96062,
+      "borough": "Manhattan",
+      "name": "Cluster 53 (Rodney's)",
+      "venues": [
+        "Rodney's"
+      ]
+    },
+    {
+      "id": 54,
+      "lat": 40.79559,
+      "lng": -73.93607,
+      "borough": "Manhattan",
+      "name": "Cluster 54 (SkyBox Sports Bar & Grill)",
+      "venues": [
+        "SkyBox Sports Bar & Grill"
+      ]
+    },
+    {
+      "id": 55,
+      "lat": 40.72645,
+      "lng": -74.00438,
+      "borough": "Manhattan",
+      "name": "Cluster 55 (Soho Playhouse)",
+      "venues": [
+        "Soho Playhouse"
+      ]
+    },
+    {
+      "id": 56,
+      "lat": 40.72902,
+      "lng": -73.98932,
+      "borough": "Manhattan",
+      "name": "Cluster 56 (St. Marks Comedy Club)",
+      "venues": [
+        "St. Marks Comedy Club"
+      ]
+    },
+    {
+      "id": 57,
+      "lat": 40.77856,
+      "lng": -73.94859,
+      "borough": "Manhattan",
+      "name": "Cluster 57 (Stella & Fly)",
+      "venues": [
+        "Stella & Fly"
+      ]
+    },
+    {
+      "id": 58,
+      "lat": 40.77121,
+      "lng": -73.95639,
+      "borough": "Manhattan",
+      "name": "Cluster 58 (Stumble Inn)",
+      "venues": [
+        "Stumble Inn"
+      ]
+    },
+    {
+      "id": 59,
+      "lat": 40.74774,
+      "lng": -73.99209,
+      "borough": "Manhattan",
+      "name": "Cluster 59 (Tara Mor)",
+      "venues": [
+        "Tara Mor",
+        "The Pit Midtown"
+      ]
+    },
+    {
+      "id": 60,
+      "lat": 40.74988,
+      "lng": -73.99474,
+      "borough": "Manhattan",
+      "name": "Cluster 60 (The Buddha Room)",
+      "venues": [
+        "The Buddha Room"
+      ]
+    },
+    {
+      "id": 61,
+      "lat": 40.73534,
+      "lng": -73.98846,
+      "borough": "Manhattan",
+      "name": "Cluster 61 (The Stand)",
+      "venues": [
+        "The Stand"
+      ]
+    },
+    {
+      "id": 62,
+      "lat": 40.7685,
+      "lng": -73.9835,
+      "borough": "Manhattan",
+      "name": "Cluster 62 (Tommy Figz)",
+      "venues": [
+        "Tommy Figz"
+      ]
+    },
+    {
+      "id": 63,
+      "lat": 40.73287,
+      "lng": -73.98536,
+      "borough": "Manhattan",
+      "name": "Cluster 63 (UCB)",
+      "venues": [
+        "UCB"
+      ]
+    },
+    {
+      "id": 64,
+      "lat": 40.78082,
+      "lng": -73.98051,
+      "borough": "Manhattan",
+      "name": "Cluster 64 (West Side Comedy Club)",
+      "venues": [
+        "West Side Comedy Club"
+      ]
+    },
+    {
+      "id": 65,
+      "lat": 40.74862,
+      "lng": -73.91307,
+      "borough": "Queens",
+      "name": "Cluster 65 (Cool Beans Coffee)",
+      "venues": [
+        "Cool Beans Coffee"
+      ]
+    },
+    {
+      "id": 66,
+      "lat": 40.76743,
+      "lng": -73.93293,
+      "borough": "Queens",
+      "name": "Cluster 66 (Grove 34)",
+      "venues": [
+        "Grove 34"
+      ]
+    },
+    {
+      "id": 67,
+      "lat": 40.77555,
+      "lng": -73.91494,
+      "borough": "Queens",
+      "name": "Cluster 67 (QED Astoria)",
+      "venues": [
+        "QED Astoria"
+      ]
+    },
+    {
+      "id": 68,
+      "lat": 40.74639,
+      "lng": -73.9165,
+      "borough": "Queens",
+      "name": "Cluster 68 (Sanger Hall)",
+      "venues": [
+        "Sanger Hall"
+      ]
+    },
+    {
+      "id": 69,
+      "lat": 40.70243,
+      "lng": -73.90481,
+      "borough": "Queens",
+      "name": "Cluster 69 (Scorpion Records)",
+      "venues": [
+        "Scorpion Records"
+      ]
+    },
+    {
+      "id": 70,
+      "lat": 40.70931,
+      "lng": -73.907,
+      "borough": "Queens",
+      "name": "Cluster 70 (Windjammer)",
+      "venues": [
+        "Windjammer"
+      ]
+    }
+  ],
+  "stations": [
+    {
+      "id": "subway_0",
+      "name": "Astoria-Ditmars Blvd (N W)",
+      "lat": 40.77504,
+      "lng": -73.91203,
+      "borough": "Queens"
+    },
+    {
+      "id": "subway_1",
+      "name": "57 St-7 Av (N Q R W)",
+      "lat": 40.76466,
+      "lng": -73.98066,
+      "borough": "Manhattan"
+    },
+    {
+      "id": "subway_2",
+      "name": "49 St (N R W)",
+      "lat": 40.7599,
+      "lng": -73.98414,
+      "borough": "Manhattan"
+    },
+    {
+      "id": "subway_3",
+      "name": "34 St-Herald Sq (N Q R W)",
+      "lat": 40.74957,
+      "lng": -73.98795,
+      "borough": "Manhattan"
+    },
+    {
+      "id": "subway_4",
+      "name": "28 St (R W)",
+      "lat": 40.74549,
+      "lng": -73.98869,
+      "borough": "Manhattan"
+    },
+    {
+      "id": "subway_5",
+      "name": "14 St-Union Sq (N Q R W)",
+      "lat": 40.73574,
+      "lng": -73.99057,
+      "borough": "Manhattan"
+    },
+    {
+      "id": "subway_6",
+      "name": "8 St-NYU (R W)",
+      "lat": 40.73033,
+      "lng": -73.99263,
+      "borough": "Manhattan"
+    },
+    {
+      "id": "subway_7",
+      "name": "Court St (R)",
+      "lat": 40.6941,
+      "lng": -73.99178,
+      "borough": "Brooklyn"
+    },
+    {
+      "id": "subway_8",
+      "name": "Jay St-MetroTech (R)",
+      "lat": 40.69218,
+      "lng": -73.98594,
+      "borough": "Brooklyn"
+    },
+    {
+      "id": "subway_9",
+      "name": "Atlantic Av-Barclays Ctr (D N R)",
+      "lat": 40.68367,
+      "lng": -73.97881,
+      "borough": "Brooklyn"
+    },
+    {
+      "id": "subway_10",
+      "name": "4 Av-9 St (R)",
+      "lat": 40.67085,
+      "lng": -73.9883,
+      "borough": "Brooklyn"
+    },
+    {
+      "id": "subway_11",
+      "name": "Prospect Av (R)",
+      "lat": 40.66541,
+      "lng": -73.99287,
+      "borough": "Brooklyn"
+    },
+    {
+      "id": "subway_12",
+      "name": "25 St (R)",
+      "lat": 40.6604,
+      "lng": -73.99809,
+      "borough": "Brooklyn"
+    },
+    {
+      "id": "subway_13",
+      "name": "Atlantic Av-Barclays Ctr (B Q)",
+      "lat": 40.68446,
+      "lng": -73.97689,
+      "borough": "Brooklyn"
+    },
+    {
+      "id": "subway_14",
+      "name": "7 Av (B Q)",
+      "lat": 40.67705,
+      "lng": -73.97237,
+      "borough": "Brooklyn"
+    },
+    {
+      "id": "subway_15",
+      "name": "Chauncey St (J Z)",
+      "lat": 40.68289,
+      "lng": -73.91046,
+      "borough": "Brooklyn"
+    },
+    {
+      "id": "subway_16",
+      "name": "Gates Av (J Z)",
+      "lat": 40.68963,
+      "lng": -73.92227,
+      "borough": "Brooklyn"
+    },
+    {
+      "id": "subway_17",
+      "name": "Kosciuszko St (J)",
+      "lat": 40.69334,
+      "lng": -73.92881,
+      "borough": "Brooklyn"
+    },
+    {
+      "id": "subway_18",
+      "name": "Hewes St (J M)",
+      "lat": 40.70687,
+      "lng": -73.95343,
+      "borough": "Brooklyn"
+    },
+    {
+      "id": "subway_19",
+      "name": "Marcy Av (J Z M)",
+      "lat": 40.70836,
+      "lng": -73.95776,
+      "borough": "Brooklyn"
+    },
+    {
+      "id": "subway_20",
+      "name": "Delancey St-Essex St (J Z M)",
+      "lat": 40.71831,
+      "lng": -73.98744,
+      "borough": "Manhattan"
+    },
+    {
+      "id": "subway_21",
+      "name": "Bowery (J Z)",
+      "lat": 40.72028,
+      "lng": -73.99392,
+      "borough": "Manhattan"
+    },
+    {
+      "id": "subway_22",
+      "name": "Forest Av (M)",
+      "lat": 40.70442,
+      "lng": -73.90308,
+      "borough": "Queens"
+    },
+    {
+      "id": "subway_23",
+      "name": "Seneca Av (M)",
+      "lat": 40.70276,
+      "lng": -73.90774,
+      "borough": "Queens"
+    },
+    {
+      "id": "subway_24",
+      "name": "Myrtle-Wyckoff Avs (M)",
+      "lat": 40.69943,
+      "lng": -73.91239,
+      "borough": "Brooklyn"
+    },
+    {
+      "id": "subway_25",
+      "name": "Knickerbocker Av (M)",
+      "lat": 40.69866,
+      "lng": -73.91971,
+      "borough": "Brooklyn"
+    },
+    {
+      "id": "subway_26",
+      "name": "Central Av (M)",
+      "lat": 40.69786,
+      "lng": -73.9274,
+      "borough": "Brooklyn"
+    },
+    {
+      "id": "subway_27",
+      "name": "14 St-Union Sq (L)",
+      "lat": 40.73479,
+      "lng": -73.99073,
+      "borough": "Manhattan"
+    },
+    {
+      "id": "subway_28",
+      "name": "3 Av (L)",
+      "lat": 40.73285,
+      "lng": -73.98612,
+      "borough": "Manhattan"
+    },
+    {
+      "id": "subway_29",
+      "name": "1 Av (L)",
+      "lat": 40.73095,
+      "lng": -73.98163,
+      "borough": "Manhattan"
+    },
+    {
+      "id": "subway_30",
+      "name": "Bedford Av (L)",
+      "lat": 40.7173,
+      "lng": -73.95687,
+      "borough": "Brooklyn"
+    },
+    {
+      "id": "subway_31",
+      "name": "Lorimer St (L)",
+      "lat": 40.71406,
+      "lng": -73.95028,
+      "borough": "Brooklyn"
+    },
+    {
+      "id": "subway_32",
+      "name": "Graham Av (L)",
+      "lat": 40.71457,
+      "lng": -73.94405,
+      "borough": "Brooklyn"
+    },
+    {
+      "id": "subway_33",
+      "name": "Grand St (L)",
+      "lat": 40.71193,
+      "lng": -73.94067,
+      "borough": "Brooklyn"
+    },
+    {
+      "id": "subway_34",
+      "name": "Montrose Av (L)",
+      "lat": 40.70774,
+      "lng": -73.93985,
+      "borough": "Brooklyn"
+    },
+    {
+      "id": "subway_35",
+      "name": "Morgan Av (L)",
+      "lat": 40.70615,
+      "lng": -73.93315,
+      "borough": "Brooklyn"
+    },
+    {
+      "id": "subway_36",
+      "name": "Jefferson St (L)",
+      "lat": 40.70661,
+      "lng": -73.92291,
+      "borough": "Brooklyn"
+    },
+    {
+      "id": "subway_37",
+      "name": "DeKalb Av (L)",
+      "lat": 40.70381,
+      "lng": -73.91842,
+      "borough": "Brooklyn"
+    },
+    {
+      "id": "subway_38",
+      "name": "Myrtle-Wyckoff Avs (L)",
+      "lat": 40.69981,
+      "lng": -73.91159,
+      "borough": "Brooklyn"
+    },
+    {
+      "id": "subway_39",
+      "name": "Halsey St (L)",
+      "lat": 40.6956,
+      "lng": -73.90408,
+      "borough": "Queens"
+    },
+    {
+      "id": "subway_40",
+      "name": "145 St (A C)",
+      "lat": 40.82478,
+      "lng": -73.94422,
+      "borough": "Manhattan"
+    },
+    {
+      "id": "subway_41",
+      "name": "145 St (B D)",
+      "lat": 40.82478,
+      "lng": -73.94422,
+      "borough": "Manhattan"
+    },
+    {
+      "id": "subway_42",
+      "name": "59 St-Columbus Circle (A C B D)",
+      "lat": 40.7683,
+      "lng": -73.98174,
+      "borough": "Manhattan"
+    },
+    {
+      "id": "subway_43",
+      "name": "50 St (C E)",
+      "lat": 40.76246,
+      "lng": -73.98598,
+      "borough": "Manhattan"
+    },
+    {
+      "id": "subway_44",
+      "name": "42 St-Port Authority Bus Terminal (A C E)",
+      "lat": 40.75731,
+      "lng": -73.98973,
+      "borough": "Manhattan"
+    },
+    {
+      "id": "subway_45",
+      "name": "34 St-Penn Station (A C E)",
+      "lat": 40.75229,
+      "lng": -73.99339,
+      "borough": "Manhattan"
+    },
+    {
+      "id": "subway_46",
+      "name": "W 4 St-Wash Sq (A C E)",
+      "lat": 40.73234,
+      "lng": -74.0005,
+      "borough": "Manhattan"
+    },
+    {
+      "id": "subway_47",
+      "name": "W 4 St-Wash Sq (B D F M)",
+      "lat": 40.73234,
+      "lng": -74.0005,
+      "borough": "Manhattan"
+    },
+    {
+      "id": "subway_48",
+      "name": "Spring St (C E)",
+      "lat": 40.72623,
+      "lng": -74.00374,
+      "borough": "Manhattan"
+    },
+    {
+      "id": "subway_49",
+      "name": "Jay St-MetroTech (A C F)",
+      "lat": 40.69234,
+      "lng": -73.98734,
+      "borough": "Brooklyn"
+    },
+    {
+      "id": "subway_50",
+      "name": "Hoyt-Schermerhorn Sts (A C G)",
+      "lat": 40.68848,
+      "lng": -73.985,
+      "borough": "Brooklyn"
+    },
+    {
+      "id": "subway_51",
+      "name": "Nostrand Av (A C)",
+      "lat": 40.68044,
+      "lng": -73.95043,
+      "borough": "Brooklyn"
+    },
+    {
+      "id": "subway_52",
+      "name": "Rockaway Av (C)",
+      "lat": 40.67834,
+      "lng": -73.91195,
+      "borough": "Brooklyn"
+    },
+    {
+      "id": "subway_53",
+      "name": "Broadway Junction (A C)",
+      "lat": 40.67833,
+      "lng": -73.90532,
+      "borough": "Brooklyn"
+    },
+    {
+      "id": "subway_54",
+      "name": "47-50 Sts-Rockefeller Ctr (B D F M)",
+      "lat": 40.75866,
+      "lng": -73.98133,
+      "borough": "Manhattan"
+    },
+    {
+      "id": "subway_55",
+      "name": "34 St-Herald Sq (B D F M)",
+      "lat": 40.74972,
+      "lng": -73.98782,
+      "borough": "Manhattan"
+    },
+    {
+      "id": "subway_56",
+      "name": "Grand St (B D)",
+      "lat": 40.71827,
+      "lng": -73.99375,
+      "borough": "Manhattan"
+    },
+    {
+      "id": "subway_57",
+      "name": "2 Av (F)",
+      "lat": 40.7234,
+      "lng": -73.98994,
+      "borough": "Manhattan"
+    },
+    {
+      "id": "subway_58",
+      "name": "Delancey St-Essex St (F)",
+      "lat": 40.71861,
+      "lng": -73.98811,
+      "borough": "Manhattan"
+    },
+    {
+      "id": "subway_59",
+      "name": "East Broadway (F)",
+      "lat": 40.71372,
+      "lng": -73.99017,
+      "borough": "Manhattan"
+    },
+    {
+      "id": "subway_60",
+      "name": "4 Av-9 St (F G)",
+      "lat": 40.67027,
+      "lng": -73.98978,
+      "borough": "Brooklyn"
+    },
+    {
+      "id": "subway_61",
+      "name": "7 Av (B D E)",
+      "lat": 40.76286,
+      "lng": -73.98164,
+      "borough": "Manhattan"
+    },
+    {
+      "id": "subway_62",
+      "name": "Nassau Av (G)",
+      "lat": 40.72463,
+      "lng": -73.95128,
+      "borough": "Brooklyn"
+    },
+    {
+      "id": "subway_63",
+      "name": "Metropolitan Av (G)",
+      "lat": 40.71279,
+      "lng": -73.95142,
+      "borough": "Brooklyn"
+    },
+    {
+      "id": "subway_64",
+      "name": "Broadway (G)",
+      "lat": 40.70609,
+      "lng": -73.95031,
+      "borough": "Brooklyn"
+    },
+    {
+      "id": "subway_65",
+      "name": "Classon Av (G)",
+      "lat": 40.68887,
+      "lng": -73.96007,
+      "borough": "Brooklyn"
+    },
+    {
+      "id": "subway_66",
+      "name": "145 St (1)",
+      "lat": 40.82655,
+      "lng": -73.95036,
+      "borough": "Manhattan"
+    },
+    {
+      "id": "subway_67",
+      "name": "Cathedral Pkwy (110 St) (1)",
+      "lat": 40.80397,
+      "lng": -73.96685,
+      "borough": "Manhattan"
+    },
+    {
+      "id": "subway_68",
+      "name": "103 St (1)",
+      "lat": 40.79945,
+      "lng": -73.96838,
+      "borough": "Manhattan"
+    },
+    {
+      "id": "subway_69",
+      "name": "79 St (1)",
+      "lat": 40.78393,
+      "lng": -73.97992,
+      "borough": "Manhattan"
+    },
+    {
+      "id": "subway_70",
+      "name": "72 St (1 2 3)",
+      "lat": 40.77845,
+      "lng": -73.98197,
+      "borough": "Manhattan"
+    },
+    {
+      "id": "subway_71",
+      "name": "59 St-Columbus Circle (1)",
+      "lat": 40.76825,
+      "lng": -73.98193,
+      "borough": "Manhattan"
+    },
+    {
+      "id": "subway_72",
+      "name": "50 St (1)",
+      "lat": 40.76173,
+      "lng": -73.98385,
+      "borough": "Manhattan"
+    },
+    {
+      "id": "subway_73",
+      "name": "34 St-Penn Station (1 2 3)",
+      "lat": 40.75037,
+      "lng": -73.99106,
+      "borough": "Manhattan"
+    },
+    {
+      "id": "subway_74",
+      "name": "28 St (1)",
+      "lat": 40.74721,
+      "lng": -73.99336,
+      "borough": "Manhattan"
+    },
+    {
+      "id": "subway_75",
+      "name": "Christopher St-Stonewall (1)",
+      "lat": 40.73342,
+      "lng": -74.00291,
+      "borough": "Manhattan"
+    },
+    {
+      "id": "subway_76",
+      "name": "Houston St (1)",
+      "lat": 40.72825,
+      "lng": -74.00537,
+      "borough": "Manhattan"
+    },
+    {
+      "id": "subway_77",
+      "name": "Canal St (1)",
+      "lat": 40.72285,
+      "lng": -74.00628,
+      "borough": "Manhattan"
+    },
+    {
+      "id": "subway_78",
+      "name": "Borough Hall (2 3)",
+      "lat": 40.69322,
+      "lng": -73.99,
+      "borough": "Brooklyn"
+    },
+    {
+      "id": "subway_79",
+      "name": "Nevins St (2 3 4 5)",
+      "lat": 40.68825,
+      "lng": -73.98049,
+      "borough": "Brooklyn"
+    },
+    {
+      "id": "subway_80",
+      "name": "Atlantic Av-Barclays Ctr (2 3 4 5)",
+      "lat": 40.68436,
+      "lng": -73.97767,
+      "borough": "Brooklyn"
+    },
+    {
+      "id": "subway_81",
+      "name": "Nostrand Av (3)",
+      "lat": 40.66985,
+      "lng": -73.95047,
+      "borough": "Brooklyn"
+    },
+    {
+      "id": "subway_82",
+      "name": "President St-Medgar Evers College (2 5)",
+      "lat": 40.66788,
+      "lng": -73.95068,
+      "borough": "Brooklyn"
+    },
+    {
+      "id": "subway_83",
+      "name": "3 Av-138 St (6)",
+      "lat": 40.81048,
+      "lng": -73.92614,
+      "borough": "Bronx"
+    },
+    {
+      "id": "subway_84",
+      "name": "77 St (6)",
+      "lat": 40.77362,
+      "lng": -73.95987,
+      "borough": "Manhattan"
+    },
+    {
+      "id": "subway_85",
+      "name": "14 St-Union Sq (4 5 6)",
+      "lat": 40.73467,
+      "lng": -73.98995,
+      "borough": "Manhattan"
+    },
+    {
+      "id": "subway_86",
+      "name": "Astor Pl (6)",
+      "lat": 40.73005,
+      "lng": -73.99107,
+      "borough": "Manhattan"
+    },
+    {
+      "id": "subway_87",
+      "name": "Bleecker St (6)",
+      "lat": 40.72592,
+      "lng": -73.99466,
+      "borough": "Manhattan"
+    },
+    {
+      "id": "subway_88",
+      "name": "Borough Hall (4 5)",
+      "lat": 40.6924,
+      "lng": -73.99015,
+      "borough": "Brooklyn"
+    },
+    {
+      "id": "subway_89",
+      "name": "135 St (2 3)",
+      "lat": 40.81423,
+      "lng": -73.94077,
+      "borough": "Manhattan"
+    },
+    {
+      "id": "subway_90",
+      "name": "52 St (7)",
+      "lat": 40.74415,
+      "lng": -73.91255,
+      "borough": "Queens"
+    },
+    {
+      "id": "subway_91",
+      "name": "46 St-Bliss St (7)",
+      "lat": 40.74313,
+      "lng": -73.91844,
+      "borough": "Queens"
+    },
+    {
+      "id": "subway_92",
+      "name": "Times Sq-42 St (7)",
+      "lat": 40.75548,
+      "lng": -73.98769,
+      "borough": "Manhattan"
+    },
+    {
+      "id": "subway_93",
+      "name": "Times Sq-42 St (S)",
+      "lat": 40.75598,
+      "lng": -73.98623,
+      "borough": "Manhattan"
+    },
+    {
+      "id": "subway_94",
+      "name": "34 St-Hudson Yards (7)",
+      "lat": 40.75588,
+      "lng": -74.00191,
+      "borough": "Manhattan"
+    },
+    {
+      "id": "subway_95",
+      "name": "86 St (Q)",
+      "lat": 40.77789,
+      "lng": -73.95179,
+      "borough": "Manhattan"
+    },
+    {
+      "id": "subway_96",
+      "name": "72 St (Q)",
+      "lat": 40.7688,
+      "lng": -73.95842,
+      "borough": "Manhattan"
+    }
+  ],
+  "matrix": {
+    "subway_0": {
+      "0": 2564,
+      "1": 1886,
+      "2": 3081,
+      "3": 3515,
+      "4": 3305,
+      "5": 3730,
+      "6": 3071,
+      "7": 2127,
+      "8": 2824,
+      "9": 3411,
+      "10": 3204,
+      "11": 4080,
+      "12": 2926,
+      "13": 2292,
+      "14": 3559,
+      "15": 2830,
+      "16": 2546,
+      "17": 2135,
+      "18": 3790,
+      "19": 3794,
+      "20": 1883,
+      "21": 3189,
+      "22": 2783,
+      "23": 3952,
+      "24": 2481,
+      "25": 2102,
+      "26": 2207,
+      "27": 2193,
+      "28": 3290,
+      "29": 2915,
+      "30": 3212,
+      "31": 3577,
+      "32": 3489,
+      "33": 2395,
+      "34": 1484,
+      "35": 2497,
+      "36": 2900,
+      "37": 2135,
+      "38": 1849,
+      "39": 1833,
+      "40": 2871,
+      "41": 2011,
+      "42": 2587,
+      "43": 2178,
+      "44": 2719,
+      "45": 1405,
+      "46": 2128,
+      "47": 2209,
+      "48": 2324,
+      "49": 2725,
+      "50": 2970,
+      "51": 2462,
+      "52": 2056,
+      "53": 1438,
+      "54": 2438,
+      "55": 2195,
+      "56": 1919,
+      "57": 1821,
+      "58": 1699,
+      "59": 1924,
+      "60": 2047,
+      "61": 1835,
+      "62": 1589,
+      "63": 1966,
+      "64": 2244,
+      "65": 1610,
+      "66": 1118,
+      "67": 248,
+      "68": 1469,
+      "69": 3717,
+      "70": 3512
+    },
+    "subway_1": {
+      "0": 1934,
+      "1": 1244,
+      "2": 2272,
+      "3": 2165,
+      "4": 2135,
+      "5": 2590,
+      "6": 2087,
+      "7": 1605,
+      "8": 1654,
+      "9": 2301,
+      "10": 2034,
+      "11": 2668,
+      "12": 1756,
+      "13": 2202,
+      "14": 2539,
+      "15": 1720,
+      "16": 1376,
+      "17": 1875,
+      "18": 2529,
+      "19": 2552,
+      "20": 1695,
+      "21": 2388,
+      "22": 1613,
+      "23": 2457,
+      "24": 1888,
+      "25": 1563,
+      "26": 1682,
+      "27": 1495,
+      "28": 2180,
+      "29": 1745,
+      "30": 2042,
+      "31": 2583,
+      "32": 2379,
+      "33": 1345,
+      "34": 355,
+      "35": 1520,
+      "36": 1218,
+      "37": 1085,
+      "38": 739,
+      "39": 753,
+      "40": 1987,
+      "41": 961,
+      "42": 1537,
+      "43": 1252,
+      "44": 1846,
+      "45": 295,
+      "46": 958,
+      "47": 1129,
+      "48": 1391,
+      "49": 1416,
+      "50": 1507,
+      "51": 1412,
+      "52": 1006,
+      "53": 808,
+      "54": 1721,
+      "55": 1115,
+      "56": 1041,
+      "57": 741,
+      "58": 619,
+      "59": 781,
+      "60": 907,
+      "61": 725,
+      "62": 463,
+      "63": 856,
+      "64": 984,
+      "65": 1580,
+      "66": 1755,
+      "67": 1510,
+      "68": 1439,
+      "69": 2380,
+      "70": 3027
+    },
+    "subway_2": {
+      "0": 2147,
+      "1": 1230,
+      "2": 2227,
+      "3": 2331,
+      "4": 2121,
+      "5": 2576,
+      "6": 2253,
+      "7": 1591,
+      "8": 1640,
+      "9": 2347,
+      "10": 2020,
+      "11": 2654,
+      "12": 1742,
+      "13": 2067,
+      "14": 2705,
+      "15": 1706,
+      "16": 1362,
+      "17": 1830,
+      "18": 2815,
+      "19": 2838,
+      "20": 1681,
+      "21": 2674,
+      "22": 1599,
+      "23": 2443,
+      "24": 1874,
+      "25": 1549,
+      "26": 1668,
+      "27": 1481,
+      "28": 2226,
+      "29": 1731,
+      "30": 2028,
+      "31": 2569,
+      "32": 2425,
+      "33": 1240,
+      "34": 489,
+      "35": 1506,
+      "36": 1270,
+      "37": 980,
+      "38": 675,
+      "39": 1159,
+      "40": 1973,
+      "41": 947,
+      "42": 1492,
+      "43": 1238,
+      "44": 1716,
+      "45": 229,
+      "46": 944,
+      "47": 1029,
+      "48": 1377,
+      "49": 1305,
+      "50": 1767,
+      "51": 1367,
+      "52": 901,
+      "53": 1051,
+      "54": 2187,
+      "55": 1095,
+      "56": 1027,
+      "57": 1147,
+      "58": 1025,
+      "59": 675,
+      "60": 807,
+      "61": 711,
+      "62": 524,
+      "63": 842,
+      "64": 824,
+      "65": 1763,
+      "66": 1968,
+      "67": 1723,
+      "68": 1622,
+      "69": 2366,
+      "70": 3013
+    },
+    "subway_3": {
+      "0": 2114,
+      "1": 884,
+      "2": 1732,
+      "3": 1884,
+      "4": 1775,
+      "5": 2080,
+      "6": 1697,
+      "7": 1245,
+      "8": 1294,
+      "9": 2061,
+      "10": 1808,
+      "11": 2490,
+      "12": 1396,
+      "13": 1782,
+      "14": 2149,
+      "15": 1390,
+      "16": 1016,
+      "17": 1335,
+      "18": 2140,
+      "19": 2144,
+      "20": 1335,
+      "21": 1763,
+      "22": 1253,
+      "23": 1947,
+      "24": 1371,
+      "25": 1203,
+      "26": 1322,
+      "27": 1135,
+      "28": 1940,
+      "29": 1385,
+      "30": 1682,
+      "31": 2047,
+      "32": 2139,
+      "33": 745,
+      "34": 674,
+      "35": 967,
+      "36": 1190,
+      "37": 485,
+      "38": 815,
+      "39": 1053,
+      "40": 1461,
+      "41": 652,
+      "42": 997,
+      "43": 886,
+      "44": 1726,
+      "45": 458,
+      "46": 598,
+      "47": 559,
+      "48": 932,
+      "49": 1555,
+      "50": 1482,
+      "51": 872,
+      "52": 406,
+      "53": 1073,
+      "54": 2081,
+      "55": 665,
+      "56": 711,
+      "57": 1041,
+      "58": 919,
+      "59": 462,
+      "60": 558,
+      "61": 395,
+      "62": 608,
+      "63": 526,
+      "64": 864,
+      "65": 1850,
+      "66": 2205,
+      "67": 1840,
+      "68": 1709,
+      "69": 2249,
+      "70": 2669
+    },
+    "subway_4": {
+      "0": 2234,
+      "1": 974,
+      "2": 2092,
+      "3": 1955,
+      "4": 1865,
+      "5": 2548,
+      "6": 1907,
+      "7": 1335,
+      "8": 1384,
+      "9": 2091,
+      "10": 1764,
+      "11": 2398,
+      "12": 1486,
+      "13": 2052,
+      "14": 2359,
+      "15": 1540,
+      "16": 1106,
+      "17": 1695,
+      "18": 2439,
+      "19": 2462,
+      "20": 1425,
+      "21": 2298,
+      "22": 1343,
+      "23": 2427,
+      "24": 1498,
+      "25": 1293,
+      "26": 1412,
+      "27": 1225,
+      "28": 1970,
+      "29": 1475,
+      "30": 1772,
+      "31": 2407,
+      "32": 2169,
+      "33": 1045,
+      "34": 794,
+      "35": 1130,
+      "36": 1550,
+      "37": 785,
+      "38": 816,
+      "39": 1173,
+      "40": 1597,
+      "41": 961,
+      "42": 1237,
+      "43": 862,
+      "44": 1816,
+      "45": 518,
+      "46": 688,
+      "47": 859,
+      "48": 1001,
+      "49": 1615,
+      "50": 1842,
+      "51": 1112,
+      "52": 706,
+      "53": 1228,
+      "54": 2081,
+      "55": 935,
+      "56": 651,
+      "57": 1161,
+      "58": 1039,
+      "59": 334,
+      "60": 692,
+      "61": 455,
+      "62": 834,
+      "63": 586,
+      "64": 954,
+      "65": 1820,
+      "66": 2296,
+      "67": 1870,
+      "68": 1679,
+      "69": 2110,
+      "70": 2757
+    },
+    "subway_5": {
+      "0": 1842,
+      "1": 670,
+      "2": 1878,
+      "3": 1670,
+      "4": 1561,
+      "5": 1930,
+      "6": 1547,
+      "7": 1031,
+      "8": 1080,
+      "9": 2031,
+      "10": 1460,
+      "11": 2276,
+      "12": 1182,
+      "13": 1388,
+      "14": 1907,
+      "15": 1240,
+      "16": 802,
+      "17": 1231,
+      "18": 1990,
+      "19": 1994,
+      "20": 1121,
+      "21": 1613,
+      "22": 1039,
+      "23": 2152,
+      "24": 1129,
+      "25": 989,
+      "26": 1108,
+      "27": 921,
+      "28": 1910,
+      "29": 1171,
+      "30": 1468,
+      "31": 1953,
+      "32": 1955,
+      "33": 923,
+      "34": 914,
+      "35": 753,
+      "36": 1550,
+      "37": 811,
+      "38": 936,
+      "39": 1203,
+      "40": 1111,
+      "41": 1171,
+      "42": 1055,
+      "43": 652,
+      "44": 1996,
+      "45": 638,
+      "46": 384,
+      "47": 825,
+      "48": 796,
+      "49": 1825,
+      "50": 1842,
+      "51": 930,
+      "52": 732,
+      "53": 1108,
+      "54": 1986,
+      "55": 721,
+      "56": 441,
+      "57": 1191,
+      "58": 1069,
+      "59": 626,
+      "60": 819,
+      "61": 228,
+      "62": 968,
+      "63": 351,
+      "64": 1134,
+      "65": 2060,
+      "66": 2506,
+      "67": 2020,
+      "68": 1919,
+      "69": 1806,
+      "70": 2215
+    },
+    "subway_6": {
+      "0": 2280,
+      "1": 974,
+      "2": 1914,
+      "3": 2007,
+      "4": 1865,
+      "5": 2248,
+      "6": 1757,
+      "7": 1335,
+      "8": 1384,
+      "9": 2121,
+      "10": 1764,
+      "11": 2398,
+      "12": 1486,
+      "13": 1752,
+      "14": 2236,
+      "15": 1720,
+      "16": 1106,
+      "17": 1517,
+      "18": 2139,
+      "19": 2162,
+      "20": 1425,
+      "21": 1998,
+      "22": 1343,
+      "23": 2007,
+      "24": 1198,
+      "25": 1293,
+      "26": 1412,
+      "27": 1225,
+      "28": 2000,
+      "29": 1475,
+      "30": 1772,
+      "31": 2107,
+      "32": 2199,
+      "33": 1035,
+      "34": 1124,
+      "35": 714,
+      "36": 1880,
+      "37": 742,
+      "38": 1146,
+      "39": 1323,
+      "40": 1431,
+      "41": 1291,
+      "42": 999,
+      "43": 583,
+      "44": 2146,
+      "45": 848,
+      "46": 688,
+      "47": 1032,
+      "48": 890,
+      "49": 1825,
+      "50": 2172,
+      "51": 888,
+      "52": 633,
+      "53": 1558,
+      "54": 2154,
+      "55": 760,
+      "56": 319,
+      "57": 1311,
+      "58": 1189,
+      "59": 746,
+      "60": 1029,
+      "61": 365,
+      "62": 1208,
+      "63": 508,
+      "64": 1284,
+      "65": 2150,
+      "66": 2445,
+      "67": 2200,
+      "68": 2009,
+      "69": 2189,
+      "70": 2557
+    },
+    "subway_7": {
+      "0": 2815,
+      "1": 1844,
+      "2": 2203,
+      "3": 2395,
+      "4": 1944,
+      "5": 1318,
+      "6": 1153,
+      "7": 2205,
+      "8": 2254,
+      "9": 2147,
+      "10": 2773,
+      "11": 2878,
+      "12": 2356,
+      "13": 1423,
+      "14": 1252,
+      "15": 780,
+      "16": 1976,
+      "17": 2055,
+      "18": 1209,
+      "19": 1232,
+      "20": 2003,
+      "21": 1068,
+      "22": 2213,
+      "23": 1137,
+      "24": 253,
+      "25": 2163,
+      "26": 2418,
+      "27": 2095,
+      "28": 2091,
+      "29": 2345,
+      "30": 2642,
+      "31": 1237,
+      "32": 1659,
+      "33": 1266,
+      "34": 2024,
+      "35": 1640,
+      "36": 2531,
+      "37": 1474,
+      "38": 1823,
+      "39": 2265,
+      "40": 1601,
+      "41": 2306,
+      "42": 967,
+      "43": 1484,
+      "44": 2719,
+      "45": 1748,
+      "46": 1558,
+      "47": 1421,
+      "48": 1792,
+      "49": 2458,
+      "50": 2920,
+      "51": 1292,
+      "52": 1353,
+      "53": 2081,
+      "54": 2869,
+      "55": 1263,
+      "56": 1245,
+      "57": 2288,
+      "58": 2269,
+      "59": 1582,
+      "60": 1631,
+      "61": 1265,
+      "62": 1917,
+      "63": 1408,
+      "64": 1857,
+      "65": 3031,
+      "66": 3567,
+      "67": 2931,
+      "68": 2890,
+      "69": 3005,
+      "70": 3196
+    },
+    "subway_8": {
+      "0": 3040,
+      "1": 1372,
+      "2": 1936,
+      "3": 2128,
+      "4": 1910,
+      "5": 1198,
+      "6": 1010,
+      "7": 1694,
+      "8": 2374,
+      "9": 1787,
+      "10": 2247,
+      "11": 2588,
+      "12": 2022,
+      "13": 1156,
+      "14": 1339,
+      "15": 670,
+      "16": 2096,
+      "17": 1451,
+      "18": 1089,
+      "19": 1112,
+      "20": 1729,
+      "21": 948,
+      "22": 2092,
+      "23": 983,
+      "24": 388,
+      "25": 1700,
+      "26": 2538,
+      "27": 2215,
+      "28": 1713,
+      "29": 2011,
+      "30": 1971,
+      "31": 1173,
+      "32": 1505,
+      "33": 872,
+      "34": 1723,
+      "35": 1299,
+      "36": 2176,
+      "37": 1200,
+      "38": 1677,
+      "39": 2433,
+      "40": 1207,
+      "41": 1925,
+      "42": 573,
+      "43": 912,
+      "44": 2856,
+      "45": 1718,
+      "46": 1678,
+      "47": 1274,
+      "48": 1668,
+      "49": 2595,
+      "50": 2465,
+      "51": 898,
+      "52": 1079,
+      "53": 2428,
+      "54": 3251,
+      "55": 959,
+      "56": 1365,
+      "57": 2421,
+      "58": 2299,
+      "59": 1766,
+      "60": 1565,
+      "61": 1385,
+      "62": 1834,
+      "63": 1528,
+      "64": 1994,
+      "65": 3076,
+      "66": 3023,
+      "67": 3070,
+      "68": 2695,
+      "69": 2275,
+      "70": 2929
+    },
+    "subway_9": {
+      "0": 2849,
+      "1": 1949,
+      "2": 1989,
+      "3": 2181,
+      "4": 2840,
+      "5": 973,
+      "6": 528,
+      "7": 1696,
+      "8": 2359,
+      "9": 1933,
+      "10": 2559,
+      "11": 2500,
+      "12": 2461,
+      "13": 1102,
+      "14": 934,
+      "15": 333,
+      "16": 2081,
+      "17": 1554,
+      "18": 864,
+      "19": 887,
+      "20": 1812,
+      "21": 393,
+      "22": 2318,
+      "23": 910,
+      "24": 426,
+      "25": 2268,
+      "26": 2523,
+      "27": 2200,
+      "28": 1877,
+      "29": 2450,
+      "30": 2659,
+      "31": 1473,
+      "32": 1916,
+      "33": 1000,
+      "34": 1989,
+      "35": 2032,
+      "36": 2435,
+      "37": 1280,
+      "38": 1937,
+      "39": 2299,
+      "40": 1826,
+      "41": 2386,
+      "42": 1192,
+      "43": 1531,
+      "44": 2911,
+      "45": 2056,
+      "46": 1663,
+      "47": 1354,
+      "48": 1897,
+      "49": 2650,
+      "50": 2727,
+      "51": 1517,
+      "52": 1184,
+      "53": 2115,
+      "54": 2903,
+      "55": 1488,
+      "56": 1475,
+      "57": 2322,
+      "58": 2326,
+      "59": 1774,
+      "60": 1823,
+      "61": 1326,
+      "62": 2033,
+      "63": 1494,
+      "64": 2049,
+      "65": 3065,
+      "66": 3210,
+      "67": 2965,
+      "68": 2924,
+      "69": 2791,
+      "70": 2982
+    },
+    "subway_10": {
+      "0": 3344,
+      "1": 1570,
+      "2": 2465,
+      "3": 2742,
+      "4": 2569,
+      "5": 658,
+      "6": 1150,
+      "7": 1811,
+      "8": 1979,
+      "9": 2544,
+      "10": 2536,
+      "11": 2888,
+      "12": 2190,
+      "13": 1196,
+      "14": 1249,
+      "15": 610,
+      "16": 1810,
+      "17": 1669,
+      "18": 549,
+      "19": 572,
+      "20": 1927,
+      "21": 314,
+      "22": 2047,
+      "23": 1797,
+      "24": 899,
+      "25": 1898,
+      "26": 2116,
+      "27": 2199,
+      "28": 2332,
+      "29": 2179,
+      "30": 2476,
+      "31": 1893,
+      "32": 2336,
+      "33": 1405,
+      "34": 2154,
+      "35": 1857,
+      "36": 2810,
+      "37": 1685,
+      "38": 2102,
+      "39": 2613,
+      "40": 1765,
+      "41": 2439,
+      "42": 1131,
+      "43": 1470,
+      "44": 3256,
+      "45": 2288,
+      "46": 1978,
+      "47": 1759,
+      "48": 2212,
+      "49": 2995,
+      "50": 3099,
+      "51": 1456,
+      "52": 1589,
+      "53": 2490,
+      "54": 3588,
+      "55": 1743,
+      "56": 2085,
+      "57": 2601,
+      "58": 2479,
+      "59": 2119,
+      "60": 2067,
+      "61": 1655,
+      "62": 2198,
+      "63": 1798,
+      "64": 2394,
+      "65": 3034,
+      "66": 3221,
+      "67": 3294,
+      "68": 2893,
+      "69": 2743,
+      "70": 3163
+    },
+    "subway_11": {
+      "0": 3434,
+      "1": 1706,
+      "2": 2601,
+      "3": 2832,
+      "4": 2705,
+      "5": 515,
+      "6": 1240,
+      "7": 1947,
+      "8": 2115,
+      "9": 2634,
+      "10": 2672,
+      "11": 2978,
+      "12": 2326,
+      "13": 1332,
+      "14": 1339,
+      "15": 700,
+      "16": 1946,
+      "17": 1805,
+      "18": 422,
+      "19": 385,
+      "20": 2063,
+      "21": 489,
+      "22": 2183,
+      "23": 1887,
+      "24": 989,
+      "50": 3189,
+      "51": 1592,
+      "52": 1679,
+      "53": 2580,
+      "54": 3678,
+      "55": 1833,
+      "56": 2175,
+      "57": 2691,
+      "58": 2569,
+      "59": 2209,
+      "60": 2157,
+      "61": 1745,
+      "62": 2288,
+      "63": 1888,
+      "64": 2484,
+      "65": 3170,
+      "66": 3597,
+      "67": 3580,
+      "68": 3029,
+      "69": 2879,
+      "70": 3633
+    },
+    "subway_12": {
+      "50": 3342,
+      "51": 1682,
+      "52": 1799,
+      "53": 2670,
+      "54": 3398,
+      "55": 2105,
+      "56": 2000,
+      "57": 2781,
+      "58": 2659,
+      "59": 2298,
+      "60": 2409,
+      "61": 1835,
+      "62": 2468,
+      "63": 1978,
+      "64": 2664,
+      "65": 3440,
+      "66": 3687,
+      "67": 3670,
+      "68": 3299,
+      "69": 3532,
+      "70": 3723
+    },
+    "subway_13": {
+      "0": 2991,
+      "1": 2024,
+      "2": 1953,
+      "3": 2145,
+      "4": 2915,
+      "5": 1150,
+      "6": 707,
+      "7": 1659,
+      "8": 2434,
+      "9": 1897,
+      "10": 2523,
+      "11": 2507,
+      "12": 2536,
+      "13": 1109,
+      "14": 1073,
+      "15": 566,
+      "16": 2156,
+      "17": 1517,
+      "18": 1041,
+      "19": 1064,
+      "20": 1775,
+      "21": 900,
+      "22": 2393,
+      "23": 1306,
+      "24": 568
+    },
+    "subway_14": {},
+    "subway_15": {},
+    "subway_16": {},
+    "subway_17": {},
+    "subway_18": {},
+    "subway_19": {},
+    "subway_20": {},
+    "subway_21": {},
+    "subway_22": {},
+    "subway_23": {},
+    "subway_24": {},
+    "subway_25": {},
+    "subway_26": {},
+    "subway_27": {},
+    "subway_28": {},
+    "subway_29": {},
+    "subway_30": {},
+    "subway_31": {},
+    "subway_32": {},
+    "subway_33": {},
+    "subway_34": {},
+    "subway_35": {},
+    "subway_36": {},
+    "subway_37": {},
+    "subway_38": {},
+    "subway_39": {},
+    "subway_40": {},
+    "subway_41": {},
+    "subway_42": {},
+    "subway_43": {},
+    "subway_44": {},
+    "subway_45": {},
+    "subway_46": {},
+    "subway_47": {},
+    "subway_48": {},
+    "subway_49": {},
+    "subway_50": {},
+    "subway_51": {},
+    "subway_52": {},
+    "subway_53": {},
+    "subway_54": {},
+    "subway_55": {},
+    "subway_56": {},
+    "subway_57": {},
+    "subway_58": {},
+    "subway_59": {},
+    "subway_60": {},
+    "subway_61": {},
+    "subway_62": {},
+    "subway_63": {},
+    "subway_64": {},
+    "subway_65": {},
+    "subway_66": {},
+    "subway_67": {},
+    "subway_68": {},
+    "subway_69": {},
+    "subway_70": {},
+    "subway_71": {},
+    "subway_72": {},
+    "subway_73": {},
+    "subway_74": {},
+    "subway_75": {},
+    "subway_76": {},
+    "subway_77": {},
+    "subway_78": {},
+    "subway_79": {},
+    "subway_80": {},
+    "subway_81": {},
+    "subway_82": {},
+    "subway_83": {},
+    "subway_84": {},
+    "subway_85": {},
+    "subway_86": {},
+    "subway_87": {},
+    "subway_88": {},
+    "subway_89": {},
+    "subway_90": {},
+    "subway_91": {},
+    "subway_92": {},
+    "subway_93": {},
+    "subway_94": {},
+    "subway_95": {},
+    "subway_96": {}
+  }
+}

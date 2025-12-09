@@ -1,0 +1,120 @@
+MICMAP UX SUMMARY
+=================
+
+THREE PHASES OF USER JOURNEY
+----------------------------
+
+PHASE 1: DISCOVERY (Where am I / Where will I be?)
+- User opens app
+- Enters current location OR future location (e.g., "I'll be in Brooklyn at 7pm")
+- Problem: Current search bar not intuitive for this
+- Need: Clear prompt like "Where are you starting from?"
+
+PHASE 2: DECISION (Which mic should I go to?)
+- App calculates commute times to ALL mics from user's location
+- Uses real-time subway data + backend routing
+- User browses mics sorted by commute time, filters by day/time
+- User picks a mic
+- Decision phase complete
+
+PHASE 3: COMMUTE (How do I get there?)
+- User needs turn-by-turn directions
+- Two options: Keep in-app OR hand off to Google Maps
+
+
+THE AD REVENUE QUESTION
+-----------------------
+
+Question: If I hand off to Google Maps for directions, do I lose ad revenue?
+
+Answer: Yes, technically - but it's more nuanced.
+
+STAY IN-APP (build your own navigation):
+Pros:
+- More time in app = more ad impressions
+- Full control of user experience
+- Can show ads during navigation
+
+Cons:
+- MASSIVE engineering effort (months of work)
+- Battery drain concerns
+- Users will compare you unfavorably to Google Maps
+- Navigation bugs = users uninstall your app
+- You're competing with Google's core product
+
+HAND OFF TO GOOGLE MAPS:
+Pros:
+- Zero engineering effort
+- Better user experience (Google Maps is excellent)
+- Users trust it, know how to use it
+- You focus on what makes your app unique (mic discovery)
+
+Cons:
+- User leaves your app during commute (15-45 min)
+- Fewer ad impressions per session
+
+THE REAL MATH:
+- Average session with handoff: User spends 3-5 min in your app choosing a mic
+- Average session with in-app nav: User spends 3-5 min choosing + 20 min navigating
+
+But consider:
+- Users who have bad navigation experience = uninstall
+- Users who have good experience = come back multiple times per week
+- 10 good sessions > 1 long frustrating session
+
+RECOMMENDATION:
+Hand off to Google Maps. Here's why:
+
+1. Your VALUE is in Phase 1 & 2 (discovery + decision)
+   - Nobody else aggregates open mics with real-time transit
+   - That's your competitive advantage, not navigation
+
+2. Ad revenue strategy:
+   - Show ads on the mic list page (high attention)
+   - Show ad on mic detail page before they leave
+   - Show "return to MicMap" prompt after their mic ends
+   - Build loyalty so they open your app 3-4x per week
+
+3. Future monetization beyond ads:
+   - Promoted mic listings (venues pay to be featured)
+   - "Pro" version with no ads
+   - Ticket sales commission
+   - Venue partnerships
+
+4. The 80/20 rule:
+   - 20% of effort (discovery + decision) = 80% of value
+   - 80% of effort (navigation) = 20% of value
+   - Don't build what Google already perfected
+
+
+IMMEDIATE UX FIXES NEEDED
+-------------------------
+
+1. PHASE 1 - Location Entry:
+   Current: Generic search bar, not clear what to enter
+   Fix: Clear prompt "Where are you?" with:
+        - "Use my current location" button (prominent)
+        - "Or enter an address" text input
+        - Maybe: "Where will you be later?" for future planning
+
+2. PHASE 2 - Transit Calculation:
+   Current: Manual trigger?
+   Fix: Auto-calculate on location entry
+        - Show loading state while calculating
+        - Sort mics by commute time by default
+        - Real-time subway data integration (already built?)
+
+3. PHASE 3 - Handoff:
+   Current: ?
+   Fix: "Get Directions" button on mic detail
+        - Opens Google Maps with destination pre-filled
+        - Link format: https://www.google.com/maps/dir/?api=1&destination=ADDRESS&travelmode=transit
+        - Consider Apple Maps for iOS users
+
+
+SUMMARY
+-------
+Don't build navigation. Build the best mic discovery + transit time calculator.
+Hand off to Google Maps for the actual commute.
+Make money from ads during discovery phase + venue partnerships.
+Users will come back repeatedly if Phase 1 & 2 are excellent.

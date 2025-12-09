@@ -1,0 +1,257 @@
+LIVE TRANSIT FEATURE - FULL BREAKDOWN
+======================================
+
+OVERVIEW
+--------
+A "departure assistant" that shows nearby stations, live train arrivals,
+and calculates real commute times. Only appears when user has set their
+origin location (transit mode active) and clicks on a venue.
+
+
+WHEN IT APPEARS
+---------------
+- STATE.isTransitMode === true (user searched from a location)
+- User clicks a venue to view details
+- Does NOT show when just browsing without origin set
+
+
+WHAT IT SHOWS
+-------------
+┌─────────────────────────────────────────┐
+│ GREY MARE · 26 min total                │
+│ 61 2nd Ave · 7:00 PM                    │
+├─────────────────────────────────────────┤
+│ 6 min walk → L → 3 min walk             │
+├─────────────────────────────────────────┤
+│ Nearby stations                         │
+│                                         │
+│ Bedford Av (L) · 6 min walk             │
+│   → Manhattan: 3m, 11m, 18m             │
+│                                         │
+│ Lorimer St (L G) · 9 min walk           │
+│   → Manhattan: 7m, 15m                  │
+│                                         │
+│ ⚠️ G running with delays                │
+└─────────────────────────────────────────┘
+
+- Total time + walk breakdown at top
+- 2-3 nearest stations to USER'S ORIGIN (not the venue)
+- Walk time to each station
+- Live arrivals filtered to direction TOWARD the venue
+- Alerts for any of those lines
+- User decides which option to take (not ranked/recommended)
+
+
+LIVE COMMUTE CALCULATION
+------------------------
+Total = Walk to Station + Wait for Train + Ride Time + Walk to Venue
+
+| Component       | Source                      | Live? |
+|-----------------|-----------------------------| ------|
+| Walk to Station | distance × 20 min/mile      | No    |
+| Wait for Train  | /api/mta/arrivals           | YES   |
+| Ride Time       | matrix[station][cluster]    | No    |
+| Walk to Venue   | distance × 20 min/mile      | No    |
+
+KEY INSIGHT: Wait time from live arrivals ALREADY INCLUDES DELAYS.
+No need to estimate or add buffers. MTA's predicted arrival times
+are adjusted when trains are running late.
+
+
+THE MATH (catching a train)
+---------------------------
+const walkToStation = 6;                    // 6 min walk
+const nextTrains = [3, 11, 18];             // Live arrivals in mins
+const trainYoudCatch = nextTrains.find(t => t >= walkToStation); // 11 min train
+const waitAtStation = trainYoudCatch - walkToStation;            // 11 - 6 = 5 min
+
+const rideTime = matrix[stationId][clusterId] / 60;  // From pre-computed matrix
+const walkToVenue = venueDistance * 20;              // Final walk
+
+const totalCommute = walkToStation + waitAtStation + rideTime + walkToVenue;
+// Example: 6 + 5 + 12 + 3 = 26 min
+
+
+DATA SOURCES
+------------
+1. Station locations: transit_data.json → stations[]
+   { id: "subway_30", name: "Bedford Av (L)", gtfsStopId: "L08", lat, lng }
+
+2. Ride times: transit_data.json → matrix
+   matrix["subway_30"]["43"] = 720  // 720 seconds = 12 min ride
+
+3. Live arrivals: /api/mta/arrivals/:line/:stopId
+   Returns: [{ line: "L", direction: "Manhattan", minsAway: 3 }, ...]
+
+4. Service alerts: /api/mta/alerts
+   Returns: [{ id, lines: ["L"], text: "...", type: "warning" }, ...]
+
+
+DIRECTION FILTERING
+-------------------
+Only show trains going TOWARD the venue, not both directions.
+
+// Determine direction based on destination vs station position
+const destCluster = TRANSIT_DATA.clusters.find(c => c.id === clusterId);
+
+// For north-south lines (most lines):
+const goingUptown = destCluster.lat > station.lat;
+
+// For east-west lines (L train):
+const goingManhattan = destCluster.lng > station.lng;
+
+// Filter arrivals to relevant direction only
+const relevantTrains = arrivals.filter(a => a.direction === neededDirection);
+
+
+LINE DIRECTION LABELS (from server.js)
+--------------------------------------
+const customDirections = {
+  'L': { N: 'Manhattan', S: 'Brooklyn' },
+  'G': { N: 'Queens', S: 'Brooklyn' },
+  'J': { N: 'Manhattan', S: 'Queens' },
+  'Z': { N: 'Manhattan', S: 'Queens' },
+  'M': { N: 'Manhattan', S: 'Brooklyn' },
+  'S': { N: 'Times Sq', S: 'Grand Central' }
+};
+// All other lines: N = 'Uptown', S = 'Downtown'
+
+
+BACKEND ENDPOINTS (already built)
+---------------------------------
+GET /api/mta/alerts
+- Returns active service alerts
+- Cached 90 seconds
+- Response: [{ id, lines, text, type }]
+
+GET /api/mta/arrivals/:line/:stopId
+- Returns next 6 trains for a line at a stop
+- Cached 30 seconds
+- Response: [{ line, direction, minsAway }]
+
+Example: GET /api/mta/arrivals/L/L08
+Returns L train arrivals at Bedford Av
+
+
+IMPLEMENTATION PSEUDOCODE
+-------------------------
+async function getTransitOptions(userLat, userLng, destClusterId) {
+    // 1. Get 2-3 nearest stations to user
+    const stations = getNearestStations(userLat, userLng, 3);
+
+    // 2. Get destination cluster for direction calc
+    const destCluster = TRANSIT_DATA.clusters.find(c => c.id === destClusterId);
+
+    // 3. For each station, get live arrivals
+    const options = [];
+    for (const station of stations) {
+        const walkMins = Math.ceil(station.distance * 20);
+        const lines = station.name.match(/\(([^)]+)\)/)[1].split(' ');
+
+        const stationData = {
+            name: station.name.replace(/\s*\([^)]+\)/, ''),
+            walkMins,
+            lines: []
+        };
+
+        for (const line of lines) {
+            const arrivals = await fetch(`/api/mta/arrivals/${line}/${station.gtfsStopId}`)
+                .then(r => r.json());
+
+            // Filter to direction toward venue
+            const direction = getDirectionToward(station, destCluster, line);
+            const relevantTrains = arrivals
+                .filter(a => a.direction === direction)
+                .slice(0, 3);
+
+            if (relevantTrains.length > 0) {
+                stationData.lines.push({
+                    line,
+                    direction,
+                    arrivals: relevantTrains.map(t => t.minsAway)
+                });
+            }
+        }
+
+        options.push(stationData);
+    }
+
+    // 4. Get alerts for all lines involved
+    const allLines = options.flatMap(o => o.lines.map(l => l.line));
+    const alerts = await mtaService.fetchAlerts();
+    const relevantAlerts = alerts.filter(a =>
+        a.lines.some(l => allLines.includes(l))
+    );
+
+    return { options, alerts: relevantAlerts };
+}
+
+
+CALCULATING TOTAL COMMUTE FOR DISPLAY
+-------------------------------------
+function calculateLiveCommute(station, line, destClusterId, walkToStation) {
+    // Get live arrivals
+    const arrivals = stationData.lines.find(l => l.line === line).arrivals;
+
+    // Find train user would catch (first one >= walk time)
+    const trainCatch = arrivals.find(t => t >= walkToStation) || arrivals[0];
+    const waitTime = Math.max(0, trainCatch - walkToStation);
+
+    // Get ride time from matrix
+    const rideSeconds = TRANSIT_DATA.matrix[station.id][destClusterId];
+    const rideTime = Math.ceil(rideSeconds / 60);
+
+    // Get walk from cluster to venue (usually small)
+    const destCluster = TRANSIT_DATA.clusters.find(c => c.id === destClusterId);
+    const walkToVenue = Math.ceil(
+        calculateDistance(destCluster.lat, destCluster.lng, venue.lat, venue.lng) * 20
+    );
+
+    return {
+        total: walkToStation + waitTime + rideTime + walkToVenue,
+        breakdown: {
+            walkToStation,
+            waitTime,
+            rideTime,
+            walkToVenue
+        }
+    };
+}
+
+
+WHY DELAYS ARE ALREADY HANDLED
+------------------------------
+The MTA GTFS-RT feed provides PREDICTED arrival times, not scheduled times.
+When a train is delayed, the predicted arrival is pushed back automatically.
+
+Normal day:   Next L train in 4 min
+Delay day:    Next L train in 14 min  ← delay already included
+
+The alert text ("running with delays") is just a LABEL to explain why
+the wait is longer. You don't need to add buffer time - just use the
+live arrival number directly.
+
+
+UI BEHAVIOR
+-----------
+1. User searches from "Trader Joe's" or uses current location
+2. STATE.isTransitMode = true, STATE.userOrigin set
+3. Map shows transit times on all venue cards
+4. User clicks "Grey Mare" venue
+5. Modal opens showing:
+   - Venue details (name, address, time)
+   - Total live commute time (26 min)
+   - Nearby stations panel with live arrivals
+   - Any relevant service alerts
+6. User sees options, decides which train to take
+7. Clicks "Directions" to open in Google Maps (or native maps)
+
+
+WHAT THIS DOES NOT DO
+---------------------
+- Rank routes by "best" option (user decides)
+- Show "Catch it" / "Run!" / "Missed" labels
+- Calculate every possible route combination
+- Replace Google Maps for turn-by-turn directions
+
+It's a quick glance to answer: "What trains are coming and do I have time?"

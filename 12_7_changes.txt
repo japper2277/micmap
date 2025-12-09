@@ -1,0 +1,342 @@
+================================================================================
+TRANSIT SEARCH PLAN - CHANGES SUMMARY (12/7)
+================================================================================
+
+This document summarizes all refinements made to TRANSIT_SEARCH_PLAN.txt
+during the 12/7 discussion session.
+
+================================================================================
+1. 3-HOUR THRESHOLD RULE
+================================================================================
+
+Live API vs Matrix decision is based on mic start time, not origin type.
+
+| Mic Start Time    | Method     | Badge        | Cost    |
+|-------------------|------------|--------------|---------|
+| Within 3 hours    | Live API   | Blue: "28m"  | $0.025  |
+| More than 3 hours | Matrix     | Gray: "~28m" | $0.00   |
+
+This applies to ALL searches:
+- "My Location" -> mics
+- Address -> mics
+- Venue -> mics
+
+Example (user searches at 6pm):
+- 8:30pm mic (2.5 hrs out) -> Live API, blue badge
+- 10:00pm mic (4 hrs out) -> Matrix, gray badge with "~"
+
+The tilde (~) indicates estimate to user.
+
+
+================================================================================
+2. MICRO-CLUSTER SYSTEM (REPLACES 31-HUB SYSTEM)
+================================================================================
+
+PROBLEM WITH NEIGHBORHOODS:
+- "UWS" spans 50+ blocks - too imprecise
+- "Williamsburg" contains venues miles apart
+- Hub-to-hub + walking math has ~5 min error margin
+
+SOLUTION: MICRO-CLUSTERS
+- Group venues within 0.15 miles (~3 min walk) of each other
+- MacDougal St cluster: Comedy Cellar, Grisly Pear, Greenwich Village CC, etc.
+- Each cluster has a centroid (average lat/lng of all members)
+
+RESULTS:
+- 102 venues compress to ~45 clusters
+- 45 x 45 = 2,025 matrix elements
+- Cost: ~$10/month (vs $112 for full venue-to-venue)
+- Accuracy: ~98-99% (cluster center is <1 min from any member)
+
+CLUSTERING ALGORITHM (Density-First):
+1. Count neighbors for each venue (within 0.15 miles)
+2. Sort venues by neighbor count (descending)
+3. Process densest areas first (MacDougal becomes gravity center)
+4. Absorb nearby venues into cluster
+5. Calculate centroid from all members
+
+
+================================================================================
+3. TRANSIT CONSTANTS
+================================================================================
+
+// At top of transit.js
+const WALK_MINS_PER_MILE = 20;      // ~3 mph walking pace
+const SUBWAY_MINS_PER_MILE = 4;     // ~15 mph avg including stops
+const CLUSTER_SNAP_RADIUS = 0.15;   // Must match generator exactly
+
+
+================================================================================
+4. MATRIX DATA STRUCTURE
+================================================================================
+
+File: transit_data.json
+
+{
+  "venue_map": {
+    "comedycellar": 0,          // Slug -> Cluster ID
+    "grislypear": 0,            // Same cluster as Comedy Cellar
+    "qedastoria": 12,
+    ...
+  },
+  "clusters": [
+    { "id": 0, "lat": 40.7295, "lng": -74.0005, "name": "Cluster 0 (Comedy Cellar)", "memberNames": ["Comedy Cellar", "Grisly Pear", ...] },
+    { "id": 1, "lat": 40.7268, "lng": -73.9855, "name": "Cluster 1 (KGB Bar)", "memberNames": [...] },
+    ...
+  ],
+  "matrix": {
+    "0": { "0": 0, "1": 12, "2": 25, ... },   // Cluster 0 -> all others (in minutes)
+    "1": { "0": 14, "1": 0, "2": 18, ... },   // Asymmetric (direction matters)
+    ...
+  }
+}
+
+SLUG MATCHING:
+- "The Grisly Pear!" -> "thegrislypear"
+- Prevents mismatch errors from punctuation/casing
+- Function: str.toLowerCase().replace(/[^a-z0-9]/g, '')
+
+
+================================================================================
+5. DYNAMIC SNAPPING (NEW VENUES)
+================================================================================
+
+Problem: New venue added mid-month won't be in venue_map.
+Solution: Client-side snapping to nearest cluster.
+
+function resolveClusterId(venue) {
+    const slug = createSlug(venue.title);
+
+    // 1. Check venue_map first
+    if (TRANSIT_DATA.venue_map[slug] !== undefined) {
+        return TRANSIT_DATA.venue_map[slug];
+    }
+
+    // 2. Dynamic snap: Find closest cluster within 0.15 miles
+    let closestId = null;
+    let minDist = Infinity;
+
+    TRANSIT_DATA.clusters.forEach(c => {
+        const d = calculateDistance(venue.lat, venue.lng, c.lat, c.lng);
+        if (d <= CLUSTER_SNAP_RADIUS && d < minDist) {
+            minDist = d;
+            closestId = c.id;
+        }
+    });
+
+    return closestId; // null if no nearby cluster
+}
+
+
+================================================================================
+6. BRIDGE CALCULATION (Matrix Lookup)
+================================================================================
+
+For mics > 3 hours out, calculate time using matrix:
+
+Total Time = Walk A + Subway + Walk B
+
+1. Walk A: User location -> Nearest cluster centroid
+   - Find closest cluster to user's origin
+   - Distance * WALK_MINS_PER_MILE (20)
+
+2. Subway: Origin cluster -> Destination cluster
+   - matrix[originClusterId][destClusterId]
+   - If missing: fallback to distance * SUBWAY_MINS_PER_MILE (4)
+
+3. Walk B: Destination cluster centroid -> Venue
+   - Distance * WALK_MINS_PER_MILE (20)
+
+FALLBACK CHAIN:
+- Matrix lookup exists -> Use it
+- Matrix gap -> Use distance * 4 (subway heuristic)
+- No cluster found -> Use direct distance * 20 (walking estimate)
+
+
+================================================================================
+7. BADGE SYSTEM (UPDATED)
+================================================================================
+
+| Badge Type | Color | Display | Meaning                          |
+|------------|-------|---------|----------------------------------|
+| transit    | Blue  | "28m"   | Live API data (within 3 hrs)     |
+| walk       | Green | "8m"    | Walking distance (within threshold) |
+| estimate   | Gray  | "~28m"  | Matrix/cluster (>3 hrs out)      |
+
+Gray badge with tilde tells user it's an estimate, not real-time.
+
+
+================================================================================
+8. WALK THRESHOLD LOGIC
+================================================================================
+
+No "river penalty" math. Simple rules:
+
+1. < 0.4 miles: Always walk (green badge) - FREE
+2. < 1.0 miles + same cluster: Walk (green badge) - FREE
+3. Everything else: API or Matrix based on 3-hour rule
+
+User can customize walk preference in settings:
+- 10 min (~0.5 mi)
+- 15 min (~0.75 mi) [default]
+- 20 min (~1.0 mi)
+- Always show transit
+
+
+================================================================================
+9. COST MODEL (FINAL)
+================================================================================
+
+MATRIX GENERATION (Monthly):
+- ~45 clusters x 45 clusters = 2,025 elements
+- Cost: ~$10/month
+- Regenerate when venue list changes (~1x/month)
+
+LIVE API (Per Search, <3 hrs):
+- 5 closest clusters = $0.025
+- "Show more" expansion = +$0.025
+
+BUDGET BREAKDOWN ($200/month credit):
+| Item                          | Cost     | Remaining |
+|-------------------------------|----------|-----------|
+| Matrix regeneration           | $10      | $190      |
+| Live searches (~7,600/month)  | $190     | $0        |
+
+Daily capacity: ~250 live searches/day
+Planning mode (>3 hrs): Unlimited (matrix is free)
+
+
+================================================================================
+10. STATE ADDITIONS
+================================================================================
+
+const STATE = {
+    // ... existing ...
+
+    transitExpanded: false,     // Has user clicked "Show more"?
+    targetVenueHood: null,      // Cluster of explicitly searched venue
+    walkPreference: localStorage.getItem('walkPref') || '15min'
+};
+
+// Global transit data (loaded once)
+let TRANSIT_DATA = null;
+
+
+================================================================================
+11. FILES REQUIRED
+================================================================================
+
+NEW FILES:
+- scripts/generate_transit_data.js  (Cluster generator with dry-run mode)
+- js/transit_data.json              (Generated matrix, ~50KB)
+
+The generator script:
+- Parses venue list
+- Calculates density scores
+- Clusters using density-first algorithm
+- Calculates centroids
+- Fetches Google Matrix API (if not dry-run)
+- Outputs transit_data.json
+
+
+================================================================================
+12. MAP TILES (CONFIRMED SAFE)
+================================================================================
+
+Using CartoDB/OpenStreetMap tiles (free, unlimited).
+DO NOT switch to Mapbox or Google tiles - would add cost.
+
+Current: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/...')
+Cost: $0.00 forever
+
+
+================================================================================
+SUMMARY: OLD vs NEW SYSTEM
+================================================================================
+
+| Aspect              | Old (31 Hubs)      | New (Micro-Clusters)   |
+|---------------------|--------------------|-----------------------|
+| Accuracy            | ~85%               | ~98%                  |
+| Monthly matrix cost | $4.80              | ~$10                  |
+| Lookup method       | Neighborhood name  | Slug-based            |
+| New venue handling  | Manual update      | Auto-snap to cluster  |
+| Centroid calc       | Fixed hub coords   | Average of members    |
+| Clustering algo     | None (predefined)  | Density-first         |
+
+
+================================================================================
+13. CRITICAL PATCHES (Post-Review)
+================================================================================
+
+PATCH 1: Backend Proxy Validation
+---------------------------------
+Problem: VALID_HUBS array contains neighborhood names, but new system uses clusters.
+Fix: Remove VALID_HUBS validation, rely on coordinate bounding box only.
+
+In api/routes/proxy.js:
+- DELETE: const VALID_HUBS = [...]
+- DELETE: invalidHubs validation block
+- KEEP: isValidCoord bounding box check for all coordinates
+
+
+PATCH 2: Urgent Mic Priority in fetchBatchTransitTimes
+------------------------------------------------------
+Problem: Sorting by distance may exclude urgent mics (<3 hrs) in distant clusters.
+Fix: Collect urgent clusters FIRST, then fill remaining slots with closest.
+
+// 1. Get clusters containing urgent mics (must-fetch)
+const urgentClusters = new Set();
+const now = new Date();
+visibleMics.forEach(mic => {
+    if (mic.start && (mic.start - now) / 36e5 <= 3) {
+        const clusterId = resolveClusterId(mic);
+        if (clusterId !== null) urgentClusters.add(clusterId);
+    }
+});
+
+// 2. Start with urgent, fill with closest
+const urgentTargets = targets.filter(t => urgentClusters.has(t.id));
+const nonUrgentTargets = targets.filter(t => !urgentClusters.has(t.id));
+nonUrgentTargets.sort((a, b) => a.dist - b.dist);
+
+finalTargets = [...urgentTargets, ...nonUrgentTargets].slice(0, hubLimit);
+
+
+PATCH 3: Night Owl Penalty in applyMatrixTime
+---------------------------------------------
+Problem: Late-night subway frequency drops, matrix estimates are too optimistic.
+Fix: Add +15 min buffer for mics between 11pm-5am.
+
+// In applyMatrixTime, after matrix lookup:
+const hour = mic.start ? mic.start.getHours() : 0;
+if (rideTime && (hour >= 23 || hour < 5)) {
+    rideTime += 15; // Late night buffer
+}
+
+
+PATCH 4: "Always Transit" Preference
+------------------------------------
+Problem: Math.max(0.4, ...) forces walking even when user selects "Always Transit".
+Fix: Bypass walk threshold entirely when preference is 'none'.
+
+let walkThreshold;
+if (STATE.walkPreference === 'none') {
+    walkThreshold = 0; // Force transit for everything
+} else {
+    walkThreshold = Math.max(0.4, isSameCluster ? userWalkMiles : userWalkMiles * 0.5);
+}
+
+
+================================================================================
+NEXT STEPS
+================================================================================
+
+1. Run generator with DRY_RUN=true, inspect clusters
+2. Verify MacDougal venues are in same cluster
+3. Run generator with DRY_RUN=false (~$10 cost)
+4. Deploy transit_data.json to js/ folder
+5. Implement applyMatrixTime() in transit.js
+6. Apply all 4 critical patches
+7. Test mixed badge scenarios (blue + gray in same list)
+8. Test urgent mic in distant cluster gets blue badge
+
