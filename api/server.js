@@ -5,6 +5,7 @@ const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 const csv = require('csv-parser');
+const GtfsRealtimeBindings = require('gtfs-realtime-bindings');
 require('dotenv').config();
 
 // MongoDB Connection
@@ -287,6 +288,174 @@ app.post('/api/proxy/transit', async (req, res) => {
     res.status(500).json({ error: 'Transit calculation failed' });
   }
 });
+
+// =================================================================
+// MTA REALTIME - Alerts & Arrivals
+// =================================================================
+
+const MTA_BASE = 'https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds';
+const MTA_ALERTS_URL = `${MTA_BASE}/camsys%2Fsubway-alerts`;
+
+const MTA_FEED_MAP = {
+  '1': 'nyct%2Fgtfs', '2': 'nyct%2Fgtfs', '3': 'nyct%2Fgtfs',
+  '4': 'nyct%2Fgtfs', '5': 'nyct%2Fgtfs', '6': 'nyct%2Fgtfs', 'S': 'nyct%2Fgtfs',
+  'A': 'nyct%2Fgtfs-ace', 'C': 'nyct%2Fgtfs-ace', 'E': 'nyct%2Fgtfs-ace',
+  'N': 'nyct%2Fgtfs-nqrw', 'Q': 'nyct%2Fgtfs-nqrw', 'R': 'nyct%2Fgtfs-nqrw', 'W': 'nyct%2Fgtfs-nqrw',
+  'B': 'nyct%2Fgtfs-bdfm', 'D': 'nyct%2Fgtfs-bdfm', 'F': 'nyct%2Fgtfs-bdfm', 'M': 'nyct%2Fgtfs-bdfm',
+  'L': 'nyct%2Fgtfs-l',
+  'G': 'nyct%2Fgtfs-g',
+  'J': 'nyct%2Fgtfs-jz', 'Z': 'nyct%2Fgtfs-jz',
+  '7': 'nyct%2Fgtfs-7'
+};
+
+// In-memory cache
+const mtaCache = {
+  alerts: { data: null, timestamp: 0 },
+  feeds: {} // { 'L': { data: null, timestamp: 0 }, ... }
+};
+
+const MTA_CACHE_TTL = {
+  alerts: 90 * 1000,  // 90 seconds
+  feed: 30 * 1000     // 30 seconds
+};
+
+// GET /api/mta/alerts
+app.get('/api/mta/alerts', async (req, res) => {
+  try {
+    // Serve from cache if fresh
+    if (mtaCache.alerts.data && Date.now() - mtaCache.alerts.timestamp < MTA_CACHE_TTL.alerts) {
+      return res.json(mtaCache.alerts.data);
+    }
+
+    // Fetch from MTA
+    const response = await fetch(MTA_ALERTS_URL);
+    if (!response.ok) throw new Error(`MTA status: ${response.status}`);
+
+    // Decode Protobuf
+    const buffer = await response.arrayBuffer();
+    const feed = GtfsRealtimeBindings.transit_realtime.FeedMessage.decode(new Uint8Array(buffer));
+
+    // Parse alerts
+    const alerts = [];
+    feed.entity.forEach(entity => {
+      if (entity.alert && entity.alert.headerText) {
+        const alert = entity.alert;
+        const lines = [];
+        alert.informedEntity?.forEach(ie => {
+          if (ie.routeId) lines.push(ie.routeId);
+        });
+
+        if (lines.length > 0) {
+          const text = alert.headerText.translation?.[0]?.text || 'Service Alert';
+          alerts.push({
+            id: entity.id,
+            lines,
+            text,
+            type: text.toLowerCase().includes('suspended') ? 'error' : 'warning'
+          });
+        }
+      }
+    });
+
+    // Cache and return
+    mtaCache.alerts = { data: alerts, timestamp: Date.now() };
+    console.log(`✅ MTA alerts fetched: ${alerts.length} active`);
+    res.json(alerts);
+
+  } catch (error) {
+    console.error('❌ MTA alerts error:', error.message);
+    res.json([]); // Return empty array so frontend doesn't break
+  }
+});
+
+// GET /api/mta/arrivals/:line/:stopId
+app.get('/api/mta/arrivals/:line/:stopId', async (req, res) => {
+  try {
+    const { line, stopId } = req.params;
+    const lineUpper = line.toUpperCase();
+    const feedSuffix = MTA_FEED_MAP[lineUpper];
+
+    if (!feedSuffix) {
+      return res.status(400).json({ error: `Unknown line: ${line}` });
+    }
+
+    // Check cache
+    if (mtaCache.feeds[lineUpper]?.data &&
+        Date.now() - mtaCache.feeds[lineUpper].timestamp < MTA_CACHE_TTL.feed) {
+      const arrivals = extractArrivals(mtaCache.feeds[lineUpper].data, stopId);
+      return res.json(arrivals);
+    }
+
+    // Fetch fresh data
+    const feedUrl = `${MTA_BASE}/${feedSuffix}`;
+    const response = await fetch(feedUrl);
+    if (!response.ok) throw new Error(`MTA status: ${response.status}`);
+
+    const buffer = await response.arrayBuffer();
+    const feed = GtfsRealtimeBindings.transit_realtime.FeedMessage.decode(new Uint8Array(buffer));
+
+    // Cache the feed
+    mtaCache.feeds[lineUpper] = { data: feed, timestamp: Date.now() };
+
+    const arrivals = extractArrivals(feed, stopId);
+    console.log(`✅ MTA arrivals for ${lineUpper}/${stopId}: ${arrivals.length} trains`);
+    res.json(arrivals);
+
+  } catch (error) {
+    console.error('❌ MTA arrivals error:', error.message);
+    res.json([]);
+  }
+});
+
+function extractArrivals(feed, stopId) {
+  const now = Date.now() / 1000;
+  const arrivals = [];
+
+  // Lines that don't run north-south (custom direction labels)
+  const customDirections = {
+    'L': { N: 'Manhattan', S: 'Brooklyn' },
+    'G': { N: 'Queens', S: 'Brooklyn' },
+    'J': { N: 'Manhattan', S: 'Queens' },
+    'Z': { N: 'Manhattan', S: 'Queens' },
+    'M': { N: 'Manhattan', S: 'Brooklyn' },
+    'S': { N: 'Times Sq', S: 'Grand Central' }
+  };
+
+  feed.entity.forEach(entity => {
+    if (entity.tripUpdate) {
+      const trip = entity.tripUpdate.trip;
+
+      entity.tripUpdate.stopTimeUpdate?.forEach(stu => {
+        // Match stopId prefix (e.g., L08 matches L08N and L08S)
+        if (stu.stopId?.startsWith(stopId)) {
+          const arrivalTime = stu.arrival?.time?.low || stu.arrival?.time;
+          // 60-second buffer for "boarding now" trains
+          if (arrivalTime && arrivalTime > (now - 60)) {
+            const minsAway = Math.round((arrivalTime - now) / 60);
+            if (minsAway <= 30) {
+              const suffix = stu.stopId.slice(-1); // N or S
+              let direction;
+              if (customDirections[trip.routeId]) {
+                direction = customDirections[trip.routeId][suffix] || (suffix === 'N' ? 'Uptown' : 'Downtown');
+              } else {
+                direction = suffix === 'N' ? 'Uptown' : 'Downtown';
+              }
+              arrivals.push({
+                line: trip.routeId,
+                direction,
+                minsAway: Math.max(0, minsAway) // Clamp to 0 for "boarding"
+              });
+            }
+          }
+        }
+      });
+    }
+  });
+
+  // Sort by arrival time, limit to 6
+  arrivals.sort((a, b) => a.minsAway - b.minsAway);
+  return arrivals.slice(0, 6);
+}
 
 // =================================================================
 // GEOCODING PROXY - Mapbox (100k free/month, supports business names)

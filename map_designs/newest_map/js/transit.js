@@ -138,107 +138,32 @@ const transitService = {
     async fetchBatchTransitTimes(originLat, originLng, cacheKey, targetMic = null) {
         if (!TRANSIT_DATA) return {};
 
-        // 1. Get visible mics + target mic (Ghost Venue fix)
-        const visibleMics = STATE.mics.filter(mic => isMicVisible(mic));
-        if (targetMic && !visibleMics.find(m => m.id === targetMic.id)) {
-            visibleMics.push(targetMic);
+        // NEW: Use pre-computed station-based matrix (NO API CALLS!)
+        const nearestStation = getNearestStation(originLat, originLng);
+
+        if (!nearestStation) {
+            console.log('No nearby station found - using distance estimates');
+            return this.getAllFallbackTimes(originLat, originLng);
         }
 
-        // 2. Get unique cluster IDs needed
-        const neededClusterIds = new Set();
-        visibleMics.forEach(mic => {
-            const clusterId = resolveClusterId(mic);
-            if (clusterId !== null) neededClusterIds.add(clusterId);
-        });
+        console.log(`Using pre-computed data from: ${nearestStation.name} (${nearestStation.distance.toFixed(2)} mi away)`);
 
-        // 3. SMART DELTA: Filter out already-cached clusters
-        const currentCache = STATE.transitCache[cacheKey] || {};
-        const clustersToFetch = [...neededClusterIds].filter(clusterId => {
-            return currentCache[clusterId] === undefined;
-        });
-
-        if (clustersToFetch.length === 0) {
-            console.log('All clusters cached - no API call needed');
-            return {};
+        // Get all pre-computed times from this station
+        const stationMatrix = TRANSIT_DATA.matrix[nearestStation.id];
+        if (!stationMatrix) {
+            console.warn('No matrix data for station:', nearestStation.id);
+            return this.getAllFallbackTimes(originLat, originLng);
         }
 
-        // 4. Map cluster IDs to coordinates and calculate distances
-        let targets = clustersToFetch
-            .map(clusterId => {
-                const cluster = TRANSIT_DATA.clusters[clusterId];
-                if (!cluster) return null;
-                return {
-                    id: clusterId,
-                    name: cluster.name,
-                    lat: cluster.lat,
-                    lng: cluster.lng,
-                    dist: calculateDistance(originLat, originLng, cluster.lat, cluster.lng)
-                };
-            })
-            .filter(t => t !== null);
-
-        // 5. Urgent Mic Priority (<3 hrs)
-        const now = new Date();
-        const urgentClusterIds = new Set();
-        visibleMics.forEach(mic => {
-            if (mic.start && (mic.start - now) / 36e5 <= 3) {
-                const clusterId = resolveClusterId(mic);
-                if (clusterId !== null) urgentClusterIds.add(clusterId);
-            }
-        });
-
-        const urgentTargets = targets.filter(t => urgentClusterIds.has(t.id));
-        const nonUrgentTargets = targets.filter(t => !urgentClusterIds.has(t.id));
-        nonUrgentTargets.sort((a, b) => a.dist - b.dist);
-
-        // 6. Apply cluster limit
-        const clusterLimit = STATE.transitExpanded ? this.EXPANDED_HUB_LIMIT : this.INITIAL_HUB_LIMIT;
-        let finalTargets = [...urgentTargets, ...nonUrgentTargets].slice(0, clusterLimit);
-
-        // 7. Always include target venue's cluster
-        if (targetMic) {
-            const targetClusterId = resolveClusterId(targetMic);
-            const targetInList = finalTargets.some(t => t.id === targetClusterId);
-            if (!targetInList && targetClusterId !== null) {
-                const targetCluster = TRANSIT_DATA.clusters[targetClusterId];
-                if (targetCluster) {
-                    finalTargets = [...finalTargets.slice(0, clusterLimit - 1), {
-                        id: targetClusterId,
-                        name: targetCluster.name,
-                        lat: targetCluster.lat,
-                        lng: targetCluster.lng,
-                        dist: calculateDistance(originLat, originLng, targetCluster.lat, targetCluster.lng)
-                    }];
-                }
-            }
-        }
-
-        console.log(`Fetching ${finalTargets.length} clusters (${STATE.transitExpanded ? 'expanded' : 'initial'})`);
-
-        if (finalTargets.length === 0) return {};
-
-        // 8. API call
-        const res = await fetch(`${CONFIG.apiBase}/api/proxy/transit`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                originLat,
-                originLng,
-                destinations: finalTargets.map(t => ({ name: t.name, lat: t.lat, lng: t.lng }))
-            })
-        });
-
-        if (!res.ok) throw new Error(`Transit proxy error: ${res.status}`);
-
-        const data = await res.json();
+        // Return all cluster times from this station
         const clusterTimes = {};
-
-        if (data.times) {
-            data.times.forEach((t, i) => {
-                clusterTimes[finalTargets[i].id] = t.seconds;
-            });
+        for (const [clusterId, seconds] of Object.entries(stationMatrix)) {
+            if (seconds !== null) {
+                clusterTimes[clusterId] = seconds;
+            }
         }
 
+        console.log(`✅ Loaded ${Object.keys(clusterTimes).length} pre-computed transit times (FREE!)`);
         return clusterTimes;
     },
 
@@ -288,18 +213,27 @@ const transitService = {
         });
     },
 
-    // Blue badge - Live API data
+    // Blue badge - Pre-computed transit data (was Live API, now uses matrix)
     applyLiveApiTime(mic) {
         const clusterId = resolveClusterId(mic);
         let clusterTime = clusterId !== null ? STATE.transitTimes[clusterId] : undefined;
 
         if (clusterTime !== undefined && clusterTime !== null) {
+            // Add walk time from station to destination cluster, then to venue
+            const nearestStation = getNearestStation(STATE.userOrigin.lat, STATE.userOrigin.lng);
+            const walkToStation = nearestStation ? Math.ceil(nearestStation.distance * WALK_MINS_PER_MILE * 60) : 300;
+
             if (clusterId !== null && TRANSIT_DATA) {
-                const cluster = TRANSIT_DATA.clusters[clusterId];
-                const walkDistMiles = calculateDistance(cluster.lat, cluster.lng, mic.lat, mic.lng);
-                const walkSeconds = Math.ceil(walkDistMiles * WALK_MINS_PER_MILE * 60);
-                mic.transitSeconds = clusterTime + walkSeconds;
-                mic.transitMins = Math.round(mic.transitSeconds / 60);
+                const cluster = TRANSIT_DATA.clusters.find(c => c.id === clusterId);
+                if (cluster) {
+                    const walkDistMiles = calculateDistance(cluster.lat, cluster.lng, mic.lat, mic.lng);
+                    const walkToDest = Math.ceil(walkDistMiles * WALK_MINS_PER_MILE * 60);
+                    mic.transitSeconds = walkToStation + clusterTime + walkToDest;
+                    mic.transitMins = Math.round(mic.transitSeconds / 60);
+                } else {
+                    mic.transitSeconds = walkToStation + clusterTime;
+                    mic.transitMins = Math.round(mic.transitSeconds / 60);
+                }
             } else {
                 mic.transitSeconds = clusterTime;
                 mic.transitMins = Math.round(clusterTime / 60);
@@ -310,7 +244,7 @@ const transitService = {
         }
     },
 
-    // Gray badge - Matrix lookup (FREE)
+    // Gray badge - Matrix lookup (FREE - uses pre-computed station data)
     applyMatrixTime(mic) {
         if (!TRANSIT_DATA) {
             const dist = calculateDistance(STATE.userOrigin.lat, STATE.userOrigin.lng, mic.lat, mic.lng);
@@ -329,24 +263,38 @@ const transitService = {
             return;
         }
 
-        const originClusterId = getUserClusterId(STATE.userOrigin.lat, STATE.userOrigin.lng);
-        const originCluster = TRANSIT_DATA.clusters[originClusterId];
-        const destCluster = TRANSIT_DATA.clusters[destClusterId];
+        // NEW: Use station-based pre-computed matrix
+        const nearestStation = getNearestStation(STATE.userOrigin.lat, STATE.userOrigin.lng);
+        const destCluster = TRANSIT_DATA.clusters.find(c => c.id === destClusterId);
 
-        // Bridge calculation: Walk A + Subway + Walk B
-        const userToOriginCluster = calculateDistance(
-            STATE.userOrigin.lat, STATE.userOrigin.lng,
-            originCluster.lat, originCluster.lng
-        );
-        const walkToOrigin = Math.ceil(userToOriginCluster * WALK_MINS_PER_MILE);
+        if (!destCluster) {
+            const dist = calculateDistance(STATE.userOrigin.lat, STATE.userOrigin.lng, mic.lat, mic.lng);
+            mic.transitMins = Math.round(dist * SUBWAY_MINS_PER_MILE);
+            mic.transitSeconds = mic.transitMins * 60;
+            mic.transitType = 'estimate';
+            return;
+        }
 
-        let rideTime = TRANSIT_DATA.matrix[originClusterId]?.[destClusterId];
-        if (rideTime === undefined || rideTime === null) {
-            const clusterDist = calculateDistance(
-                originCluster.lat, originCluster.lng,
-                destCluster.lat, destCluster.lng
-            );
-            rideTime = Math.round(clusterDist * SUBWAY_MINS_PER_MILE);
+        // Walk to nearest station
+        let walkToStation = 0;
+        let rideTime = null;
+
+        if (nearestStation && TRANSIT_DATA.matrix[nearestStation.id]) {
+            // Use pre-computed time from nearest station
+            walkToStation = Math.ceil(nearestStation.distance * WALK_MINS_PER_MILE);
+            rideTime = TRANSIT_DATA.matrix[nearestStation.id][destClusterId];
+
+            // Convert seconds to minutes if needed
+            if (rideTime !== null && rideTime !== undefined) {
+                rideTime = Math.round(rideTime / 60);
+            }
+        }
+
+        // Fallback: estimate based on distance
+        if (rideTime === null || rideTime === undefined) {
+            const dist = calculateDistance(STATE.userOrigin.lat, STATE.userOrigin.lng, destCluster.lat, destCluster.lng);
+            rideTime = Math.round(dist * SUBWAY_MINS_PER_MILE);
+            walkToStation = 5; // Assume 5 min walk to subway
         }
 
         // Night Owl Penalty (+15 min for late night mics)
@@ -355,15 +303,16 @@ const transitService = {
             rideTime += 15;
         }
 
+        // Walk from destination cluster to venue
         const destClusterToVenue = calculateDistance(
             destCluster.lat, destCluster.lng,
             mic.lat, mic.lng
         );
         const walkToDest = Math.ceil(destClusterToVenue * WALK_MINS_PER_MILE);
 
-        mic.transitMins = walkToOrigin + rideTime + walkToDest;
+        mic.transitMins = walkToStation + rideTime + walkToDest;
         mic.transitSeconds = mic.transitMins * 60;
-        mic.transitType = 'estimate';
+        mic.transitType = nearestStation ? 'transit' : 'estimate';
     },
 
     addOriginMarker(lat, lng, name) {

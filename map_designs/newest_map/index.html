@@ -42,7 +42,7 @@
                 <circle cx="11" cy="11" r="8"></circle>
                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
-            <input type="text" id="search-input" class="search-input" placeholder="Search venues, hosts..." autocomplete="off" maxlength="100" aria-label="Search venues">
+            <input type="text" id="search-input" class="search-input" placeholder="Search mics or enter your location..." autocomplete="off" maxlength="100" aria-label="Search venues or location">
             <!-- Clear button -->
             <button id="search-clear-btn" class="search-clear-btn" onclick="searchService.clear()" aria-label="Clear search">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -123,10 +123,6 @@
                     Time
                 </button>
 
-                <!-- Transit Button (MVP) -->
-                <button class="drawer-filter-btn" id="btn-transit" onclick="event.stopPropagation(); toggleTransitMode()">
-                    📍 Transit
-                </button>
             </div>
         </div>
 
@@ -161,6 +157,8 @@
                 <span class="modal-instructions-header">SIGNUP INSTRUCTIONS</span>
                 <div class="modal-instructions-text" id="modal-instructions-text"></div>
             </div>
+            <!-- MTA Live Arrivals -->
+            <div id="modal-arrivals" class="modal-arrivals"></div>
         </div>
     </div>
 
@@ -176,6 +174,7 @@
     <script src="js/toast.js"></script>
     <script src="js/search.js"></script>
     <script src="js/transit.js"></script>
+    <script src="js/mta.js"></script>
     <script src="js/settings.js"></script>
     <script src="js/render.js"></script>
     <script src="js/app.js"></script>

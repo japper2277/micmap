@@ -210,7 +210,8 @@ function clearTransitData() {
    ========================================================================= */
 
 // Global transit data (loaded from transit_data.json)
-let TRANSIT_DATA = null;
+var TRANSIT_DATA = null;
+window.TRANSIT_DATA = null; // Also expose on window for other modules
 const CLUSTER_SNAP_RADIUS = 0.3; // miles - for snapping new venues to clusters
 
 // Load transit data JSON
@@ -218,6 +219,7 @@ async function loadTransitData() {
     try {
         const response = await fetch('js/transit_data.json');
         TRANSIT_DATA = await response.json();
+        window.TRANSIT_DATA = TRANSIT_DATA; // Expose on window
         console.log(`✅ Loaded transit data: ${TRANSIT_DATA.clusters.length} clusters`);
     } catch (e) {
         console.warn('Transit data not available:', e.message);
@@ -327,17 +329,30 @@ function getUserClusterId(originLat, originLng) {
     return closestId;
 }
 
+// Find nearest subway station to user's location (for pre-computed matrix lookup)
+function getNearestStation(lat, lng) {
+    if (!TRANSIT_DATA || !TRANSIT_DATA.stations) return null;
+
+    let nearest = null;
+    let minDist = Infinity;
+    const MAX_STATION_DISTANCE = 0.5; // miles - max distance to snap to a station
+
+    TRANSIT_DATA.stations.forEach(station => {
+        const d = calculateDistance(lat, lng, station.lat, station.lng);
+        if (d < minDist && d <= MAX_STATION_DISTANCE) {
+            minDist = d;
+            nearest = { ...station, distance: d };
+        }
+    });
+
+    return nearest;
+}
+
 /* =========================================================================
    MAP CLICK FALLBACK - When geolocation fails/denied
    ========================================================================= */
 function enableMapClickMode() {
-    const btn = document.getElementById('btn-transit');
-    if (btn) {
-        btn.textContent = '📍 Tap Map';
-        btn.disabled = false;
-        btn.classList.add('active');
-    }
-
+    // Transit button removed - just enable map click mode
     STATE.isWaitingForMapClick = true;
     document.getElementById('map').style.cursor = 'crosshair';
     map.on('click', onMapClickForTransit);
@@ -353,22 +368,13 @@ async function onMapClickForTransit(e) {
     if (!STATE.isWaitingForMapClick) return;
     const { lat, lng } = e.latlng;
 
-    STATE.userOrigin = { lat, lng, name: 'Selected Location' };
-    STATE.isTransitMode = true;
-
-    const btn = document.getElementById('btn-transit');
-    if (btn) {
-        btn.textContent = '⏳ Calculating...';
-        btn.disabled = true;
-    }
-
-    await calculateTransitTimes(lat, lng);
+    // Use pre-computed transit data (no API calls!)
+    await transitService.calculateFromOrigin(lat, lng, 'Selected Location');
 
     disableMapClickMode();
     if (typeof updateTransitButtonUI === 'function') {
         updateTransitButtonUI(true);
     }
-    render(STATE.currentMode);
 }
 
 // Open directions in native Google Maps app

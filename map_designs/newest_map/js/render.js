@@ -5,6 +5,7 @@
 
 function render(mode) {
     const container = document.getElementById('list-content');
+    if (!container) return;
 
     markersGroup.clearLayers();
     STATE.markerLookup = {};
@@ -191,76 +192,50 @@ function render(mode) {
         card.onclick = () => locateMic(mic.lat, mic.lng, mic.id);
         card.className = `stream-item group ${isRecentPast ? 'is-past' : ''}`;
 
+        // Build transit display
+        const transitDisplay = mic.transitMins !== undefined
+            ? `<div class="meta-separator">|</div>
+               <div class="commute-live">
+                   <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                   ${mic.transitType === 'estimate' ? '~' : ''}${mic.transitMins}m away
+               </div>`
+            : '';
+
         card.innerHTML = `
-            <!-- Sliding Accent Bar -->
-            <div class="stream-accent-bar" style="background-color: ${accentColor}"></div>
+            <!-- LEFT: Specs -->
+            <div class="specs-col">
+                <div class="start-time">${mic.timeStr}</div>
+                <div class="stage-time">${mic.setTime}</div>
+            </div>
 
-            <!-- Travel Connector -->
-            <div class="travel-connector"></div>
-
-            <!-- Default Card View -->
-            <div class="card-default-view" style="display: contents;">
-                <!-- LEFT: Time + Set Length -->
-                <div class="flex flex-col items-center pt-1 relative z-10">
-                    <span class="time-display font-mono font-bold text-lg ${timeColor} transition-colors">${mic.timeStr}</span>
-                    <span class="sub-text text-[10px] ${subTextColor} font-mono mt-0.5 transition-colors">${mic.setTime}</span>
-                </div>
-
-                <!-- MIDDLE: Details -->
-                <div class="flex flex-col justify-center relative z-10">
-                    <div class="flex items-center gap-2">
-                        <h3 class="font-bold text-base leading-tight text-white transition-colors font-display group-hover:text-black">${mic.title}</h3>
-                        ${mic.transitMins !== undefined ? `<span class="transit-badge transit-${mic.transitType || 'transit'}">${mic.transitType === 'walk' ? '🚶' : '🚇'} ${mic.transitType === 'estimate' ? '~' : ''}${mic.transitMins}m</span>` : ''}
-                    </div>
-                    <div class="flex items-center gap-2 mt-1 text-[10px] ${subTextColor} font-mono uppercase tracking-wide">
-                        <span class="sub-text">${mic.hood}</span>
-                        <span class="w-0.5 h-0.5 bg-neutral-600 rounded-full"></span>
-                        <span class="tag-text px-1 py-0.5 border border-white/20 rounded transition-colors">${mic.price}</span>
-                        <span class="tag-text px-1 py-0.5 border border-white/20 rounded transition-colors">${mic.type}</span>
-                    </div>
-                </div>
-
-                <!-- RIGHT: Link/Email/Info + Instagram -->
-                <div class="flex flex-col items-center justify-center gap-2 relative z-10">
-                    ${mic.signupUrl
-                        ? `<a href="${mic.signupUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation();" class="w-10 h-10 rounded-full bg-white/10 hover:bg-rose-500 flex items-center justify-center transition-all group-hover:bg-black/20" title="Go to site">
-                            <svg class="w-4 h-4 text-neutral-400 group-hover:text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                            </svg>
-                        </a>`
-                        : mic.signupEmail
-                        ? `<a href="mailto:${mic.signupEmail}" onclick="event.stopPropagation();" class="w-10 h-10 rounded-full bg-white/10 hover:bg-rose-500 flex items-center justify-center transition-all group-hover:bg-black/20" title="Email ${mic.signupEmail}">
-                            <svg class="w-4 h-4 text-neutral-400 group-hover:text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                            </svg>
-                        </a>`
-                        : `<button onclick="event.stopPropagation(); toggleSignupInfo('${mic.id}');" class="w-10 h-10 rounded-full bg-white/10 hover:bg-rose-500 flex items-center justify-center transition-all group-hover:bg-black/20" title="Signup info">
-                            <svg class="w-4 h-4 text-neutral-400 group-hover:text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                        </button>`
-                    }
-                    ${mic.contact ? `<a href="https://instagram.com/${mic.contact.replace(/^@/, '')}" target="_blank" rel="noopener" onclick="event.stopPropagation();" class="w-10 h-10 rounded-full bg-white/10 hover:bg-rose-500 flex items-center justify-center transition-all group-hover:bg-black/20" title="@${mic.contact.replace(/^@/, '')}">
-                        <svg class="w-4 h-4 text-neutral-400 group-hover:text-black" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-                        </svg>
-                    </a>` : ''}
+            <!-- CENTER: Info -->
+            <div class="info-col">
+                <div class="venue-name">${mic.title}</div>
+                <div class="meta-row">
+                    <span>${mic.hood}</span>
+                    <div class="meta-separator">|</div>
+                    <span>${mic.price}</span>
+                    ${transitDisplay}
                 </div>
             </div>
 
-            <!-- Expanded Signup Info View -->
-            <div class="card-signup-view" style="display: none; grid-column: 1 / -1; padding: 16px 20px; background: rgba(0, 0, 0, 0.8); border-radius: 8px; margin: 8px 0;">
-                <div class="flex justify-between items-start gap-3">
-                    <div class="flex-1">
-                        <div class="text-xs uppercase tracking-wider text-neutral-500 font-bold mb-2" style="color: #71717a !important;">Signup Instructions</div>
-                        <div class="text-sm leading-relaxed" style="color: white !important;">${mic.signupInstructions}</div>
-                    </div>
-                    <button onclick="event.stopPropagation(); toggleSignupInfo('${mic.id}');" class="w-6 h-6 rounded-full bg-white/10 hover:bg-rose-500 flex items-center justify-center transition-all flex-shrink-0" style="color: #a1a1aa;">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                    </button>
-                </div>
+            <!-- RIGHT: Actions -->
+            <div class="action-col">
+                ${mic.signupUrl
+                    ? `<a href="${mic.signupUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation();" class="icon-btn" title="Visit Website">
+                        <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                    </a>`
+                    : mic.signupEmail
+                    ? `<a href="mailto:${mic.signupEmail}" onclick="event.stopPropagation();" class="icon-btn" title="Email ${mic.signupEmail}">
+                        <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                    </a>`
+                    : `<button onclick="event.stopPropagation(); openVenueModal(STATE.mics.find(m => m.id === '${mic.id}'));" class="icon-btn" title="More info">
+                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                    </button>`
+                }
+                ${mic.contact ? `<a href="https://instagram.com/${mic.contact.replace(/^@/, '')}" target="_blank" rel="noopener" onclick="event.stopPropagation();" class="icon-btn" title="@${mic.contact.replace(/^@/, '')}">
+                    <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+                </a>` : ''}
             </div>
         `;
         container.appendChild(card);
@@ -279,21 +254,3 @@ function render(mode) {
     }
 }
 
-// Toggle signup info display
-function toggleSignupInfo(micId) {
-    const card = document.getElementById(`card-${micId}`);
-    if (!card) return;
-
-    const defaultView = card.querySelector('.card-default-view');
-    const signupView = card.querySelector('.card-signup-view');
-
-    if (signupView.style.display === 'none') {
-        defaultView.style.display = 'none';
-        signupView.style.display = 'block';
-        card.classList.add('signup-expanded');
-    } else {
-        defaultView.style.display = 'contents';
-        signupView.style.display = 'none';
-        card.classList.remove('signup-expanded');
-    }
-}
