@@ -249,6 +249,7 @@ details.mic-row[open] summary .chevron { transform: rotate(-135deg); }
 }
 .svc-local { background: var(--badge-svc-local); color: var(--badge-svc-text); border: 1px solid #444; }
 .svc-express { background: var(--badge-svc-express); color: var(--badge-svc-text-exp); }
+.direction-label { font-size: 11px; color: var(--text-sec); margin-left: 4px; }
 
 .arrival-data { font-size: 15px; font-variant-numeric: tabular-nums; display: flex; flex-direction: column; }
 
@@ -260,6 +261,18 @@ details.mic-row[open] summary .chevron { transform: rotate(-135deg); }
 .delay-msg {
     font-size: 12px; color: var(--status-delay); font-weight: 600;
     display: flex; align-items: center; gap: 4px; margin-top: 4px;
+}
+
+.transfer-msg {
+    font-size: 12px; color: var(--text-sec); font-weight: 500;
+    display: flex; align-items: center; gap: 4px; margin-top: 4px;
+}
+
+.bullet-inline {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 18px; height: 18px; border-radius: 50%;
+    font-size: 10px; font-weight: 800; color: #fff;
+    vertical-align: middle; margin-left: 2px;
 }
 
 .walk-info { text-align: right; display: flex; align-items: center; gap: 6px; opacity: 0.8; }

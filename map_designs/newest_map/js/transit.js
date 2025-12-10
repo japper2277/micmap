@@ -81,6 +81,9 @@ const transitService = {
         }
 
         try {
+            // Fetch live arrivals for user's nearest stations (for accurate wait times)
+            await this.fetchUserArrivals(lat, lng);
+
             const clusterTimes = await this.fetchBatchTransitTimes(lat, lng, cacheKey, targetMic);
             Object.assign(STATE.transitCache[cacheKey], clusterTimes);
             STATE.transitTimes = STATE.transitCache[cacheKey];
@@ -150,8 +153,8 @@ const transitService = {
 
         // Get all pre-computed times from this station
         const stationMatrix = TRANSIT_DATA.matrix[nearestStation.id];
-        if (!stationMatrix) {
-            console.warn('No matrix data for station:', nearestStation.id);
+        if (!stationMatrix || Object.keys(stationMatrix).length === 0) {
+            console.warn('No matrix data for station:', nearestStation.id, '- using distance fallback');
             return this.getAllFallbackTimes(originLat, originLng);
         }
 
@@ -213,35 +216,100 @@ const transitService = {
         });
     },
 
-    // Blue badge - Pre-computed transit data (was Live API, now uses matrix)
+    // Fetch live arrivals for user's nearest stations
+    async fetchUserArrivals(lat, lng) {
+        const stations = getStationsNearUser(lat, lng, 2);
+        STATE.userArrivals = {};
+        STATE.userStations = stations;
+
+        for (const station of stations) {
+            const lineMatch = station.name.match(/\(([^)]+)\)/);
+            if (!lineMatch) continue;
+
+            const lines = lineMatch[1].split(' ').filter(l => l.length > 0);
+            const primaryLine = lines[0];
+
+            try {
+                const arrivals = await mtaService.fetchArrivals(primaryLine, station.gtfsStopId);
+                STATE.userArrivals[station.id] = {
+                    station,
+                    lines,
+                    arrivals
+                };
+            } catch (e) {
+                console.warn(`Failed to fetch arrivals for ${station.name}:`, e);
+            }
+        }
+    },
+
+    // Blue badge - Uses live arrivals + calculateLiveCommute (same as modal)
     applyLiveApiTime(mic) {
         const clusterId = resolveClusterId(mic);
-        let clusterTime = clusterId !== null ? STATE.transitTimes[clusterId] : undefined;
-
-        if (clusterTime !== undefined && clusterTime !== null) {
-            // Add walk time from station to destination cluster, then to venue
-            const nearestStation = getNearestStation(STATE.userOrigin.lat, STATE.userOrigin.lng);
-            const walkToStation = nearestStation ? Math.ceil(nearestStation.distance * WALK_MINS_PER_MILE * 60) : 300;
-
-            if (clusterId !== null && TRANSIT_DATA) {
-                const cluster = TRANSIT_DATA.clusters.find(c => c.id === clusterId);
-                if (cluster) {
-                    const walkDistMiles = calculateDistance(cluster.lat, cluster.lng, mic.lat, mic.lng);
-                    const walkToDest = Math.ceil(walkDistMiles * WALK_MINS_PER_MILE * 60);
-                    mic.transitSeconds = walkToStation + clusterTime + walkToDest;
-                    mic.transitMins = Math.round(mic.transitSeconds / 60);
-                } else {
-                    mic.transitSeconds = walkToStation + clusterTime;
-                    mic.transitMins = Math.round(mic.transitSeconds / 60);
-                }
-            } else {
-                mic.transitSeconds = clusterTime;
-                mic.transitMins = Math.round(clusterTime / 60);
-            }
-            mic.transitType = 'transit';
-        } else {
+        if (clusterId === null) {
             this.applyMatrixTime(mic);
+            return;
         }
+
+        const venueCluster = TRANSIT_DATA?.clusters?.find(c => c.id === clusterId);
+        if (!venueCluster) {
+            this.applyMatrixTime(mic);
+            return;
+        }
+
+        // Use live arrivals if available
+        if (STATE.userArrivals && STATE.userStations?.length > 0) {
+            let bestTime = Infinity;
+
+            for (const station of STATE.userStations) {
+                const stationData = STATE.userArrivals[station.id];
+                if (!stationData || !stationData.arrivals?.length) continue;
+
+                // Filter arrivals by direction toward venue
+                const primaryLine = stationData.lines[0];
+                const neededDirection = getDirectionToward(station, venueCluster, primaryLine);
+                let filteredArrivals = stationData.arrivals.filter(a => a.direction === neededDirection);
+                if (filteredArrivals.length === 0) filteredArrivals = stationData.arrivals;
+
+                // Calculate walk time
+                const walkMins = Math.ceil(calculateDistance(
+                    STATE.userOrigin.lat, STATE.userOrigin.lng,
+                    station.lat, station.lng
+                ) * WALK_MINS_PER_MILE);
+
+                // Filter catchable trains (same logic as modal)
+                const minCatchableTime = walkMins <= 3 ? walkMins : (walkMins - 2);
+                filteredArrivals = filteredArrivals.filter(a => a.minsAway >= minCatchableTime);
+
+                if (filteredArrivals.length === 0) continue;
+
+                // Use calculateLiveCommute (same as modal)
+                const commute = calculateLiveCommute({
+                    userLat: STATE.userOrigin.lat,
+                    userLng: STATE.userOrigin.lng,
+                    stationLat: station.lat,
+                    stationLng: station.lng,
+                    stationId: station.id,
+                    arrivals: filteredArrivals,
+                    clusterId: clusterId,
+                    venueLat: mic.lat,
+                    venueLng: mic.lng
+                });
+
+                if (commute.total < bestTime) {
+                    bestTime = commute.total;
+                }
+            }
+
+            if (bestTime < Infinity) {
+                mic.transitMins = bestTime;
+                mic.transitSeconds = bestTime * 60;
+                mic.transitType = 'transit';
+                return;
+            }
+        }
+
+        // Fallback to matrix if no live arrivals
+        this.applyMatrixTime(mic);
     },
 
     // Gray badge - Matrix lookup (FREE - uses pre-computed station data)
@@ -310,7 +378,10 @@ const transitService = {
         );
         const walkToDest = Math.ceil(destClusterToVenue * WALK_MINS_PER_MILE);
 
-        mic.transitMins = walkToStation + rideTime + walkToDest;
+        // Estimated wait time for train (avg ~4 min for NYC subway)
+        const estimatedWait = 4;
+
+        mic.transitMins = walkToStation + estimatedWait + rideTime + walkToDest;
         mic.transitSeconds = mic.transitMins * 60;
         mic.transitType = nearestStation ? 'transit' : 'estimate';
     },

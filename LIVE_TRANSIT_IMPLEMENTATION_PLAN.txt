@@ -3,17 +3,20 @@ LIVE TRANSIT DEPARTURE ASSISTANT - IMPLEMENTATION PLAN
 
 OVERVIEW
 --------
-Add a "departure assistant" section to the venue modal that shows:
-- Nearby stations to USER'S ORIGIN (not the venue)
-- Live train arrivals filtered to direction TOWARD the venue
-- Calculated total commute time (walk + wait + ride + walk)
+COMPLETE MODAL REDESIGN to match venue_card_demo.html exactly.
 
-Only appears when: STATE.isTransitMode === true (user has set their location)
+Features:
+1. Hero section with venue name + "Xm Directions" badge
+2. Collapsible mic row (<details>) with time, signup type, chevron
+3. Expanded instructions box with action buttons
+4. Transit section showing stations near USER'S ORIGIN
+
+Transit only appears when: STATE.isTransitMode === true
 
 
 UI DESIGN REFERENCE
 -------------------
-Using venue_card_demo.html as the design template:
+EXACT match to venue_card_demo.html:
 
 ┌─────────────────────────────────────────┐
 │ THE GRAY MARE                    26m    │
@@ -45,38 +48,26 @@ FILES TO MODIFY
 ---------------
 | File        | Changes                                                      |
 |-------------|--------------------------------------------------------------|
-| modal.js    | Add loadDepartureAssistant() function, call from openVenueModal() |
-| modal.js    | Add UI rendering for transit rows                            |
-| utils.js    | Add getStationsNearUser() helper (returns array of stations) |
-| index.html  | Add transit section container in modal                       |
-| stream.css  | Add styles from venue_card_demo.html                         |
+| modal.css   | REPLACE with all styles from venue_card_demo.html            |
+| index.html  | REPLACE modal HTML with new structure                        |
+| modal.js    | UPDATE openVenueModal() to render new format                 |
+| modal.js    | Add loadDepartureAssistant() for transit section             |
+| utils.js    | Add getStationsNearUser() helper                             |
 
 
 IMPLEMENTATION STEPS
 ====================
 
-STEP 1: Update Modal HTML Structure
------------------------------------
-In index.html, modify #venue-modal .venue-card:
+STEP 1: Replace Modal HTML (index.html)
+---------------------------------------
+REPLACE entire #venue-modal with new structure from venue_card_demo.html:
 
-A. Update hero section - Add tappable directions badge:
-
-<div class="hero-section">
-  <div class="venue-info">
-    <h2 id="modal-title">VENUE NAME</h2>
-    <p class="venue-address" id="modal-address">ADDRESS</p>
-  </div>
-  <a href="#" class="maps-btn" id="modal-directions">
-    <span class="maps-time" id="modal-total-time">--</span>
-    <span class="maps-label">Directions →</span>
-  </a>
-</div>
-
-B. Add transit section container:
-
-<div id="transit-section" class="transit-section hidden">
-  <!-- Rows injected by JS -->
-</div>
+- .card container (not .venue-card)
+- .hero-section with venue name + maps-btn (blue "Xm Directions" badge)
+- <details class="mic-row"> for collapsible mic info
+- <summary> with mic icon, time, signup badge, chevron
+- .expanded-content with instructions-box + action-grid
+- #transit-section for live arrivals
 
 
 STEP 2: Add getStationsNearUser() to utils.js

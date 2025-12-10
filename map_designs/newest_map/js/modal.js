@@ -152,6 +152,9 @@ async function loadModalArrivals(mic) {
         return;
     }
 
+    // Fetch alerts once for all stations (use cache if available)
+    const alerts = mtaService.alertsCache || await mtaService.fetchAlerts() || [];
+
     let transitHTML = '';
     let bestTotalTime = Infinity;
 
@@ -176,35 +179,56 @@ async function loadModalArrivals(mic) {
             console.warn(`Failed to fetch arrivals for ${primaryLine}:`, e);
         }
 
+        // DIRECTION FILTERING: Only show trains going TOWARD the venue
+        const venueClusterId = resolveClusterId(mic);
+        const venueCluster = venueClusterId !== null
+            ? TRANSIT_DATA?.clusters?.find(c => c.id === venueClusterId)
+            : null;
+
+        let filteredArrivals = arrivals;
+        let directionLabel = '';
+        if (venueCluster && arrivals.length > 0) {
+            // Determine needed direction based on venue position vs station
+            const neededDirection = getDirectionToward(station, venueCluster, primaryLine);
+            directionLabel = neededDirection;
+            filteredArrivals = arrivals.filter(a => a.direction === neededDirection);
+
+            // If no trains in needed direction, show all (better than empty)
+            if (filteredArrivals.length === 0) {
+                filteredArrivals = arrivals;
+                directionLabel = ''; // Don't show direction if we couldn't filter
+            }
+        }
+
+        // Filter out trains user can't catch
+        // 1 min walk → 1+ min, 2 min walk → 2+ min, 3 min walk → 3+ min
+        // After 3 min walk, apply -2 buffer: 4 min walk → 2+ min, 5 min → 3+ min, 8 min → 6+ min
+        const minCatchableTime = walkMins <= 3 ? walkMins : (walkMins - 2);
+        filteredArrivals = filteredArrivals.filter(a => a.minsAway >= minCatchableTime);
+
         // Get next 3 arrival times
-        const nextArrivals = arrivals.slice(0, 3);
+        const nextArrivals = filteredArrivals.slice(0, 3);
         const timesStr = nextArrivals.length > 0
             ? nextArrivals.map(a => a.minsAway === 0 ? 'Now' : a.minsAway).join(', ')
             : 'No trains';
+        const directionStr = directionLabel ? `→ ${directionLabel}` : '';
 
-        // Calculate total commute time for this option
-        if (nextArrivals.length > 0) {
-            const firstTrain = nextArrivals[0].minsAway;
-            const waitTime = Math.max(0, firstTrain - walkMins);
+        // Calculate total commute time for this option using standardized function
+        if (nextArrivals.length > 0 && venueClusterId !== null) {
+            const commute = calculateLiveCommute({
+                userLat: originLat,
+                userLng: originLng,
+                stationLat: station.lat,
+                stationLng: station.lng,
+                stationId: station.id,
+                arrivals: nextArrivals,
+                clusterId: venueClusterId,
+                venueLat: mic.lat,
+                venueLng: mic.lng
+            });
 
-            // Try to get ride time from matrix, fall back to distance estimate
-            let rideTime = 15; // Default estimate
-            if (window.TRANSIT_DATA?.matrix && station.id) {
-                const stationMatrix = TRANSIT_DATA.matrix[station.id];
-                const venueClusterId = resolveClusterId(mic);
-                if (stationMatrix && venueClusterId !== null && stationMatrix[venueClusterId]) {
-                    rideTime = Math.ceil(stationMatrix[venueClusterId] / 60);
-                } else {
-                    // Fallback: estimate ~4 min per mile by subway
-                    const directDist = calculateDistance(station.lat, station.lng, mic.lat, mic.lng);
-                    rideTime = Math.ceil(directDist * 4) + 5; // 4 min/mile + 5 min buffer
-                }
-            }
-
-            const walkToVenue = 3; // Estimate ~3 min walk from station to venue
-            const totalTime = walkMins + waitTime + rideTime + walkToVenue;
-            if (totalTime < bestTotalTime) {
-                bestTotalTime = totalTime;
+            if (commute.total < bestTotalTime) {
+                bestTotalTime = commute.total;
             }
         }
 
@@ -219,16 +243,34 @@ async function loadModalArrivals(mic) {
         const svcBadge = isExpress ? 'svc-express' : 'svc-local';
         const svcLabel = isExpress ? 'Express' : 'Local';
 
+        // Check if any line at this station has alerts
+        const stationAlerts = alerts.filter(alert =>
+            alert.lines && alert.lines.some(l => lines.includes(l))
+        );
+        const hasDelay = stationAlerts.length > 0;
+        const alertText = hasDelay ? (stationAlerts[0].text || 'Service alert') : '';
+
+        // Check if transfer is needed to reach venue
+        const transferInfo = venueClusterId !== null ? checkTransferNeeded(station, venueClusterId) : null;
+        let transferHTML = '';
+        if (transferInfo?.needsTransfer && transferInfo.transferHub) {
+            const hub = transferInfo.transferHub;
+            const transferLine = hub.transferTo[0]; // First line to transfer to
+            transferHTML = `<div class="transfer-msg">↔ Transfer at ${hub.name} to <span class="bullet-inline b-${transferLine}">${transferLine}</span></div>`;
+        }
+
         transitHTML += `
-            <div class="transit-row">
+            <div class="transit-row ${hasDelay ? 'delayed-row' : ''}">
                 ${bulletHTML}
                 <div>
                     <div class="station-header">
                         <span class="st-name">${stationName}</span>
-                        <span class="svc-badge ${svcBadge}">${svcLabel}</span>
+                        ${directionStr ? `<span class="direction-label">${directionStr}</span>` : ''}
                     </div>
                     <div class="arrival-data">
                         <div class="time-row">${timesStr}${nextArrivals.length > 0 ? ' <span class="unit">min</span>' : ''}</div>
+                        ${transferHTML}
+                        ${hasDelay ? `<div class="delay-msg">${iconWarning} ${alertText}</div>` : ''}
                     </div>
                 </div>
                 <div class="walk-info">
@@ -250,26 +292,9 @@ async function loadModalArrivals(mic) {
 }
 
 // Find nearest stations to a lat/lng (returns array)
+// Uses getStationsNearUser() from utils.js for proper Haversine distance
 function findNearestStations(lat, lng, count = 2) {
-    if (!window.TRANSIT_DATA?.stations) return [];
-
-    const stationsWithDist = TRANSIT_DATA.stations.map(station => ({
-        ...station,
-        dist: Math.sqrt(
-            Math.pow(lat - station.lat, 2) +
-            Math.pow(lng - station.lng, 2)
-        )
-    }));
-
-    stationsWithDist.sort((a, b) => a.dist - b.dist);
-
-    return stationsWithDist.slice(0, count);
-}
-
-// Legacy function for compatibility
-function findNearestStation(lat, lng) {
-    const stations = findNearestStations(lat, lng, 1);
-    return stations.length > 0 ? stations[0] : null;
+    return getStationsNearUser(lat, lng, count);
 }
 
 function closeVenueModal() {
@@ -277,8 +302,4 @@ function closeVenueModal() {
     // Collapse the details element when closing
     const micRow = venueModal.querySelector('details.mic-row');
     if (micRow) micRow.removeAttribute('open');
-}
-
-function toggleModalInstructions() {
-    // Legacy function - now handled by native <details> element
 }

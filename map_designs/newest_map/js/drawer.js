@@ -102,9 +102,3 @@ function initDrawerState() {
     const isDesktop = window.matchMedia('(min-width: 768px)').matches;
     drawer.classList.add(isDesktop ? 'drawer-closed' : 'drawer-peek');
 }
-
-// Search clear function
-function clearSearchInput() {
-    document.getElementById('search-input').value = '';
-    document.getElementById('search-clear-btn').classList.remove('visible');
-}
