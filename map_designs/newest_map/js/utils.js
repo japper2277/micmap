@@ -513,3 +513,82 @@ function openDirections(lat, lng) {
         window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, '_blank');
     }
 }
+
+// =================================================================
+// HERE Walking API - Accurate pedestrian routing
+// =================================================================
+
+// Cache for walking times to avoid redundant API calls
+const walkingTimeCache = new Map();
+
+// Get accurate walking time using HERE API (with caching)
+async function getHereWalkingTime(originLat, originLng, destLat, destLng) {
+    // Create cache key (rounded to 4 decimals = ~10m precision)
+    const cacheKey = `${originLat.toFixed(4)},${originLng.toFixed(4)}-${destLat.toFixed(4)},${destLng.toFixed(4)}`;
+
+    if (walkingTimeCache.has(cacheKey)) {
+        return walkingTimeCache.get(cacheKey);
+    }
+
+    try {
+        const res = await fetch(
+            `${CONFIG.apiBase}/api/proxy/here/walk?originLat=${originLat}&originLng=${originLng}&destLat=${destLat}&destLng=${destLng}`
+        );
+
+        if (!res.ok) throw new Error('HERE walk API failed');
+
+        const data = await res.json();
+        const result = {
+            durationMins: data.durationMins,
+            distanceMiles: data.distanceMiles
+        };
+
+        // Cache the result
+        walkingTimeCache.set(cacheKey, result);
+        return result;
+    } catch (e) {
+        console.warn('HERE walk failed, using estimate:', e.message);
+        // Fallback to crow-flies estimate with Manhattan factor
+        const dist = calculateDistance(originLat, originLng, destLat, destLng);
+        const MANHATTAN_FACTOR = 1.4;
+        const WALK_MINS_PER_MILE = 20;
+        return {
+            durationMins: Math.round(dist * MANHATTAN_FACTOR * WALK_MINS_PER_MILE),
+            distanceMiles: Math.round(dist * MANHATTAN_FACTOR * 100) / 100
+        };
+    }
+}
+
+// Batch get walking times for multiple destinations
+async function getHereWalkingTimesBatch(originLat, originLng, destinations) {
+    try {
+        const res = await fetch(`${CONFIG.apiBase}/api/proxy/here/walk-batch`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ originLat, originLng, destinations })
+        });
+
+        if (!res.ok) throw new Error('HERE batch walk API failed');
+
+        const data = await res.json();
+        return data.results;
+    } catch (e) {
+        console.warn('HERE batch walk failed, using estimates:', e.message);
+        // Fallback to estimates
+        return destinations.map(dest => {
+            const dist = calculateDistance(originLat, originLng, dest.lat, dest.lng);
+            const MANHATTAN_FACTOR = 1.4;
+            const WALK_MINS_PER_MILE = 20;
+            return {
+                id: dest.id,
+                durationMins: Math.round(dist * MANHATTAN_FACTOR * WALK_MINS_PER_MILE),
+                distanceMiles: Math.round(dist * MANHATTAN_FACTOR * 100) / 100
+            };
+        });
+    }
+}
+
+// Clear walking cache (call when user location changes significantly)
+function clearWalkingCache() {
+    walkingTimeCache.clear();
+}

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  /* --- SETUP --- */
+  body { margin: 0; background: #E5E5EA; font-family: -apple-system, BlinkMacSystemFont, sans-serif; height: 100vh; overflow: hidden; }
+  
+  /* --- 1. THE MAP LAYER (Background) --- */
+  .map-layer {
+    width: 100%; height: 100%;
+    background-image: radial-gradient(#aaa 1px, transparent 1px);
+    background-size: 20px 20px;
+    opacity: 0.5;
+  }
+
+  /* --- 2. THE DRAWER (Peeking) --- */
+  .drawer {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 140px; /* How much it sticks up */
+    background: #1C1C1E;
+    border-radius: 24px 24px 0 0;
+    z-index: 20;
+    box-shadow: 0 -5px 20px rgba(0,0,0,0.2);
+    display: flex; justify-content: center; padding-top: 10px;
+  }
+  .handle { width: 40px; height: 4px; background: #333; border-radius: 2px; }
+
+  /* --- 3. THE FLOATING CONTROLS (The Fix) --- */
+  .controls-layer {
+    position: absolute;
+    bottom: 156px; /* 140px (Drawer) + 16px (Padding) */
+    left: 16px;
+    right: 16px;
+    display: flex;
+    justify-content: space-between; /* Pushes items to edges */
+    align-items: flex-end; /* Aligns bottoms */
+    z-index: 10;
+    pointer-events: none; /* Let clicks pass through empty space */
+  }
+
+  /* LEFT: GPS Button */
+  .gps-btn {
+    pointer-events: auto;
+    width: 44px; height: 44px;
+    background: #FFFFFF;
+    color: #000;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+  }
+
+  /* RIGHT: The Legend Pill (Horizontal) */
+  .legend-pill {
+    pointer-events: auto;
+    background: rgba(28, 28, 30, 0.85); /* Dark Glass */
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.1);
+    
+    border-radius: 100px;
+    padding: 8px 14px;
+    
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  }
+
+  /* Legend Items */
+  .l-item { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: white; text-transform: uppercase; letter-spacing: 0.5px; }
+  
+  .dot { width: 6px; height: 6px; border-radius: 50%; }
+  
+  /* Live Pulse */
+  .dot.live { background: #30D158; box-shadow: 0 0 6px #30D158; animation: pulse 2s infinite; }
+  .dot.soon { background: #FF453A; }
+  /* Hollow Gray */
+  .dot.later { background: transparent; border: 1.5px solid #8E8E93; width: 4px; height: 4px; }
+
+  @keyframes pulse { 50% { opacity: 0.5; } }
+
+</style>
+</head>
+<body>
+
+  <div class="map-layer"></div>
+
+  <!-- FLOATING LAYER -->
+  <div class="controls-layer">
+    
+    <!-- Left Corner -->
+    <div class="gps-btn">
+       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>
+    </div>
+
+    <!-- Right Corner (The Legend) -->
+    <div class="legend-pill">
+      <div class="l-item"><div class="dot live"></div>Live</div>
+      <div class="l-item"><div class="dot soon"></div>Soon</div>
+      <div class="l-item" style="color:#888"><div class="dot later"></div>Later</div>
+    </div>
+
+  </div>
+
+  <!-- DRAWER -->
+  <div class="drawer">
+    <div class="handle"></div>
+  </div>
+
+</body>
+</html>

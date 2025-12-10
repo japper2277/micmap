@@ -166,9 +166,16 @@ async function loadModalArrivals(mic) {
         const lines = lineMatch[1].split(' ').filter(l => l.length > 0);
         const stationName = station.name.replace(/\s*\([^)]+\)/, '');
 
-        // Calculate walk time using proper distance (miles * 20 min/mile)
-        const walkMiles = calculateDistance(originLat, originLng, station.lat, station.lng);
-        const walkMins = Math.ceil(walkMiles * 20);
+        // Calculate walk time using HERE API (accurate) with fallback to estimate
+        let walkMins;
+        try {
+            const walkData = await getHereWalkingTime(originLat, originLng, station.lat, station.lng);
+            walkMins = walkData.durationMins;
+        } catch (e) {
+            // Fallback to estimate
+            const walkMiles = calculateDistance(originLat, originLng, station.lat, station.lng);
+            walkMins = Math.ceil(walkMiles * 20);
+        }
 
         // Fetch arrivals for PRIMARY line only (first line, usually the main one)
         const primaryLine = lines[0];

@@ -20,6 +20,9 @@ const { getCacheStats } = require('./utils/cache-invalidation');
 const { requestLoggingMiddleware } = require('./middleware/logging');
 const logger = require('./utils/logger');
 
+// Subway Router
+const subwayRouter = require('../scripts/subway-router');
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -503,6 +506,246 @@ app.get('/api/proxy/geocode', async (req, res) => {
   } catch (error) {
     console.error('❌ Geocode error:', error);
     res.status(500).json({ error: 'Geocoding failed' });
+  }
+});
+
+// =================================================================
+// HERE API RATE LIMITING - Stay under free tier (250k/month, 1k/day)
+// =================================================================
+const hereRateLimit = {
+  dailyCalls: 0,
+  lastReset: Date.now(),
+  DAILY_LIMIT: 900  // Stay under 1000/day limit
+};
+
+// Reset counter at midnight
+function checkHereRateLimit() {
+  const now = Date.now();
+  const msSinceReset = now - hereRateLimit.lastReset;
+  const msInDay = 24 * 60 * 60 * 1000;
+
+  if (msSinceReset >= msInDay) {
+    hereRateLimit.dailyCalls = 0;
+    hereRateLimit.lastReset = now;
+    console.log('🔄 HERE rate limit counter reset');
+  }
+
+  if (hereRateLimit.dailyCalls >= hereRateLimit.DAILY_LIMIT) {
+    return false; // Over limit
+  }
+
+  hereRateLimit.dailyCalls++;
+  return true;
+}
+
+// Middleware for HERE endpoints
+function hereRateLimitMiddleware(req, res, next) {
+  if (!checkHereRateLimit()) {
+    console.warn(`⚠️ HERE daily limit reached (${hereRateLimit.dailyCalls}/${hereRateLimit.DAILY_LIMIT})`);
+    return res.status(429).json({
+      error: 'Daily HERE API limit reached. Try again tomorrow.',
+      dailyCalls: hereRateLimit.dailyCalls,
+      limit: hereRateLimit.DAILY_LIMIT
+    });
+  }
+  next();
+}
+
+// Check HERE usage stats
+app.get('/api/proxy/here/usage', (req, res) => {
+  const msUntilReset = (24 * 60 * 60 * 1000) - (Date.now() - hereRateLimit.lastReset);
+  const hoursUntilReset = Math.round(msUntilReset / (60 * 60 * 1000) * 10) / 10;
+
+  res.json({
+    dailyCalls: hereRateLimit.dailyCalls,
+    limit: hereRateLimit.DAILY_LIMIT,
+    remaining: hereRateLimit.DAILY_LIMIT - hereRateLimit.dailyCalls,
+    hoursUntilReset
+  });
+});
+
+// =================================================================
+// HERE GEOCODING PROXY - 250k free/month, great for business names
+// =================================================================
+app.get('/api/proxy/here/geocode', hereRateLimitMiddleware, async (req, res) => {
+  const { query } = req.query;
+
+  if (!query || query.length < 2) {
+    return res.status(400).json({ error: 'Query too short' });
+  }
+
+  const hereApiKey = process.env.HERE_API_KEY;
+  if (!hereApiKey) {
+    console.error('❌ HERE_API_KEY not configured');
+    return res.status(500).json({ error: 'HERE geocoding not configured' });
+  }
+
+  const sanitized = query.replace(/[<>"']/g, '').substring(0, 100);
+
+  try {
+    // HERE Discover API - great for POIs (Trader Joe's, etc.)
+    // at= biases results toward NYC
+    const url = `https://discover.search.hereapi.com/v1/discover?q=${encodeURIComponent(sanitized)}&at=40.7128,-74.0060&limit=5&apiKey=${hereApiKey}`;
+
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (data.error) {
+      console.error('❌ HERE error:', data.error);
+      return res.status(500).json({ error: 'Geocoding failed' });
+    }
+
+    const results = (data.items || []).map(item => ({
+      name: item.title,
+      address: item.address?.label || '',
+      lat: item.position?.lat,
+      lng: item.position?.lng
+    }));
+
+    console.log(`✅ HERE geocoded "${sanitized}" -> ${results.length} results`);
+    res.json({ results });
+
+  } catch (error) {
+    console.error('❌ HERE geocode error:', error);
+    res.status(500).json({ error: 'Geocoding failed' });
+  }
+});
+
+// =================================================================
+// HERE WALKING ROUTE PROXY - Accurate pedestrian times
+// =================================================================
+app.get('/api/proxy/here/walk', hereRateLimitMiddleware, async (req, res) => {
+  const { originLat, originLng, destLat, destLng } = req.query;
+
+  if (!originLat || !originLng || !destLat || !destLng) {
+    return res.status(400).json({ error: 'Missing coordinates' });
+  }
+
+  const hereApiKey = process.env.HERE_API_KEY;
+  if (!hereApiKey) {
+    console.error('❌ HERE_API_KEY not configured');
+    return res.status(500).json({ error: 'HERE routing not configured' });
+  }
+
+  try {
+    const url = `https://router.hereapi.com/v8/routes?transportMode=pedestrian&origin=${originLat},${originLng}&destination=${destLat},${destLng}&return=summary&apiKey=${hereApiKey}`;
+
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (data.error || !data.routes?.length) {
+      console.error('❌ HERE routing error:', data.error || 'No routes found');
+      return res.status(500).json({ error: 'Routing failed' });
+    }
+
+    const route = data.routes[0].sections[0].summary;
+    const result = {
+      durationSeconds: route.duration,
+      durationMins: Math.round(route.duration / 60),
+      distanceMeters: route.length,
+      distanceMiles: Math.round(route.length / 1609.34 * 100) / 100
+    };
+
+    console.log(`✅ HERE walk: ${result.durationMins} min, ${result.distanceMiles} mi`);
+    res.json(result);
+
+  } catch (error) {
+    console.error('❌ HERE walk error:', error);
+    res.status(500).json({ error: 'Walking route failed' });
+  }
+});
+
+// =================================================================
+// HERE BATCH WALKING - Multiple destinations at once
+// =================================================================
+app.post('/api/proxy/here/walk-batch', async (req, res) => {
+  const { originLat, originLng, destinations } = req.body;
+
+  if (!originLat || !originLng || !destinations?.length) {
+    return res.status(400).json({ error: 'Missing parameters' });
+  }
+
+  // Check if we have enough quota for all destinations
+  const remaining = hereRateLimit.DAILY_LIMIT - hereRateLimit.dailyCalls;
+  if (destinations.length > remaining) {
+    console.warn(`⚠️ HERE batch rejected: need ${destinations.length}, only ${remaining} remaining`);
+    return res.status(429).json({
+      error: `Daily limit: only ${remaining} calls remaining, need ${destinations.length}`,
+      remaining,
+      requested: destinations.length
+    });
+  }
+
+  // Reserve the calls upfront
+  hereRateLimit.dailyCalls += destinations.length;
+
+  const hereApiKey = process.env.HERE_API_KEY;
+  if (!hereApiKey) {
+    console.error('❌ HERE_API_KEY not configured');
+    return res.status(500).json({ error: 'HERE routing not configured' });
+  }
+
+  try {
+    // Fetch all routes in parallel (up to 10 at a time to be safe)
+    const batchSize = 10;
+    const results = [];
+
+    for (let i = 0; i < destinations.length; i += batchSize) {
+      const batch = destinations.slice(i, i + batchSize);
+      const promises = batch.map(async (dest) => {
+        try {
+          const url = `https://router.hereapi.com/v8/routes?transportMode=pedestrian&origin=${originLat},${originLng}&destination=${dest.lat},${dest.lng}&return=summary&apiKey=${hereApiKey}`;
+          const response = await fetch(url);
+          const data = await response.json();
+
+          if (data.routes?.length) {
+            const summary = data.routes[0].sections[0].summary;
+            return {
+              id: dest.id,
+              durationMins: Math.round(summary.duration / 60),
+              distanceMiles: Math.round(summary.length / 1609.34 * 100) / 100
+            };
+          }
+          return { id: dest.id, durationMins: null, error: 'No route' };
+        } catch (e) {
+          return { id: dest.id, durationMins: null, error: e.message };
+        }
+      });
+
+      const batchResults = await Promise.all(promises);
+      results.push(...batchResults);
+    }
+
+    console.log(`✅ HERE batch walk: ${results.length} routes calculated`);
+    res.json({ results });
+
+  } catch (error) {
+    console.error('❌ HERE batch walk error:', error);
+    res.status(500).json({ error: 'Batch routing failed' });
+  }
+});
+
+// Subway Routes API
+app.get('/api/subway/routes', (req, res) => {
+  try {
+    const { userLat, userLng, venueLat, venueLng, limit = 3 } = req.query;
+
+    if (!userLat || !userLng || !venueLat || !venueLng) {
+      return res.status(400).json({ error: 'Missing required params: userLat, userLng, venueLat, venueLng' });
+    }
+
+    const routes = subwayRouter.findTopRoutes(
+      parseFloat(userLat),
+      parseFloat(userLng),
+      parseFloat(venueLat),
+      parseFloat(venueLng),
+      parseInt(limit)
+    );
+
+    res.json({ routes });
+  } catch (error) {
+    console.error('Subway routing error:', error);
+    res.status(500).json({ error: 'Routing failed' });
   }
 });
 

@@ -1,0 +1,1559 @@
+================================================================================
+SUBWAY GRAPH ROUTER - IMPLEMENTATION PLAN (REVISED)
+================================================================================
+
+COST: 100% FREE - $0
+--------------------
+
+| Component                  | Source              | Cost   |
+|----------------------------|---------------------|--------|
+| Static schedule data       | MTA GTFS files      | $0     |
+| (stops, times, transfers)  | (gtfs_supplemented/)| FREE   |
+|----------------------------|---------------------|--------|
+| Real-time arrivals         | MTA GTFS-RT feeds   | $0     |
+| (train positions)          | No API key needed   | FREE   |
+|----------------------------|---------------------|--------|
+| Graph building             | Runs locally        | $0     |
+|----------------------------|---------------------|--------|
+| Route calculation          | Dijkstra in JS      | $0     |
+|----------------------------|---------------------|--------|
+| TOTAL MONTHLY COST         |                     | $0     |
+
+WHAT THIS REPLACES:
+- Google Maps Directions API: ~$5-10 per 1,000 requests
+- Google Distance Matrix API: ~$5 per 1,000 elements
+- At scale (10K users/month): Would cost $50-100/month with Google
+
+MTA DATA SOURCES (All Free, Public):
+- GTFS Static: http://web.mta.info/developers/developer-data-terms.html
+- GTFS-RT: Free feeds, already used in mtaService.fetchArrivals()
+
+The only "cost" is running build-graph.js when GTFS updates (~weekly),
+which takes a few seconds on your machine.
+
+
+================================================================================
+KEY DESIGN DECISIONS
+================================================================================
+
+1. COMPOSITE NODES: platformId_lineId
+-------------------------------------
+Each node represents a specific platform + line combination:
+
+  '127N_2' = Times Sq, Northbound platform, 2 train
+  '127N_1' = Times Sq, Northbound platform, 1 train
+  'A27N_A' = Port Authority, Northbound, A train
+
+This handles:
+  ✓ Direction (N/S suffix from GTFS)
+  ✓ Express vs Local (different lines = different nodes)
+  ✓ Transfers require explicit edges (with real times)
+
+
+2. ZERO HARDCODED TRANSFER TIMES
+--------------------------------
+ALL transfer times come from transfers.txt:
+
+  127 → 127: 0 sec     (same platform, 2↔3)
+  127 → 725: 180 sec   (Times Sq 1/2/3 → 7 train, 3 min)
+  127 → A27: 300 sec   (Times Sq → Port Authority, 5 min)
+
+NO hardcoded "3 minute default" - MTA provides real data.
+
+
+3. EXPRESS VS LOCAL HANDLED AUTOMATICALLY
+-----------------------------------------
+2 train (express): 96 St → 72 St direct
+  224N_2 ──(4 min)──> 135N_2
+
+1 train (local): 96 St → 91 St → 86 St → 79 St → 72 St
+  224N_1 ──(2)──> 225N_1 ──(2)──> 226N_1 ──(2)──> ... (~8 min)
+
+Dijkstra automatically finds express is faster.
+
+
+================================================================================
+DATA SOURCES (ALL FREE, ALREADY DOWNLOADED)
+================================================================================
+
+gtfs_supplemented/stops.txt        → Station IDs, names, lat/lng
+gtfs_supplemented/stop_times.txt   → Ride times between consecutive stops
+gtfs_supplemented/transfers.txt    → Transfer times (official MTA data)
+gtfs_supplemented/trips.txt        → Maps trip_id → route_id (line)
+
+
+================================================================================
+IMPLEMENTATION STEPS
+================================================================================
+
+STEP 1: Build the Graph Structure (45 min)
+------------------------------------------
+File: scripts/subway-graph.js
+
+Graph structure:
+  {
+    '127N_2': [  // Times Sq Northbound, 2 train
+      { to: '126N_2', time: 2, type: 'ride' },
+    ],
+    '127N_1': [  // Times Sq Northbound, 1 train
+      { to: '126N_1', time: 2, type: 'ride' },
+    ],
+    // Transfer edges from transfers.txt:
+    '127N_2': [
+      { to: '127N_1', time: 0, type: 'transfer' },     // Same platform
+      { to: '725N_7', time: 180, type: 'transfer' },   // To 7 train
+      { to: 'A27N_A', time: 300, type: 'transfer' },   // To Port Auth
+    ],
+  }
+
+Tasks:
+  1. Parse trips.txt → map trip_id to route_id (line)
+  2. Parse stop_times.txt → ride times between consecutive stops
+  3. Create composite node IDs: stopId_routeId
+  4. Parse transfers.txt → transfer edges (NO hardcoding)
+  5. Handle same-line transfers (2↔3 share platform) with 0-sec edges
+
+
+STEP 2: Implement Dijkstra's Algorithm (30 min)
+-----------------------------------------------
+File: scripts/subway-graph.js
+
+function findRoute(fromStopId, toStopId):
+  1. Find all platform_line nodes for origin station
+  2. Find all platform_line nodes for destination
+  3. Run Dijkstra from all origins to all destinations
+  4. Return shortest path
+
+Tasks:
+  1. Implement priority queue (sorted array is fine for ~1500 nodes)
+  2. Track visited nodes and shortest distances
+  3. Reconstruct path when destination reached
+  4. Handle "entry" to system (user can board any line at station)
+
+
+STEP 3: Add Route Formatting (15 min)
+-------------------------------------
+Convert raw path to human-readable:
+
+Input:  ['224N_2', '127N_2', '127N_A', 'A31N_A']
+
+Output: {
+  totalTime: 30,
+  legs: [
+    { from: '96 St', to: 'Times Sq', line: '2', time: 21, type: 'ride' },
+    { from: 'Times Sq', to: 'Port Authority', time: 5, type: 'transfer' },
+    { from: 'Port Authority', to: '14 St', line: 'A', time: 4, type: 'ride' }
+  ]
+}
+
+Tasks:
+  1. Collapse consecutive same-line nodes into single leg
+  2. Identify transfer points (where line changes)
+  3. Look up station names from stops.txt
+
+
+STEP 4: Helper Functions + Walking Radius (30 min)
+--------------------------------------------------
+File: scripts/subway-router.js
+
+THE WALKING RADIUS PROBLEM:
+  The "nearest" station isn't always the best one.
+
+  Example: You're at 1st Ave & 1st St, going to 28th St & Park Ave
+
+    Option A (Nearest Station):
+      Walk 2 min → F (2nd Ave)
+      F north → transfer → 6 train → 28th St
+      Total: ~20 min
+
+    Option B (Walk Further):
+      Walk 5 min → 6 (Bleecker St)
+      6 train direct → 28th St
+      Total: ~12 min
+
+  Walking 3 extra minutes saves 8+ minutes overall.
+
+THE FIX - Virtual Start/End Nodes:
+  Don't loop through stations. Add temporary nodes to the graph itself.
+  Let Dijkstra decide if walking further to a better train is worth it.
+
+  This runs Dijkstra ONCE instead of N×M times.
+
+VISUAL:
+                      ┌─── Jefferson St (L) ───┐
+                      │   walk: 3 min          │
+                      │                        │
+  USER_START ────────┼─── DeKalb Ave (L) ─────┼───── [GRAPH] ───── USER_END
+    (you)             │   walk: 5 min          │                     (venue)
+                      │                        │
+                      └─── Myrtle-Wyckoff (M) ─┘
+                          walk: 7 min
+
+  Dijkstra explores ALL paths simultaneously and finds the true optimum.
+
+// Find ALL stations within radius
+function findStationsWithinRadius(lat, lng, radiusMiles = 0.5) {
+  return stations
+    .map(s => ({ ...s, distance: haversine(lat, lng, s.lat, s.lng) }))
+    .filter(s => s.distance <= radiusMiles);
+}
+
+// Main entry point - uses virtual nodes for single Dijkstra run
+function findOptimalRoute(fromLat, fromLng, toLat, toLng) {
+  const WALK_MINS_PER_MILE = 20;
+
+  // Find nearby stations
+  const originStations = findStationsWithinRadius(fromLat, fromLng, 0.5);
+  const destStations = findStationsWithinRadius(toLat, toLng, 0.5);
+
+  if (originStations.length === 0 || destStations.length === 0) {
+    return null;  // No subway access
+  }
+
+  // === CREATE VIRTUAL START NODE ===
+  // Connect USER_START to all entry nodes at nearby stations
+  graph['USER_START'] = [];
+  originStations.forEach(station => {
+    const walkSeconds = Math.round(station.distance * WALK_MINS_PER_MILE * 60);
+    // Connect to ALL platform/line nodes at this station
+    nodesByStation[station.id].forEach(nodeId => {
+      graph['USER_START'].push({
+        to: nodeId,
+        time: walkSeconds,
+        type: 'walk',
+        station: station.name
+      });
+    });
+  });
+
+  // === CREATE VIRTUAL END NODE ===
+  // Connect all exit nodes at nearby dest stations TO USER_END
+  const destNodeSet = new Set();
+  destStations.forEach(station => {
+    const walkSeconds = Math.round(station.distance * WALK_MINS_PER_MILE * 60);
+    nodesByStation[station.id].forEach(nodeId => {
+      destNodeSet.add(nodeId);
+      // Add edge FROM this node TO USER_END
+      if (!graph[nodeId]) graph[nodeId] = [];
+      graph[nodeId].push({
+        to: 'USER_END',
+        time: walkSeconds,
+        type: 'walk',
+        station: station.name
+      });
+    });
+  });
+  graph['USER_END'] = [];  // Terminal node, no outgoing edges
+
+  // === RUN DIJKSTRA ONCE ===
+  const { time, path } = dijkstra('USER_START', 'USER_END');
+
+  // === CLEAN UP VIRTUAL NODES ===
+  delete graph['USER_START'];
+  delete graph['USER_END'];
+  // Remove the walk-to-USER_END edges we added
+  destNodeSet.forEach(nodeId => {
+    graph[nodeId] = graph[nodeId].filter(e => e.to !== 'USER_END');
+  });
+
+  // === FORMAT RESULT ===
+  if (!path || path.length === 0) return null;
+
+  return {
+    totalTime: Math.round(time / 60),  // Convert to minutes
+    path: path,
+    // Extract first/last stations from path for display
+    originStation: path[1] ? getStationFromNode(path[1]) : null,
+    exitStation: path[path.length - 2] ? getStationFromNode(path[path.length - 2]) : null
+  };
+}
+
+// Quick time-only lookup (for sorting mics by transit time)
+function getRouteTime(fromLat, fromLng, toLat, toLng) {
+  const routes = findTopRoutes(fromLat, fromLng, toLat, toLng, 1);
+  return routes.length > 0 ? routes[0].totalTime : null;
+}
+
+
+================================================================================
+TOP 3 ROUTE OPTIONS (High-Value Feature)
+================================================================================
+
+WHY THIS MATTERS:
+  "Choice" is often more important than "Raw Speed."
+
+  A comedian carrying a guitar might prefer a 48-minute ride with
+  0 transfers over a 43-minute ride with 2 transfers.
+
+STRATEGY: Per-Station Dijkstra (NOT Yen's Algorithm)
+
+  Don't over-engineer. Running Dijkstra from each nearby origin station
+  naturally produces route variety because different stations serve
+  different lines.
+
+  ✗ Yen's K-Shortest Paths - Complex, produces trivial alternatives
+  ✓ Per-Station Dijkstra - Simple, naturally diverse routes
+
+THE KEY: Route Signature for Deduplication
+
+  Without deduplication, you might get:
+    1. Take L train (43 min)
+    2. Take L train (44 min, slightly different walk)
+    3. Take L train (45 min, different entry point)
+
+  WRONG APPROACH - Line names only:
+    signature = legs.map(l => l.line).join('-')
+    Problem: N and R trains on same track show as different routes
+             "N" vs "R" = different signatures, but SAME path!
+
+  CORRECT APPROACH - Station sequence:
+    signature = legs.filter(l => l.type === 'ride').map(l => `${l.from}→${l.to}`).join('|')
+    Result: "Prince→23rd" vs "Prince→23rd" = SAME (correctly deduped)
+
+  This catches:
+    ✓ N/R duplicates (same track, different labels)
+    ✓ 4/5 duplicates on Lex express
+    ✓ Cases where different lines actually take different paths
+
+  With station-sequence signature:
+    1. Jefferson→Union Sq→72 St (43 min) - via L-1
+    2. Myrtle→Times Sq→72 St (48 min) - via M-1
+    3. Jefferson→14th-8Av→72 St (52 min) - via L-C
+
+IMPLEMENTATION:
+
+function findTopRoutes(userLat, userLng, venueLat, venueLng, limit = 3) {
+    // 1. Find all start stations within walking distance
+    const startStations = findStationsWithinRadius(userLat, userLng, 0.5);
+
+    // 2. Find end stations near venue
+    const endStations = findStationsWithinRadius(venueLat, venueLng, 0.3);
+
+    let rawRoutes = [];
+
+    // 3. Run Dijkstra independently for each Start Station
+    for (const station of startStations) {
+        const walkTime = station.distance * 20;  // 20 min/mile
+
+        // Get all entry nodes for this station
+        const entryNodes = nodesByStation[station.id];
+
+        // Get all exit nodes for destination stations
+        const exitNodes = [];
+        endStations.forEach(s => {
+            nodesByStation[s.id].forEach(n => exitNodes.push(n));
+        });
+
+        // Run Dijkstra from THIS station to any destination
+        const result = dijkstraMultiSource(entryNodes, exitNodes);
+
+        if (result && result.path) {
+            const legs = formatLegs(result.path);
+            const walkToVenue = getExitStationDistance(result.path, venueLat, venueLng) * 20;
+
+            rawRoutes.push({
+                type: 'transit',
+                totalTime: Math.round(walkTime + result.time/60 + walkToVenue),
+                walkToStation: Math.round(walkTime),
+                subwayTime: Math.round(result.time / 60),
+                walkToVenue: Math.round(walkToVenue),
+                legs: legs,
+                originStation: station.name,
+                // CRITICAL: Signature by STATION SEQUENCE (not line names)
+                // This dedupes N/R, 4/5, etc. that share tracks
+                signature: legs.filter(l => l.type === 'ride').map(l => `${l.from}→${l.to}`).join('|')
+            });
+        }
+    }
+
+    // 4. Deduplicate by signature & Sort by time
+    const uniqueRoutes = [];
+    const seenSignatures = new Set();
+
+    rawRoutes.sort((a, b) => a.totalTime - b.totalTime);
+
+    for (const route of rawRoutes) {
+        if (!seenSignatures.has(route.signature)) {
+            uniqueRoutes.push(route);
+            seenSignatures.add(route.signature);
+        }
+        if (uniqueRoutes.length >= limit) break;
+    }
+
+    return uniqueRoutes;
+}
+
+EXAMPLE OUTPUT:
+
+  Bushwick Comedy Club → West Side Comedy Club
+
+  [
+    {
+      totalTime: 43,
+      signature: 'L-1',
+      legs: [
+        { type: 'walk', to: 'Jefferson St', time: 4 },
+        { type: 'ride', line: 'L', to: '14 St-Union Sq', time: 18 },
+        { type: 'transfer', time: 3 },
+        { type: 'ride', line: '1', to: '72 St', time: 15 },
+        { type: 'walk', to: 'venue', time: 3 }
+      ]
+    },
+    {
+      totalTime: 48,
+      signature: 'M-1',
+      legs: [
+        { type: 'walk', to: 'Myrtle-Wyckoff', time: 5 },
+        { type: 'ride', line: 'M', to: 'Times Sq', time: 22 },
+        { type: 'transfer', time: 3 },
+        { type: 'ride', line: '1', to: '72 St', time: 15 },
+        { type: 'walk', to: 'venue', time: 3 }
+      ]
+    },
+    {
+      totalTime: 52,
+      signature: 'L-C',
+      legs: [
+        { type: 'walk', to: 'Jefferson St', time: 4 },
+        { type: 'ride', line: 'L', to: '14 St-8 Av', time: 20 },
+        { type: 'transfer', time: 3 },
+        { type: 'ride', line: 'C', to: '72 St', time: 22 },
+        { type: 'walk', to: 'venue', time: 3 }
+      ]
+    }
+  ]
+
+UI DISPLAY:
+
+  ┌─────────────────────────────────────────────────────────┐
+  │  West Side Comedy Club                                  │
+  │                                                         │
+  │  OPTION 1 (Fastest)                          43 min ⭐  │
+  │  🚶 Jefferson St → 🚇 L → 🔄 → 🚇 1 → 72 St             │
+  │                                                         │
+  │  OPTION 2 (Via M)                            48 min     │
+  │  🚶 Myrtle-Wyckoff → 🚇 M → 🔄 → 🚇 1 → 72 St           │
+  │                                                         │
+  │  OPTION 3 (Via C - West Side)                52 min     │
+  │  🚶 Jefferson St → 🚇 L → 🔄 → 🚇 C → 72 St             │
+  └─────────────────────────────────────────────────────────┘
+
+
+================================================================================
+STEP 5: Real-Time Arrival Overlay (Enhancement)
+================================================================================
+
+THE CATCHABILITY PROBLEM:
+  Static graph assumes you can board instantly. Reality is different.
+
+  Scenario:
+    You: 5 min walk from Jefferson St (L)
+    Next L train: 3 min
+    Train after: 10 min
+
+    Static graph says: Walk 5 min + Board + Ride
+    Reality: Walk 5 min + MISS train + Wait 5 min + Board + Ride
+
+  Your trip is 5 min longer than the graph thinks.
+
+STRATEGY: Static Graph + Real-Time Overlay
+
+  ┌─────────────────────────────────────────────────────────┐
+  │  LAYER 1: Static Graph (GTFS)                           │
+  │  ├── Ride times between stations (never changes)        │
+  │  └── Transfer times (never changes)                     │
+  │                                                         │
+  │  LAYER 2: Real-Time Overlay (MTA API)                   │
+  │  ├── Next train arrival at each station                 │
+  │  └── Added as "wait time" to route                      │
+  └─────────────────────────────────────────────────────────┘
+
+  You already have: mtaService.fetchArrivals() in mta.js
+  You already have: fetchUserArrivals() in transit.js
+
+IMPLEMENTATION:
+
+async function findTopRoutesWithRealtime(userLat, userLng, venueLat, venueLng) {
+  // 1. Get static routes from graph (fast, free, no API)
+  const routes = findTopRoutes(userLat, userLng, venueLat, venueLng, 3);
+
+  // 2. Fetch real-time arrivals for user's nearby stations
+  const nearbyStations = findStationsWithinRadius(userLat, userLng, 0.5);
+  const arrivals = {};
+
+  for (const station of nearbyStations) {
+    try {
+      const lines = extractLinesFromStation(station);
+      if (lines.length > 0) {
+        arrivals[station.id] = await mtaService.fetchArrivals(lines[0], station.gtfsStopId);
+      }
+    } catch (e) {
+      console.warn(`Failed to fetch arrivals for ${station.name}`);
+    }
+  }
+
+  // 3. Overlay real wait times onto each route
+  for (const route of routes) {
+    const firstRide = route.legs.find(l => l.type === 'ride');
+    if (!firstRide) continue;
+
+    // Find which station this route starts from
+    const originStation = nearbyStations.find(s => s.name.includes(firstRide.from));
+    if (!originStation || !arrivals[originStation.id]) continue;
+
+    const stationArrivals = arrivals[originStation.id];
+    const walkTime = route.walkToStation;
+
+    // Find next CATCHABLE train on this line
+    const catchable = stationArrivals
+      .filter(a => a.line === firstRide.line || a.routeId === firstRide.line)
+      .filter(a => a.minsAway >= walkTime - 2)  // 2 min grace period
+      .sort((a, b) => a.minsAway - b.minsAway)[0];
+
+    if (catchable) {
+      // Calculate actual wait at platform
+      const waitAtPlatform = Math.max(0, catchable.minsAway - walkTime);
+
+      route.waitTime = waitAtPlatform;
+      route.nextTrain = catchable.minsAway;
+      route.totalTime = route.walkToStation + waitAtPlatform + route.subwayTime + route.walkToVenue;
+      route.realtime = true;
+      route.trainLabel = `${catchable.line} in ${catchable.minsAway} min`;
+    } else {
+      // No real-time data, add average wait estimate
+      route.waitTime = 5;  // Avg NYC subway wait
+      route.totalTime += 5;
+      route.realtime = false;
+    }
+  }
+
+  // 4. RE-SORT by actual total time (real-time can change winner!)
+  routes.sort((a, b) => a.totalTime - b.totalTime);
+
+  return routes;
+}
+
+THE MAGIC: Route Reordering
+
+  Real-time data can CHANGE which option is fastest:
+
+  STATIC CALCULATION:
+    Option 1: L → 1 = 43 min (winner)
+    Option 2: M → 1 = 48 min
+
+  WITH REAL-TIME:
+    Option 1: L → 1 = 43 + 7 min wait = 50 min
+    Option 2: M → 1 = 48 + 0 min wait = 48 min ← NEW WINNER!
+
+    "The M is coming in 6 min and you're 5 min away.
+     The L isn't coming for 12 min. Take the M!"
+
+UPDATED OUTPUT FORMAT:
+
+  {
+    totalTime: 48,           // Updated with real wait
+    signature: 'M-1',
+    realtime: true,          // Flag: has live data
+    waitTime: 0,             // Wait at platform
+    nextTrain: 6,            // Train arrives in 6 min
+    trainLabel: 'M in 6 min',
+    legs: [
+      { type: 'walk', to: 'Myrtle-Wyckoff', time: 5 },
+      { type: 'wait', time: 0, note: 'M arriving in 6 min' },  // NEW LEG TYPE
+      { type: 'ride', line: 'M', to: 'Times Sq', time: 22 },
+      { type: 'transfer', time: 3 },
+      { type: 'ride', line: '1', to: '72 St', time: 15 },
+      { type: 'walk', to: 'venue', time: 3 }
+    ]
+  }
+
+UI DISPLAY WITH REAL-TIME:
+
+  ┌─────────────────────────────────────────────────────────┐
+  │  West Side Comedy Club                                  │
+  │                                                         │
+  │  OPTION 1 (Fastest NOW)                      48 min 🔴  │
+  │  🚶 Myrtle-Wyckoff (5 min)                              │
+  │  ⏱️ M arriving in 6 min - no wait!                      │
+  │  🚇 M → Times Sq → 🔄 → 🚇 1 → 72 St                    │
+  │                                                         │
+  │  OPTION 2                                    50 min     │
+  │  🚶 Jefferson St (4 min)                                │
+  │  ⏱️ L arriving in 12 min - 8 min wait                   │
+  │  🚇 L → Union Sq → 🔄 → 🚇 1 → 72 St                    │
+  │                                                         │
+  │  🔴 = Live data   ⚪ = Estimated                        │
+  └─────────────────────────────────────────────────────────┘
+
+WHEN TO USE REAL-TIME:
+
+  You already have a 3-hour threshold in transit.js:
+
+  const timeUntilStart = mic.start ? (mic.start - now) / (1000 * 60 * 60) : 999;
+
+  if (timeUntilStart <= 3) {
+    // Mic starts soon - use real-time
+    routes = await findTopRoutesWithRealtime(...);
+  } else {
+    // Mic is later today/tomorrow - static is fine
+    routes = findTopRoutes(...);
+  }
+
+COST:
+
+  Static Graph:     $0 (GTFS, local)
+  Real-Time Layer:  $0 (MTA GTFS-RT is free)
+  ─────────────────────────────────────
+  TOTAL:            $0
+
+
+================================================================================
+GRAPH STATISTICS (EXPECTED)
+================================================================================
+
+  Stations:        ~470
+  Nodes:           ~1,400 (stations × avg lines per station)
+  Ride edges:      ~1,400 (consecutive stops)
+  Transfer edges:  ~600 (from transfers.txt)
+  Total edges:     ~2,000
+
+
+================================================================================
+TESTING PLAN
+================================================================================
+
+1. EXPRESS VS LOCAL:
+   96 St → 72 St
+   Expected: Prefer 2 express (4 min) over 1 local (8 min)
+
+2. TRANSFERS:
+   96 St → 14 St (8 Av)
+   Expected: 2 train → Times Sq → transfer (5 min from GTFS) → A train
+
+3. SAME LINE:
+   Times Sq → 14 St on 1 train
+   Expected: Direct route, no transfer
+
+4. WALKING RADIUS (Multi-Station):
+   User at 1st Ave & 1st St → 28th St & Park Ave
+   Expected: Walk to Bleecker (6 train) beats nearest F (2nd Ave)
+            Because 6 is direct, F requires transfer
+            Total time with 6: ~12 min
+            Total time with F: ~20 min
+
+5. CROSS-BOROUGH:
+   Bushwick (Jefferson St L) → West Side Comedy (72 St 1/2/3)
+   Expected: L → 14th St → transfer → 1/2/3 → 72 St
+            ~40-45 min total
+
+6. EDGE CASES:
+   - Same station → 0 subway time (just walking)
+   - Invalid station → Error message
+   - No stations within 0.5 mi → Fallback to nearest
+
+
+================================================================================
+TIME ESTIMATE
+================================================================================
+
+  Step 1: Build graph (build-graph.js) ....... 60 min
+          - CSV parsing with proper quoting
+          - Header-based column access
+          - transfers.txt + heuristic fallback
+          - Two-tier transfer times
+
+  Step 2: Dijkstra algorithm ................. 30 min
+          - Multi-source initialization
+          - Path reconstruction
+
+  Step 3: Route formatting ................... 15 min
+          - Collapse consecutive same-line nodes
+          - Generate legs array
+
+  Step 4: Walking Radius + Virtual Nodes ..... 30 min
+          - findStationsWithinRadius()
+          - Virtual USER_START / USER_END nodes
+          - Single Dijkstra run
+
+  Step 4b: Top 3 Route Options ............... 20 min
+          - Per-station Dijkstra loop
+          - Route signature deduplication
+          - findTopRoutes()
+
+  Step 5: Real-Time Overlay .................. 30 min
+          - Integration with mtaService.fetchArrivals()
+          - Catchability filtering
+          - Route reordering by actual wait
+          - findTopRoutesWithRealtime()
+
+  ─────────────────────────────────────────────────────
+  TOTAL ...................................... ~3 hours
+
+
+================================================================================
+WHAT THIS REPLACES
+================================================================================
+
+  ✗ Google Matrix API dependency (was ~$1, now FREE forever)
+  ✗ Manual route chaining in code
+  ✗ Hardcoded transfer estimates
+
+  ✓ Automatic pathfinding between any two stations
+  ✓ Real transfer times from MTA data
+  ✓ Express vs local optimization
+  ✓ Works offline
+  ✓ Updates weekly with GTFS refresh
+
+
+================================================================================
+FILES TO CREATE
+================================================================================
+
+  scripts/build-graph.js     → Parse GTFS, build graph (run once at deploy)
+  scripts/subway-graph.json  → Pre-built graph data (~500KB)
+  scripts/subway-router.js   → Dijkstra + route finding (runtime)
+
+
+================================================================================
+INTEGRATION WITH EXISTING SYSTEM
+================================================================================
+
+This replaces the Google Matrix API lookups in transit.js
+
+CURRENT SYSTEM (transit.js):
+----------------------------
+  // Line 145 - Only checks ONE station
+  const nearestStation = getNearestStation(originLat, originLng);
+  const stationMatrix = TRANSIT_DATA.matrix[nearestStation.id];
+
+  // Returns pre-computed time from Google (costs $1 to regenerate)
+  const transitSeconds = stationMatrix[destClusterId];
+
+NEW SYSTEM:
+-----------
+  // Get top 3 route options
+  const routes = subwayRouter.findTopRoutes(
+    originLat, originLng,
+    mic.lat, mic.lng,
+    3  // limit
+  );
+
+  // For list view: show fastest option
+  mic.transitMins = routes[0]?.totalTime || null;
+  mic.transitType = routes[0] ? 'transit' : 'estimate';
+
+  // For modal/details: store ALL options so user can choose
+  mic.transitOptions = routes;  // Array of 3 route options
+
+WHAT GETS REPLACED:
+-------------------
+  ✗ TRANSIT_DATA.matrix (Google pre-computed)
+  ✗ getNearestStation() for matrix lookups
+  ✗ Cluster-based destinations
+
+  ✓ Real-time Dijkstra on GTFS graph
+  ✓ Multi-station origin/destination comparison
+  ✓ Actual route details (lines, transfers)
+
+WHAT STAYS THE SAME:
+--------------------
+  ✓ getStationsNearUser() - already exists in utils.js
+  ✓ Walking time calculation (haversine × 20 min/mile)
+  ✓ Live arrivals for 3-hour window (mtaService)
+  ✓ Walk preference thresholds
+
+
+================================================================================
+NEW CAPABILITY: ROUTE DETAILS
+================================================================================
+
+The current system only returns total time. The new system returns full route:
+
+{
+  totalTime: 42,
+  walkToStation: 3,
+  subwayTime: 36,
+  walkToVenue: 3,
+  originStation: { name: "Jefferson St (L)", ... },
+  exitStation: { name: "72 St (1 2 3)", ... },
+  legs: [
+    { type: 'walk', from: 'You', to: 'Jefferson St', time: 3 },
+    { type: 'ride', line: 'L', from: 'Jefferson St', to: '14 St-Union Sq', time: 18 },
+    { type: 'transfer', at: '14 St-Union Sq', time: 3 },
+    { type: 'ride', line: '1', from: '14 St-Union Sq', to: '72 St', time: 12 },
+    { type: 'walk', from: '72 St', to: 'West Side Comedy', time: 3 }
+  ]
+}
+
+This can be displayed in the venue modal to show users exactly how to get there.
+
+
+================================================================================
+
+
+
+
+ Ready to code?
+
+ Here is Claude's plan:
+╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌
+ Subway Graph Router Implementation Plan (REVISED)
+
+ Overview
+
+ Build a graph-based pathfinding system for NYC subway
+ that automatically finds optimal routes between any two
+  stations, handling transfers and express/local
+ automatically.
+
+ Why This is Simple
+
+ - Only ~470 stations (nodes become ~1500 with line
+ variants)
+ - ~30 lines with fixed routes
+ - Basic Dijkstra runs in <1ms on this graph size
+ - No need for advanced optimizations (bidirectional
+ search, hierarchy)
+
+ Data Sources (Already Available)
+
+ - gtfs_supplemented/stops.txt → Station nodes
+ - gtfs_supplemented/stop_times.txt → Ride times between
+  stops
+ - gtfs_supplemented/transfers.txt → Transfer times (NO
+ HARDCODING)
+ - gtfs_supplemented/trips.txt → Route/line info
+
+ Key Design Decisions
+
+ 1. Composite Nodes: platformId_lineId
+
+ '127N_2' = Times Sq, Northbound platform, 2 train
+ '127N_1' = Times Sq, Northbound platform, 1 train
+ 'A27N_A' = Port Authority, Northbound, A train
+ This handles:
+ - Direction (N/S suffix)
+ - Express vs Local (different lines = different nodes)
+ - Transfers require explicit edges
+
+ 2. Zero Hardcoded Transfer Times
+
+ ALL transfer times come from transfers.txt:
+ 127 → 127: 0 sec    (same platform, 2↔3)
+ 127 → 725: 180 sec  (Times Sq 1/2/3 → 7 train)
+ 127 → A27: 300 sec  (Times Sq → Port Authority)
+
+ 3. Express vs Local Handled Automatically
+
+ 2 train (express): 224N_2 → 135N_2 (96 St → 72 St, 4
+ min)
+ 1 train (local):   224N_1 → 225N_1 → 226N_1 → ... (8 
+ min)
+ Dijkstra finds express is faster.
+
+ Implementation Steps
+
+ Step 1: Build the Graph Structure (~45 min)
+
+ File: scripts/subway-graph.js
+
+ // Graph structure with composite nodes:
+ const graph = {
+   '127N_2': [  // Times Sq Northbound, 2 train
+     { to: '126N_2', time: 2, type: 'ride' },      // 
+ Next stop on 2
+   ],
+   '127N_1': [  // Times Sq Northbound, 1 train
+     { to: '126N_1', time: 2, type: 'ride' },      // 
+ Next stop on 1
+   ],
+   // Transfer edges (from transfers.txt, NOT 
+ hardcoded):
+   '127N_2': [
+     { to: '127N_1', time: 0, type: 'transfer' },   // 
+ 2→1 same platform
+     { to: '725N_7', time: 180, type: 'transfer' }, // 
+ →7 train (3 min)
+     { to: 'A27N_A', time: 300, type: 'transfer' }, // 
+ →Port Auth (5 min)
+   ],
+ }
+
+ Tasks:
+ 1. Parse trips.txt to map trip_id → route_id (line)
+ 2. Parse stop_times.txt to get ride times between
+ consecutive stops
+ 3. Create composite node IDs: stopId_routeId (e.g.,
+ 127N_2)
+ 4. Parse transfers.txt to get transfer edges (NO
+ hardcoding)
+ 5. Handle same-line transfers (2↔3 share platform)
+ with 0-sec edges
+
+ Step 2: Implement Dijkstra's Algorithm (~30 min)
+
+ File: scripts/subway-graph.js
+
+ function findRoute(fromStopId, toStopId) {
+   // 1. Find all platform_line nodes for origin station
+   // 2. Find all platform_line nodes for destination 
+ station
+   // 3. Run Dijkstra from all origins to all 
+ destinations
+   // 4. Return shortest path
+ }
+
+ Tasks:
+ 1. Implement priority queue (sorted array is fine for
+ ~1500 nodes)
+ 2. Track visited nodes and shortest distances
+ 3. Reconstruct path when destination reached
+ 4. Handle "entry" to system (user can board any line at
+  station)
+
+ Step 3: Add Route Formatting (~15 min)
+
+ Convert raw path to human-readable directions:
+
+ // Input path: ['224N_2', '127N_2', '127N_A', 'A31N_A']
+ // Output:
+ {
+   totalTime: 30,
+   legs: [
+     { from: '96 St', to: 'Times Sq', line: '2', time:
+ 21, type: 'ride' },
+     { from: 'Times Sq', to: 'Port Authority', time: 5,
+ type: 'transfer' },
+     { from: 'Port Authority', to: '14 St', line: 'A',
+ time: 4, type: 'ride' }
+   ]
+ }
+
+ Tasks:
+ 1. Collapse consecutive same-line nodes into single leg
+ 2. Identify transfer points (where line changes)
+ 3. Look up station names from stops.txt
+
+ Step 4: Helper Functions (~15 min)
+
+ File: scripts/subway-graph.js
+
+ // Find nearest station to lat/lng
+ function findNearestStation(lat, lng) { }
+
+ // Main entry point
+ function findSubwayRoute(fromLat, fromLng, toLat, 
+ toLng) {
+   const fromStation = findNearestStation(fromLat,
+ fromLng);
+   const toStation = findNearestStation(toLat, toLng);
+   return findRoute(fromStation, toStation);
+ }
+
+ // Quick time lookup
+ function getRouteTime(fromStopId, toStopId) {
+   return findRoute(fromStopId, toStopId).totalTime;
+ }
+
+ Files to Create
+
+ | File                    | Purpose
+               |
+ |-------------------------|----------------------------
+ --------------|
+ | scripts/subway-graph.js | Graph builder + Dijkstra +
+ route finding |
+
+ Graph Statistics (Expected)
+
+ - ~470 stations × ~3 lines avg = ~1,400 nodes
+ - ~1,400 ride edges (consecutive stops)
+ - ~600 transfer edges (from transfers.txt)
+ - Total: ~2,000 edges
+
+ Testing Plan
+
+ 1. Express vs Local:
+   - 96 St → 72 St: Should prefer 2 express (4 min) over
+  1 local (8 min)
+ 2. Transfers:
+   - 96 St → 14 St (8 Av): Should find 2→Times Sq→A
+ route
+   - Verify transfer time matches transfers.txt (not
+ hardcoded)
+ 3. Same Line:
+   - Times Sq → 14 St on 1 train: Direct, no transfer
+ 4. Edge Cases:
+   - Same station: 0 time
+   - Invalid station: Error message
+
+ Time Estimate
+
+ - Step 1: 45 min (most complex - parsing GTFS)
+ - Step 2: 30 min
+ - Step 3: 15 min
+ - Step 4: 15 min
+ - Total: ~1.75 hours
+
+ What This Replaces
+
+ - Google Matrix API dependency (was ~$1 one-time, now
+ $0 forever)
+ - Manual route chaining in code
+ - Hardcoded transfer estimates
+
+ Cost
+
+ $0 - All data from MTA GTFS (free, public)
+╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌
+
+
+
+================================================================================
+CODE REVIEW: CRITICAL BUGS TO FIX (Added 12/10/25)
+================================================================================
+
+After reviewing the initial build-graph.js implementation, the following
+issues were identified. These MUST be addressed before the code will work.
+
+
+--------------------------------------------------------------------------------
+🔴 CRITICAL - MUST FIX (Code will break without these)
+--------------------------------------------------------------------------------
+
+1. CSV PARSING BREAKS ON QUOTED FIELDS
+--------------------------------------
+Problem:
+  Using line.split(',') fails when station names contain commas:
+
+  Input:  101,,"Chambers St - WTC, Manhattan",40.71,-74.01,...
+  Result: ['101', '', 'Chambers St - WTC', 'Manhattan', '40.71', ...]
+                                           ^ WRONG - should be one field
+
+  This causes cols[4] (latitude) to be "Manhattan" instead of 40.71.
+  parseFloat("Manhattan") = NaN. Graph coordinates are garbage.
+
+Fix:
+  Use a proper CSV parser that handles quoted fields:
+
+  function parseCSVLine(line) {
+      const result = [];
+      let current = '';
+      let inQuotes = false;
+      for (const char of line) {
+          if (char === '"') inQuotes = !inQuotes;
+          else if (char === ',' && !inQuotes) {
+              result.push(current.trim());
+              current = '';
+          } else current += char;
+      }
+      result.push(current.trim());
+      return result;
+  }
+
+
+2. HARDCODED COLUMN INDICES ARE FRAGILE
+---------------------------------------
+Problem:
+  Code uses cols[0], cols[2], cols[9] etc. assuming fixed column positions.
+  GTFS spec does NOT guarantee column order. Different exports vary.
+
+Fix:
+  Parse the header row to build a column index map:
+
+  let headers = null;
+  for await (const line of stream) {
+      if (!headers) {
+          headers = parseCSVLine(line);
+          continue;
+      }
+      const cols = parseCSVLine(line);
+      const row = {};
+      headers.forEach((h, i) => row[h] = cols[i]);
+
+      // Now use named access:
+      const stopId = row['stop_id'];
+      const name = row['stop_name'];
+      const parent = row['parent_station'];
+  }
+
+
+3. transfers.txt IS COMPLETELY IGNORED
+--------------------------------------
+Problem:
+  The plan says "ALL transfer times come from transfers.txt" but the
+  initial code ONLY uses heuristics. Official MTA transfer data is lost.
+
+  transfers.txt has REAL times:
+    - Times Sq 1/2/3 → 7 train: 180 sec (3 min walk)
+    - Times Sq → Port Authority: 300 sec (5 min walk)
+
+  Heuristic gives these 120 sec (wrong).
+
+Fix:
+  Load transfers.txt FIRST, then fill gaps with heuristics:
+
+  // STEP 5a: Load official transfers from transfers.txt
+  const transfersStream = fs.createReadStream('transfers.txt');
+  // ... parse and add edges with official times
+
+  // STEP 5b: Add heuristic transfers ONLY for missing connections
+  Object.keys(nodesByParent).forEach(parent => {
+      // Skip if edge already exists from transfers.txt
+  });
+
+
+4. IMPLICIT SAME-STATION TRANSFERS MISSING
+------------------------------------------
+Problem:
+  transfers.txt is incomplete. It's missing 90% of transfers like:
+    - Switching from 4 to 5 across the platform
+    - Same-platform local/express transfers
+
+  Without heuristic transfers, the graph is disconnected islands.
+
+Fix:
+  Group all nodes by Parent Station, connect ALL lines at that station:
+
+  const SHARED_TRUNKS = [
+      ['1', '2', '3'],       // 7th Ave - 0 sec transfer
+      ['4', '5', '6'],       // Lexington - 0 sec transfer
+      ['A', 'C', 'E'],       // 8th Ave - 0 sec transfer
+      ['B', 'D', 'F', 'M'],  // 6th Ave - 0 sec transfer
+      ['N', 'Q', 'R', 'W'],  // Broadway - 0 sec transfer
+      ['J', 'Z']             // Nassau - 0 sec transfer
+  ];
+
+  // Shared trunk lines = 0 sec (same platform)
+  // Different trunk lines at same station = 120 sec (stairs/walk)
+
+
+5. GTFS TIME FORMAT (25:30:00)
+------------------------------
+Problem:
+  GTFS uses hours > 24 for late-night service on the same "service day".
+  25:30:00 = 1:30 AM (next calendar day, same service day)
+
+  Standard JS Date parsing will crash or give wrong results.
+
+Fix:
+  Custom time parser:
+
+  function parseTime(timeStr) {
+      if (!timeStr) return null;
+      const [h, m, s] = timeStr.split(':').map(Number);
+      return (h * 3600) + (m * 60) + s;  // Total seconds from midnight
+  }
+
+
+6. MULTI-SOURCE ENTRY FOR DIJKSTRA
+----------------------------------
+Problem:
+  User at "96 St" doesn't specify direction or line. But graph has
+  composite nodes like 224N_1, 224S_1, 224N_2, 224S_2, etc.
+
+  Can't start Dijkstra at a single node.
+
+Fix:
+  Initialize Dijkstra with ALL nodes at origin station as distance 0:
+
+  function findRoute(fromStopId, toStopId) {
+      const startNodes = getAllNodesForStation(fromStopId);
+      const endNodes = getAllNodesForStation(toStopId);
+
+      // Multi-source initialization
+      for (const node of startNodes) {
+          distances[node] = 0;
+          queue.push(node);
+      }
+
+      // Stop when ANY endNode is reached
+  }
+
+
+--------------------------------------------------------------------------------
+🟡 MEDIUM - SHOULD FIX (Code works but has edge-case bugs)
+--------------------------------------------------------------------------------
+
+7. STOP SEQUENCE NOT SORTED
+---------------------------
+Problem:
+  Code pushes stops in file order, assumes sorted by sequence.
+  GTFS doesn't guarantee this. Wrong edges if file is out of order.
+
+Fix:
+  Sort before processing:
+
+  function processTrip(tripId, stops, routeId, graph) {
+      stops.sort((a, b) => a.seq - b.seq);  // ADD THIS
+      // ... rest of function
+  }
+
+
+8. UTF-8 BOM NOT HANDLED
+------------------------
+Problem:
+  Some GTFS files start with \uFEFF (UTF-8 BOM).
+  First header becomes "\uFEFFstop_id" not "stop_id".
+  Column lookup fails silently.
+
+Fix:
+  Strip BOM from first line:
+
+  if (!headers) {
+      headers = parseCSVLine(line.replace(/^\uFEFF/, ''));
+      continue;
+  }
+
+
+9. DIRECTION DETECTION IS FRAGILE
+---------------------------------
+Problem:
+  Code uses nodeA.charAt(3) to get N/S direction.
+  Works for most MTA stop IDs but is brittle.
+
+Fix:
+  Extract direction from the stop ID portion reliably:
+
+  function getDirection(nodeId) {
+      const stopId = nodeId.split('_')[0];  // "127N" from "127N_2"
+      return stopId.slice(-1);              // "N" or "S"
+  }
+
+
+10. TIME FILTERING FOR RELIABLE SCHEDULES
+-----------------------------------------
+Problem:
+  "First valid weekday trip" might be 4 AM skeleton service
+  or rush-hour-only short turns with different patterns.
+
+Fix:
+  Filter to mid-day service (7 AM - 10 PM) for typical times:
+
+  const seconds = parseTime(arrivalStr);
+  if (seconds >= 25200 && seconds <= 79200) {  // 7am-10pm
+      currentTripStops.push({ stopId, time: seconds, seq });
+  }
+
+
+--------------------------------------------------------------------------------
+🟢 MINOR - ACCEPT FOR MVP (Can defer to later)
+--------------------------------------------------------------------------------
+
+11. calendar_dates.txt NOT CHECKED
+----------------------------------
+  MTA uses this for holiday exceptions. Acceptable to ignore for MVP.
+  Document the limitation.
+
+12. TERMINUS HANDLING (TRAIN REVERSAL)
+--------------------------------------
+  At end-of-line stations, trains reverse. Need edges connecting
+  XXX_N ↔ XXX_S for the same line at termini.
+
+  Defer to v2. Routes TO terminals work; routes FROM them may fail.
+
+13. WALKING TRANSFERS NOT IN GTFS
+---------------------------------
+  Some valid transfers require walking between stations not in
+  transfers.txt (e.g., Lex/51 ↔ 51 St).
+
+  Accept limitation or hardcode known ones in v2.
+
+
+--------------------------------------------------------------------------------
+WHAT TO IGNORE (Over-engineering)
+--------------------------------------------------------------------------------
+
+✗ Min-Heap Priority Queue
+  Sorted array is fine for ~1500 nodes. V8 handles this in microseconds.
+
+✗ Calculate Median Ride Times
+  For "can I make this open mic?", 3 min vs 4 min doesn't matter.
+  First valid weekday trip is good enough.
+
+✗ Complex Route Formatting State Machine
+  Composite node design handles this implicitly:
+  - Same suffix (_2 → _2) = ride
+  - Different suffix (_2 → _A) = transfer
+
+
+--------------------------------------------------------------------------------
+REVISED ARCHITECTURE
+--------------------------------------------------------------------------------
+
+Phase 1: Build Script (scripts/build-graph.js)
+  - Runs ONCE at build/deploy time
+  - Parses dirty GTFS CSVs with proper quoting
+  - Handles 25:00:00 time format
+  - Loads transfers.txt for official times
+  - Adds heuristic transfers for missing connections
+  - Outputs clean subway-graph.json
+
+Phase 2: Router (scripts/subway-router.js)
+  - Loads pre-built JSON (fast startup)
+  - Implements multi-source Dijkstra
+  - Returns formatted routes
+
+
+--------------------------------------------------------------------------------
+SUMMARY TABLE
+--------------------------------------------------------------------------------
+
+| Issue                          | Severity | Action      |
+|--------------------------------|----------|-------------|
+| CSV breaks on quoted fields    | CRITICAL | MUST FIX    |
+| Hardcoded column indices       | CRITICAL | MUST FIX    |
+| transfers.txt ignored          | CRITICAL | MUST FIX    |
+| Implicit same-station xfers    | CRITICAL | MUST FIX    |
+| Time format 25:30:00           | CRITICAL | MUST FIX    |
+| Multi-source Dijkstra entry    | CRITICAL | MUST FIX    |
+| Stop sequence not sorted       | MEDIUM   | Should fix  |
+| UTF-8 BOM not handled          | MEDIUM   | Should fix  |
+| Direction detection fragile    | MEDIUM   | Should fix  |
+| Time filtering (7am-10pm)      | MEDIUM   | Should fix  |
+| calendar_dates.txt             | MINOR    | Defer       |
+| Terminus handling              | MINOR    | Defer       |
+| Walking transfers              | MINOR    | Defer       |
+
+
+================================================================================
+BRUTAL CRITIQUE FIXES (Added 12/10/25)
+================================================================================
+
+External code review identified additional "Logic Bombs" that will cause
+real-world failures. These MUST be addressed.
+
+
+--------------------------------------------------------------------------------
+🔴 CRITICAL FIX #1: WEEKEND LOGIC BOMB
+--------------------------------------------------------------------------------
+
+THE FLAW:
+  Building ONE static graph from "first valid weekday trip" ignores that
+  NYC subway is effectively TWO DIFFERENT SYSTEMS on weekends.
+
+WHAT BREAKS:
+  - B train DOES NOT EXIST on weekends
+  - 7 Express DOES NOT EXIST on weekends
+  - M train changes its terminus on weekends
+  - Z train is a ghost (rush hour only)
+
+THE CONSEQUENCE:
+  User on Saturday asks for route. App says "Take the B train."
+  User walks to station. Gate is locked. Trust destroyed immediately.
+
+THE FIX:
+  Build TWO graph files using gtfs_supplemented/calendar.txt:
+
+  // In build-graph.js
+  const weekdayServiceIds = new Set();
+  const weekendServiceIds = new Set();
+
+  // Parse calendar.txt to get service patterns
+  for (const row of parseCSV('gtfs_supplemented/calendar.txt')) {
+    if (row.saturday === '1' || row.sunday === '1') {
+      weekendServiceIds.add(row.service_id);
+    }
+    if (row.monday === '1') {  // Any weekday
+      weekdayServiceIds.add(row.service_id);
+    }
+  }
+
+  // Build separate graphs
+  buildGraph(weekdayServiceIds, 'graph-weekday.json');
+  buildGraph(weekendServiceIds, 'graph-weekend.json');
+
+  // In subway-router.js (runtime)
+  const isWeekend = [0, 6].includes(new Date().getDay());
+  const graph = require(isWeekend ? './graph-weekend.json' : './graph-weekday.json');
+
+FILES TO CREATE (UPDATED):
+  scripts/build-graph.js           → Parse GTFS, build BOTH graphs
+  scripts/graph-weekday.json       → Weekday service graph
+  scripts/graph-weekend.json       → Weekend service graph
+  scripts/subway-router.js         → Loads correct graph based on day
+
+
+--------------------------------------------------------------------------------
+🔴 CRITICAL FIX #2: SUPER-COMPLEX TRANSFER HARDCODING
+--------------------------------------------------------------------------------
+
+THE FLAW:
+  Plan relies on parent_station for implicit transfers.
+  parent_station in GTFS is MESSY and UNRELIABLE.
+
+WHAT BREAKS:
+  - Times Square and Port Authority are connected by tunnel but have
+    DIFFERENT parent IDs in GTFS. Code treats them as separate islands.
+  - A/C/E ↔ 1/2/3 connection at Times Sq may be MISSING.
+  - Same issue at Fulton St complex, Atlantic Ave complex.
+
+THE FIX:
+  Hardcode the ~5 "Super Complexes" that GTFS messes up:
+
+  // These station groups are connected but GTFS parent_station is wrong
+  const SUPER_COMPLEXES = {
+    'TIMES_SQ_COMPLEX': {
+      stations: ['127', '725', 'A27', 'R16'],  // 1/2/3, 7, A/C/E, N/Q/R/W
+      transferTime: 300  // 5 min (tunnel walk)
+    },
+    'FULTON_COMPLEX': {
+      stations: ['A38', 'R25', '418', '419'],  // A/C, J/Z, 2/3, 4/5
+      transferTime: 240  // 4 min
+    },
+    'ATLANTIC_COMPLEX': {
+      stations: ['235', 'D24', 'R31'],  // 2/3/4/5, B/D/N/Q/R, LIRR
+      transferTime: 300  // 5 min
+    },
+    'UNION_SQ_COMPLEX': {
+      stations: ['635', 'L03', 'R20'],  // 4/5/6, L, N/Q/R/W
+      transferTime: 180  // 3 min
+    },
+    '14TH_ST_COMPLEX': {
+      stations: ['A32', 'L02', '132'],  // A/C/E, L, 1/2/3
+      transferTime: 240  // 4 min
+    }
+  };
+
+  // After loading transfers.txt, add these manually:
+  Object.values(SUPER_COMPLEXES).forEach(complex => {
+    // Connect all stations in complex bidirectionally
+    for (let i = 0; i < complex.stations.length; i++) {
+      for (let j = i + 1; j < complex.stations.length; j++) {
+        addTransferEdge(complex.stations[i], complex.stations[j], complex.transferTime);
+      }
+    }
+  });
+
+WHY NOT SAME-NAME HEURISTIC:
+  "23 St (1)" and "23 St (6)" are blocks apart and NOT connected.
+  Same-name matching would incorrectly link them.
+  Hardcoding 5 complexes is safer than broken heuristics.
+
+
+--------------------------------------------------------------------------------
+🔴 CRITICAL FIX #3: ALGORITHM CONTRADICTION RESOLVED
+--------------------------------------------------------------------------------
+
+THE FLAW:
+  Step 4 says: "Use Virtual Start/End nodes, run Dijkstra ONCE"
+  Top 3 Routes says: "Run Dijkstra PER-STATION"
+
+  These contradict each other. Virtual nodes collapse paths greedily.
+  You get: "L train (43 min), L train (44 min), L train (45 min)"
+  NOT:     "L train (43 min), M train (48 min), C train (52 min)"
+
+THE FIX:
+  ABANDON virtual node optimization for findTopRoutes().
+  Use PER-STATION DIJKSTRA exclusively.
+
+  Graph is only ~1500 nodes. Running Dijkstra 3-5 times (once per nearby
+  station) takes <100ms total. This is not a performance problem.
+
+  Per-Station Strategy NATURALLY produces route diversity because
+  different stations serve different lines.
+
+UPDATED Step 4:
+  ✗ Virtual USER_START / USER_END nodes (REMOVED)
+  ✓ Per-station Dijkstra loop (KEEP - from Top 3 Routes section)
+
+  function findTopRoutes(userLat, userLng, venueLat, venueLng, limit = 3) {
+    const nearbyStations = findStationsWithinRadius(userLat, userLng, 0.5);
+    const routes = [];
+
+    // Run Dijkstra ONCE PER nearby station (not virtual nodes)
+    for (const station of nearbyStations) {
+      const result = dijkstra(station.entryNodes, destinationNodes);
+      if (result) routes.push(formatRoute(result, station));
+    }
+
+    // Deduplicate by signature, sort by time
+    return deduplicateAndSort(routes, limit);
+  }
+
+
+--------------------------------------------------------------------------------
+🟡 MEDIUM FIX: SERVICE CHANGE DISCLAIMER
+--------------------------------------------------------------------------------
+
+THE FLAW:
+  Real-time overlay shows train ARRIVALS but not train REROUTES.
+  "F train running on E line" breaks everything.
+  App says "Go to 23rd St (F)" - no F trains ever come.
+
+THE FIX:
+  DO NOT try to parse GTFS-RT Service Alerts. Too complex for MVP.
+
+  Instead, add UI disclaimer:
+
+  ┌─────────────────────────────────────────────────────────┐
+  │  Routes based on standard schedule.                     │
+  │  Check MTA for service changes.                         │
+  └─────────────────────────────────────────────────────────┘
+
+  OPTIONAL HERO MODE (v2):
+  Fetch MTA Service Alerts API (simple JSON) and show ⚠️ icon
+  next to affected lines. Don't change the graph, just WARN.
+
+  async function getAffectedLines() {
+    const alerts = await fetch(MTA_ALERTS_URL);
+    return alerts
+      .filter(a => a.alert_type === 'Delays' || a.alert_type === 'Service Change')
+      .map(a => a.route_id);
+  }
+
+  // In UI: if route.lines.some(l => affectedLines.includes(l)) show ⚠️
+
+
+--------------------------------------------------------------------------------
+✅ NOT A PROBLEM: LATE NIGHT SERVICE
+--------------------------------------------------------------------------------
+
+Late night was identified as a potential issue but IS ALREADY HANDLED:
+
+WHY IT'S FINE:
+  1. Graph routes are CORRECT at all hours (L still goes Jefferson → Union Sq)
+  2. Ride times are CORRECT (18 min ride doesn't change at 2 AM)
+  3. Only WAIT TIMES change (trains every 20 min instead of 5 min)
+  4. Existing 3-hour real-time threshold handles this:
+
+     if (timeUntilStart <= 3) {
+       // Fetches actual train arrivals - gets real wait times
+       routes = await findTopRoutesWithRealtime(...);
+     }
+
+  5. Most open mics are 7 PM - 11 PM (normal service)
+  6. Late night mics are rare, and users check within 3 hours anyway
+
+OPTIONAL (Low Priority):
+  Add late-night disclaimer if mic starts midnight-5am and user is
+  checking >3 hours ahead: "Late night service frequencies may vary."
+
+
+--------------------------------------------------------------------------------
+UPDATED SUMMARY TABLE
+--------------------------------------------------------------------------------
+
+| Issue                          | Severity | Action      |
+|--------------------------------|----------|-------------|
+| Weekend/Weekday split          | CRITICAL | MUST FIX    |
+| Super-Complex hardcoding       | CRITICAL | MUST FIX    |
+| Per-Station Dijkstra (not virt)| CRITICAL | MUST FIX    |
+| CSV breaks on quoted fields    | CRITICAL | MUST FIX    |
+| Hardcoded column indices       | CRITICAL | MUST FIX    |
+| transfers.txt ignored          | CRITICAL | MUST FIX    |
+| Implicit same-station xfers    | CRITICAL | MUST FIX    |
+| Time format 25:30:00           | CRITICAL | MUST FIX    |
+| Multi-source Dijkstra entry    | CRITICAL | MUST FIX    |
+| Stop sequence not sorted       | MEDIUM   | Should fix  |
+| UTF-8 BOM not handled          | MEDIUM   | Should fix  |
+| Direction detection fragile    | MEDIUM   | Should fix  |
+| Time filtering (7am-10pm)      | MEDIUM   | Should fix  |
+| Service change disclaimer      | MEDIUM   | Add to UI   |
+| calendar_dates.txt             | MINOR    | Defer       |
+| Terminus handling              | MINOR    | Defer       |
+| Walking transfers              | MINOR    | Defer       |
+| Late night warning             | MINOR    | Optional    |
+
+
+================================================================================

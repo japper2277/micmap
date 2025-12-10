@@ -151,10 +151,18 @@ const searchService = {
             .slice(0, 3)
             .map(m => ({ ...m, type: 'venue' }));
 
-        // 2. Nominatim geocoding via backend proxy
+        // 2. HERE geocoding via backend proxy (250k free/month, great for business names)
         if (query.length > 2) {
             try {
-                const res = await fetch(`${CONFIG.apiBase}/api/proxy/geocode?query=${encodeURIComponent(query)}`);
+                // Try HERE first (better for POIs like "Trader Joe's")
+                let res = await fetch(`${CONFIG.apiBase}/api/proxy/here/geocode?query=${encodeURIComponent(query)}`);
+
+                // Fallback to Mapbox if HERE fails
+                if (!res.ok) {
+                    console.warn('HERE geocode failed, trying Mapbox...');
+                    res = await fetch(`${CONFIG.apiBase}/api/proxy/geocode?query=${encodeURIComponent(query)}`);
+                }
+
                 if (!res.ok) throw new Error(`Proxy error: ${res.status}`);
                 const data = await res.json();
                 results.locations = (data.results || []).map(r => ({ ...r, type: 'location' }));

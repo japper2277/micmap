@@ -1,0 +1,3 @@
+https://stackoverflow.com/questions/430142/what-algorithms-compute-directions-from-point-a-to-point-b-on-a-map
+
+http://www.opentripplanner.org

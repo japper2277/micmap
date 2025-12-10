@@ -1,138 +1,151 @@
 ================================================================================
-           HOW TO LAUNCH C_D_COMBINED.HTML LOCALLY
+           MICFINDER NYC - STARTUP GUIDE
 ================================================================================
 
 PREREQUISITES:
-- Python 3 (pre-installed on macOS)
-- The project files in the /micmap directory
-- The mics.json file in the /api directory
+- Node.js 18.x
+- MongoDB (running locally or via brew services)
+- Redis (running locally or via brew services)
+- Python 3 (for frontend server)
 
 ================================================================================
-STEP-BY-STEP INSTRUCTIONS:
+QUICK START (2 TERMINAL WINDOWS)
 ================================================================================
 
-1. OPEN TERMINAL
-   - Press Cmd + Space to open Spotlight
-   - Type "Terminal" and press Enter
+TERMINAL 1 - Backend API:
 
-2. NAVIGATE TO THE PROJECT DIRECTORY
-   - Copy and paste this command into Terminal:
+    cd ~/Desktop/micmap/api
+    npm run dev
 
-     cd ~/Desktop/micmap
+    API runs on: http://localhost:3001
 
-   - Press Enter
+TERMINAL 2 - Frontend:
 
-3. START THE LOCAL WEB SERVER
-   - Copy and paste this command:
+    cd ~/Desktop/micmap/map_designs
+    python3 -m http.server 8080
 
-     python3 -m http.server 8000
-
-   - Press Enter
-   - You should see: "Serving HTTP on :: port 8000 (http://[::]:8000/) ..."
-
-4. OPEN THE APP IN YOUR BROWSER
-   - Open a new browser tab
-   - Go to this URL:
-
-     http://localhost:8000/map_designs/C_D_combined.html
-
-   OR simply run this command in a NEW terminal window:
-
-     open http://localhost:8000/map_designs/C_D_combined.html
-
-5. THE APP IS NOW RUNNING!
-   - You should see the MicFinder map interface
-   - The map should display pins for all mic locations
-   - You can search venues, filter by date, and interact with the map
+    Open: http://localhost:8080/newest_map/
 
 ================================================================================
-HOW IT WORKS:
+DETAILED SETUP
 ================================================================================
 
-- The Python server runs from the project root (/micmap)
-- The HTML file is accessed at: map_designs/C_D_combined.html
-- The HTML file loads data from: ../api/mics.json
-- The relative path works because the server serves from the root directory
+1. START REQUIRED SERVICES (if not already running)
+
+    brew services start mongodb-community
+    brew services start redis
+
+2. START THE BACKEND API
+
+    cd ~/Desktop/micmap/api
+    npm run dev
+
+    You should see:
+    - MicMap API is running on port 3001
+    - Redis connected successfully
+    - MongoDB connected successfully
+
+3. START THE FRONTEND SERVER
+
+    cd ~/Desktop/micmap/map_designs
+    python3 -m http.server 8080
+
+4. OPEN THE APP
+
+    http://localhost:8080/newest_map/
 
 ================================================================================
-TO STOP THE SERVER:
+API ENDPOINTS
 ================================================================================
 
-1. Go back to the Terminal window where the server is running
-2. Press Ctrl + C
-3. The server will stop and you'll return to the command prompt
+Health Check:     http://localhost:3001/health
+Mics List:        http://localhost:3001/api/v1/mics
+MTA Arrivals:     http://localhost:3001/api/mta/arrivals/:line/:stopId
+MTA Alerts:       http://localhost:3001/api/mta/alerts
+Transit Proxy:    POST http://localhost:3001/api/proxy/transit
+
+Examples:
+    curl http://localhost:3001/health
+    curl http://localhost:3001/api/v1/mics
+    curl http://localhost:3001/api/mta/arrivals/L/L03
 
 ================================================================================
-TROUBLESHOOTING:
+TROUBLESHOOTING
 ================================================================================
 
-Problem: "Address already in use" error
-Solution: Port 8000 is already being used. Try a different port:
-          python3 -m http.server 8080
-          Then use: http://localhost:8080/map_designs/C_D_combined.html
+Problem: "Address already in use" on port 3001
+Solution: Find and kill the process:
+    lsof -ti :3001 | xargs kill -9
+    npm run dev
 
-Problem: Map doesn't load or shows errors
-Solution: Check the browser console (Right-click > Inspect > Console)
-          Make sure api/mics.json exists and has valid data
+Problem: "Address already in use" on port 8080
+Solution: Find and kill the process:
+    lsof -ti :8080 | xargs kill -9
+    python3 -m http.server 8080
 
-Problem: Python command not found
-Solution: Try "python" instead of "python3":
-          python -m http.server 8000
+Problem: MongoDB connection failed
+Solution: Start MongoDB:
+    brew services start mongodb-community
 
-Problem: Data not showing on map
-Solution: Verify the mics.json file exists:
-          ls -la api/mics.json
-          It should show a file size around 108KB
+Problem: Redis connection failed
+Solution: Start Redis:
+    brew services start redis
 
-================================================================================
-ALTERNATIVE: USING NODE.JS (if available)
-================================================================================
+Problem: CORS errors in browser console
+Solution: Make sure frontend config matches API port.
+    Check: map_designs/newest_map/js/config.js
+    apiBase should match API port (default: 3001)
 
-If you have Node.js installed, you can also use:
-
-1. Install http-server globally:
-   npm install -g http-server
-
-2. Run from project root:
-   http-server -p 8000
-
-3. Open: http://localhost:8000/map_designs/C_D_combined.html
+Problem: No mics loading
+Solution: Seed the database:
+    cd ~/Desktop/micmap/api
+    npm run seed
 
 ================================================================================
-FILE STRUCTURE:
+STOPPING SERVICES
+================================================================================
+
+Stop API:         Ctrl+C in Terminal 1
+Stop Frontend:    Ctrl+C in Terminal 2
+Stop MongoDB:     brew services stop mongodb-community
+Stop Redis:       brew services stop redis
+
+================================================================================
+FILE STRUCTURE
 ================================================================================
 
 micmap/
 ├── api/
-│   └── mics.json              ← Data file (108KB)
+│   ├── server.js           <- Main API server
+│   ├── package.json        <- Dependencies
+│   └── scripts/
+│       └── seed-database.js <- Database seeder
 ├── map_designs/
-│   ├── C_D_combined.html      ← Main HTML file
-│   └── (other design files)
-└── LAUNCH_INSTRUCTIONS.txt    ← This file
+│   └── newest_map/
+│       ├── index.html      <- Main app
+│       ├── js/
+│       │   ├── config.js   <- API endpoint config
+│       │   ├── app.js      <- Main app logic
+│       │   └── ...
+│       └── css/
+│           └── ...
+└── LAUNCH_INSTRUCTIONS.txt <- This file
 
 ================================================================================
-NOTES:
+QUICK REFERENCE
 ================================================================================
 
-- The HTML file uses Leaflet.js for mapping (loaded from CDN)
-- Tailwind CSS is loaded from CDN for styling
-- The app includes features like:
-  * Real-time status indicators (Live, Soon, Upcoming)
-  * Search with fuzzy matching
-  * Geolocation for distance calculations
-  * Mobile-responsive design with drag drawer
-  * Calendar view for date selection
+Start All:
+    # Terminal 1
+    cd ~/Desktop/micmap/api && npm run dev
 
-- The server must remain running while you use the app
-- You can edit C_D_combined.html and refresh the browser to see changes
-- The mics.json file can be updated without restarting the server
+    # Terminal 2
+    cd ~/Desktop/micmap/map_designs && python3 -m http.server 8080
 
-================================================================================
-QUICK REFERENCE:
-================================================================================
+Open App:
+    open http://localhost:8080/newest_map/
 
-Start Server:     cd ~/Desktop/micmap && python3 -m http.server 8000
-Open App:         open http://localhost:8000/map_designs/C_D_combined.html
-Stop Server:      Press Ctrl + C in the terminal
+Test API:
+    curl http://localhost:3001/health
 
 ================================================================================

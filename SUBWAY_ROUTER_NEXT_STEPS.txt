@@ -1,0 +1,155 @@
+================================================================================
+SUBWAY GRAPH ROUTER - NEXT STEPS
+================================================================================
+Created: Dec 10, 2025
+Status: Core routing working, needs integration
+
+================================================================================
+WHAT'S DONE
+================================================================================
+
+[x] build-graph.js        - Parses GTFS, builds weekday/weekend graphs
+[x] subway-router.js      - Dijkstra routing, multi-route diversity
+[x] graph-weekday.json    - 1,998 nodes, 12,247 edges (574 KB)
+[x] graph-weekend.json    - 1,467 nodes, 6,222 edges (299 KB)
+[x] stations.json         - 496 stations with coords (53 KB)
+[x] N/Q grouping          - Express trains grouped, R local separate
+[x] Transfer merging      - Consecutive transfers shown as one
+[x] Super Complexes       - Times Sq, 14th St, Fulton tunnel connections
+
+================================================================================
+NEXT STEPS (In Order of Priority)
+================================================================================
+
+--------------------------------------------------------------------------------
+STEP 1: Walking Distance Fix (30 min)
+--------------------------------------------------------------------------------
+Problem: Using straight-line distance. NYC is a grid.
+
+Option A - Quick fix (recommended for now):
+  In subway-router.js, change:
+    walkTime = distance * 20
+  To:
+    walkTime = distance * 20 * 1.4   // Grid multiplier
+
+Option B - Accurate fix (later):
+  Set up OSRM with Docker for real street routing
+  OSM data already downloaded: new-york-251209.osm.pbf
+
+  Commands (requires Docker Desktop):
+    cd /Users/jaredapper/Desktop/micmap
+    docker run -t -v "${PWD}:/data" osrm/osrm-backend osrm-extract -p /opt/foot.lua /data/new-york-251209.osm.pbf
+    docker run -t -v "${PWD}:/data" osrm/osrm-backend osrm-contract /data/new-york-251209.osrm
+    docker run -t -i -p 5000:5000 -v "${PWD}:/data" osrm/osrm-backend osrm-routed /data/new-york-251209.osrm
+
+--------------------------------------------------------------------------------
+STEP 2: Integrate with API (1 hour)
+--------------------------------------------------------------------------------
+Add endpoint to api/server.js:
+
+  const subwayRouter = require('../scripts/subway-router');
+
+  app.get('/api/subway/routes', (req, res) => {
+    const { userLat, userLng, venueLat, venueLng, limit = 3 } = req.query;
+    const routes = subwayRouter.findTopRoutes(
+      parseFloat(userLat),
+      parseFloat(userLng),
+      parseFloat(venueLat),
+      parseFloat(venueLng),
+      parseInt(limit)
+    );
+    res.json(routes);
+  });
+
+--------------------------------------------------------------------------------
+STEP 3: Replace Google Matrix in transit.js (1 hour)
+--------------------------------------------------------------------------------
+Current system uses pre-computed Google Matrix times.
+Replace with live Dijkstra routing:
+
+  // OLD:
+  const transitSeconds = stationMatrix[destClusterId];
+
+  // NEW:
+  const routes = subwayRouter.findTopRoutes(userLat, userLng, mic.lat, mic.lng, 1);
+  mic.transitMins = routes[0]?.totalTime || null;
+  mic.transitOptions = routes;  // Store all options for modal
+
+--------------------------------------------------------------------------------
+STEP 4: Real-Time Arrival Overlay (2 hours)
+--------------------------------------------------------------------------------
+You already have: mtaService.fetchArrivals()
+
+Add to subway-router.js or create subway-realtime.js:
+
+  async function addRealtimeToRoutes(routes, userLat, userLng) {
+    // For each route, fetch arrivals at origin station
+    // Calculate actual wait time based on walk time vs train arrival
+    // Re-sort routes by actual total time (static + wait)
+    // Add "N arriving in 6 min" labels
+  }
+
+Use when mic starts within 3 hours (already have this threshold).
+
+--------------------------------------------------------------------------------
+STEP 5: Frontend Display (2 hours)
+--------------------------------------------------------------------------------
+Update modal.js to show route options:
+
+  ┌─────────────────────────────────────────────────────────┐
+  │  West Side Comedy Club                                  │
+  │                                                         │
+  │  OPTION 1 (Fastest)                          32 min    │
+  │  🚶 Jefferson St → 🚇 L → 🔄 → 🚇 2 → 72 St             │
+  │                                                         │
+  │  OPTION 2                                    32 min    │
+  │  🚶 Jefferson St → 🚇 L → 🔄 → 🚇 N/Q → 🔄 → 🚇 2       │
+  └─────────────────────────────────────────────────────────┘
+
+--------------------------------------------------------------------------------
+STEP 6: Weekly GTFS Update (30 min)
+--------------------------------------------------------------------------------
+MTA updates GTFS weekly. Set up cron/script to:
+  1. Download fresh GTFS
+  2. Run build-graph.js
+  3. Replace graph files
+
+You already have scripts/update-gtfs.sh - may need to add graph rebuild.
+
+================================================================================
+TESTING CHECKLIST
+================================================================================
+
+[ ] Bushwick → UWS (cross-borough with transfer)
+[ ] Harlem → Bushwick (A/B/C to L)
+[ ] Same-line trip (no transfer needed)
+[ ] Weekend routing (B train shouldn't appear)
+[ ] Walking radius (multiple nearby stations)
+[ ] Edge case: No subway nearby
+
+================================================================================
+FILES REFERENCE
+================================================================================
+
+Scripts:
+  scripts/build-graph.js      - Run once to rebuild graphs
+  scripts/subway-router.js    - Import this for routing
+
+Data:
+  public/data/graph-weekday.json
+  public/data/graph-weekend.json
+  public/data/stations.json
+
+Plan:
+  SUBWAY_GRAPH_ROUTER_PLAN.txt - Full architecture docs
+
+================================================================================
+COST SUMMARY
+================================================================================
+
+Current Google approach:  ~$50-100/month at scale
+New subway router:        $0/month
+
+Savings: 100%
+
+================================================================================

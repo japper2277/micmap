@@ -1,0 +1,236 @@
+================================================================================
+MICMAP SESSION SUMMARY - December 10, 2025
+================================================================================
+
+OVERVIEW
+--------
+This session focused on improving location search and walking time accuracy
+by integrating HERE API, and setting up GTFS data for transit calculations.
+
+
+================================================================================
+1. HERE API INTEGRATION
+================================================================================
+
+WHY HERE:
+- 250,000 free requests/month (best free tier)
+- Good for both geocoding (search) AND routing (walking times)
+- Finds businesses like "Trader Joe's" (better than Nominatim)
+- No charge until you exceed limits
+
+COMPARISON OF OPTIONS CONSIDERED:
+┌─────────────────────┬─────────────┬─────────────────────────────────┐
+│ Service             │ Free Tier   │ Notes                           │
+├─────────────────────┼─────────────┼─────────────────────────────────┤
+│ HERE                │ 250k/mo     │ CHOSEN - best balance           │
+│ Mapbox              │ 100k/mo     │ Already have key, fallback      │
+│ TomTom              │ 75k/mo      │ Good but less generous          │
+│ OpenRouteService    │ 60k/mo      │ Free, OSM-based                 │
+│ GraphHopper         │ 500/day     │ Better for self-hosting         │
+│ Nominatim (OSM)     │ Free        │ Rate-limited, misses businesses │
+│ Self-host OSRM      │ $5-6/mo     │ Unlimited, more effort          │
+└─────────────────────┴─────────────┴─────────────────────────────────┘
+
+SETUP REQUIRED:
+1. Sign up at https://developer.here.com (free, no credit card required)
+2. Add API key to /api/.env:
+   HERE_API_KEY=your_key_here
+3. Restart server
+
+
+================================================================================
+2. BACKEND CHANGES (api/server.js)
+================================================================================
+
+NEW ENDPOINTS ADDED:
+
+GET /api/proxy/here/geocode?query=...
+  - Search for places (addresses, businesses like "Trader Joe's")
+  - Biased toward NYC
+  - Returns: { results: [{ name, address, lat, lng }] }
+
+GET /api/proxy/here/walk?originLat=...&originLng=...&destLat=...&destLng=...
+  - Single walking route calculation
+  - Returns: { durationMins, durationSeconds, distanceMiles, distanceMeters }
+
+POST /api/proxy/here/walk-batch
+  - Body: { originLat, originLng, destinations: [{ id, lat, lng }] }
+  - Multiple walking routes at once
+  - Returns: { results: [{ id, durationMins, distanceMiles }] }
+
+
+================================================================================
+3. FRONTEND CHANGES
+================================================================================
+
+config.js:
+  - No changes (HERE_API_KEY is in backend .env)
+
+search.js (lines 154-172):
+  - Updated to use HERE for geocoding
+  - Falls back to Mapbox if HERE fails
+  - Better results for business names (Trader Joe's, etc.)
+
+modal.js (lines 169-178):
+  - Updated walk-to-station calculation to use HERE API
+  - More accurate than crow-flies estimate
+  - Falls back to estimate if API fails
+
+utils.js (lines 517-594):
+  - Added walkingTimeCache (Map) for caching results
+  - Added getHereWalkingTime(originLat, originLng, destLat, destLng)
+    - Caches results to avoid redundant API calls
+    - Falls back to Manhattan factor estimate (×1.4) if API fails
+  - Added getHereWalkingTimesBatch(originLat, originLng, destinations)
+    - Batch version for multiple destinations
+  - Added clearWalkingCache() to reset cache
+
+
+================================================================================
+4. .ENV CHANGES (api/.env)
+================================================================================
+
+ADDED:
+# HERE API (250k free/month - geocoding + walking routes)
+# Get your key from: https://developer.here.com
+HERE_API_KEY=
+
+
+================================================================================
+5. GTFS DATA SETUP
+================================================================================
+
+PURPOSE:
+- Calculate subway ride times from static schedules (FREE, no API)
+- Get official MTA transfer times between platforms
+- Replace dependency on Google Maps API for matrix generation
+
+DATA SOURCE:
+- MTA GTFS Supplemented: https://rrgtfsfeeds.s3.amazonaws.com/gtfs_supplemented.zip
+- Updated hourly by MTA
+- Includes service changes for next 7 days
+
+FILES DOWNLOADED TO /gtfs_supplemented/:
+┌─────────────────┬────────────────────────────────────────────────────┐
+│ File            │ Purpose                                            │
+├─────────────────┼────────────────────────────────────────────────────┤
+│ stops.txt       │ Station IDs, names, coordinates                    │
+│ stop_times.txt  │ Arrival/departure times at each stop               │
+│ transfers.txt   │ Transfer times between platforms (in seconds)      │
+│ trips.txt       │ Trip patterns                                      │
+│ routes.txt      │ Route definitions (A, C, E, 1, 2, 3, etc.)        │
+│ shapes.txt      │ Route shapes for drawing on map                    │
+│ calendar.txt    │ Service schedules                                  │
+└─────────────────┴────────────────────────────────────────────────────┘
+
+TRANSFER TIME EXAMPLE (from transfers.txt):
+  from_stop_id, to_stop_id, transfer_type, min_transfer_time
+  127,          A27,        2,             300  ← 5 minutes
+  132,          D19,        2,             300  ← 5 minutes
+
+
+================================================================================
+6. GTFS AUTO-UPDATE AUTOMATION
+================================================================================
+
+CREATED FILES:
+
+scripts/update-gtfs.sh
+  - Downloads fresh GTFS supplemented data from MTA
+  - Extracts to /gtfs_supplemented/
+  - Run manually: ./scripts/update-gtfs.sh
+
+scripts/com.micmap.gtfs-update.plist
+  - macOS LaunchAgent config
+  - Runs update-gtfs.sh every Sunday at 3 AM
+
+logs/
+  - Directory for update logs
+
+AUTOMATION ENABLED:
+  - Installed to ~/Library/LaunchAgents/
+  - Loaded via launchctl
+  - Status: Active (runs Sundays 3 AM)
+
+MANUAL COMMANDS:
+  # Run update now
+  ~/Desktop/micmap/scripts/update-gtfs.sh
+
+  # Check if scheduled
+  launchctl list | grep gtfs
+
+  # Disable auto-updates
+  launchctl unload ~/Library/LaunchAgents/com.micmap.gtfs-update.plist
+
+
+================================================================================
+7. ARCHITECTURE SUMMARY
+================================================================================
+
+YOUR TRANSIT CALCULATION STACK:
+
+┌─────────────────────────────────────────────────────────────────────┐
+│                         USER SEARCHES                               │
+│                      "Trader Joe's UWS"                            │
+└─────────────────────────────────────────────────────────────────────┘
+                                 │
+                                 ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│  HERE Geocoding API                                                 │
+│  → Returns coordinates (40.7786, -73.9819)                         │
+│  → 250k free/month                                                  │
+└─────────────────────────────────────────────────────────────────────┘
+                                 │
+                                 ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                    COMMUTE CALCULATION                              │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  1. WALK TO STATION         → HERE Routing API (accurate)          │
+│                                                                     │
+│  2. WAIT FOR TRAIN          → MTA GTFS Realtime (live arrivals)    │
+│                                                                     │
+│  3. SUBWAY RIDE             → Your Matrix OR GTFS stop_times.txt   │
+│                                                                     │
+│  4. TRANSFER (if needed)    → GTFS transfers.txt (official times)  │
+│                                                                     │
+│  5. WALK TO VENUE           → HERE Routing API (accurate)          │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+                                 │
+                                 ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                         TOTAL TIME                                  │
+│              "23 min to The Grisly Pear"                           │
+└─────────────────────────────────────────────────────────────────────┘
+
+
+================================================================================
+8. NEXT STEPS (NOT YET DONE)
+================================================================================
+
+[ ] Add HERE API key to .env and test
+[ ] Build ride time calculator from GTFS stop_times.txt (replace Google matrix)
+[ ] Build transfer time lookup from GTFS transfers.txt
+[ ] Integrate GTFS-based calculations into transit.js
+
+
+================================================================================
+9. COST SUMMARY
+================================================================================
+
+CURRENT COSTS:
+- HERE API: FREE (up to 250k requests/month)
+- MTA GTFS: FREE
+- MTA Realtime: FREE
+- Your pre-computed matrix: Already paid (~$1 one-time to Google)
+- Leaflet + OSM tiles: FREE
+
+POTENTIAL FUTURE COSTS:
+- HERE overage: $1 per 1,000 requests after 250k
+- Self-host OSRM: ~$5-6/month for unlimited (if you outgrow HERE)
+
+
+================================================================================
+END OF SUMMARY
+================================================================================
