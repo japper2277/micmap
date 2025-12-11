@@ -294,3 +294,14 @@ details.mic-row[open] summary .chevron { transform: rotate(-135deg); }
 .walk-details { display: flex; flex-direction: column; gap: 2px; }
 .walk-title { font-size: 15px; font-weight: 600; color: #fff; }
 .walk-distance { font-size: 13px; color: var(--text-sec); }
+
+/* Walk option in route list */
+.walk-option {
+    background: rgba(48, 209, 88, 0.08);
+    border-left: 3px solid var(--status-good);
+    padding-left: 21px;
+}
+.walk-option .route-badge {
+    background: rgba(48, 209, 88, 0.2);
+    color: var(--status-good);
+}

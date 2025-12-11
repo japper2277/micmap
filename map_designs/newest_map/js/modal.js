@@ -127,19 +127,47 @@ async function fetchSubwayRoutes(userLat, userLng, venueLat, venueLng) {
     return data.routes || [];
 }
 
-// Display subway routes in modal
-function displaySubwayRoutes(routes, mic) {
+// Display subway routes in modal (with optional walk option)
+function displaySubwayRoutes(routes, mic, walkOption = null) {
     if (!routes || routes.length === 0) {
         modalTransit.innerHTML = '<div class="transit-empty">No routes found</div>';
         return;
     }
 
-    // Update travel time with best route
+    // Update travel time with best option (walk or transit)
     const bestRoute = routes[0];
-    modalTravelTime.innerText = bestRoute.totalTime + 'm';
+    const bestTime = walkOption && walkOption.walkMins < bestRoute.totalTime
+        ? walkOption.walkMins
+        : bestRoute.totalTime;
+    modalTravelTime.innerText = bestTime + 'm';
 
     // Build HTML for each route
     let transitHTML = '';
+
+    // Add walking option first if available
+    if (walkOption) {
+        const distDisplay = walkOption.directDist < 0.2
+            ? `${(walkOption.directDist * 5280).toFixed(0)} ft`
+            : `${walkOption.directDist.toFixed(2)} mi`;
+        transitHTML += `
+            <div class="transit-row route-option walk-option">
+                <div class="route-badge">Walk</div>
+                <div>
+                    <div class="station-header">
+                        <span class="st-name">Walk directly</span>
+                    </div>
+                    <div class="arrival-data">
+                        <div class="route-details">${distDisplay} · No transit needed</div>
+                    </div>
+                </div>
+                <div class="walk-info">
+                    <div class="walk-time">${walkOption.walkMins}m</div>
+                </div>
+            </div>
+        `;
+    }
+
+    // Add subway routes
     routes.forEach((route, idx) => {
         const routeNum = idx + 1;
 
@@ -207,20 +235,22 @@ async function loadModalArrivals(mic) {
     const originLat = STATE.userOrigin.lat;
     const originLng = STATE.userOrigin.lng;
 
-    // Check if venue is walkable (skip subway router for short distances)
+    // Calculate direct walking distance
     const directDist = calculateDistance(originLat, originLng, mic.lat, mic.lng);
-    const WALK_THRESHOLD = 0.5; // miles - under this, just walk
+    const WALK_ONLY_THRESHOLD = 0.5; // miles - under this, just walk
+    const SHOW_WALK_OPTION = 1.0;    // miles - under this, show walk as an option
 
-    if (directDist < WALK_THRESHOLD) {
-        // Use HERE API for accurate walking time, fallback to estimate
-        let walkMins;
-        try {
-            const walkData = await getHereWalkingTime(originLat, originLng, mic.lat, mic.lng);
-            walkMins = walkData.durationMins;
-        } catch (e) {
-            walkMins = Math.ceil(directDist * 20); // 20 min/mile fallback
-        }
+    // Get walking time (used for walk-only or as an option)
+    let walkMins;
+    try {
+        const walkData = await getHereWalkingTime(originLat, originLng, mic.lat, mic.lng);
+        walkMins = walkData.durationMins;
+    } catch (e) {
+        walkMins = Math.ceil(directDist * 20); // 20 min/mile fallback
+    }
 
+    // Under 0.5 miles - just show walking
+    if (directDist < WALK_ONLY_THRESHOLD) {
         modalTravelTime.innerText = walkMins + 'm';
         modalTransit.innerHTML = `
             <div class="transit-row">
@@ -236,16 +266,18 @@ async function loadModalArrivals(mic) {
         return;
     }
 
-    // Call subway router API for longer distances
+    // Call subway router API
+    let routes = [];
     try {
-        const routes = await fetchSubwayRoutes(originLat, originLng, mic.lat, mic.lng);
-        if (routes && routes.length > 0) {
-            displaySubwayRoutes(routes, mic);
-            return;
-        }
+        routes = await fetchSubwayRoutes(originLat, originLng, mic.lat, mic.lng);
     } catch (error) {
         console.error('Subway router API failed:', error);
-        // Fall through to old method
+    }
+
+    // Display routes with walking option if under 1 mile
+    if (routes && routes.length > 0) {
+        displaySubwayRoutes(routes, mic, directDist < SHOW_WALK_OPTION ? { walkMins, directDist } : null);
+        return;
     }
 
     // Find 2 nearest stations to USER's origin
