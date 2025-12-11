@@ -28,6 +28,13 @@
     <!-- MAP LAYER -->
     <div id="map" class="absolute inset-0 z-0 bg-[#e8e4dc]"></div>
 
+    <!-- MAP LEGEND -->
+    <div class="map-legend" id="map-legend">
+        <div class="legend-item"><div class="legend-dot live"></div>Live</div>
+        <div class="legend-item"><div class="legend-dot soon"></div>Soon</div>
+        <div class="legend-item later"><div class="legend-dot later"></div>Later</div>
+    </div>
+
     <!-- LOCATE ME BUTTON -->
     <button onclick="centerOnUser()" id="locate-btn" class="locate-btn" aria-label="Center map on my location">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

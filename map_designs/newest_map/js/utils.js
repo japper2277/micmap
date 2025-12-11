@@ -37,12 +37,12 @@ function extractSignupEmail(signupText) {
 }
 
 // Calculate status based on current time
+// 3-tier system: live (green), upcoming (red, <2hrs), future (gray)
 function getStatus(startDate) {
     const diffMins = startDate ? (startDate - getNow()) / 60000 : 999;
-    if (diffMins > -90 && diffMins <= 0) return 'live';
-    if (diffMins > 0 && diffMins <= 60) return 'urgent';
-    if (diffMins > 60 && diffMins <= 120) return 'soon';
-    return 'future';
+    if (diffMins > -90 && diffMins <= 0) return 'live';      // Green pulsing
+    if (diffMins > 0 && diffMins <= 120) return 'upcoming';  // Red (<2 hours)
+    return 'future';                                          // Gray (tonight/later)
 }
 
 // Process mic data from JSON
@@ -51,17 +51,25 @@ function processMics(rawMics) {
         const startDate = parseTime(m.startTime);
         const diffMins = startDate ? (startDate - getNow()) / 60000 : 999;
 
+        // 3-tier status: live, upcoming, future
         let status = 'future';
         if (diffMins > -90 && diffMins <= 0) status = 'live';
-        else if (diffMins > 0 && diffMins <= 60) status = 'urgent';
-        else if (diffMins > 60 && diffMins <= 120) status = 'soon';
+        else if (diffMins > 0 && diffMins <= 120) status = 'upcoming';
 
         // API field mapping: name, venueName, signUpDetails, lon
         const signup = m.signUpDetails || m.signup || '';
+
+        // Shorten venue names: "Comedy Club" → "CC"
+        let venueName = m.venueName || m.venue || m.name;
+        if (venueName.endsWith('Comedy Club')) {
+            venueName = venueName.replace(/Comedy Club$/, 'CC');
+        }
+
         return {
             ...m,
-            title: m.venueName || m.venue || m.name,
-            venue: m.venueName || m.venue || m.name,
+            id: m._id || m.id,  // Normalize MongoDB _id to id
+            title: venueName,
+            venue: venueName,
             start: startDate,
             timeStr: m.startTime ? m.startTime.replace(/\s*(AM|PM)/i, '').trim() : '',
             hood: m.neighborhood,
@@ -181,7 +189,7 @@ function resolveClusterId(venue) {
     if (!TRANSIT_DATA) return null;
 
     // 1. PRIMARY: Check venue_map by mic ID
-    const venueId = venue._id || venue.id;
+    const venueId = venue.id;
     if (venueId && TRANSIT_DATA.venue_map[venueId] !== undefined) {
         return TRANSIT_DATA.venue_map[venueId];
     }

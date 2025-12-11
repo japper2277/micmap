@@ -57,13 +57,28 @@ function render(mode) {
     });
 
     // Recalculate status based on mode
+    // Simplified 3-tier: live (green), upcoming (red, <2hrs), future (gray)
     const calcStatus = (m) => {
-        if (mode !== 'today') return 'upcoming';
+        if (mode !== 'today') return 'future'; // Tomorrow+ = gray
         const diffMins = m.start ? (m.start - currentTime) / 60000 : 999;
-        if (diffMins > -90 && diffMins <= 0) return 'live';
-        if (diffMins > 0 && diffMins <= 60) return 'urgent';
-        if (diffMins > 60 && diffMins <= 120) return 'soon';
-        return 'future';
+        if (diffMins > -90 && diffMins <= 0) return 'live';      // Green pulsing
+        if (diffMins > 0 && diffMins <= 120) return 'upcoming';  // Red (<2 hours)
+        return 'future';                                          // Gray (tonight)
+    };
+
+    // Get status text for card display
+    const getStatusText = (m, status) => {
+        if (status === 'live') return 'Live Now';
+        if (status === 'upcoming') {
+            const diffMins = m.start ? Math.ceil((m.start - currentTime) / 60000) : 0;
+            if (diffMins >= 60) {
+                const hours = Math.floor(diffMins / 60);
+                const mins = diffMins % 60;
+                return mins > 0 ? `Starting in ${hours}h ${mins}m` : `Starting in ${hours}h`;
+            }
+            return `Starting in ${diffMins}m`;
+        }
+        return 'Tonight';
     };
 
     // Apply status to both baseMics (for map) and filtered (for list)
@@ -86,8 +101,8 @@ function render(mode) {
         venueMics.sort((a, b) => (a.start || 0) - (b.start || 0));
         const firstMic = venueMics[0];
 
-        // Use best status for pin color
-        const statusPriority = { live: 4, urgent: 3, soon: 2, upcoming: 1, future: 0 };
+        // Use best status for pin color (3-tier: live > upcoming > future)
+        const statusPriority = { live: 3, upcoming: 2, future: 0 };
         const bestStatus = venueMics.reduce((best, mic) =>
             (statusPriority[mic.status] || 0) > (statusPriority[best] || 0) ? mic.status : best
         , 'future');
@@ -95,21 +110,23 @@ function render(mode) {
         // Combine times: "4:30, 6:00"
         const timesStr = venueMics.map(m => m.timeStr).join(', ');
 
+        // Tooltip content based on status
+        const tooltipContent = bestStatus === 'live'
+            ? `<span style="color: #30d158;">LIVE</span><span style="opacity: 0.6; margin: 0 8px;">|</span><span>${firstMic.title.toUpperCase()}</span>`
+            : bestStatus === 'upcoming'
+            ? `<span style="color: #ff453a;">${timesStr}</span><span style="opacity: 0.5; margin: 0 8px;">|</span><span>${firstMic.title.toUpperCase()}</span>`
+            : `<span style="color: #8e8e93;">${timesStr}</span><span style="opacity: 0.5; margin: 0 8px;">|</span><span>${firstMic.title.toUpperCase()}</span>`;
+
         const marker = L.marker([firstMic.lat, firstMic.lng], {
             icon: createPin(bestStatus),
-            zIndexOffset: bestStatus === 'urgent' || bestStatus === 'live' ? 1000 : (bestStatus === 'soon' ? 500 : 100)
+            zIndexOffset: bestStatus === 'live' ? 1000 : (bestStatus === 'upcoming' ? 500 : 100)
         }).addTo(markersGroup)
-        .bindTooltip(
-            (bestStatus === 'live' || bestStatus === 'urgent')
-                ? `<span style="color: white;">LIVE</span><span style="opacity: 0.6; margin: 0 8px;">|</span><span>${firstMic.title.toUpperCase()}</span>`
-                : `<span style="color: ${bestStatus === 'soon' ? '#f59e0b' : '#fff'};">${timesStr}</span><span style="opacity: 0.5; margin: 0 8px;">|</span><span>${firstMic.title.toUpperCase()}</span>`,
-            {
-                direction: 'top',
-                offset: (bestStatus === 'live' || bestStatus === 'urgent') ? [0, -25] : [0, -12],
-                className: (bestStatus === 'live' || bestStatus === 'urgent') ? 'mic-tooltip mic-tooltip-live' : 'mic-tooltip',
-                interactive: false
-            }
-        )
+        .bindTooltip(tooltipContent, {
+            direction: 'top',
+            offset: [0, -12],
+            className: 'mic-tooltip',
+            interactive: false
+        })
         .on('click', () => openVenueModal(firstMic));
 
         // Store marker reference for each mic at this venue
@@ -183,59 +200,78 @@ function render(mode) {
         }
 
         // --- STREAM ITEM ---
-        const accentColor = (mic.status === 'urgent' || mic.status === 'live') ? 'var(--rose)' : (mic.status === 'soon' ? 'var(--amber)' : 'var(--blue-muted)');
-        const timeColor = (mic.status === 'urgent' || mic.status === 'live') ? 'text-rose-500' : (mic.status === 'soon' ? 'text-amber-400' : (mic.status === 'upcoming' ? 'text-white' : 'text-neutral-400'));
-        const subTextColor = (mic.status === 'upcoming') ? 'text-white' : 'text-neutral-500';
-
         const card = document.createElement('div');
         card.id = `card-${mic.id}`;
         card.onclick = () => locateMic(mic.lat, mic.lng, mic.id);
         card.className = `stream-item group ${isRecentPast ? 'is-past' : ''}`;
 
-        // Build transit display
-        const transitDisplay = mic.transitMins !== undefined
-            ? `<div class="meta-separator">|</div>
-               <div class="commute-live">
+        // Build commute display - walking time if <1mi, otherwise distance
+        let commuteDisplay = '';
+        if (mic.transitMins !== undefined) {
+            commuteDisplay = `<div class="commute-live">
                    <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-                   ${mic.transitType === 'estimate' ? '~' : ''}${mic.transitMins}m away
-               </div>`
-            : '';
+                   ${mic.transitType === 'estimate' ? '~' : ''}${mic.transitMins}m
+               </div>`;
+        } else if (mic.distanceMiles !== undefined) {
+            // Show distance if no transit time
+            commuteDisplay = `<span class="commute-distance">${mic.distanceMiles < 0.1 ? Math.round(mic.distanceMiles * 5280) + 'ft' : mic.distanceMiles.toFixed(1) + 'mi'}</span>`;
+        }
+
+        // Status row HTML
+        const statusClass = mic.status === 'live' ? 'is-live' : (mic.status === 'upcoming' ? 'is-upcoming' : 'is-future');
+        const statusText = getStatusText(mic, mic.status);
 
         card.innerHTML = `
-            <!-- LEFT: Specs -->
-            <div class="specs-col">
-                <div class="start-time">${mic.timeStr}</div>
-                <div class="stage-time">${mic.setTime}</div>
-            </div>
+            <!-- FRONT: Card Content -->
+            <div class="card-front">
+                <!-- LEFT: Specs -->
+                <div class="specs-col">
+                    <div class="start-time">${mic.timeStr}</div>
+                    <div class="stage-time">${mic.setTime}</div>
+                </div>
 
-            <!-- CENTER: Info -->
-            <div class="info-col">
-                <div class="venue-name">${mic.title}</div>
-                <div class="meta-row">
-                    <span>${mic.hood}</span>
-                    <div class="meta-separator">|</div>
-                    <span>${mic.price}</span>
-                    ${transitDisplay}
+                <!-- CENTER: Info -->
+                <div class="info-col">
+                    <div class="status-row ${statusClass}">
+                        <div class="status-dot"></div>
+                        ${statusText}
+                    </div>
+                    <div class="venue-row">
+                        <div class="venue-name">${mic.title}</div>
+                        ${commuteDisplay}
+                    </div>
+                    <div class="meta-row">
+                        <span>${mic.hood}</span>
+                        <div class="meta-separator">|</div>
+                        <span>${mic.price}</span>
+                    </div>
+                </div>
+
+                <!-- RIGHT: Actions -->
+                <div class="action-col">
+                    ${mic.signupUrl
+                        ? `<a href="${mic.signupUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation();" class="icon-btn" title="Visit Website">
+                            <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                        </a>`
+                        : `<button onclick="event.stopPropagation(); flipCard(this);" class="icon-btn" title="Signup info">
+                            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                        </button>`
+                    }
+                    ${mic.contact ? `<a href="https://instagram.com/${mic.contact.replace(/^@/, '')}" target="_blank" rel="noopener" onclick="event.stopPropagation();" class="icon-btn" title="@${mic.contact.replace(/^@/, '')}">
+                        <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+                    </a>` : ''}
                 </div>
             </div>
 
-            <!-- RIGHT: Actions -->
-            <div class="action-col">
-                ${mic.signupUrl
-                    ? `<a href="${mic.signupUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation();" class="icon-btn" title="Visit Website">
-                        <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                    </a>`
-                    : mic.signupEmail
-                    ? `<a href="mailto:${mic.signupEmail}" onclick="event.stopPropagation();" class="icon-btn" title="Email ${mic.signupEmail}">
-                        <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
-                    </a>`
-                    : `<button onclick="event.stopPropagation(); openVenueModal(STATE.mics.find(m => m.id === '${mic.id}'));" class="icon-btn" title="More info">
-                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                    </button>`
-                }
-                ${mic.contact ? `<a href="https://instagram.com/${mic.contact.replace(/^@/, '')}" target="_blank" rel="noopener" onclick="event.stopPropagation();" class="icon-btn" title="@${mic.contact.replace(/^@/, '')}">
-                    <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
-                </a>` : ''}
+            <!-- BACK: Signup Instructions -->
+            <div class="card-back">
+                <div class="signup-header">
+                    <span class="signup-title">SIGNUP INSTRUCTIONS</span>
+                    <button onclick="event.stopPropagation(); flipCard(this);" class="close-btn">
+                        <svg viewBox="0 0 24 24" width="20" height="20"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+                <div class="signup-text">${mic.signupInstructions || 'Sign up in person only'}</div>
             </div>
         `;
         container.appendChild(card);
@@ -251,6 +287,14 @@ function render(mode) {
             </button>
         `;
         container.appendChild(showMoreContainer);
+    }
+}
+
+// Flip card to show/hide signup instructions
+function flipCard(btn) {
+    const card = btn.closest('.stream-item');
+    if (card) {
+        card.classList.toggle('flipped');
     }
 }
 

@@ -199,8 +199,8 @@ const transitService = {
             const micClusterId = resolveClusterId(mic);
             const isSameCluster = micClusterId === userClusterId;
 
-            const userCluster = TRANSIT_DATA?.clusters[userClusterId];
-            const micCluster = TRANSIT_DATA?.clusters[micClusterId];
+            const userCluster = TRANSIT_DATA?.clusters?.find(c => c.id === userClusterId);
+            const micCluster = TRANSIT_DATA?.clusters?.find(c => c.id === micClusterId);
             const sameBorough = userCluster?.borough === micCluster?.borough;
 
             let walkThreshold;

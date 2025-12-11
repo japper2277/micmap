@@ -77,14 +77,74 @@
     min-width: 0;
 }
 
+/* --- STATUS ROW (Eyebrow above venue name) --- */
+.status-row {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+}
+
+/* Base Dot Style */
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 6px;
+    background-color: currentColor;
+}
+
+/* Status Colors */
+.is-live { color: #30d158; }      /* Green */
+.is-upcoming { color: #ff453a; }  /* Red */
+.is-future { color: #8e8e93; }    /* Gray */
+
+/* LIVE: Green Pulse Animation */
+.is-live .status-dot {
+    box-shadow: 0 0 0 0 rgba(48, 209, 88, 0.7);
+    animation: pulse-green 2s infinite;
+}
+
+/* UPCOMING: Static Red with glow */
+.is-upcoming .status-dot {
+    animation: none;
+    box-shadow: 0 0 5px rgba(255, 69, 58, 0.4);
+}
+
+/* FUTURE: Hollow Gray Ring */
+.is-future .status-dot {
+    animation: none;
+    background-color: transparent;
+    border: 2px solid currentColor;
+    box-sizing: border-box;
+}
+
+/* Green Pulse Keyframes */
+@keyframes pulse-green {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(48, 209, 88, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(48, 209, 88, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(48, 209, 88, 0); }
+}
+
+.venue-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 5px;
+}
+
 .venue-name {
     font-size: 17px;
     font-weight: 700;
     color: #fff;
-    margin-bottom: 5px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    flex-shrink: 1;
+    min-width: 0;
 }
 
 .meta-row {
@@ -103,12 +163,14 @@
     font-size: 10px;
 }
 
-/* Live Commute (Blue) */
+/* Commute Display (Blue) */
 .commute-live {
     color: #4da6ff;
     font-weight: 500;
     display: flex;
     align-items: center;
+    flex-shrink: 0;
+    font-size: 13px;
 }
 
 .commute-live svg {
@@ -116,6 +178,13 @@
     height: 14px;
     margin-right: 4px;
     fill: currentColor;
+}
+
+.commute-distance {
+    color: #8E8E93;
+    font-size: 13px;
+    font-weight: 500;
+    flex-shrink: 0;
 }
 
 /* --- RIGHT COLUMN: ACTIONS --- */
@@ -171,6 +240,103 @@
 .is-past:hover {
     opacity: 1;
     filter: grayscale(0);
+}
+
+/* =================================================================
+   CARD FLIP ANIMATION
+   ================================================================= */
+
+.stream-item {
+    perspective: 1000px;
+}
+
+.card-front,
+.card-back {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    backface-visibility: hidden;
+    transition: transform 0.4s ease, opacity 0.4s ease;
+}
+
+.card-front {
+    transform: rotateX(0deg);
+    opacity: 1;
+}
+
+.card-back {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    transform: rotateX(180deg);
+    opacity: 0;
+    padding: 16px 20px;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    background: #0a0a0a;
+}
+
+/* Flipped state */
+.stream-item.flipped .card-front {
+    transform: rotateX(-180deg);
+    opacity: 0;
+    pointer-events: none;
+}
+
+.stream-item.flipped .card-back {
+    transform: rotateX(0deg);
+    opacity: 1;
+}
+
+/* Signup instructions back content */
+.signup-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 8px;
+}
+
+.signup-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #8E8E93;
+}
+
+.close-btn {
+    background: #1C1C1E;
+    border: none;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #A1A1A6;
+    transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+    background: #2C2C2E;
+    color: #FFF;
+}
+
+.close-btn svg {
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+}
+
+.signup-text {
+    font-size: 14px;
+    color: #fff;
+    line-height: 1.5;
 }
 
 /* =================================================================

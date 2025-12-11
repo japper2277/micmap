@@ -193,7 +193,7 @@ const searchService = {
                 const title = v.title || v.venue || 'Unknown';
                 const hood = v.hood || v.neighborhood || '';
                 html += `
-                    <div class="dropdown-item venue-type" data-action="venue" data-id="${v.id || v._id}">
+                    <div class="dropdown-item venue-type" data-action="venue" data-id="${v.id}">
                         <div class="item-icon">${this.icons.mic}</div>
                         <div class="item-text">
                             <span class="item-name">${this.escapeHtml(title)}</span>
@@ -264,7 +264,7 @@ const searchService = {
     },
 
     selectVenue(micId) {
-        const mic = STATE.mics.find(m => (m.id || m._id) === micId);
+        const mic = STATE.mics.find(m => m.id === micId);
         if (mic) {
             this.hideDropdown();
             this.input.value = mic.title || mic.venue;

@@ -3,6 +3,80 @@
    Header, toggle, filters, search, locate button
    ================================================================= */
 
+/* --- MAP LEGEND --- */
+.map-legend {
+    position: fixed;
+    z-index: 800;
+    background: rgba(28, 28, 30, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+
+    /* Mobile: horizontal pill above drawer, bottom right */
+    bottom: 100px;
+    right: 16px;
+    left: auto;
+    border-radius: 100px;
+    padding: 6px 12px;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.85);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.legend-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+
+.legend-dot.live {
+    background: #30d158;
+    box-shadow: 0 0 4px #30d158;
+    animation: legend-pulse 2s infinite;
+}
+
+.legend-dot.soon {
+    background: #ff453a;
+}
+
+.legend-dot.later {
+    background: transparent;
+    border: 1.5px solid #8e8e93;
+    width: 5px;
+    height: 5px;
+}
+
+@keyframes legend-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Desktop: vertical in top left */
+@media (min-width: 768px) {
+    .map-legend {
+        top: 80px;
+        left: 16px;
+        right: auto;
+        bottom: auto;
+        border-radius: 10px;
+        padding: 10px 12px;
+        flex-direction: column;
+        gap: 8px;
+    }
+}
+
 /* --- LOCATE ME BUTTON --- */
 .locate-btn {
     position: fixed;
