@@ -436,7 +436,7 @@ async function loadModalArrivals(mic) {
                     <div class="arrival-data">
                         <div class="time-row">${timesStr}${nextArrivals.length > 0 ? ' <span class="unit">min</span>' : ''}</div>
                         ${transferHTML}
-                        ${hasDelay ? `<div class="delay-msg">${iconWarning} ${alertText}</div>` : ''}
+                        ${hasDelay ? `<div class="delay-toggle" onclick="this.classList.toggle('expanded')"><span class="delay-label">Alert</span><svg class="delay-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></div><div class="delay-msg">${alertText}</div>` : ''}
                     </div>
                 </div>
                 <div class="walk-info">

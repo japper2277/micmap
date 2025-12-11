@@ -204,11 +204,6 @@ details.mic-row[open] summary .chevron { transform: rotate(-135deg); }
 }
 .transit-row:last-child { border-bottom: none; }
 
-.transit-row.delayed-row {
-    background: var(--delay-bg);
-    border-left: 3px solid var(--status-delay);
-    padding-left: 21px; /* Adjust for border */
-}
 
 .bullet {
     width: 32px; height: 32px; border-radius: 50%;
@@ -258,10 +253,23 @@ details.mic-row[open] summary .chevron { transform: rotate(-135deg); }
 .time-row span { color: #fff; margin: 0 1px; } /* Override previous grey */
 .time-row .unit { font-size: 13px; font-weight: 400; color: var(--text-sec); margin-left: 2px;}
 
+.delay-toggle {
+    font-size: 12px; color: var(--text-sec); font-weight: 500;
+    display: flex; align-items: center; gap: 4px; margin-top: 4px;
+    cursor: pointer; user-select: none;
+}
+.delay-toggle:hover { opacity: 0.8; }
+.delay-chevron {
+    transition: transform 0.2s ease;
+}
+.delay-toggle.expanded .delay-chevron { transform: rotate(180deg); }
+
 .delay-msg {
     font-size: 12px; color: var(--status-delay); font-weight: 600;
-    display: flex; align-items: center; gap: 4px; margin-top: 4px;
+    margin-top: 4px;
+    display: none;
 }
+.delay-toggle.expanded + .delay-msg { display: block; }
 
 .transfer-msg {
     font-size: 12px; color: var(--text-sec); font-weight: 500;

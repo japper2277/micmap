@@ -15,42 +15,37 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r
 const markersGroup = L.layerGroup().addTo(map);
 
 // Create pin icon based on status
+// 3-tier system: live (green pulse), upcoming (red), future (gray hollow)
 function createPin(status) {
-    if (status === 'live' || status === 'urgent') {
-        // LIVE: Text badge with pulsing dot
+    if (status === 'live') {
+        // LIVE: Green pulsing dot
         return L.divIcon({
             className: 'bg-transparent',
-            html: `<div class="pin-live-container">
-                    <div class="pin-live-badge">
-                        <div class="relative flex items-center justify-center w-3 h-3">
-                            <div class="pulse-ring"></div>
-                            <div class="relative w-2 h-2 bg-white rounded-full"></div>
-                        </div>
-                        <span class="text-[11px] font-bold text-white tracking-widest leading-none font-mono">LIVE NOW</span>
-                    </div>
+            html: `<div class="pin-container pin-live-container">
+                    <div class="pin-live-dot"></div>
                    </div>`,
-            iconSize: [100, 45],
-            iconAnchor: [50, 40]
+            iconSize: [20, 20],
+            iconAnchor: [10, 10]
         });
-    } else if (status === 'soon') {
-        // SOON: White dot with orange border
+    } else if (status === 'upcoming' || status === 'urgent' || status === 'soon') {
+        // UPCOMING: Red solid dot (< 2 hours away)
         return L.divIcon({
             className: 'bg-transparent',
-            html: `<div class="pin-soon-container">
-                    <div class="pin-soon-dot"></div>
+            html: `<div class="pin-container pin-upcoming-container">
+                    <div class="pin-upcoming-dot"></div>
                    </div>`,
             iconSize: [20, 20],
             iconAnchor: [10, 10]
         });
     } else {
-        // LATER/FUTURE: Small gray dot
+        // FUTURE: Gray hollow circle (tonight or tomorrow+)
         return L.divIcon({
             className: 'bg-transparent',
-            html: `<div class="pin-later-container">
-                    <div class="pin-later-dot"></div>
+            html: `<div class="pin-container pin-future-container">
+                    <div class="pin-future-dot"></div>
                    </div>`,
-            iconSize: [16, 16],
-            iconAnchor: [8, 8]
+            iconSize: [18, 18],
+            iconAnchor: [9, 9]
         });
     }
 }
@@ -134,11 +129,11 @@ function locateMic(lat, lng, id) {
         toggleDrawer(false);
     }
 
-    // Open the marker's tooltip after fly animation completes
+    // Open the venue modal after fly animation completes
     setTimeout(() => {
-        const marker = STATE.markerLookup[id];
-        if (marker) {
-            marker.openTooltip();
+        const mic = STATE.mics.find(m => m.id === id);
+        if (mic) {
+            openVenueModal(mic);
         }
     }, 1300);
 }
