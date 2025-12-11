@@ -51,7 +51,7 @@ const VENUE_COORDINATES = {
   'Eastville Comedy Club': { lat: 40.7142545, lon: -73.9613017 },
   'Phoenix bar': { lat: 40.7288305, lon: -74.0001342 },
   'The Comic Strip Live': { lat: 40.7748581, lon: -73.9536956 },
-  'St. Mark\'s Comedy Club': { lat: 40.7748581, lon: -73.9536956 },
+  'St. Mark\'s Comedy Club': { lat: 40.729, lng: -73.989 },
   'Producer\'s Club': { lat: 40.7644391, lon: -73.9856707 },
   'Caffeine Underground': { lat: 40.6836915, lon: -73.9112136 },
   'Brooklyn Art Haus': { lat: 40.7168611, lon: -73.9610679 },
