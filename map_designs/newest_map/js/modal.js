@@ -118,6 +118,68 @@ function openVenueModal(mic) {
     loadModalArrivals(mic);
 }
 
+// Fetch routes from subway router API
+async function fetchSubwayRoutes(userLat, userLng, venueLat, venueLng) {
+    const url = `http://localhost:3001/api/subway/routes?userLat=${userLat}&userLng=${userLng}&venueLat=${venueLat}&venueLng=${venueLng}`;
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Subway router API failed');
+    const data = await response.json();
+    return data.routes || [];
+}
+
+// Display subway routes in modal
+function displaySubwayRoutes(routes, mic) {
+    if (!routes || routes.length === 0) {
+        modalTransit.innerHTML = '<div class="transit-empty">No routes found</div>';
+        return;
+    }
+
+    // Update travel time with best route
+    const bestRoute = routes[0];
+    modalTravelTime.innerText = bestRoute.totalTime + 'm';
+
+    // Build HTML for each route
+    let transitHTML = '';
+    routes.forEach((route, idx) => {
+        const routeNum = idx + 1;
+
+        // Build route description from legs
+        let routeDesc = '';
+        route.legs.forEach((leg, legIdx) => {
+            if (leg.type === 'ride') {
+                const lines = [leg.line, ...(leg.altLines || [])];
+                const linesBullets = lines.map(l => `<span class="bullet b-${l}">${l}</span>`).join('');
+                routeDesc += `${linesBullets} → ${leg.to}`;
+                if (legIdx < route.legs.length - 1) routeDesc += '<br>';
+            }
+        });
+
+        transitHTML += `
+            <div class="transit-row route-option">
+                <div class="route-badge">Route ${routeNum}</div>
+                <div>
+                    <div class="station-header">
+                        <span class="st-name">${route.originStation}</span>
+                    </div>
+                    <div class="arrival-data">
+                        <div class="route-details">${routeDesc}</div>
+                        <div class="time-breakdown">
+                            ${iconWalk} ${route.walkToStation}m walk ·
+                            🚇 ${route.subwayTime}m ride ·
+                            ${iconWalk} ${route.walkToVenue}m walk
+                        </div>
+                    </div>
+                </div>
+                <div class="walk-info">
+                    <div class="walk-time">${route.totalTime}m</div>
+                </div>
+            </div>
+        `;
+    });
+
+    modalTransit.innerHTML = transitHTML;
+}
+
 // Load live train arrivals for venue's nearest stations
 async function loadModalArrivals(mic) {
     if (!modalTransit) return;
@@ -144,6 +206,18 @@ async function loadModalArrivals(mic) {
 
     const originLat = STATE.userOrigin.lat;
     const originLng = STATE.userOrigin.lng;
+
+    // NEW: Call subway router API for accurate Dijkstra-based routes
+    try {
+        const routes = await fetchSubwayRoutes(originLat, originLng, mic.lat, mic.lng);
+        if (routes && routes.length > 0) {
+            displaySubwayRoutes(routes, mic);
+            return;
+        }
+    } catch (error) {
+        console.error('Subway router API failed:', error);
+        // Fall through to old method
+    }
 
     // Find 2 nearest stations to USER's origin
     const nearestStations = findNearestStations(originLat, originLng, 2);
@@ -177,14 +251,30 @@ async function loadModalArrivals(mic) {
             walkMins = Math.ceil(walkMiles * 20);
         }
 
-        // Fetch arrivals for PRIMARY line only (first line, usually the main one)
-        const primaryLine = lines[0];
-        let arrivals = [];
-        try {
-            arrivals = await mtaService.fetchArrivals(primaryLine, station.gtfsStopId);
-        } catch (e) {
-            console.warn(`Failed to fetch arrivals for ${primaryLine}:`, e);
+        // Fetch arrivals for ALL lines at this station - NEVER GUESS, use real-time data
+        let allArrivals = [];
+        const linesWithService = new Set();
+
+        for (const line of lines) {
+            try {
+                const lineArrivals = await mtaService.fetchArrivals(line, station.gtfsStopId);
+                if (lineArrivals && lineArrivals.length > 0) {
+                    // Tag each arrival with its line
+                    lineArrivals.forEach(a => a.line = line);
+                    allArrivals.push(...lineArrivals);
+                    linesWithService.add(line);
+                }
+            } catch (e) {
+                // Line has no service right now - skip it
+            }
         }
+
+        // Sort all arrivals by time
+        allArrivals.sort((a, b) => a.minsAway - b.minsAway);
+
+        // Use the first line with actual service as primary
+        const primaryLine = linesWithService.size > 0 ? [...linesWithService][0] : lines[0];
+        let arrivals = allArrivals;
 
         // DIRECTION FILTERING: Only show trains going TOWARD the venue
         const venueClusterId = resolveClusterId(mic);
@@ -239,8 +329,10 @@ async function loadModalArrivals(mic) {
             }
         }
 
-        // Build bullet HTML - show up to 3 lines as stacked bullets
-        const displayLines = lines.slice(0, 3);
+        // Build bullet HTML - ONLY show lines with actual real-time service
+        const displayLines = linesWithService.size > 0
+            ? [...linesWithService].slice(0, 3)
+            : lines.slice(0, 1); // Fallback to first line if no real-time data
         const bulletHTML = displayLines.length === 1
             ? `<div class="bullet b-${displayLines[0]}">${displayLines[0]}</div>`
             : `<div class="bullet-stack">${displayLines.map(l => `<div class="bullet b-${l}">${l}</div>`).join('')}</div>`;

@@ -725,8 +725,56 @@ app.post('/api/proxy/here/walk-batch', async (req, res) => {
   }
 });
 
-// Subway Routes API
-app.get('/api/subway/routes', (req, res) => {
+// Helper: Fetch arrivals for a line/station (internal use)
+async function getArrivalsForLine(line, stopId) {
+  try {
+    const lineUpper = line.toUpperCase();
+    const feedSuffix = MTA_FEED_MAP[lineUpper];
+    if (!feedSuffix) return [];
+
+    // Check cache
+    if (mtaCache.feeds[lineUpper]?.data &&
+        Date.now() - mtaCache.feeds[lineUpper].timestamp < MTA_CACHE_TTL.feed) {
+      return extractArrivals(mtaCache.feeds[lineUpper].data, stopId);
+    }
+
+    // Fetch fresh data
+    const feedUrl = `${MTA_BASE}/${feedSuffix}`;
+    const response = await fetch(feedUrl);
+    if (!response.ok) return [];
+
+    const buffer = await response.arrayBuffer();
+    const feed = GtfsRealtimeBindings.transit_realtime.FeedMessage.decode(new Uint8Array(buffer));
+    mtaCache.feeds[lineUpper] = { data: feed, timestamp: Date.now() };
+
+    return extractArrivals(feed, stopId);
+  } catch (e) {
+    return [];
+  }
+}
+
+// Helper: Find which lines have real-time service at a station in a specific direction
+async function getLinesWithService(lines, stopId, neededDirection = null) {
+  const linesWithService = [];
+  for (const line of lines) {
+    const arrivals = await getArrivalsForLine(line, stopId);
+    // Check that arrivals actually match this line (feeds are shared)
+    let lineArrivals = arrivals.filter(a => a.line === line);
+
+    // Filter by direction if specified
+    if (neededDirection && lineArrivals.length > 0) {
+      lineArrivals = lineArrivals.filter(a => a.direction === neededDirection);
+    }
+
+    if (lineArrivals.length > 0) {
+      linesWithService.push(line);
+    }
+  }
+  return linesWithService;
+}
+
+// Subway Routes API - with real-time validation
+app.get('/api/subway/routes', async (req, res) => {
   try {
     const { userLat, userLng, venueLat, venueLng, limit = 3 } = req.query;
 
@@ -741,6 +789,51 @@ app.get('/api/subway/routes', (req, res) => {
       parseFloat(venueLng),
       parseInt(limit)
     );
+
+    // Validate and correct first leg's train line using real-time data
+    // Load stations data to get all lines at origin station
+    const stationsData = subwayRouter.getStations ? subwayRouter.getStations() : null;
+
+    for (const route of routes) {
+      if (route.legs && route.legs.length > 0) {
+        const firstLeg = route.legs.find(l => l.type === 'ride');
+        if (firstLeg && route.originStationId) {
+          // Get all lines at origin station from stations data
+          let originLines = [firstLeg.line];
+          if (stationsData && stationsData[route.originStationId]) {
+            const stationNodes = stationsData[route.originStationId].nodes || [];
+            // Extract unique lines from node names (e.g., "R34N_R" -> "R")
+            const linesSet = new Set();
+            stationNodes.forEach(node => {
+              const match = node.match(/_([A-Z0-9]+)$/);
+              if (match) linesSet.add(match[1]);
+            });
+            if (linesSet.size > 0) originLines = [...linesSet];
+          }
+
+          // Determine needed direction based on origin vs destination latitude
+          // Uptown = North (higher lat), Downtown = South (lower lat)
+          const originStationData = stationsData[route.originStationId];
+          const originLat = originStationData?.lat || parseFloat(userLat);
+          const destLat = parseFloat(venueLat);
+          const neededDirection = destLat > originLat ? 'Uptown' : 'Downtown';
+
+          // Check which lines actually have real-time service IN THE NEEDED DIRECTION
+          const linesWithService = await getLinesWithService(originLines, route.originStationId, neededDirection);
+
+          console.log(`🔍 Origin ${route.originStation} (${route.originStationId}): lines=${originLines.join(',')}, direction=${neededDirection}, withService=${linesWithService.join(',')}, firstLeg=${firstLeg.line}`);
+
+          if (linesWithService.length > 0 && !linesWithService.includes(firstLeg.line)) {
+            // Replace first leg's line with one that has actual service
+            const oldLine = firstLeg.line;
+            firstLeg.line = linesWithService[0];
+            route.realTimeValidated = true;
+
+            console.log(`✅ Route validated: ${oldLine} → ${firstLeg.line} at ${route.originStation}`);
+          }
+        }
+      }
+    }
 
     res.json({ routes });
   } catch (error) {

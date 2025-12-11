@@ -303,7 +303,7 @@ function dijkstraWithBlocked(startNodes, endNodes, graph, blockedNodes = new Set
  * Uses iterative blocking to find alternative transfer strategies
  */
 function findTopRoutes(userLat, userLng, venueLat, venueLng, limit = 3) {
-    const WALK_SPEED = 20; // minutes per mile
+    const WALK_SPEED = 24; // minutes per mile (2.5 mph)
     const MAX_TIME_PENALTY = 1.5; // Don't show routes >50% longer than best
     const graph = getGraph();
 

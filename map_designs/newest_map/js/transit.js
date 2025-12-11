@@ -31,6 +31,20 @@ const transitService = {
         return !navigator.onLine;
     },
 
+    // Call subway router API for accurate Dijkstra-based routing
+    async fetchSubwayRoute(userLat, userLng, venueLat, venueLng) {
+        try {
+            const url = `http://localhost:3001/api/subway/routes?userLat=${userLat}&userLng=${userLng}&venueLat=${venueLat}&venueLng=${venueLng}`;
+            const response = await fetch(url);
+            if (!response.ok) return null;
+            const data = await response.json();
+            return data.routes && data.routes.length > 0 ? data.routes[0] : null;
+        } catch (error) {
+            console.error('Subway router API error:', error);
+            return null;
+        }
+    },
+
     async calculateFromOrigin(lat, lng, name, targetMic = null) {
         // Wait for transit data if not loaded yet
         if (!TRANSIT_DATA) {
@@ -227,18 +241,34 @@ const transitService = {
             if (!lineMatch) continue;
 
             const lines = lineMatch[1].split(' ').filter(l => l.length > 0);
-            const primaryLine = lines[0];
 
-            try {
-                const arrivals = await mtaService.fetchArrivals(primaryLine, station.gtfsStopId);
-                STATE.userArrivals[station.id] = {
-                    station,
-                    lines,
-                    arrivals
-                };
-            } catch (e) {
-                console.warn(`Failed to fetch arrivals for ${station.name}:`, e);
+            // Fetch arrivals for ALL lines - NEVER GUESS, use real-time data
+            let allArrivals = [];
+            const linesWithService = [];
+
+            for (const line of lines) {
+                try {
+                    const lineArrivals = await mtaService.fetchArrivals(line, station.gtfsStopId);
+                    if (lineArrivals && lineArrivals.length > 0) {
+                        lineArrivals.forEach(a => a.line = line);
+                        allArrivals.push(...lineArrivals);
+                        if (!linesWithService.includes(line)) {
+                            linesWithService.push(line);
+                        }
+                    }
+                } catch (e) {
+                    // Line has no service right now - skip it
+                }
             }
+
+            // Sort by arrival time
+            allArrivals.sort((a, b) => a.minsAway - b.minsAway);
+
+            STATE.userArrivals[station.id] = {
+                station,
+                lines: linesWithService.length > 0 ? linesWithService : lines,
+                arrivals: allArrivals
+            };
         }
     },
 
