@@ -278,3 +278,19 @@ details.mic-row[open] summary .chevron { transform: rotate(-135deg); }
 .walk-info { text-align: right; display: flex; align-items: center; gap: 6px; opacity: 0.8; }
 .walk-icon { color: var(--text-sec); }
 .walk-time { font-size: 14px; font-weight: 600; color: #fff; }
+
+/* Walk-only route display */
+.walk-route {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+}
+.walk-route .walk-icon {
+    color: var(--status-good);
+    width: 24px;
+    height: 24px;
+}
+.walk-details { display: flex; flex-direction: column; gap: 2px; }
+.walk-title { font-size: 15px; font-weight: 600; color: #fff; }
+.walk-distance { font-size: 13px; color: var(--text-sec); }

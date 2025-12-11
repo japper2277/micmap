@@ -207,7 +207,36 @@ async function loadModalArrivals(mic) {
     const originLat = STATE.userOrigin.lat;
     const originLng = STATE.userOrigin.lng;
 
-    // NEW: Call subway router API for accurate Dijkstra-based routes
+    // Check if venue is walkable (skip subway router for short distances)
+    const directDist = calculateDistance(originLat, originLng, mic.lat, mic.lng);
+    const WALK_THRESHOLD = 0.5; // miles - under this, just walk
+
+    if (directDist < WALK_THRESHOLD) {
+        // Use HERE API for accurate walking time, fallback to estimate
+        let walkMins;
+        try {
+            const walkData = await getHereWalkingTime(originLat, originLng, mic.lat, mic.lng);
+            walkMins = walkData.durationMins;
+        } catch (e) {
+            walkMins = Math.ceil(directDist * 20); // 20 min/mile fallback
+        }
+
+        modalTravelTime.innerText = walkMins + 'm';
+        modalTransit.innerHTML = `
+            <div class="transit-row">
+                <div class="walk-route">
+                    ${iconWalk}
+                    <div class="walk-details">
+                        <div class="walk-title">Walk directly</div>
+                        <div class="walk-distance">${(directDist * 5280).toFixed(0)} ft · ${walkMins} min</div>
+                    </div>
+                </div>
+            </div>
+        `;
+        return;
+    }
+
+    // Call subway router API for longer distances
     try {
         const routes = await fetchSubwayRoutes(originLat, originLng, mic.lat, mic.lng);
         if (routes && routes.length > 0) {

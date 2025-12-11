@@ -30,3 +30,9 @@ npm-debug.log*
 
 # Claude Code
 .claude/
+
+# OSRM routing data files (large binaries)
+*.osm.pbf
+*.osrm
+*.osrm.*
+
