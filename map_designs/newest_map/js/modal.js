@@ -235,22 +235,28 @@ async function loadModalArrivals(mic) {
     const originLat = STATE.userOrigin.lat;
     const originLng = STATE.userOrigin.lng;
 
-    // Calculate direct walking distance
-    const directDist = calculateDistance(originLat, originLng, mic.lat, mic.lng);
+    // Thresholds based on actual walking distance (not straight-line)
     const WALK_ONLY_THRESHOLD = 0.5; // miles - under this, just walk
     const SHOW_WALK_OPTION = 1.0;    // miles - under this, show walk as an option
 
-    // Get walking time (used for walk-only or as an option)
-    let walkMins;
+    // Get walking time AND distance from HERE API (accurate street-level)
+    let walkMins, walkDist;
     try {
         const walkData = await getHereWalkingTime(originLat, originLng, mic.lat, mic.lng);
         walkMins = walkData.durationMins;
+        walkDist = walkData.distanceMiles;
     } catch (e) {
-        walkMins = Math.ceil(directDist * 20); // 20 min/mile fallback
+        // Fallback to straight-line estimate
+        const straightDist = calculateDistance(originLat, originLng, mic.lat, mic.lng);
+        walkDist = straightDist * 1.3; // Manhattan factor ~1.3x
+        walkMins = Math.ceil(walkDist * 20); // 20 min/mile
     }
 
-    // Under 0.5 miles - just show walking
-    if (directDist < WALK_ONLY_THRESHOLD) {
+    // Under 0.5 miles actual walk - just show walking
+    if (walkDist < WALK_ONLY_THRESHOLD) {
+        const distDisplay = walkDist < 0.2
+            ? `${(walkDist * 5280).toFixed(0)} ft`
+            : `${walkDist.toFixed(2)} mi`;
         modalTravelTime.innerText = walkMins + 'm';
         modalTransit.innerHTML = `
             <div class="transit-row">
@@ -258,7 +264,7 @@ async function loadModalArrivals(mic) {
                     ${iconWalk}
                     <div class="walk-details">
                         <div class="walk-title">Walk directly</div>
-                        <div class="walk-distance">${(directDist * 5280).toFixed(0)} ft · ${walkMins} min</div>
+                        <div class="walk-distance">${distDisplay} · ${walkMins} min</div>
                     </div>
                 </div>
             </div>
@@ -274,9 +280,9 @@ async function loadModalArrivals(mic) {
         console.error('Subway router API failed:', error);
     }
 
-    // Display routes with walking option if under 1 mile
+    // Display routes with walking option if under 1 mile actual walk
     if (routes && routes.length > 0) {
-        displaySubwayRoutes(routes, mic, directDist < SHOW_WALK_OPTION ? { walkMins, directDist } : null);
+        displaySubwayRoutes(routes, mic, walkDist < SHOW_WALK_OPTION ? { walkMins, directDist: walkDist } : null);
         return;
     }
 
