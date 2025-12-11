@@ -54,8 +54,9 @@ const mtaService = {
         return Array.from(lines);
     },
 
-    // Render alerts banner at top of list
+    // Render alerts banner at top of list (disabled - user preference)
     renderAlertsBanner() {
+        return; // Alerts disabled in drawer
         const container = document.getElementById('mta-alerts');
         if (!container) return;
 
