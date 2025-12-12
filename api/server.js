@@ -790,52 +790,113 @@ app.get('/api/subway/routes', async (req, res) => {
       parseInt(limit)
     );
 
-    // Validate and correct first leg's train line using real-time data
-    // Load stations data to get all lines at origin station
+    // Validate ALL legs using real-time data
+    // Filter out routes that use lines not actually running at those stations
     const stationsData = subwayRouter.getStations ? subwayRouter.getStations() : null;
+    const validatedRoutes = [];
 
     for (const route of routes) {
-      if (route.legs && route.legs.length > 0) {
-        const firstLeg = route.legs.find(l => l.type === 'ride');
-        if (firstLeg && route.originStationId) {
-          // Get all lines at origin station from stations data
-          let originLines = [firstLeg.line];
-          if (stationsData && stationsData[route.originStationId]) {
-            const stationNodes = stationsData[route.originStationId].nodes || [];
-            // Extract unique lines from node names (e.g., "R34N_R" -> "R")
-            const linesSet = new Set();
-            stationNodes.forEach(node => {
-              const match = node.match(/_([A-Z0-9]+)$/);
-              if (match) linesSet.add(match[1]);
-            });
-            if (linesSet.size > 0) originLines = [...linesSet];
-          }
+      if (!route.legs || route.legs.length === 0) {
+        validatedRoutes.push(route);
+        continue;
+      }
 
-          // Determine needed direction based on origin vs destination latitude
-          // Uptown = North (higher lat), Downtown = South (lower lat)
-          const originStationData = stationsData[route.originStationId];
-          const originLat = originStationData?.lat || parseFloat(userLat);
-          const destLat = parseFloat(venueLat);
-          const neededDirection = destLat > originLat ? 'Uptown' : 'Downtown';
+      let routeValid = true;
 
-          // Check which lines actually have real-time service IN THE NEEDED DIRECTION
-          const linesWithService = await getLinesWithService(originLines, route.originStationId, neededDirection);
+      // Check each ride leg
+      for (const leg of route.legs) {
+        if (leg.type !== 'ride') continue;
 
-          console.log(`🔍 Origin ${route.originStation} (${route.originStationId}): lines=${originLines.join(',')}, direction=${neededDirection}, withService=${linesWithService.join(',')}, firstLeg=${firstLeg.line}`);
+        const stationId = leg.fromId;
+        if (!stationId || !stationsData) continue;
 
-          if (linesWithService.length > 0 && !linesWithService.includes(firstLeg.line)) {
-            // Replace first leg's line with one that has actual service
-            const oldLine = firstLeg.line;
-            firstLeg.line = linesWithService[0];
-            route.realTimeValidated = true;
+        // Determine direction for this leg
+        const fromStation = stationsData[leg.fromId];
+        const toStation = stationsData[leg.toId];
+        if (!fromStation || !toStation) continue;
 
-            console.log(`✅ Route validated: ${oldLine} → ${firstLeg.line} at ${route.originStation}`);
-          }
+        // Custom directions for lines that don't run north-south
+        const customDirections = {
+          'L': { N: 'Manhattan', S: 'Brooklyn' },
+          'G': { N: 'Queens', S: 'Brooklyn' },
+          'J': { N: 'Manhattan', S: 'Queens' },
+          'Z': { N: 'Manhattan', S: 'Queens' },
+          'M': { N: 'Manhattan', S: 'Brooklyn' },
+          'S': { N: 'Times Sq', S: 'Grand Central' }
+        };
+
+        // Determine N/S suffix based on lat comparison
+        const goingNorth = toStation.lat > fromStation.lat;
+        const suffix = goingNorth ? 'N' : 'S';
+
+        // Use custom direction name if applicable, otherwise Uptown/Downtown
+        let neededDirection;
+        if (customDirections[leg.line]) {
+          neededDirection = customDirections[leg.line][suffix];
+        } else {
+          neededDirection = goingNorth ? 'Uptown' : 'Downtown';
         }
+
+        // Check if this line actually has service at ORIGIN station
+        const linesAtOrigin = await getLinesWithService([leg.line], stationId, neededDirection);
+
+        // ALSO check DESTINATION station (catches bad GTFS edges like N→Q04)
+        const destStationId = leg.toId;
+        const linesAtDest = await getLinesWithService([leg.line], destStationId, null); // null = any direction
+
+        const hasService = linesAtOrigin.length > 0 && linesAtDest.length > 0;
+
+        if (!hasService) {
+          // This line doesn't run here right now - check altLines
+          if (leg.altLines && leg.altLines.length > 0) {
+            // Check if any alt line has service at BOTH origin and destination
+            const altWithService = [];
+            for (const altLine of leg.altLines) {
+              let altDirection;
+              if (customDirections[altLine]) {
+                altDirection = customDirections[altLine][suffix];
+              } else {
+                altDirection = goingNorth ? 'Uptown' : 'Downtown';
+              }
+              const altAtOrigin = await getLinesWithService([altLine], stationId, altDirection);
+              const altAtDest = await getLinesWithService([altLine], destStationId, null);
+              if (altAtOrigin.length > 0 && altAtDest.length > 0) {
+                altWithService.push(altLine);
+              }
+            }
+            if (altWithService.length > 0) {
+              // Swap to working alt line
+              const oldLine = leg.line;
+              leg.line = altWithService[0];
+              leg.altLines = leg.altLines.filter(l => l !== altWithService[0]);
+              console.log(`🔄 Swapped ${oldLine} → ${leg.line} at ${leg.from}`);
+            } else {
+              // No service at all - route invalid
+              console.log(`❌ No service for ${leg.line} or alts at ${leg.from} (${stationId}) ${neededDirection}`);
+              routeValid = false;
+              break;
+            }
+          } else {
+            // No alternatives - route invalid
+            console.log(`❌ No service for ${leg.line} at ${leg.from} (${stationId}) ${neededDirection}`);
+            routeValid = false;
+            break;
+          }
+        } else {
+          route.realTimeValidated = true;
+        }
+      }
+
+      if (routeValid) {
+        // Rebuild lines array from updated legs (may have been swapped during validation)
+        route.lines = route.legs
+          .filter(l => l.type === 'ride')
+          .map(l => l.line);
+        validatedRoutes.push(route);
       }
     }
 
-    res.json({ routes });
+    res.json({ routes: validatedRoutes });
   } catch (error) {
     console.error('Subway routing error:', error);
     res.status(500).json({ error: 'Routing failed' });

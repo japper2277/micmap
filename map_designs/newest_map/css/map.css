@@ -40,20 +40,20 @@
     100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(48, 209, 88, 0); }
 }
 
-/* UPCOMING Pin: Red solid dot */
+/* UPCOMING Pin: Warm orange dot */
 .pin-upcoming-container {
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 .pin-upcoming-dot {
-    width: 14px;
-    height: 14px;
-    background: #ff453a;
+    width: 10px;
+    height: 10px;
+    background: #f59e0b;
     border-radius: 50%;
-    box-shadow: 0 0 6px rgba(255, 69, 58, 0.5);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 /* FUTURE Pin: Gray hollow circle */

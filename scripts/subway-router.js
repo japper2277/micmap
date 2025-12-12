@@ -197,9 +197,11 @@ function formatLegs(path, graph) {
         // Only add as ride if we actually traveled (more than 0 stops)
         // Skip phantom "rides" that are just transfer waypoints
         if (numStops > 0) {
+            // Use the line from the first actual ride node (path[i]), not potentially stale currentLine
+            const rideLine = getLineFromNode(path[i]);
             legs.push({
                 type: 'ride',
-                line: currentLine,
+                line: rideLine,
                 from: currentStation.name,
                 fromId: currentStation.id,
                 to: endStation.name,
@@ -251,7 +253,8 @@ function formatLegs(path, graph) {
 }
 
 // --- DIJKSTRA WITH BLOCKED NODES ---
-function dijkstraWithBlocked(startNodes, endNodes, graph, blockedNodes = new Set()) {
+// endNodeCosts: optional map of node -> additional cost (walk time in seconds)
+function dijkstraWithBlocked(startNodes, endNodes, graph, blockedNodes = new Set(), endNodeCosts = {}) {
     const dist = {};
     const prev = {};
     const visited = new Set();
@@ -265,21 +268,36 @@ function dijkstraWithBlocked(startNodes, endNodes, graph, blockedNodes = new Set
         }
     }
 
+    // Track best destination found (including walk cost)
+    let bestResult = null;
+    let bestTotalCost = Infinity;
+
     while (queue.length > 0) {
         queue.sort((a, b) => a.d - b.d);
         const { node: u, d } = queue.shift();
 
+        // Early exit: if current distance exceeds best total, we can't improve
+        if (d >= bestTotalCost) continue;
+
         if (visited.has(u)) continue;
         visited.add(u);
 
+        // Check if this is a destination
         if (endNodes.has(u)) {
-            const path = [];
-            let curr = u;
-            while (curr !== null) {
-                path.unshift(curr);
-                curr = prev[curr];
+            const walkCost = endNodeCosts[u] || 0;
+            const totalCost = d + walkCost;
+            if (totalCost < bestTotalCost) {
+                bestTotalCost = totalCost;
+                // Reconstruct path
+                const path = [];
+                let curr = u;
+                while (curr !== null) {
+                    path.unshift(curr);
+                    curr = prev[curr];
+                }
+                bestResult = { time: d, path, totalCost };
             }
-            return { time: d, path };
+            // Continue exploring edges - there might be a better destination beyond
         }
 
         const edges = graph[u] || [];
@@ -294,7 +312,7 @@ function dijkstraWithBlocked(startNodes, endNodes, graph, blockedNodes = new Set
         }
     }
 
-    return null;
+    return bestResult;
 }
 
 // --- MAIN: FIND TOP ROUTES ---
@@ -315,14 +333,17 @@ function findTopRoutes(userLat, userLng, venueLat, venueLng, limit = 3) {
         return [];
     }
 
-    // Collect all destination nodes
+    // Collect all destination nodes with their walk-to-venue costs
     const destNodes = new Set();
     const destNodeToStation = {};
+    const destNodeWalkCost = {}; // Walk time in seconds for each dest node
     destStations.forEach(station => {
+        const walkCost = station.distance * WALK_SPEED * 60; // Convert to seconds
         station.nodes.forEach(node => {
             if (graph[node]) {
                 destNodes.add(node);
                 destNodeToStation[node] = station;
+                destNodeWalkCost[node] = walkCost;
             }
         });
     });
@@ -332,9 +353,23 @@ function findTopRoutes(userLat, userLng, venueLat, venueLng, limit = 3) {
     }
 
     // Get closest origin station (we'll use this for all Dijkstra runs)
+    // Include all stations at the same location (station complexes like W 4 St)
     const closestOrigin = originStations[0];
     const walkToStation = closestOrigin.distance * WALK_SPEED;
-    const entryNodes = closestOrigin.nodes.filter(n => graph[n]);
+
+    // Collect entry nodes from ALL stations within ~0.02 miles of closest (same complex)
+    const entryNodes = [];
+    for (const station of originStations) {
+        if (station.distance <= closestOrigin.distance + 0.02) {
+            station.nodes.forEach(n => {
+                if (graph[n] && !entryNodes.includes(n)) {
+                    entryNodes.push(n);
+                }
+            });
+        } else {
+            break; // stations are sorted by distance
+        }
+    }
 
     if (entryNodes.length === 0) {
         return [];
@@ -374,7 +409,7 @@ function findTopRoutes(userLat, userLng, venueLat, venueLng, limit = 3) {
 
     // Iteratively find routes, blocking specific line transfers
     for (let attempt = 0; attempt < limit * 4 && routes.length < limit; attempt++) {
-        const result = dijkstraWithBlocked(entryNodes, destNodes, graph, blockedEdges);
+        const result = dijkstraWithBlocked(entryNodes, destNodes, graph, blockedEdges, destNodeWalkCost);
         if (!result || !result.path || result.path.length < 2) break;
 
         // Find exit station
@@ -445,6 +480,10 @@ function findTopRoutes(userLat, userLng, venueLat, venueLng, limit = 3) {
             if (transfers.length > 0) {
                 const destLineStation = findLineStation(result.path, transfers[0].toLine);
                 blockLineAtStation(destLineStation, transfers[0].toLine);
+            } else {
+                // Direct route duplicate - block this line's midpoint
+                const midIdx = Math.floor(result.path.length / 2);
+                blockedEdges.add(result.path[midIdx]);
             }
             continue;
         }

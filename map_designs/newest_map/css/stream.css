@@ -99,7 +99,7 @@
 
 /* Status Colors */
 .is-live { color: #30d158; }      /* Green */
-.is-upcoming { color: #ff453a; }  /* Red */
+.is-upcoming { color: #f59e0b; }  /* Amber */
 .is-future { color: #8e8e93; }    /* Gray */
 
 /* LIVE: Green Pulse Animation */
@@ -108,10 +108,10 @@
     animation: pulse-green 2s infinite;
 }
 
-/* UPCOMING: Static Red with glow */
+/* UPCOMING: Static Amber */
 .is-upcoming .status-dot {
     animation: none;
-    box-shadow: 0 0 5px rgba(255, 69, 58, 0.4);
+    box-shadow: none;
 }
 
 /* FUTURE: Hollow Gray Ring */

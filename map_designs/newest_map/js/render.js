@@ -114,7 +114,7 @@ function render(mode) {
         const tooltipContent = bestStatus === 'live'
             ? `<span style="color: #30d158;">LIVE</span><span style="opacity: 0.6; margin: 0 8px;">|</span><span>${firstMic.title.toUpperCase()}</span>`
             : bestStatus === 'upcoming'
-            ? `<span style="color: #ff453a;">${timesStr}</span><span style="opacity: 0.5; margin: 0 8px;">|</span><span>${firstMic.title.toUpperCase()}</span>`
+            ? `<span style="color: #f59e0b;">${timesStr}</span><span style="opacity: 0.5; margin: 0 8px;">|</span><span>${firstMic.title.toUpperCase()}</span>`
             : `<span style="color: #8e8e93;">${timesStr}</span><span style="opacity: 0.5; margin: 0 8px;">|</span><span>${firstMic.title.toUpperCase()}</span>`;
 
         const marker = L.marker([firstMic.lat, firstMic.lng], {

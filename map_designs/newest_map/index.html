@@ -154,47 +154,29 @@
     <!-- VENUE MODAL -->
     <div class="modal-overlay" id="venue-modal">
         <div class="venue-card">
-            <!-- 1. HEADER -->
-            <div class="hero-section">
-                <div class="venue-info">
+            <!-- HEADER SECTION -->
+            <div class="header-section">
+                <div class="header-top">
                     <h1 id="modal-venue-name">The Gray Mare</h1>
-                    <span class="addr" id="modal-address">61 2nd Ave · East Village</span>
+                    <span class="time-display" id="modal-mic-time">7:00 PM</span>
                 </div>
-                <a href="#" class="maps-btn" id="modal-directions">
-                    <span class="maps-time" id="modal-travel-time">--</span>
-                    <span class="maps-label">Directions <svg width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
-                </a>
+
+                <div class="sub-header">
+                    <span class="address" id="modal-address">61 2nd Ave</span>
+                    <a href="#" class="maps-link" id="modal-directions">Maps ↗</a>
+                </div>
+
+                <p class="note-text" id="modal-instructions"></p>
+
+                <div class="action-row" id="modal-actions">
+                    <a href="#" class="btn btn-primary" id="modal-signup-btn">Sign Up Link</a>
+                    <a href="#" class="btn btn-ig" id="modal-ig-btn">IG</a>
+                </div>
             </div>
 
-            <!-- 2. MIC PROTOCOL (expandable) -->
-            <details class="mic-row">
-                <summary>
-                    <div class="mic-icon">
-                        <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
-                    </div>
-                    <div class="mic-data">
-                        <span class="start-time" id="modal-mic-time">7:00 PM</span>
-                        <span class="signup-badge type-web" id="modal-signup-badge">Web Signup</span>
-                    </div>
-                    <div class="chevron"></div>
-                </summary>
-
-                <div class="expanded-content">
-                    <div class="instructions-box">
-                        <div class="raw-text" id="modal-instructions">
-                            $7.62 fee (includes drink/fries). List opens online at 6:30 PM.
-                        </div>
-                        <div class="action-grid" id="modal-actions">
-                            <a href="#" class="action-btn btn-signup" id="modal-signup-btn">Sign Up Link</a>
-                            <a href="#" class="action-btn btn-ig" id="modal-ig-btn">Host IG</a>
-                        </div>
-                    </div>
-                </div>
-            </details>
-
-            <!-- 3. TRANSIT SECTION -->
-            <div class="transit-section" id="modal-transit">
-                <!-- Transit rows injected dynamically -->
+            <!-- CONTENT SHEET (Transit Cards) -->
+            <div class="content-sheet" id="modal-transit">
+                <!-- Transit cards injected dynamically -->
             </div>
 
         </div>

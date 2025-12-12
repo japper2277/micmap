@@ -1,5 +1,5 @@
 /* =================================================================
-   MODAL STYLES - Exact copy from venue_card_demo.html
+   MODAL STYLES - New venue card design from 12_11_25_venue_card.html
    ================================================================= */
 
 :root {
@@ -54,21 +54,21 @@
     pointer-events: all;
 }
 
-/* --- VENUE CARD --- */
+/* --- VENUE CARD (Popup box) --- */
 .venue-card {
-    width: 100%; max-width: 380px;
-    background-color: var(--bg-card);
+    width: 100%; max-width: 340px;
+    background-color: #1a1a1a;
     border-radius: 24px;
-    border: 1px solid var(--border);
     overflow: hidden;
-    display: flex; flex-direction: column;
-    box-shadow: 0 40px 80px rgba(0,0,0,0.9);
+    box-shadow: 0 25px 60px rgba(0,0,0,0.7);
+    display: flex;
+    flex-direction: column;
+    border: 1px solid rgba(255,255,255,0.08);
     transform: scale(0.95) translateY(20px);
     opacity: 0;
     transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    position: relative;
-    color: var(--text-main);
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+    color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
 }
 .modal-overlay.active .venue-card {
@@ -76,155 +76,110 @@
     opacity: 1;
 }
 
-/* --- CLOSE BUTTON --- */
-.modal-close {
-    display: none; /* Hide close button - user taps outside to close */
+/* --- HEADER SECTION --- */
+.header-section {
+    padding: 24px 20px 18px 20px;
+    background: linear-gradient(180deg, #1a1a1a 0%, #151515 100%);
 }
 
-/* --- 1. HEADER --- */
-.hero-section {
-    padding: 20px 24px;
-    display: flex; justify-content: space-between; align-items: flex-start;
-    border-bottom: 1px solid #1a1a1a;
-}
+.header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.header-top h1 { margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.5px; color: #fff; }
+.time-display { font-size: 20px; font-weight: 600; color: rgba(255,255,255,0.9); letter-spacing: -0.3px; }
 
-.venue-info { flex: 1; margin-right: 12px; }
-.venue-info h1 {
-    margin: 0; font-size: 22px;
-    font-weight: 800;
-    letter-spacing: -0.5px; line-height: 1.1; margin-bottom: 6px;
+.sub-header { display: flex; align-items: center; gap: 10px; margin-top: 2px; margin-bottom: 14px; }
+.address { font-size: 14px; color: #8e8e93; font-weight: 500; }
+.maps-link {
+    font-size: 12px; color: #64D2FF; font-weight: 600; text-decoration: none;
+    background: rgba(10, 132, 255, 0.15); padding: 5px 10px; border-radius: 100px;
+    white-space: nowrap; flex-shrink: 0;
+    transition: background 0.2s;
 }
-.venue-info .addr { font-size: 13px; color: var(--text-sec); font-weight: 500; display: block; }
+.maps-link:hover { background: rgba(10, 132, 255, 0.25); }
 
-.maps-btn {
-    background: rgba(10, 132, 255, 0.15);
-    border: 1px solid rgba(10, 132, 255, 0.3);
-    padding: 10px 14px; border-radius: 14px;
-    text-decoration: none;
-    display: flex; flex-direction: column; align-items: flex-end;
-    min-width: 64px;
-    transition: all 0.2s;
-}
-.maps-btn:active { background: rgba(10, 132, 255, 0.25); transform: scale(0.98); }
-.maps-time { font-size: 18px; font-weight: 700; color: var(--map-blue); line-height: 1; margin-bottom: 4px; }
-.maps-label {
-    font-size: 10px; font-weight: 700; color: var(--map-blue);
-    text-transform: uppercase; letter-spacing: 0.5px;
-    display: flex; align-items: center; gap: 4px;
-}
+.note-text { font-size: 13px; color: #8e8e93; line-height: 1.5; margin-bottom: 16px; font-weight: 400; }
 
-/* --- 2. MIC PROTOCOL --- */
-details.mic-row {
-    background: #181818;
-    border-bottom: 1px solid #2a2a2a;
-    cursor: pointer; transition: background 0.2s;
+/* BUTTONS */
+.action-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.btn {
+    border: none; padding: 14px 16px; border-radius: 14px; font-size: 15px; font-weight: 600; cursor: pointer; text-align: center; letter-spacing: -0.2px; color: white; position: relative;
+    text-decoration: none; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    transition: transform 0.15s, opacity 0.15s;
 }
-details.mic-row[open] { background: #1c1c1c; }
+.btn:active { transform: scale(0.97); opacity: 0.9; }
+.btn-primary { background: linear-gradient(180deg, #3898FF 0%, #0A84FF 100%); }
+.btn-ig { background: linear-gradient(135deg, #f58529 0%, #dd2a7b 50%, #8134af 100%); }
 
-details.mic-row summary {
-    padding: 18px 24px;
+/* --- CONTENT SHEET (Transit Cards Area) --- */
+.content-sheet {
+    background-color: #0f0f0f;
+    flex-grow: 1;
+    padding: 18px 16px 20px 16px;
     display: flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
-    align-items: center;
-    gap: 14px;
-    list-style: none;
-    position: relative;
-}
-details.mic-row summary::-webkit-details-marker { display: none; }
-
-.mic-icon {
-    color: var(--mic-red);
-    flex-shrink: 0;
-}
-.mic-icon svg {
-    display: block;
-    width: 20px;
-    height: 20px;
-}
-
-.mic-data {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
+    flex-direction: column;
     gap: 12px;
-    flex-shrink: 0;
-}
-.start-time { font-size: 16px; font-weight: 600; color: #fff; }
-
-.signup-badge {
-    font-size: 11px; font-weight: 600; letter-spacing: 0.3px;
-    padding: 4px 8px; border-radius: 6px;
-}
-.type-web { background: var(--badge-web-bg); color: var(--badge-web-text); }
-
-/* The Animated Chevron */
-details.mic-row summary .chevron {
-    width: 8px; height: 8px;
-    border-right: 2px solid var(--text-sec);
-    border-bottom: 2px solid var(--text-sec);
-    transform: rotate(45deg);
-    transition: transform 0.2s ease;
-    margin-left: auto;
-    margin-right: 4px;
-    flex-shrink: 0;
-}
-details.mic-row[open] summary .chevron { transform: rotate(-135deg); }
-
-/* Expanded Content */
-.expanded-content { padding: 0 24px 24px; animation: slide 0.2s ease-out; }
-@keyframes slide { from {opacity:0; transform:translateY(-8px);} to {opacity:1; transform:translateY(0);} }
-
-.instructions-box {
-    background: #222; border-radius: 12px; padding: 18px;
-    border-left: 3px solid var(--mic-red);
-}
-.raw-text { font-size: 13px; color: #e5e5e5; line-height: 1.5; margin-bottom: 18px; }
-
-.action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.action-btn {
-    height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
-    font-size: 13px; font-weight: 600; text-decoration: none; color: #fff;
-    transition: opacity 0.2s;
-}
-.action-btn:hover { opacity: 0.9; }
-.btn-signup { background: var(--link-blue); color: #000; font-weight: 700; }
-.btn-ig { background: var(--ig-grad); }
-
-/* --- 3. TRANSIT SECTION --- */
-.transit-section { padding: 8px 0; background: var(--bg-card); }
-
-.transit-row {
-    padding: 16px 24px;
-    border-bottom: 1px solid #1a1a1a;
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    gap: 14px;
-    align-items: center;
-}
-.transit-row:last-child { border-bottom: none; }
-
-
-.bullet {
-    width: 32px; height: 32px; border-radius: 50%;
-    display: grid; place-items: center;
-    font-size: 14px; font-weight: 800; color: #fff; z-index: 1;
 }
 
-/* Horizontal bullet stack for multiple lines */
-.bullet-stack {
+/* --- TRANSIT CARD STYLES --- */
+.card-base {
+    background: linear-gradient(180deg, #222 0%, #1a1a1a 100%);
+    border-radius: 16px;
+    padding: 16px;
     display: flex;
-    flex-direction: row;
-    gap: 4px;
+    flex-direction: column;
+    gap: 14px;
+    border: 1px solid rgba(255,255,255,0.06);
 }
-.bullet-stack .bullet {
-    width: 26px; height: 26px;
-    font-size: 12px;
+
+/* TOP ROW (Time Range) */
+.card-top {
+    display: flex; justify-content: space-between; align-items: baseline;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding-bottom: 12px;
 }
+.time-main { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: -0.3px; }
+.duration-main { font-size: 15px; color: #8e8e93; font-weight: 500; }
+
+/* MID ROW (Route Icons) */
+.card-mid { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: #e5e5e5; }
+.arrow { color: #555; font-size: 11px; }
+
+/* Badges */
+.badge {
+    width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+    border-radius: 50%; color: white; font-weight: 700; font-size: 13px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3); flex-shrink: 0;
+}
+.bg-red { background: linear-gradient(135deg, #FF453A, #D6332A); }
+.bg-green { background: linear-gradient(135deg, #30D158, #248A3D); }
+
+.badge-pill {
+    background: linear-gradient(135deg, #FFD60A, #FFC107);
+    color: #000; padding: 4px 8px; border-radius: 6px;
+    font-weight: 800; font-size: 11px; letter-spacing: 0.3px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+/* Special Green Pill for Walking */
+.badge-pill-green {
+    background: linear-gradient(135deg, #30D158, #248A3D);
+    color: #fff;
+    padding: 4px 8px; border-radius: 6px;
+    font-weight: 700; font-size: 11px; letter-spacing: 0.3px;
+    text-transform: uppercase;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+/* BOTTOM ROW (Footer) */
+.card-bottom { display: flex; justify-content: space-between; align-items: center; font-size: 13px; padding-top: 2px; }
+.station-name { color: #8e8e93; font-weight: 500; display: flex; align-items: center; gap: 4px; }
+.station-prefix { color: #636366; }
+.dep-times { color: #fff; font-weight: 600; letter-spacing: -0.2px; }
+.status-text { color: #30D158; font-weight: 500; }
+
+/* --- MTA LINE COLORS (kept from original) --- */
 .b-L { background: var(--mta-L); color: #fff; }
 .b-N { background: var(--mta-N); color: #000; }
-
-/* Additional MTA line colors */
 .b-1, .b-2, .b-3 { background: #EE352E; color: #fff; }
 .b-4, .b-5, .b-6 { background: #00933C; color: #fff; }
 .b-7 { background: #B933AD; color: #fff; }
@@ -235,81 +190,9 @@ details.mic-row[open] summary .chevron { transform: rotate(-135deg); }
 .b-N, .b-Q, .b-R, .b-W { background: #FCCC0A; color: #000; }
 .b-S { background: #808183; color: #fff; }
 
-.station-header { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; }
-.st-name { font-size: 15px; font-weight: 600; color: #fff; }
-
-.svc-badge {
-    font-size: 9px; font-weight: 700; text-transform: uppercase;
-    padding: 2px 6px; border-radius: 4px; letter-spacing: 0.5px;
-}
-.svc-local { background: var(--badge-svc-local); color: var(--badge-svc-text); border: 1px solid #444; }
-.svc-express { background: var(--badge-svc-express); color: var(--badge-svc-text-exp); }
-.direction-label { font-size: 11px; color: var(--text-sec); margin-left: 4px; }
-
-.arrival-data { font-size: 15px; font-variant-numeric: tabular-nums; display: flex; flex-direction: column; }
-
-/* UPDATED: Equal weight for all times */
-.time-row { color: #fff; font-weight: 600; }
-.time-row span { color: #fff; margin: 0 1px; } /* Override previous grey */
-.time-row .unit { font-size: 13px; font-weight: 400; color: var(--text-sec); margin-left: 2px;}
-
-.delay-toggle {
-    font-size: 12px; color: var(--text-sec); font-weight: 500;
-    display: flex; align-items: center; gap: 4px; margin-top: 4px;
-    cursor: pointer; user-select: none;
-}
-.delay-toggle:hover { opacity: 0.8; }
-.delay-chevron {
-    transition: transform 0.2s ease;
-}
-.delay-toggle.expanded .delay-chevron { transform: rotate(180deg); }
-
-.delay-msg {
-    font-size: 12px; color: var(--status-delay); font-weight: 600;
-    margin-top: 4px;
-    display: none;
-}
-.delay-toggle.expanded + .delay-msg { display: block; }
-
-.transfer-msg {
-    font-size: 12px; color: var(--text-sec); font-weight: 500;
-    display: flex; align-items: center; gap: 4px; margin-top: 4px;
-}
-
 .bullet-inline {
     display: inline-flex; align-items: center; justify-content: center;
     width: 18px; height: 18px; border-radius: 50%;
     font-size: 10px; font-weight: 800; color: #fff;
     vertical-align: middle; margin-left: 2px;
-}
-
-.walk-info { text-align: right; display: flex; align-items: center; gap: 6px; opacity: 0.8; }
-.walk-icon { color: var(--text-sec); }
-.walk-time { font-size: 14px; font-weight: 600; color: #fff; }
-
-/* Walk-only route display */
-.walk-route {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 8px 0;
-}
-.walk-route .walk-icon {
-    color: var(--status-good);
-    width: 24px;
-    height: 24px;
-}
-.walk-details { display: flex; flex-direction: column; gap: 2px; }
-.walk-title { font-size: 15px; font-weight: 600; color: #fff; }
-.walk-distance { font-size: 13px; color: var(--text-sec); }
-
-/* Walk option in route list */
-.walk-option {
-    background: rgba(48, 209, 88, 0.08);
-    border-left: 3px solid var(--status-good);
-    padding-left: 21px;
-}
-.walk-option .route-badge {
-    background: rgba(48, 209, 88, 0.2);
-    color: var(--status-good);
 }
