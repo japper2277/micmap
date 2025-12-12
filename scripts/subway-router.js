@@ -38,6 +38,16 @@ function getStations() {
     return stations;
 }
 
+// Check if a line serves a station (by checking station nodes)
+function lineServesStation(line, stationId) {
+    const stationData = getStations()[stationId];
+    if (!stationData || !stationData.nodes) return false;
+    return stationData.nodes.some(node => {
+        const nodeLine = node.split('_')[1];
+        return nodeLine === line || nodeLine === line.replace('X', '') || nodeLine + 'X' === line;
+    });
+}
+
 // --- HAVERSINE DISTANCE ---
 function haversine(lat1, lon1, lat2, lon2) {
     const R = 3958.8; // Earth radius in miles
@@ -440,7 +450,10 @@ function findTopRoutes(userLat, userLng, venueLat, venueLng, limit = 3) {
                 legs.forEach((leg, idx) => {
                     if (leg.type === 'ride' && existingRoute.legs[idx]?.type === 'ride') {
                         const existingLeg = existingRoute.legs[idx];
-                        if (leg.line !== existingLeg.line) {
+                        // Only add alt if: different line AND serves both stations
+                        if (leg.line !== existingLeg.line &&
+                            lineServesStation(leg.line, existingLeg.fromId) &&
+                            lineServesStation(leg.line, existingLeg.toId)) {
                             if (!existingLeg.altLines) existingLeg.altLines = [];
                             if (!existingLeg.altLines.includes(leg.line)) {
                                 existingLeg.altLines.push(leg.line);

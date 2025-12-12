@@ -1040,6 +1040,14 @@ app.get('/api/subway/routes', async (req, res) => {
           return true;
         });
 
+        // Clean up altLines - remove main line from its own altLines (after validation swaps)
+        for (const leg of route.legs) {
+          if (leg.type === 'ride' && leg.altLines) {
+            leg.altLines = leg.altLines.filter(alt => alt !== leg.line);
+            if (leg.altLines.length === 0) delete leg.altLines;
+          }
+        }
+
         // Rebuild lines array from validated legs
         route.lines = route.legs.filter(l => l.type === 'ride').map(l => l.line);
         validatedRoutes.push(route);
