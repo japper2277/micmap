@@ -199,79 +199,65 @@ function render(mode) {
             container.appendChild(header);
         }
 
-        // --- STREAM ITEM ---
+        // --- STREAM ITEM (New Card Design) ---
         const card = document.createElement('div');
         card.id = `card-${mic.id}`;
         card.onclick = () => locateMic(mic.lat, mic.lng, mic.id);
-        card.className = `stream-item group ${isRecentPast ? 'is-past' : ''}`;
+        card.className = `venue-card ${isRecentPast ? 'is-past' : ''}`;
 
-        // Build commute display - walking time if <1mi, otherwise distance
-        let commuteDisplay = '';
+        // Format address: street, borough
+        const streetAddress = mic.address ? mic.address.split(',')[0].trim() : '';
+        const borough = mic.hood || '';
+        const formattedAddress = streetAddress ? `${streetAddress}, ${borough}` : borough;
+
+        // Build commute badge
+        let commuteBadge = '';
         if (mic.transitMins !== undefined) {
-            commuteDisplay = `<div class="commute-live">
-                   <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-                   ${mic.transitType === 'estimate' ? '~' : ''}${mic.transitMins}m
-               </div>`;
+            commuteBadge = `<span class="commute-badge">${mic.transitType === 'estimate' ? '~' : ''}${mic.transitMins} min</span>`;
         } else if (mic.distanceMiles !== undefined) {
-            // Show distance if no transit time
-            commuteDisplay = `<span class="commute-distance">${mic.distanceMiles < 0.1 ? Math.round(mic.distanceMiles * 5280) + 'ft' : mic.distanceMiles.toFixed(1) + 'mi'}</span>`;
+            commuteBadge = `<span class="commute-badge">${mic.distanceMiles < 0.1 ? Math.round(mic.distanceMiles * 5280) + 'ft' : mic.distanceMiles.toFixed(1) + 'mi'}</span>`;
         }
 
-        // Status row HTML
+        // Status indicator class
         const statusClass = mic.status === 'live' ? 'is-live' : (mic.status === 'upcoming' ? 'is-upcoming' : 'is-future');
         const statusText = getStatusText(mic, mic.status);
 
+        // Signup note text
+        const noteText = mic.signupInstructions || (mic.signupUrl ? 'Online signup available' : 'Sign up in person');
+
         card.innerHTML = `
-            <!-- FRONT: Card Content -->
-            <div class="card-front">
-                <!-- LEFT: Specs -->
-                <div class="specs-col">
-                    <div class="start-time">${mic.timeStr}</div>
-                    <div class="stage-time">${mic.setTime}</div>
+            <!-- HEADER SECTION -->
+            <div class="card-header">
+                <div class="card-header-top">
+                    <h2 class="card-venue-name">${mic.title}</h2>
+                    <span class="card-time">${mic.timeStr}</span>
                 </div>
 
-                <!-- CENTER: Info -->
-                <div class="info-col">
-                    <div class="status-row ${statusClass}">
-                        <div class="status-dot"></div>
-                        ${statusText}
-                    </div>
-                    <div class="venue-row">
-                        <div class="venue-name">${mic.title}</div>
-                        ${commuteDisplay}
-                    </div>
-                    <div class="meta-row">
-                        <span>${mic.hood}</span>
-                        <div class="meta-separator">|</div>
-                        <span>${mic.price}</span>
-                    </div>
+                <div class="card-sub-header">
+                    <span class="card-address">${formattedAddress}</span>
+                    <a href="https://maps.apple.com/?q=${encodeURIComponent(mic.address || mic.title)}" target="_blank" rel="noopener" onclick="event.stopPropagation();" class="maps-link">Maps ↗</a>
+                    ${commuteBadge}
                 </div>
 
-                <!-- RIGHT: Actions -->
-                <div class="action-col">
+                <div class="card-status ${statusClass}">
+                    <span class="status-dot"></span>
+                    <span>${statusText}</span>
+                    <span class="card-set-time">${mic.setTime} sets</span>
+                    <span class="card-price">${mic.price}</span>
+                </div>
+
+                <p class="card-note">📝 ${noteText}</p>
+
+                <div class="card-actions">
                     ${mic.signupUrl
-                        ? `<a href="${mic.signupUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation();" class="icon-btn" title="Visit Website">
-                            <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                        </a>`
-                        : `<button onclick="event.stopPropagation(); flipCard(this);" class="icon-btn" title="Signup info">
-                            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                        </button>`
+                        ? `<a href="${mic.signupUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation();" class="btn btn-primary">Sign Up Link</a>`
+                        : ''
                     }
-                    ${mic.contact ? `<a href="https://instagram.com/${mic.contact.replace(/^@/, '')}" target="_blank" rel="noopener" onclick="event.stopPropagation();" class="icon-btn" title="@${mic.contact.replace(/^@/, '')}">
-                        <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
-                    </a>` : ''}
+                    ${mic.contact
+                        ? `<a href="https://instagram.com/${mic.contact.replace(/^@/, '')}" target="_blank" rel="noopener" onclick="event.stopPropagation();" class="btn btn-ig">IG</a>`
+                        : ''
+                    }
                 </div>
-            </div>
-
-            <!-- BACK: Signup Instructions -->
-            <div class="card-back">
-                <div class="signup-header">
-                    <span class="signup-title">SIGNUP INSTRUCTIONS</span>
-                    <button onclick="event.stopPropagation(); flipCard(this);" class="close-btn">
-                        <svg viewBox="0 0 24 24" width="20" height="20"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                    </button>
-                </div>
-                <div class="signup-text">${mic.signupInstructions || 'Sign up in person only'}</div>
             </div>
         `;
         container.appendChild(card);
@@ -290,11 +276,4 @@ function render(mode) {
     }
 }
 
-// Flip card to show/hide signup instructions
-function flipCard(btn) {
-    const card = btn.closest('.stream-item');
-    if (card) {
-        card.classList.toggle('flipped');
-    }
-}
 
