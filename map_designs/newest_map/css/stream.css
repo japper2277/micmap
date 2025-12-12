@@ -18,232 +18,326 @@
     gap: 12px;
 }
 
-/* =================================================================
-   VENUE CARD (New Design)
-   ================================================================= */
-
-.venue-card {
-    background: linear-gradient(180deg, #1a1a1a 0%, #121212 100%);
-    border-radius: 20px;
-    margin: 0 12px 14px;
-    padding: 20px;
-    border: 1px solid #2c2c2e;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 4px 20px rgba(0,0,0,0.3);
+/* --- STREAM ITEM (New Card Design) --- */
+.stream-item {
+    display: flex;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid #222;
     scroll-margin-top: 50px;
     transition: all 0.2s ease;
     position: relative;
     cursor: pointer;
 }
 
-.venue-card:hover {
-    background: linear-gradient(180deg, #222 0%, #181818 100%);
-    transform: translateY(-1px);
+.stream-item:hover {
+    background: rgba(255, 255, 255, 0.05);
 }
 
-.venue-card:active {
-    transform: scale(0.99);
+/* Touch feedback for mobile */
+.stream-item:active {
+    background: rgba(255, 255, 255, 0.1);
 }
 
-/* --- CARD HEADER --- */
-.card-header {
+/* --- LEFT COLUMN: SPECS --- */
+.specs-col {
+    width: 60px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    margin-right: 14px;
+    flex-shrink: 0;
 }
 
-.card-header-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 12px;
-}
-
-.card-venue-name {
-    margin: 0;
-    font-size: 22px;
-    font-weight: 800;
-    letter-spacing: -0.5px;
+.start-time {
+    font-size: 19px;
+    font-weight: 700;
     color: #fff;
-    flex: 1;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+.stage-time {
+    display: inline-block;
+    margin-top: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #98989D;
+    background: #1C1C1E;
+    padding: 2px 6px;
+    border-radius: 4px;
+    width: fit-content;
+}
+
+/* --- CENTER COLUMN: CONTENT --- */
+.info-col {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
     min-width: 0;
 }
 
-.card-time {
-    font-size: 20px;
+/* --- STATUS ROW (Eyebrow above venue name) --- */
+.status-row {
+    font-size: 11px;
     font-weight: 700;
-    color: #fff;
-    letter-spacing: -0.3px;
-    flex-shrink: 0;
-}
-
-/* --- SUB HEADER (Address row) --- */
-.card-sub-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-.card-address {
-    font-size: 15px;
-    color: #98989d;
-    font-weight: 500;
-}
-
-.maps-link {
-    font-size: 13px;
-    color: #64D2FF;
-    font-weight: 700;
-    text-decoration: none;
-    background: rgba(10, 132, 255, 0.2);
-    padding: 4px 12px;
-    border-radius: 100px;
-    transition: all 0.2s;
-}
-
-.maps-link:hover {
-    background: rgba(10, 132, 255, 0.35);
-}
-
-.commute-badge {
-    font-size: 13px;
-    color: #30d158;
-    font-weight: 600;
-    background: rgba(48, 209, 88, 0.15);
-    padding: 4px 10px;
-    border-radius: 100px;
-}
-
-/* --- STATUS ROW --- */
-.card-status {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 12px;
-    font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.3px;
-    margin-top: 4px;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
 }
 
-.card-status .status-dot {
+/* Base Dot Style */
+.status-dot {
     width: 8px;
     height: 8px;
     border-radius: 50%;
+    margin-right: 6px;
     background-color: currentColor;
-    flex-shrink: 0;
 }
 
 /* Status Colors */
-.card-status.is-live { color: #30d158; }
-.card-status.is-upcoming { color: #ff453a; }
-.card-status.is-future { color: #8e8e93; }
+.is-live { color: #30d158; }      /* Green */
+.is-upcoming { color: #ff453a; }  /* Red */
+.is-future { color: #8e8e93; }    /* Gray */
 
 /* LIVE: Green Pulse Animation */
-.card-status.is-live .status-dot {
+.is-live .status-dot {
     box-shadow: 0 0 0 0 rgba(48, 209, 88, 0.7);
     animation: pulse-green 2s infinite;
 }
 
 /* UPCOMING: Static Red with glow */
-.card-status.is-upcoming .status-dot {
+.is-upcoming .status-dot {
+    animation: none;
     box-shadow: 0 0 5px rgba(255, 69, 58, 0.4);
 }
 
 /* FUTURE: Hollow Gray Ring */
-.card-status.is-future .status-dot {
+.is-future .status-dot {
+    animation: none;
     background-color: transparent;
     border: 2px solid currentColor;
     box-sizing: border-box;
 }
 
+/* Green Pulse Keyframes */
 @keyframes pulse-green {
     0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(48, 209, 88, 0.7); }
     70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(48, 209, 88, 0); }
     100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(48, 209, 88, 0); }
 }
 
-.card-set-time,
-.card-price {
-    color: #98989d;
-    font-weight: 500;
-    text-transform: none;
-    letter-spacing: 0;
-}
-
-.card-set-time::before,
-.card-price::before {
-    content: '·';
-    margin-right: 8px;
-    color: #555;
-}
-
-/* --- NOTE TEXT --- */
-.card-note {
-    font-size: 13px;
-    color: #8e8e93;
-    line-height: 1.4;
-    margin: 12px 0;
-    font-weight: 400;
-}
-
-/* --- ACTION BUTTONS --- */
-.card-actions {
+.venue-row {
     display: flex;
-    gap: 10px;
-    margin-top: 4px;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 5px;
 }
 
-.card-actions:empty {
-    display: none;
+.venue-name {
+    font-size: 17px;
+    font-weight: 700;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 1;
+    min-width: 0;
 }
 
-.card-actions .btn-primary {
-    flex: 1;
+.meta-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0;
+    font-size: 13px;
+    font-weight: 400;
+    color: #8E8E93;
 }
 
-.card-actions .btn {
-    border: none;
-    padding: 14px 20px;
-    border-radius: 14px;
-    font-size: 15px;
-    font-weight: 600;
+.meta-separator {
+    margin: 0 8px;
+    color: #333;
+    font-size: 10px;
+}
+
+/* Commute Display (Blue) */
+.commute-live {
+    color: #4da6ff;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    font-size: 13px;
+}
+
+.commute-live svg {
+    width: 14px;
+    height: 14px;
+    margin-right: 4px;
+    fill: currentColor;
+}
+
+.commute-distance {
+    color: #8E8E93;
+    font-size: 13px;
+    font-weight: 500;
+    flex-shrink: 0;
+}
+
+/* --- RIGHT COLUMN: ACTIONS --- */
+.action-col {
+    margin-left: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+/* The Icon Buttons */
+.icon-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #1C1C1E;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #A1A1A6;
+    transition: all 0.2s ease;
     cursor: pointer;
-    text-align: center;
     text-decoration: none;
-    letter-spacing: -0.2px;
-    color: white;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 4px 12px rgba(0,0,0,0.4);
-    transition: transform 0.1s, opacity 0.1s;
+    border: none;
 }
 
-.card-actions .btn:active {
-    transform: scale(0.98);
-    opacity: 0.9;
+.icon-btn:hover {
+    background: #2C2C2E;
+    color: #FFF;
 }
 
-.card-actions .btn-primary {
-    background: linear-gradient(180deg, #2997FF 0%, #007AFF 100%);
-    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+.icon-btn:active {
+    transform: scale(0.9);
 }
 
-.card-actions .btn-ig {
-    background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%);
-    text-shadow: 0 1px 2px rgba(0,0,0,0.15);
-    padding: 14px 24px;
+.icon-btn svg {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }
 
 /* Past events fade */
-.venue-card.is-past {
+.is-past {
     opacity: 0.4;
     filter: grayscale(0.5);
 }
 
-.venue-card.is-past:hover {
+.is-past:hover {
     opacity: 1;
     filter: grayscale(0);
 }
 
+/* =================================================================
+   CARD FLIP ANIMATION
+   ================================================================= */
+
+.stream-item {
+    perspective: 1000px;
+}
+
+.card-front,
+.card-back {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    backface-visibility: hidden;
+    transition: transform 0.4s ease, opacity 0.4s ease;
+}
+
+.card-front {
+    transform: rotateX(0deg);
+    opacity: 1;
+}
+
+.card-back {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    transform: rotateX(180deg);
+    opacity: 0;
+    padding: 16px 20px;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    background: #0a0a0a;
+}
+
+/* Flipped state */
+.stream-item.flipped .card-front {
+    transform: rotateX(-180deg);
+    opacity: 0;
+    pointer-events: none;
+}
+
+.stream-item.flipped .card-back {
+    transform: rotateX(0deg);
+    opacity: 1;
+}
+
+/* Signup instructions back content */
+.signup-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 8px;
+}
+
+.signup-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #8E8E93;
+}
+
+.close-btn {
+    background: #1C1C1E;
+    border: none;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #A1A1A6;
+    transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+    background: #2C2C2E;
+    color: #FFF;
+}
+
+.close-btn svg {
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+}
+
+.signup-text {
+    font-size: 14px;
+    color: #fff;
+    line-height: 1.5;
+}
 
 /* =================================================================
    TRANSIT BADGES & LOADING
