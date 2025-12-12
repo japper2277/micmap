@@ -313,3 +313,29 @@ details.mic-row[open] summary .chevron { transform: rotate(-135deg); }
     background: rgba(48, 209, 88, 0.2);
     color: var(--status-good);
 }
+
+/* --- SCHEDULE & ROUTE ALERTS --- */
+.schedule-warning {
+    background: var(--delay-bg);
+    color: var(--status-delay);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 10px 24px;
+    border-bottom: 1px solid #1a1a1a;
+}
+
+.route-alerts {
+    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.route-alert {
+    font-size: 11px;
+    color: var(--status-delay);
+    background: var(--delay-bg);
+    padding: 6px 10px;
+    border-radius: 6px;
+    line-height: 1.3;
+}

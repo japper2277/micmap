@@ -6,7 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const csv = require('csv-parser');
 const GtfsRealtimeBindings = require('gtfs-realtime-bindings');
-require('dotenv').config();
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 // MongoDB Connection
 const mongoose = require('mongoose');
@@ -338,7 +338,7 @@ const MTA_FEED_MAP = {
   'L': 'nyct%2Fgtfs-l',
   'G': 'nyct%2Fgtfs-g',
   'J': 'nyct%2Fgtfs-jz', 'Z': 'nyct%2Fgtfs-jz',
-  '7': 'nyct%2Fgtfs-7'
+  '7': 'nyct%2Fgtfs'  // 7 train is in the main feed, not a separate gtfs-7
 };
 
 // In-memory cache
@@ -415,7 +415,7 @@ app.get('/api/mta/arrivals/:line/:stopId', async (req, res) => {
     // Check cache
     if (mtaCache.feeds[lineUpper]?.data &&
         Date.now() - mtaCache.feeds[lineUpper].timestamp < MTA_CACHE_TTL.feed) {
-      const arrivals = extractArrivals(mtaCache.feeds[lineUpper].data, stopId);
+      const arrivals = extractArrivals(mtaCache.feeds[lineUpper].data, stopId, lineUpper);
       return res.json(arrivals);
     }
 
@@ -430,7 +430,7 @@ app.get('/api/mta/arrivals/:line/:stopId', async (req, res) => {
     // Cache the feed
     mtaCache.feeds[lineUpper] = { data: feed, timestamp: Date.now() };
 
-    const arrivals = extractArrivals(feed, stopId);
+    const arrivals = extractArrivals(feed, stopId, lineUpper);
     console.log(`✅ MTA arrivals for ${lineUpper}/${stopId}: ${arrivals.length} trains`);
     res.json(arrivals);
 
@@ -440,23 +440,85 @@ app.get('/api/mta/arrivals/:line/:stopId', async (req, res) => {
   }
 });
 
-function extractArrivals(feed, stopId) {
+// Parse destination from MTA tripId format
+// Format: "057250_F..S78R" where S/N indicates direction
+function parseDestinationFromTripId(tripId, routeId) {
+  if (!tripId || !routeId) return '';
+
+  // Determine direction from tripId (..N = northbound, ..S = southbound)
+  const isNorthbound = tripId.includes('..N');
+  const isSouthbound = tripId.includes('..S');
+
+  // Line terminals - [northbound terminal, southbound terminal]
+  const lineTerminals = {
+    'F': ['Jamaica-179 St', 'Coney Island-Stillwell Av'],
+    'M': ['Forest Hills-71 Av', 'Middle Village-Metropolitan Av'],
+    'E': ['Jamaica Center', 'World Trade Center'],
+    'A': ['Inwood-207 St', 'Far Rockaway / Lefferts Blvd'],
+    'C': ['168 St', 'Euclid Av'],
+    'B': ['Bedford Park Blvd', 'Brighton Beach'],
+    'D': ['Norwood-205 St', 'Coney Island-Stillwell Av'],
+    'N': ['Astoria-Ditmars Blvd', 'Coney Island-Stillwell Av'],
+    'W': ['Astoria-Ditmars Blvd', 'Whitehall St-South Ferry'],
+    'Q': ['96 St', 'Coney Island-Stillwell Av'],
+    'R': ['Forest Hills-71 Av', 'Bay Ridge-95 St'],
+    'L': ['8 Av', 'Canarsie-Rockaway Pkwy'],
+    'G': ['Court Sq', 'Church Av'],
+    'J': ['Jamaica Center', 'Broad St'],
+    'Z': ['Jamaica Center', 'Broad St'],
+    '1': ['Van Cortlandt Park-242 St', 'South Ferry'],
+    '2': ['Wakefield-241 St', 'Flatbush Av-Brooklyn College'],
+    '3': ['Harlem-148 St', 'New Lots Av'],
+    '4': ['Woodlawn', 'Crown Hts-Utica Av'],
+    '5': ['Eastchester-Dyre Av', 'Flatbush Av-Brooklyn College'],
+    '6': ['Pelham Bay Park', 'Brooklyn Bridge-City Hall'],
+    '7': ['Flushing-Main St', '34 St-Hudson Yards'],
+    'S': ['Times Sq-42 St', 'Grand Central-42 St'],
+  };
+
+  const line = routeId.replace(/X$/, '');
+  const terminals = lineTerminals[line];
+  if (!terminals) return '';
+
+  if (isNorthbound) return terminals[0];
+  if (isSouthbound) return terminals[1];
+  return '';
+}
+
+function extractArrivals(feed, stopId, requestedLine) {
   const now = Date.now() / 1000;
   const arrivals = [];
+  const seenTrips = new Set();
 
   // Lines that don't run north-south (custom direction labels)
   const customDirections = {
     'L': { N: 'Manhattan', S: 'Brooklyn' },
     'G': { N: 'Queens', S: 'Brooklyn' },
-    'J': { N: 'Manhattan', S: 'Queens' },
-    'Z': { N: 'Manhattan', S: 'Queens' },
-    'M': { N: 'Manhattan', S: 'Brooklyn' },
+    'J': { N: 'Jamaica', S: 'Manhattan' },
+    'Z': { N: 'Jamaica', S: 'Manhattan' },
+    'M': { N: 'Queens', S: 'Queens' },
     'S': { N: 'Times Sq', S: 'Grand Central' }
   };
 
   feed.entity.forEach(entity => {
     if (entity.tripUpdate) {
       const trip = entity.tripUpdate.trip;
+
+      // Normalize line (6X → 6, 7X → 7, FX → F)
+      const line = (trip.routeId || '').replace(/X$/, '');
+
+      // Filter by requested line
+      if (requestedLine && line !== requestedLine.replace(/X$/, '')) {
+        return;
+      }
+
+      // Deduplicate by tripId
+      const tripId = trip.tripId;
+      if (seenTrips.has(tripId)) return;
+      seenTrips.add(tripId);
+
+      // Extract destination from headsign or tripId
+      const destination = trip.tripHeadsign || parseDestinationFromTripId(tripId, trip.routeId) || '';
 
       entity.tripUpdate.stopTimeUpdate?.forEach(stu => {
         // Match stopId prefix (e.g., L08 matches L08N and L08S)
@@ -468,14 +530,15 @@ function extractArrivals(feed, stopId) {
             if (minsAway <= 30) {
               const suffix = stu.stopId.slice(-1); // N or S
               let direction;
-              if (customDirections[trip.routeId]) {
-                direction = customDirections[trip.routeId][suffix] || (suffix === 'N' ? 'Uptown' : 'Downtown');
+              if (customDirections[line]) {
+                direction = customDirections[line][suffix] || (suffix === 'N' ? 'Uptown' : 'Downtown');
               } else {
                 direction = suffix === 'N' ? 'Uptown' : 'Downtown';
               }
               arrivals.push({
-                line: trip.routeId,
+                line,
                 direction,
+                destination,
                 minsAway: Math.max(0, minsAway) // Clamp to 0 for "boarding"
               });
             }
@@ -840,6 +903,36 @@ app.get('/api/subway/routes', async (req, res) => {
       fetchLimit
     );
 
+    // Schedule awareness - NYC timezone
+    const nycDate = new Date().toLocaleString('en-US', { timeZone: 'America/New_York' });
+    const nycHour = new Date(nycDate).getHours();
+    const nycDay = new Date(nycDate).getDay(); // 0=Sun, 6=Sat
+    const isLateNight = nycHour >= 0 && nycHour < 6;
+    const isWeekend = nycDay === 0 || nycDay === 6;
+    const isRushHour = !isWeekend && ((nycHour >= 7 && nycHour <= 9) || (nycHour >= 17 && nycHour <= 19));
+
+    // Late night: swap lines that don't run
+    const lateNightSwaps = { 'B': 'D', 'W': 'N', 'Z': 'J' };
+
+    // Rush hour only lines - will be filtered by real-time validation if not running
+    const rushHourOnlyLines = ['Z', '7X', '6X'];
+
+    if (isLateNight) {
+      for (const route of routes) {
+        for (const leg of (route.legs || [])) {
+          if (leg.line && lateNightSwaps[leg.line]) {
+            const oldLine = leg.line;
+            leg.line = lateNightSwaps[leg.line];
+            console.log(`🌙 Late night: swapped ${oldLine} → ${leg.line}`);
+          }
+        }
+        // Update route.lines array too
+        if (route.lines) {
+          route.lines = route.lines.map(l => lateNightSwaps[l] || l);
+        }
+      }
+    }
+
     // Validate ALL ride legs against real-time MTA data
     // Routes where trains aren't running are filtered out
     const stationsData = subwayRouter.getStations ? subwayRouter.getStations() : null;
@@ -924,12 +1017,66 @@ app.get('/api/subway/routes', async (req, res) => {
       }
     }
 
+    // Fetch alerts to attach to routes
+    let alerts = [];
+    try {
+      if (mtaCache.alerts.data && Date.now() - mtaCache.alerts.timestamp < MTA_CACHE_TTL.alerts) {
+        alerts = mtaCache.alerts.data;
+      } else {
+        const alertRes = await fetch(MTA_ALERTS_URL);
+        if (alertRes.ok) {
+          const buffer = await alertRes.arrayBuffer();
+          const feed = GtfsRealtimeBindings.transit_realtime.FeedMessage.decode(new Uint8Array(buffer));
+          alerts = [];
+          feed.entity.forEach(entity => {
+            if (entity.alert && entity.alert.headerText) {
+              const alert = entity.alert;
+              const lines = [];
+              alert.informedEntity?.forEach(ie => {
+                if (ie.routeId) lines.push(ie.routeId);
+              });
+              const text = alert.headerText?.translation?.[0]?.text || '';
+              if (lines.length > 0 && text) {
+                alerts.push({ lines, text, type: 'warning' });
+              }
+            }
+          });
+          mtaCache.alerts = { data: alerts, timestamp: Date.now() };
+        }
+      }
+    } catch (e) {
+      console.error('Failed to fetch alerts for routing:', e.message);
+    }
+
+    // Attach relevant alerts to each route
+    for (const route of validatedRoutes) {
+      const routeLines = new Set(route.lines || []);
+      const relevantAlerts = alerts.filter(a =>
+        a.lines.some(line => routeLines.has(line) || routeLines.has(line.replace(/X$/, '')))
+      );
+      if (relevantAlerts.length > 0) {
+        route.alerts = relevantAlerts.map(a => ({
+          lines: a.lines.filter(l => routeLines.has(l) || routeLines.has(l.replace(/X$/, ''))),
+          text: a.text
+        }));
+      }
+    }
+
     // Return only the requested number of routes (sorted by time)
     const finalRoutes = validatedRoutes
       .sort((a, b) => a.totalTime - b.totalTime)
       .slice(0, parseInt(limit));
 
-    res.json({ routes: finalRoutes });
+    // Add schedule context to response
+    const scheduleInfo = {
+      isLateNight,
+      isWeekend,
+      isRushHour,
+      note: isLateNight ? 'Late night service (B/W/Z not running)' :
+            isWeekend ? 'Weekend service (some express trains run local)' : null
+    };
+
+    res.json({ routes: finalRoutes, schedule: scheduleInfo });
   } catch (error) {
     console.error('Subway routing error:', error);
     res.status(500).json({ error: 'Routing failed' });

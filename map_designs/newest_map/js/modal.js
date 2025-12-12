@@ -125,12 +125,12 @@ async function fetchSubwayRoutes(userLat, userLng, venueLat, venueLng) {
     const response = await fetch(url);
     if (!response.ok) throw new Error('Subway router API failed');
     const data = await response.json();
-    console.log('🚇 Subway routes response:', data.routes?.length || 0, 'routes', data.routes);
-    return data.routes || [];
+    console.log('🚇 Subway routes response:', data.routes?.length || 0, 'routes', data.schedule);
+    return { routes: data.routes || [], schedule: data.schedule || {} };
 }
 
 // Display subway routes in modal (with optional walk option)
-function displaySubwayRoutes(routes, mic, walkOption = null) {
+function displaySubwayRoutes(routes, mic, walkOption = null, schedule = null) {
     if (!routes || routes.length === 0) {
         modalTransit.innerHTML = '<div class="transit-empty">No routes found</div>';
         return;
@@ -145,6 +145,11 @@ function displaySubwayRoutes(routes, mic, walkOption = null) {
 
     // Build HTML for each route
     let transitHTML = '';
+
+    // Show schedule warning if applicable
+    if (schedule?.note) {
+        transitHTML += `<div class="schedule-warning">⚠️ ${schedule.note}</div>`;
+    }
 
     // Add walking option first if available
     if (walkOption) {
@@ -173,6 +178,10 @@ function displaySubwayRoutes(routes, mic, walkOption = null) {
     routes.forEach((route, idx) => {
         const routeNum = idx + 1;
 
+        // Get first ride leg to show actual starting station
+        const firstRideLeg = route.legs.find(l => l.type === 'ride');
+        const actualOrigin = firstRideLeg?.from || route.originStation;
+
         // Build route description from legs
         let routeDesc = '';
         route.legs.forEach((leg, legIdx) => {
@@ -184,12 +193,22 @@ function displaySubwayRoutes(routes, mic, walkOption = null) {
             }
         });
 
+        // Build alerts HTML if route has alerts
+        let alertsHTML = '';
+        if (route.alerts && route.alerts.length > 0) {
+            // Show max 2 most relevant alerts
+            const topAlerts = route.alerts.slice(0, 2);
+            alertsHTML = `<div class="route-alerts">${topAlerts.map(a =>
+                `<div class="route-alert">⚠️ ${a.text.slice(0, 80)}${a.text.length > 80 ? '...' : ''}</div>`
+            ).join('')}</div>`;
+        }
+
         transitHTML += `
             <div class="transit-row route-option">
                 <div class="route-badge">Route ${routeNum}</div>
                 <div>
                     <div class="station-header">
-                        <span class="st-name">${route.originStation}</span>
+                        <span class="st-name">${actualOrigin}</span>
                     </div>
                     <div class="arrival-data">
                         <div class="route-details">${routeDesc}</div>
@@ -198,6 +217,7 @@ function displaySubwayRoutes(routes, mic, walkOption = null) {
                             🚇 ${route.subwayTime}m ride ·
                             ${iconWalk} ${route.walkToVenue}m walk
                         </div>
+                        ${alertsHTML}
                     </div>
                 </div>
                 <div class="walk-info">
@@ -276,10 +296,13 @@ async function loadModalArrivals(mic) {
 
     // Call subway router API
     let routes = [];
+    let schedule = null;
     try {
         console.log('🚇 Calling fetchSubwayRoutes with:', { originLat, originLng, venueLat: mic.lat, venueLng: mic.lng });
-        routes = await fetchSubwayRoutes(originLat, originLng, mic.lat, mic.lng);
-        console.log('🚇 Got routes:', routes?.length || 0);
+        const result = await fetchSubwayRoutes(originLat, originLng, mic.lat, mic.lng);
+        routes = result.routes || [];
+        schedule = result.schedule || null;
+        console.log('🚇 Got routes:', routes.length, 'schedule:', schedule);
     } catch (error) {
         console.error('Subway router API failed:', error);
     }
@@ -287,7 +310,7 @@ async function loadModalArrivals(mic) {
     // Display routes with walking option if under 1 mile actual walk
     if (routes && routes.length > 0) {
         console.log('🚇 Displaying subway routes');
-        displaySubwayRoutes(routes, mic, walkDist < SHOW_WALK_OPTION ? { walkMins, directDist: walkDist } : null);
+        displaySubwayRoutes(routes, mic, walkDist < SHOW_WALK_OPTION ? { walkMins, directDist: walkDist } : null, schedule);
         return;
     }
     console.log('🚇 No subway routes, falling back to station arrivals');

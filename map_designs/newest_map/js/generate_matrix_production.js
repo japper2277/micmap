@@ -9,7 +9,7 @@ const { parse } = require('csv-parse/sync');
 // =============================================================================
 const DRY_RUN = false; // ⚠️ Set to FALSE to perform real API calls (~$0.50 - $1.00)
 const CLUSTER_RADIUS_MILES = 0.15;
-const STATION_SEARCH_RADIUS = 0.3;
+const STATION_SEARCH_RADIUS = 1.0; // 1 mile - HERE API calculates actual walk time
 const MTA_DATA_URL = "http://web.mta.info/developers/data/nyct/subway/Stations.csv";
 
 // Fixed Departure Time: Next Friday at 7:00 PM
