@@ -9,6 +9,7 @@ const GtfsRealtimeBindings = require('gtfs-realtime-bindings');
 require('dotenv').config();
 
 // MongoDB Connection
+const mongoose = require('mongoose');
 const { connectDB } = require('./config/database');
 const Mic = require('./models/Mic');
 
@@ -167,47 +168,76 @@ app.get('/health/deep', async (req, res) => {
   res.status(statusCode).json(results);
 });
 
+// Load mics from JSON file as fallback
+let micsJsonData = null;
+try {
+  micsJsonData = JSON.parse(fs.readFileSync(path.join(__dirname, 'mics.json'), 'utf-8'));
+  console.log(`📋 Loaded ${micsJsonData.length} mics from mics.json as fallback`);
+} catch (e) {
+  console.warn('⚠️ Could not load mics.json fallback');
+}
+
 // Main endpoint: Fetch open mic data from MongoDB (with Redis caching)
 app.get('/api/v1/mics', cacheMiddleware, async (req, res) => {
   try {
     // Extract query parameters for filtering
     const { day, borough, neighborhood, cost, sort } = req.query;
 
-    // Build query
-    const query = {};
-    if (day) query.day = day;
-    if (borough) query.borough = borough;
-    if (neighborhood) query.neighborhood = neighborhood;
+    let mics;
 
-    // Cost filtering
-    if (cost) {
-      if (cost.toLowerCase() === 'free') {
-        query.cost = { $regex: /^free$/i };
-      } else {
-        query.cost = cost;
+    // Try MongoDB first, fallback to JSON file
+    if (mongoose.connection.readyState === 1) {
+      // Build query
+      const query = {};
+      if (day) query.day = day;
+      if (borough) query.borough = borough;
+      if (neighborhood) query.neighborhood = neighborhood;
+
+      // Cost filtering
+      if (cost) {
+        if (cost.toLowerCase() === 'free') {
+          query.cost = { $regex: /^free$/i };
+        } else {
+          query.cost = cost;
+        }
       }
-    }
 
-    // Execute query
-    let micsQuery = Mic.find(query).lean();
+      // Execute query
+      let micsQuery = Mic.find(query).lean();
 
-    // Sorting
-    if (sort === 'time') {
-      micsQuery = micsQuery.sort({ startTime: 1 });
-    } else if (sort === 'score') {
-      micsQuery = micsQuery.sort({ score: -1 });
-    } else if (sort === 'distance') {
-      // Distance sorting will be handled by frontend
-      // or require user coordinates passed in query
-      micsQuery = micsQuery.sort({ day: 1, startTime: 1 });
+      // Sorting
+      if (sort === 'time') {
+        micsQuery = micsQuery.sort({ startTime: 1 });
+      } else if (sort === 'score') {
+        micsQuery = micsQuery.sort({ score: -1 });
+      } else if (sort === 'distance') {
+        micsQuery = micsQuery.sort({ day: 1, startTime: 1 });
+      } else {
+        micsQuery = micsQuery.sort({ day: 1, startTime: 1 });
+      }
+
+      mics = await micsQuery;
+      console.log(`✅ Loaded ${mics.length} mics from MongoDB`);
+    } else if (micsJsonData) {
+      // Fallback to JSON file
+      mics = micsJsonData;
+
+      // Apply filters manually
+      if (day) mics = mics.filter(m => m.day === day);
+      if (borough) mics = mics.filter(m => m.borough === borough);
+      if (neighborhood) mics = mics.filter(m => m.neighborhood === neighborhood);
+      if (cost) {
+        if (cost.toLowerCase() === 'free') {
+          mics = mics.filter(m => m.cost?.toLowerCase() === 'free');
+        } else {
+          mics = mics.filter(m => m.cost === cost);
+        }
+      }
+
+      console.log(`✅ Loaded ${mics.length} mics from JSON fallback`);
     } else {
-      // Default: sort by day and time
-      micsQuery = micsQuery.sort({ day: 1, startTime: 1 });
+      throw new Error('No data source available');
     }
-
-    const mics = await micsQuery;
-
-    console.log(`✅ Loaded ${mics.length} mics from MongoDB`);
 
     res.json({
       success: true,
@@ -756,14 +786,31 @@ async function getArrivalsForLine(line, stopId) {
 // Helper: Find which lines have real-time service at a station in a specific direction
 async function getLinesWithService(lines, stopId, neededDirection = null) {
   const linesWithService = [];
+
+  // Normalize MTA direction labels to Uptown/Downtown
+  const isUptownDirection = (dir) => {
+    if (!dir) return false;
+    const d = dir.toLowerCase();
+    return d === 'uptown' || d === 'manhattan' || d === 'queens' || d === 'bronx';
+  };
+  const isDowntownDirection = (dir) => {
+    if (!dir) return false;
+    const d = dir.toLowerCase();
+    return d === 'downtown' || d === 'brooklyn';
+  };
+
   for (const line of lines) {
     const arrivals = await getArrivalsForLine(line, stopId);
     // Check that arrivals actually match this line (feeds are shared)
     let lineArrivals = arrivals.filter(a => a.line === line);
 
-    // Filter by direction if specified
+    // Filter by direction if specified (with normalized matching)
     if (neededDirection && lineArrivals.length > 0) {
-      lineArrivals = lineArrivals.filter(a => a.direction === neededDirection);
+      if (neededDirection === 'Uptown') {
+        lineArrivals = lineArrivals.filter(a => isUptownDirection(a.direction));
+      } else if (neededDirection === 'Downtown') {
+        lineArrivals = lineArrivals.filter(a => isDowntownDirection(a.direction));
+      }
     }
 
     if (lineArrivals.length > 0) {
@@ -782,60 +829,107 @@ app.get('/api/subway/routes', async (req, res) => {
       return res.status(400).json({ error: 'Missing required params: userLat, userLng, venueLat, venueLng' });
     }
 
+    // Fetch more routes than requested, then filter by real-time validation
+    // This ensures we find valid alternatives when E/F/M don't run at certain times
+    const fetchLimit = Math.max(parseInt(limit) * 4, 10);
     const routes = subwayRouter.findTopRoutes(
       parseFloat(userLat),
       parseFloat(userLng),
       parseFloat(venueLat),
       parseFloat(venueLng),
-      parseInt(limit)
+      fetchLimit
     );
 
-    // Validate and correct first leg's train line using real-time data
-    // Load stations data to get all lines at origin station
+    // Validate ALL ride legs against real-time MTA data
+    // Routes where trains aren't running are filtered out
     const stationsData = subwayRouter.getStations ? subwayRouter.getStations() : null;
+    const validatedRoutes = [];
 
     for (const route of routes) {
-      if (route.legs && route.legs.length > 0) {
-        const firstLeg = route.legs.find(l => l.type === 'ride');
-        if (firstLeg && route.originStationId) {
-          // Get all lines at origin station from stations data
-          let originLines = [firstLeg.line];
-          if (stationsData && stationsData[route.originStationId]) {
-            const stationNodes = stationsData[route.originStationId].nodes || [];
-            // Extract unique lines from node names (e.g., "R34N_R" -> "R")
-            const linesSet = new Set();
-            stationNodes.forEach(node => {
-              const match = node.match(/_([A-Z0-9]+)$/);
-              if (match) linesSet.add(match[1]);
-            });
-            if (linesSet.size > 0) originLines = [...linesSet];
+      if (!route.legs || route.legs.length === 0) {
+        validatedRoutes.push(route);
+        continue;
+      }
+
+      let routeValid = true;
+      const rideLegs = route.legs.filter(l => l.type === 'ride');
+
+      for (let i = 0; i < rideLegs.length; i++) {
+        const leg = rideLegs[i];
+        const fromStationId = leg.fromId;
+        const toStationId = leg.toId;
+
+        if (!fromStationId || !toStationId) continue;
+
+        // Determine direction for this leg
+        const fromStation = stationsData?.[fromStationId];
+        const toStation = stationsData?.[toStationId];
+        let neededDirection = null;
+        if (fromStation?.lat && toStation?.lat) {
+          neededDirection = toStation.lat > fromStation.lat ? 'Uptown' : 'Downtown';
+        }
+
+        // Check if this line has real-time service at BOTH origin AND destination
+        // First try with direction filter, then try without (MTA feed direction can be delayed)
+        let serviceAtOrigin = await getLinesWithService([leg.line], fromStationId, neededDirection);
+        if (serviceAtOrigin.length === 0) {
+          // Fallback: check if line has ANY service at origin (direction might not be in feed yet)
+          serviceAtOrigin = await getLinesWithService([leg.line], fromStationId, null);
+        }
+        const serviceAtDest = await getLinesWithService([leg.line], toStationId, null);
+
+        const hasService = serviceAtOrigin.length > 0 && serviceAtDest.length > 0;
+
+        if (!hasService) {
+          // No service on this line - try to find alternative
+          // Get lines that serve BOTH stations
+          const originNodes = stationsData?.[fromStationId]?.nodes || [];
+          const destNodes = stationsData?.[toStationId]?.nodes || [];
+
+          const originLines = new Set(originNodes.map(n => n.match(/_([A-Z0-9]+)$/)?.[1]).filter(Boolean));
+          const destLines = new Set(destNodes.map(n => n.match(/_([A-Z0-9]+)$/)?.[1]).filter(Boolean));
+
+          // Lines that exist at both stations
+          const commonLines = [...originLines].filter(l => destLines.has(l));
+
+          // Check which common lines have actual service
+          const alternativesAtOrigin = await getLinesWithService(commonLines, fromStationId, neededDirection);
+          const validAlternatives = [];
+          for (const altLine of alternativesAtOrigin) {
+            const altAtDest = await getLinesWithService([altLine], toStationId, null);
+            if (altAtDest.length > 0) {
+              validAlternatives.push(altLine);
+            }
           }
 
-          // Determine needed direction based on origin vs destination latitude
-          // Uptown = North (higher lat), Downtown = South (lower lat)
-          const originStationData = stationsData[route.originStationId];
-          const originLat = originStationData?.lat || parseFloat(userLat);
-          const destLat = parseFloat(venueLat);
-          const neededDirection = destLat > originLat ? 'Uptown' : 'Downtown';
-
-          // Check which lines actually have real-time service IN THE NEEDED DIRECTION
-          const linesWithService = await getLinesWithService(originLines, route.originStationId, neededDirection);
-
-          console.log(`🔍 Origin ${route.originStation} (${route.originStationId}): lines=${originLines.join(',')}, direction=${neededDirection}, withService=${linesWithService.join(',')}, firstLeg=${firstLeg.line}`);
-
-          if (linesWithService.length > 0 && !linesWithService.includes(firstLeg.line)) {
-            // Replace first leg's line with one that has actual service
-            const oldLine = firstLeg.line;
-            firstLeg.line = linesWithService[0];
+          if (validAlternatives.length > 0) {
+            // Found alternative - swap line
+            const oldLine = leg.line;
+            leg.line = validAlternatives[0];
             route.realTimeValidated = true;
-
-            console.log(`✅ Route validated: ${oldLine} → ${firstLeg.line} at ${route.originStation}`);
+            console.log(`✅ Leg ${i + 1} validated: ${oldLine} → ${leg.line} at ${leg.from}`);
+          } else {
+            // No alternatives - mark route invalid
+            routeValid = false;
+            console.log(`❌ No service for ${leg.line} from ${leg.from} to ${leg.to} - route invalid`);
+            break;
           }
         }
       }
+
+      if (routeValid) {
+        // Rebuild lines array from validated legs
+        route.lines = rideLegs.map(l => l.line);
+        validatedRoutes.push(route);
+      }
     }
 
-    res.json({ routes });
+    // Return only the requested number of routes (sorted by time)
+    const finalRoutes = validatedRoutes
+      .sort((a, b) => a.totalTime - b.totalTime)
+      .slice(0, parseInt(limit));
+
+    res.json({ routes: finalRoutes });
   } catch (error) {
     console.error('Subway routing error:', error);
     res.status(500).json({ error: 'Routing failed' });

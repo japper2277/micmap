@@ -14,17 +14,14 @@ const path = require('path');
 // --- LOAD DATA ---
 const DATA_DIR = path.join(__dirname, '..', 'public', 'data');
 
-// Load both graphs at startup (cached in memory)
-let graphWeekday = null;
-let graphWeekend = null;
+// Load unified graph at startup (cached in memory)
+// Real-time MTA data filters which routes are actually running
+let graph = null;
 let stations = null;
 
 function loadData() {
-    if (!graphWeekday) {
-        graphWeekday = JSON.parse(fs.readFileSync(path.join(DATA_DIR, 'graph-weekday.json')));
-    }
-    if (!graphWeekend) {
-        graphWeekend = JSON.parse(fs.readFileSync(path.join(DATA_DIR, 'graph-weekend.json')));
+    if (!graph) {
+        graph = JSON.parse(fs.readFileSync(path.join(DATA_DIR, 'graph.json')));
     }
     if (!stations) {
         stations = JSON.parse(fs.readFileSync(path.join(DATA_DIR, 'stations.json')));
@@ -33,8 +30,7 @@ function loadData() {
 
 function getGraph() {
     loadData();
-    const day = new Date().getDay();
-    return (day === 0 || day === 6) ? graphWeekend : graphWeekday;
+    return graph;
 }
 
 function getStations() {
@@ -309,7 +305,7 @@ function findTopRoutes(userLat, userLng, venueLat, venueLng, limit = 3) {
 
     // Find nearby stations
     const originStations = findStationsWithinRadius(userLat, userLng, 0.5);
-    const destStations = findStationsWithinRadius(venueLat, venueLng, 0.4);
+    const destStations = findStationsWithinRadius(venueLat, venueLng, 0.6);
 
     if (originStations.length === 0 || destStations.length === 0) {
         return [];
@@ -331,10 +327,23 @@ function findTopRoutes(userLat, userLng, venueLat, venueLng, limit = 3) {
         return [];
     }
 
-    // Get closest origin station (we'll use this for all Dijkstra runs)
+    // Get entry nodes from ALL nearby origin stations (not just closest)
+    // This ensures we consider all lines at a station complex (e.g., A/C/E AND B/D/F/M at W 4 St)
     const closestOrigin = originStations[0];
     const walkToStation = closestOrigin.distance * WALK_SPEED;
-    const entryNodes = closestOrigin.nodes.filter(n => graph[n]);
+
+    // Collect entry nodes from all stations within 0.1 miles of the closest
+    // (same station complex with different platform IDs)
+    const entryNodes = [];
+    for (const station of originStations) {
+        if (station.distance <= closestOrigin.distance + 0.1) {
+            station.nodes.forEach(n => {
+                if (graph[n] && !entryNodes.includes(n)) {
+                    entryNodes.push(n);
+                }
+            });
+        }
+    }
 
     if (entryNodes.length === 0) {
         return [];

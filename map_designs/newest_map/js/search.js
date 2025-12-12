@@ -102,12 +102,12 @@ const searchService = {
         pin: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>`
     },
 
-    // Popular neighborhoods for empty state
+    // Popular neighborhoods for empty state (with coordinates to avoid geocoding)
     popularHoods: [
-        { name: 'East Village', sub: 'Manhattan' },
-        { name: 'Williamsburg', sub: 'Brooklyn' },
-        { name: 'Hell\'s Kitchen', sub: 'Manhattan' },
-        { name: 'Bushwick', sub: 'Brooklyn' }
+        { name: 'East Village', sub: 'Manhattan', lat: 40.7265, lng: -73.9815 },
+        { name: 'Williamsburg', sub: 'Brooklyn', lat: 40.7081, lng: -73.9571 },
+        { name: 'Hell\'s Kitchen', sub: 'Manhattan', lat: 40.7638, lng: -73.9918 },
+        { name: 'Bushwick', sub: 'Brooklyn', lat: 40.6944, lng: -73.9213 }
     ],
 
     renderEmptyState() {
@@ -122,7 +122,7 @@ const searchService = {
 
         this.popularHoods.forEach(hood => {
             html += `
-                <div class="dropdown-item location-type" data-action="hood" data-name="${this.escapeHtml(hood.name)}" data-sub="${this.escapeHtml(hood.sub)}">
+                <div class="dropdown-item location-type" data-action="geo" data-lat="${hood.lat}" data-lng="${hood.lng}" data-name="${this.escapeHtml(hood.name)}">
                     <div class="item-icon">${this.icons.pin}</div>
                     <div class="item-text">
                         <span class="item-name">${this.escapeHtml(hood.name)}</span>
@@ -238,8 +238,10 @@ const searchService = {
 
     // Event delegation for dropdown clicks (more reliable than inline onclick)
     bindDropdownClicks() {
+        console.log('🔗 Binding dropdown clicks...');
         this.dropdown.querySelectorAll('.dropdown-item').forEach(item => {
             item.addEventListener('click', (e) => {
+                console.log('👆 Dropdown item clicked:', item.dataset);
                 e.preventDefault();
                 e.stopPropagation();
                 const action = item.dataset.action;
@@ -253,18 +255,15 @@ const searchService = {
                     const lng = parseFloat(item.dataset.lng);
                     const name = item.dataset.name;
                     this.selectLocation(lat, lng, name);
-                } else if (action === 'hood') {
-                    // Search for neighborhood as location
-                    const name = item.dataset.name;
-                    this.input.value = name;
-                    this.search(name);
                 }
             });
         });
     },
 
     selectVenue(micId) {
-        const mic = STATE.mics.find(m => m.id === micId);
+        console.log('🎤 selectVenue called with ID:', micId, 'type:', typeof micId);
+        const mic = STATE.mics.find(m => m.id === micId || String(m.id) === String(micId));
+        console.log('🎤 Found mic:', mic ? mic.title || mic.venue : 'NOT FOUND');
         if (mic) {
             this.hideDropdown();
             this.input.value = mic.title || mic.venue;

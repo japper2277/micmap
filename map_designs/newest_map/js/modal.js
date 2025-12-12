@@ -121,9 +121,11 @@ function openVenueModal(mic) {
 // Fetch routes from subway router API
 async function fetchSubwayRoutes(userLat, userLng, venueLat, venueLng) {
     const url = `http://localhost:3001/api/subway/routes?userLat=${userLat}&userLng=${userLng}&venueLat=${venueLat}&venueLng=${venueLng}`;
+    console.log('🚇 Fetching subway routes:', url);
     const response = await fetch(url);
     if (!response.ok) throw new Error('Subway router API failed');
     const data = await response.json();
+    console.log('🚇 Subway routes response:', data.routes?.length || 0, 'routes', data.routes);
     return data.routes || [];
 }
 
@@ -275,16 +277,20 @@ async function loadModalArrivals(mic) {
     // Call subway router API
     let routes = [];
     try {
+        console.log('🚇 Calling fetchSubwayRoutes with:', { originLat, originLng, venueLat: mic.lat, venueLng: mic.lng });
         routes = await fetchSubwayRoutes(originLat, originLng, mic.lat, mic.lng);
+        console.log('🚇 Got routes:', routes?.length || 0);
     } catch (error) {
         console.error('Subway router API failed:', error);
     }
 
     // Display routes with walking option if under 1 mile actual walk
     if (routes && routes.length > 0) {
+        console.log('🚇 Displaying subway routes');
         displaySubwayRoutes(routes, mic, walkDist < SHOW_WALK_OPTION ? { walkMins, directDist: walkDist } : null);
         return;
     }
+    console.log('🚇 No subway routes, falling back to station arrivals');
 
     // Find 2 nearest stations to USER's origin
     const nearestStations = findNearestStations(originLat, originLng, 2);

@@ -2,9 +2,10 @@
  * SUBWAY GRAPH BUILDER
  * --------------------
  * Parses MTA GTFS data and builds:
- * 1. graph-weekday.json - Weekday subway topology
- * 2. graph-weekend.json - Weekend subway topology
- * 3. stations.json - Station metadata (names, coords, node mappings)
+ * 1. graph.json - Unified subway topology (all service periods)
+ * 2. stations.json - Station metadata (names, coords, node mappings)
+ *
+ * Real-time MTA data filters which routes are actually running.
  *
  * Usage: node scripts/build-graph.js
  */
@@ -74,15 +75,14 @@ function parseTime(timeStr) {
 async function buildGraph() {
     console.log('🚀 Starting Subway Graph Build...\n');
 
-    // 1. Parse calendar.txt for service IDs
+    // 1. Parse calendar.txt for ALL service IDs (unified graph)
     console.log('📅 Parsing calendar.txt...');
-    const serviceIds = { weekday: new Set(), weekend: new Set() };
+    const allServiceIds = new Set();
     await readCSV('calendar.txt', (row) => {
-        if (row.monday === '1') serviceIds.weekday.add(row.service_id);
-        if (row.saturday === '1' || row.sunday === '1') serviceIds.weekend.add(row.service_id);
+        // Include all services - real-time MTA data will filter what's running
+        allServiceIds.add(row.service_id);
     });
-    console.log(`   Weekday services: ${serviceIds.weekday.size}`);
-    console.log(`   Weekend services: ${serviceIds.weekend.size}`);
+    console.log(`   Total services: ${allServiceIds.size}`);
 
     // 2. Parse trips.txt
     console.log('🚇 Parsing trips.txt...');
@@ -159,10 +159,9 @@ async function buildGraph() {
     console.log(`   Official transfers: ${officialTransfers.length}`);
 
     // --- GRAPH GENERATOR ---
-    function generate(mode) {
-        console.log(`\n🏗️  Building ${mode.toUpperCase()} graph...`);
+    function generate() {
+        console.log(`\n🏗️  Building UNIFIED graph...`);
         const graph = {};
-        const relevantServices = serviceIds[mode];
         const addedEdges = new Set();
         const parentToNodes = {};  // parent_id -> Set of node IDs in this graph
 
@@ -188,7 +187,7 @@ async function buildGraph() {
         // A. Build RIDE edges from stop_times
         let rideEdges = 0;
         trips.forEach(trip => {
-            if (!relevantServices.has(trip.service)) return;
+            if (!allServiceIds.has(trip.service)) return;
             const tripStopList = tripStops[trip.id];
             if (!tripStopList || tripStopList.length < 2) return;
 
@@ -277,17 +276,16 @@ async function buildGraph() {
         if (!fs.existsSync(OUTPUT_DIR)) {
             fs.mkdirSync(OUTPUT_DIR, { recursive: true });
         }
-        const outPath = path.join(OUTPUT_DIR, `graph-${mode}.json`);
+        const outPath = path.join(OUTPUT_DIR, 'graph.json');
         fs.writeFileSync(outPath, JSON.stringify(graph));
         const sizeKB = (fs.statSync(outPath).size / 1024).toFixed(0);
-        console.log(`   ✅ Saved: graph-${mode}.json (${sizeKB} KB, ${Object.keys(graph).length} nodes)`);
+        console.log(`   ✅ Saved: graph.json (${sizeKB} KB, ${Object.keys(graph).length} nodes)`);
 
         return { nodes: Object.keys(graph).length, edges: addedEdges.size };
     }
 
-    // Generate both graphs
-    const weekdayStats = generate('weekday');
-    const weekendStats = generate('weekend');
+    // Generate unified graph
+    const graphStats = generate();
 
     // Save station metadata
     console.log('\n💾 Saving station metadata...');
@@ -300,8 +298,7 @@ async function buildGraph() {
     console.log('\n' + '='.repeat(50));
     console.log('BUILD COMPLETE');
     console.log('='.repeat(50));
-    console.log(`Weekday: ${weekdayStats.nodes} nodes, ${weekdayStats.edges} edges`);
-    console.log(`Weekend: ${weekendStats.nodes} nodes, ${weekendStats.edges} edges`);
+    console.log(`Unified graph: ${graphStats.nodes} nodes, ${graphStats.edges} edges`);
     console.log(`Stations: ${Object.keys(stationMeta).length}`);
     console.log('='.repeat(50));
 }
