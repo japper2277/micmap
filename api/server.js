@@ -1011,8 +1011,37 @@ app.get('/api/subway/routes', async (req, res) => {
       }
 
       if (routeValid) {
+        // Sync transfer fromLine/toLine with validated ride legs
+        const legs = route.legs || [];
+        for (let i = 0; i < legs.length; i++) {
+          if (legs[i].type === 'transfer') {
+            // Find previous ride leg
+            let prevRide = null;
+            for (let j = i - 1; j >= 0; j--) {
+              if (legs[j].type === 'ride') { prevRide = legs[j]; break; }
+            }
+            // Find next ride leg
+            let nextRide = null;
+            for (let j = i + 1; j < legs.length; j++) {
+              if (legs[j].type === 'ride') { nextRide = legs[j]; break; }
+            }
+
+            if (prevRide) legs[i].fromLine = prevRide.line;
+            if (nextRide) legs[i].toLine = nextRide.line;
+          }
+        }
+
+        // Remove unnecessary transfers (same line) and merge rides
+        route.legs = legs.filter((leg, i) => {
+          if (leg.type === 'transfer' && leg.fromLine === leg.toLine) {
+            console.log(`🗑️ Removing unnecessary transfer at ${leg.at}: ${leg.fromLine}→${leg.toLine}`);
+            return false;
+          }
+          return true;
+        });
+
         // Rebuild lines array from validated legs
-        route.lines = rideLegs.map(l => l.line);
+        route.lines = route.legs.filter(l => l.type === 'ride').map(l => l.line);
         validatedRoutes.push(route);
       }
     }
