@@ -16,42 +16,6 @@ const readline = require('readline');
 const GTFS_DIR = 'gtfs_supplemented';
 const OUTPUT_DIR = 'public/data';
 
-// --- SUPER COMPLEXES (Hardcoded Tunnel Transfers) ---
-// These connect stations that GTFS treats as separate but are actually linked
-const SUPER_COMPLEXES = [
-    // Times Square Complex
-    { from: '127', to: 'A27', time: 180 },  // Times Sq (1/2/3) <-> Port Auth (A/C/E)
-    { from: 'A27', to: '127', time: 180 },
-    { from: '127', to: '725', time: 120 },  // Times Sq (1/2/3) <-> Times Sq (7)
-    { from: '725', to: '127', time: 120 },
-    { from: '127', to: 'R16', time: 120 },  // Times Sq (1/2/3) <-> Times Sq (N/Q/R/W)
-    { from: 'R16', to: '127', time: 120 },
-    { from: '725', to: 'R16', time: 120 },  // Times Sq (7) <-> Times Sq (N/Q/R/W)
-    { from: 'R16', to: '725', time: 120 },
-    { from: 'A27', to: 'R16', time: 180 },  // Port Auth (A/C/E) <-> Times Sq (N/Q/R/W)
-    { from: 'R16', to: 'A27', time: 180 },
-
-    // 14th Street Complex
-    { from: '132', to: '635', time: 180 },  // 14 St (1/2/3) <-> Union Sq (4/5/6)
-    { from: '635', to: '132', time: 180 },
-    { from: '635', to: 'A31', time: 240 },  // Union Sq (4/5/6) <-> 14 St (A/C/E)
-    { from: 'A31', to: '635', time: 240 },
-    { from: '635', to: 'L03', time: 120 },  // Union Sq (4/5/6) <-> Union Sq (L)
-    { from: 'L03', to: '635', time: 120 },
-    { from: '132', to: 'A31', time: 240 },  // 14 St (1/2/3) <-> 14 St (A/C/E)
-    { from: 'A31', to: '132', time: 240 },
-
-    // Fulton Complex
-    { from: '418', to: '419', time: 120 },  // Fulton (2/3) <-> Fulton (4/5)
-    { from: '419', to: '418', time: 120 },
-    { from: '419', to: 'A38', time: 120 },  // Fulton (4/5) <-> Fulton (A/C)
-    { from: 'A38', to: '419', time: 120 },
-    { from: 'A38', to: '229', time: 120 },  // Fulton (A/C) <-> Fulton (J/Z)
-    { from: '229', to: 'A38', time: 120 },
-    { from: '418', to: 'A38', time: 120 },  // Fulton (2/3) <-> Fulton (A/C)
-    { from: 'A38', to: '418', time: 120 },
-];
-
 // --- CSV HELPERS ---
 function parseCSVLine(line) {
     const result = [];
@@ -273,11 +237,6 @@ async function buildGraph() {
         officialTransfers.forEach(t => {
             processTransfer(t.from, t.to, t.time);
             processTransfer(t.to, t.from, t.time); // Bidirectional
-        });
-
-        // Super complex hardcoded transfers
-        SUPER_COMPLEXES.forEach(c => {
-            processTransfer(c.from, c.to, c.time);
         });
 
         const afterOfficialTransfers = addedEdges.size;
