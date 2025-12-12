@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  /* GLOBAL LAYOUT */
+  body {
+    background-color: #000;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+    margin: 0;
+    color: #fff;
+  }
+
+  .phone-screen {
+    width: 375px;
+    background-color: #000000;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* --- HEADER SECTION --- */
+  .header-section {
+    padding: 32px 24px 20px 24px;
+    background: #000;
+  }
+
+  .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  h1 { margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.6px; color: #fff; }
+  .time-display { font-size: 22px; font-weight: 700; color: #ffffff; letter-spacing: -0.5px; }
+
+  .sub-header { display: flex; align-items: center; gap: 10px; margin-top: 4px; margin-bottom: 14px; }
+  .address { font-size: 15px; color: #98989d; font-weight: 500; }
+  .maps-link {
+    font-size: 13px; color: #64D2FF; font-weight: 700; text-decoration: none;
+    background: rgba(10, 132, 255, 0.2); padding: 4px 12px; border-radius: 100px;
+  }
+
+  .note-text { font-size: 13px; color: #8e8e93; line-height: 1.4; margin-bottom: 20px; font-weight: 400; }
+
+  /* BUTTONS (Premium 3D Look) */
+  .action-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .btn {
+    border: none; padding: 15px; border-radius: 16px; font-size: 16px; font-weight: 600; cursor: pointer; text-align: center; letter-spacing: -0.3px; color: white; position: relative;
+    /* Inner light bevel for 3D feel */
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 4px 12px rgba(0,0,0,0.4); 
+    transition: transform 0.1s;
+  }
+  .btn:active { transform: scale(0.98); opacity: 0.9; }
+  .btn-primary { background: linear-gradient(180deg, #2997FF 0%, #007AFF 100%); text-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+  .btn-ig { background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%); text-shadow: 0 1px 2px rgba(0,0,0,0.15); }
+
+  /* --- SHEET AREA --- */
+  .content-sheet {
+    background-color: #121212;
+    flex-grow: 1;
+    border-radius: 32px 32px 0 0;
+    padding: 24px 16px;
+    border-top: 1px solid #2c2c2e;
+    display: flex;
+    flex-direction: column;
+    gap: 14px; /* Space between cards */
+  }
+
+  /* --- CARD SHARED STYLES (Added Depth) --- */
+  .card-base {
+    /* Gradient background for depth */
+    background: linear-gradient(180deg, #262629 0%, #1c1c1e 100%);
+    border-radius: 20px;
+    padding: 20px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    border: 1px solid #2c2c2e;
+    /* Top edge highlight for 3D effect */
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 4px 20px rgba(0,0,0,0.2);
+  }
+
+  /* TOP ROW (Time) */
+  .card-top { 
+    display: flex; justify-content: space-between; align-items: baseline; 
+    border-bottom: 1px solid #3a3a3c; /* Slightly lighter divider */
+    padding-bottom: 14px; 
+  }
+  .time-main { font-size: 22px; font-weight: 700; color: #fff; letter-spacing: -0.5px; }
+  .duration-main { font-size: 18px; color: #98989d; font-weight: 500; }
+
+  /* MID ROW (Icons) */
+  .card-mid { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: #e5e5e5; }
+  .arrow { color: #555; font-size: 12px; }
+
+  /* Badges */
+  .badge { 
+    width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; 
+    border-radius: 50%; color: white; font-weight: 700; font-size: 13px; 
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3); flex-shrink: 0; 
+  }
+  .bg-red { background: linear-gradient(135deg, #FF453A, #D6332A); }
+  .bg-green { background: linear-gradient(135deg, #30D158, #248A3D); }
+  
+  .badge-pill { 
+    background: linear-gradient(135deg, #FFD60A, #FFC107); 
+    color: #000; padding: 5px 8px; border-radius: 6px; 
+    font-weight: 800; font-size: 12px; letter-spacing: 0.5px; 
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3); 
+  }
+
+  /* Special Green Pill for Walking */
+  .badge-pill-green {
+    background: linear-gradient(135deg, #30D158, #248A3D);
+    color: #fff;
+    padding: 5px 8px; border-radius: 6px;
+    font-weight: 700; font-size: 12px; letter-spacing: 0.5px;
+    text-transform: uppercase;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  }
+
+  /* ALERT INDICATOR - Dot on badge */
+  .badge-wrap {
+    position: relative;
+    display: inline-flex;
+    cursor: pointer;
+  }
+  .alert-dot {
+    position: absolute;
+    top: -3px;
+    right: -3px;
+    width: 8px;
+    height: 8px;
+    background: linear-gradient(135deg, #FF9F0A, #FF6B00);
+    border-radius: 50%;
+    border: 2px solid #1c1c1e;
+    box-shadow: 0 0 6px rgba(255, 159, 10, 0.6);
+  }
+
+  /* MODAL OVERLAY */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+  }
+  .modal-overlay.show {
+    display: flex;
+  }
+
+  /* ALERT MODAL BOX */
+  .alert-modal {
+    width: 300px;
+    background: linear-gradient(180deg, #2c2c2e 0%, #1c1c1e 100%);
+    border: 1px solid #3a3a3c;
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 16px 48px rgba(0,0,0,0.6);
+  }
+  .alert-modal-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #3a3a3c;
+  }
+  .alert-modal-badge {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    color: white;
+    font-weight: 700;
+    font-size: 15px;
+    background: linear-gradient(135deg, #FF453A, #D6332A);
+  }
+  .alert-modal-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #FF9F0A;
+  }
+  .alert-modal-text {
+    font-size: 14px;
+    color: #e5e5e5;
+    line-height: 1.5;
+    margin-bottom: 16px;
+  }
+  .alert-modal-close {
+    width: 100%;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 12px;
+    color: #64D2FF;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .alert-modal-close:active {
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  /* BOTTOM ROW (Footer) */
+  .card-bottom { display: flex; justify-content: space-between; align-items: center; font-size: 13px; padding-top: 2px; }
+  .station-name { color: #98989d; font-weight: 500; display: flex; align-items: center; gap: 4px; }
+  .station-prefix { color: #636366; }
+  .dep-times { color: #fff; font-weight: 600; letter-spacing: -0.2px; }
+  .status-text { color: #30D158; font-weight: 500; } /* Green text for "No transit needed" */
+
+</style>
+</head>
+<body>
+
+<div class="phone-screen">
+  
+  <div class="header-section">
+    <div class="header-top">
+      <h1>The Gray Mare</h1>
+      <span class="time-display">7:00 PM</span>
+    </div>
+    
+    <div class="sub-header">
+      <span class="address">61 2nd Ave</span>
+      <a href="#" class="maps-link">Maps ↗</a>
+    </div>
+
+    <p class="note-text">📝 List opens 6:30 PM. $7.62 fee includes drink/fries.</p>
+    
+    <div class="action-row">
+      <button class="btn btn-primary">Sign Up Link</button>
+      <button class="btn btn-ig">IG</button>
+    </div>
+  </div>
+
+  <div class="content-sheet">
+    
+    <!-- WALKING CARD (Redesigned to match layout) -->
+    <div class="card-base">
+      <!-- Top: Time -->
+      <div class="card-top">
+        <span class="time-main">11:15 AM - 11:36 AM</span>
+        <span class="duration-main">21 min</span>
+      </div>
+      
+      <!-- Mid: Icons -->
+      <div class="card-mid">
+        <span>🚶 Start</span>
+        <span class="arrow">→</span>
+        <div class="badge-pill-green">Walk</div>
+        <span class="arrow">→</span>
+        <span>0.76 mi</span>
+      </div>
+
+      <!-- Bottom: Info -->
+      <div class="card-bottom">
+        <div class="station-name">
+          <span class="station-prefix">Route:</span> Direct
+        </div>
+        <div class="status-text">
+          No transit needed
+        </div>
+      </div>
+    </div>
+
+    <!-- SUBWAY CARD (Standard) -->
+    <div class="card-base">
+      <div class="card-top">
+        <span class="time-main">11:15 AM - 11:40 AM</span>
+        <span class="duration-main">25 min</span>
+      </div>
+
+      <div class="card-mid">
+        <span>🚶3m</span>
+        <span class="arrow">→</span>
+        <!-- Badge with alert - click to show modal -->
+        <div class="badge-wrap has-alert" onclick="document.getElementById('alertModal').classList.add('show')">
+          <div class="badge bg-red">1</div>
+          <div class="alert-dot"></div>
+        </div>
+        <span class="arrow">→</span>
+        <div class="badge-pill">NQRW</div>
+        <span class="arrow">→</span>
+        <div class="badge bg-green">6</div>
+      </div>
+
+      <div class="card-bottom">
+        <div class="station-name">
+          <span class="station-prefix">From:</span> Canal St
+        </div>
+        <div class="dep-times">
+          11:18, 11:25, 11:32
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- Alert Modal -->
+<div id="alertModal" class="modal-overlay" onclick="this.classList.remove('show')">
+  <div class="alert-modal" onclick="event.stopPropagation()">
+    <div class="alert-modal-header">
+      <div class="alert-modal-badge">1</div>
+      <span class="alert-modal-title">Delays · 5-10 min</span>
+    </div>
+    <div class="alert-modal-text">
+      Southbound 1 trains running with delays due to signal problems at 14 St.
+    </div>
+    <button class="alert-modal-close" onclick="document.getElementById('alertModal').classList.remove('show')">
+      Dismiss
+    </button>
+  </div>
+</div>
+
+</body>
+</html>
