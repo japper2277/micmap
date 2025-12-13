@@ -1,16 +1,11 @@
 /* =================================================================
-   MODAL
-   Venue modal open/close/toggle functions - Updated for new card design
+   MODAL - Updated for 12_11_25_venue_card.html design
    ================================================================= */
 
 // DOM element references (initialized after DOM loads)
-let venueModal, modalVenueName, modalAddress, modalDirections, modalTravelTime;
-let modalMicTime, modalSignupBadge, modalInstructions, modalActions, modalSignupBtn, modalIgBtn;
+let venueModal, modalVenueName, modalAddress, modalDirections;
+let modalMicTime, modalInstructions, modalActions, modalSignupBtn, modalIgBtn;
 let modalTransit;
-
-// SVG Icons
-const iconWalk = `<svg class="walk-icon" width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7z"/></svg>`;
-const iconWarning = `<svg width="12" height="12" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L1 21h22L12 2zm1 16h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>`;
 
 // Initialize modal DOM references
 function initModal() {
@@ -18,9 +13,7 @@ function initModal() {
     modalVenueName = document.getElementById('modal-venue-name');
     modalAddress = document.getElementById('modal-address');
     modalDirections = document.getElementById('modal-directions');
-    modalTravelTime = document.getElementById('modal-travel-time');
     modalMicTime = document.getElementById('modal-mic-time');
-    modalSignupBadge = document.getElementById('modal-signup-badge');
     modalInstructions = document.getElementById('modal-instructions');
     modalActions = document.getElementById('modal-actions');
     modalSignupBtn = document.getElementById('modal-signup-btn');
@@ -43,47 +36,30 @@ function initModal() {
 function openVenueModal(mic) {
     if (!mic) return;
 
-    // 1. HEADER - Venue Info
+    // 1. HEADER - Venue name and time
     modalVenueName.innerText = mic.title || 'Unknown Venue';
-    modalAddress.innerText = mic.address || '';
+    modalMicTime.innerText = mic.timeStr || '';
 
-    // Directions button - opens Google Maps
+    // 2. SUB-HEADER - Address and Maps link
+    modalAddress.innerText = mic.address || '';
     modalDirections.href = `https://www.google.com/maps/dir/?api=1&destination=${mic.lat},${mic.lng}`;
     modalDirections.target = '_blank';
 
-    // Travel time - check mic for pre-calculated transit time (set by applyTransitTimesToMics)
-    if (mic.transitMins) {
-        modalTravelTime.innerText = mic.transitMins + 'm';
-    } else {
-        modalTravelTime.innerText = '--';
-    }
-
-    // 2. MIC PROTOCOL
-    modalMicTime.innerText = mic.timeStr || '';
-
-    // Signup badge - determine type
-    if (mic.signupUrl) {
-        modalSignupBadge.innerText = 'Web Signup';
-        modalSignupBadge.className = 'signup-badge type-web';
-    } else {
-        modalSignupBadge.innerText = 'In Person';
-        modalSignupBadge.className = 'signup-badge type-web'; // Same style for now
-    }
-
-    // Instructions - strip URLs since button handles it
+    // 3. NOTE TEXT - Signup instructions
     let instructions = mic.signupInstructions || '';
     // Remove URLs from display text (button will handle the link)
     instructions = instructions.replace(/https?:\/\/[^\s]+/g, '').trim();
-    // Clean up leftover "at" or "Sign up at" if URL was removed
     instructions = instructions.replace(/\s*(sign\s*up\s*)?(at|@)\s*$/i, '').trim();
-    // If nothing meaningful left, show a default
     if (!instructions || instructions.length < 3) {
         instructions = mic.signupUrl ? 'Online signup available' : 'Sign up in person';
     }
     modalInstructions.innerText = instructions;
 
-    // Action buttons - Sign up link (only if URL exists)
+    // 4. ACTION BUTTONS - Sign up and IG
     const hasSignupUrl = !!mic.signupUrl;
+    const igHandle = mic.contact || mic.host || mic.hostIg;
+    const hasIg = igHandle && igHandle !== 'TBD';
+
     if (hasSignupUrl) {
         modalSignupBtn.href = mic.signupUrl;
         modalSignupBtn.target = '_blank';
@@ -92,9 +68,6 @@ function openVenueModal(mic) {
         modalSignupBtn.style.display = 'none';
     }
 
-    // Instagram button - always show if available (check contact, host, or hostIg fields)
-    const igHandle = mic.contact || mic.host || mic.hostIg;
-    const hasIg = igHandle && igHandle !== 'TBD';
     if (hasIg) {
         modalIgBtn.href = `https://instagram.com/${igHandle.replace(/^@/, '')}`;
         modalIgBtn.target = '_blank';
@@ -103,18 +76,20 @@ function openVenueModal(mic) {
         modalIgBtn.style.display = 'none';
     }
 
-    // Adjust grid layout based on number of buttons
-    const actionGrid = document.getElementById('modal-actions');
+    // Adjust grid based on button count
     if (hasSignupUrl && hasIg) {
-        actionGrid.style.gridTemplateColumns = '1fr 1fr';
+        modalActions.classList.remove('single-btn');
     } else {
-        actionGrid.style.gridTemplateColumns = '1fr'; // Single button takes full width
+        modalActions.classList.add('single-btn');
     }
+
+    // Hide actions row entirely if no buttons
+    modalActions.style.display = (hasSignupUrl || hasIg) ? 'grid' : 'none';
 
     // Show modal
     venueModal.classList.add('active');
 
-    // 3. TRANSIT - Load live arrivals
+    // 5. TRANSIT - Load live arrivals
     loadModalArrivals(mic);
 }
 
@@ -129,103 +104,152 @@ async function fetchSubwayRoutes(userLat, userLng, venueLat, venueLng) {
     return { routes: data.routes || [], schedule: data.schedule || {} };
 }
 
-// Display subway routes in modal (with optional walk option)
-function displaySubwayRoutes(routes, mic, walkOption = null, schedule = null) {
+// Helper: Format time range (e.g., "11:15 AM - 11:36 AM")
+function formatTimeRange(durationMins) {
+    const now = new Date();
+    const end = new Date(now.getTime() + durationMins * 60000);
+    const formatTime = (d) => d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+    return `${formatTime(now)} - ${formatTime(end)}`;
+}
+
+// Helper: Show alert modal
+function showAlertModal(line, alertText) {
+    const modal = document.getElementById('alertModal');
+    const badge = document.getElementById('alert-badge');
+    const title = document.getElementById('alert-title');
+    const text = document.getElementById('alert-text');
+
+    badge.className = `alert-modal-badge b-${line}`;
+    badge.innerText = line;
+    title.innerText = 'Service Alert';
+    text.innerText = alertText;
+    modal.classList.add('show');
+}
+
+// Display subway routes in new card format
+async function displaySubwayRoutes(routes, mic, walkOption = null, schedule = null) {
     if (!routes || routes.length === 0) {
-        modalTransit.innerHTML = '<div class="transit-empty">No routes found</div>';
+        modalTransit.innerHTML = '<div class="empty-card">No routes found</div>';
         return;
     }
 
-    // Update travel time with best option (walk or transit)
-    const bestRoute = routes[0];
-    const bestTime = walkOption && walkOption.walkMins < bestRoute.totalTime
-        ? walkOption.walkMins
-        : bestRoute.totalTime;
-    modalTravelTime.innerText = bestTime + 'm';
-
-    // Build HTML for each route
     let transitHTML = '';
 
-    // Show schedule warning if applicable
-    if (schedule?.note) {
-        transitHTML += `<div class="schedule-warning">⚠️ ${schedule.note}</div>`;
-    }
-
-    // Add walking option first if available
+    // Walking option card (if under 1 mile)
     if (walkOption) {
         const distDisplay = walkOption.directDist < 0.2
             ? `${(walkOption.directDist * 5280).toFixed(0)} ft`
             : `${walkOption.directDist.toFixed(2)} mi`;
+
         transitHTML += `
-            <div class="transit-row route-option walk-option">
-                <div class="route-badge">Walk</div>
-                <div>
-                    <div class="station-header">
-                        <span class="st-name">Walk directly</span>
-                    </div>
-                    <div class="arrival-data">
-                        <div class="route-details">${distDisplay} · No transit needed</div>
-                    </div>
+            <div class="card-base">
+                <div class="card-top">
+                    <span class="time-main">${formatTimeRange(walkOption.walkMins)}</span>
+                    <span class="duration-main">${walkOption.walkMins} min</span>
                 </div>
-                <div class="walk-info">
-                    <div class="walk-time">${walkOption.walkMins}m</div>
+                <div class="card-mid">
+                    <span>🚶 Start</span>
+                    <span class="arrow">→</span>
+                    <div class="badge-pill-green">Walk</div>
+                    <span class="arrow">→</span>
+                    <span>${distDisplay}</span>
+                </div>
+                <div class="card-bottom">
+                    <div class="station-name">
+                        <span class="station-prefix">Route:</span> Direct
+                    </div>
+                    <div class="status-text">No transit needed</div>
                 </div>
             </div>
         `;
     }
 
-    // Add subway routes
-    routes.forEach((route, idx) => {
-        const routeNum = idx + 1;
+    // Subway route cards
+    for (const route of routes) {
+        // Build icon flow from legs
+        let iconFlow = '<span>🚶' + route.walkToStation + 'm</span>';
+        let firstLine = null;
+        let originStationId = null;
 
-        // Get first ride leg to show actual starting station
-        const firstRideLeg = route.legs.find(l => l.type === 'ride');
-        const actualOrigin = firstRideLeg?.from || route.originStation;
-
-        // Build route description from legs
-        let routeDesc = '';
         route.legs.forEach((leg, legIdx) => {
             if (leg.type === 'ride') {
                 const lines = [leg.line, ...(leg.altLines || [])];
-                const linesBullets = lines.map(l => `<span class="bullet b-${l}">${l}</span>`).join('');
-                routeDesc += `${linesBullets} → ${leg.to}`;
-                if (legIdx < route.legs.length - 1) routeDesc += '<br>';
+                if (!firstLine) {
+                    firstLine = leg.line;
+                    originStationId = leg.fromStopId;
+                }
+                // Check if this leg has alerts
+                const hasAlert = route.alerts && route.alerts.some(a =>
+                    a.lines && a.lines.some(l => lines.includes(l))
+                );
+                const alertText = hasAlert ? route.alerts.find(a => a.lines && a.lines.some(l => lines.includes(l)))?.text : '';
+
+                iconFlow += '<span class="arrow">→</span>';
+
+                // Add badge for each line
+                lines.forEach((line, lineIdx) => {
+                    if (hasAlert && lineIdx === 0) {
+                        iconFlow += `<div class="badge-wrap" onclick="event.stopPropagation(); showAlertModal('${line}', '${alertText.replace(/'/g, "\\'")}')">
+                            <div class="badge b-${line}">${line}</div>
+                            <div class="alert-dot"></div>
+                        </div>`;
+                    } else {
+                        iconFlow += `<div class="badge b-${line}">${line}</div>`;
+                    }
+                });
             }
         });
 
-        // Build alerts HTML if route has alerts
-        let alertsHTML = '';
-        if (route.alerts && route.alerts.length > 0) {
-            // Show max 2 most relevant alerts
-            const topAlerts = route.alerts.slice(0, 2);
-            alertsHTML = `<div class="route-alerts">${topAlerts.map(a =>
-                `<div class="route-alert">⚠️ ${a.text.slice(0, 80)}${a.text.length > 80 ? '...' : ''}</div>`
-            ).join('')}</div>`;
+        // Add final walk
+        iconFlow += `<span class="arrow">→</span><span>🚶${route.walkToVenue}m</span>`;
+
+        // Get first ride leg for station name
+        const firstRideLeg = route.legs.find(l => l.type === 'ride');
+        const originStation = firstRideLeg?.from || route.originStation;
+
+        // Fetch actual departure times for first line at origin station
+        let depTimesStr = '';
+        if (firstLine && originStation) {
+            try {
+                // Look up the station by name to get GTFS stop ID
+                const stationData = findStationByName(originStation, firstLine);
+                if (stationData && stationData.gtfsStopId) {
+                    const arrivals = await mtaService.fetchArrivals(firstLine, stationData.gtfsStopId);
+                    if (arrivals && arrivals.length > 0) {
+                        const next3 = arrivals.slice(0, 3);
+                        // Format as clock times like "11:18, 11:25, 11:32"
+                        depTimesStr = next3.map(a => {
+                            const arrivalTime = new Date(Date.now() + a.minsAway * 60000);
+                            return arrivalTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }).replace(' ', '');
+                        }).join(', ');
+                    }
+                }
+            } catch (e) {
+                console.log('Could not fetch arrivals for', originStation, firstLine, e);
+            }
+        }
+        if (!depTimesStr) {
+            depTimesStr = `${route.walkToStation}m walk · ${route.subwayTime}m ride`;
         }
 
         transitHTML += `
-            <div class="transit-row route-option">
-                <div class="route-badge">Route ${routeNum}</div>
-                <div>
-                    <div class="station-header">
-                        <span class="st-name">${actualOrigin}</span>
-                    </div>
-                    <div class="arrival-data">
-                        <div class="route-details">${routeDesc}</div>
-                        <div class="time-breakdown">
-                            ${iconWalk} ${route.walkToStation}m walk ·
-                            🚇 ${route.subwayTime}m ride ·
-                            ${iconWalk} ${route.walkToVenue}m walk
-                        </div>
-                        ${alertsHTML}
-                    </div>
+            <div class="card-base">
+                <div class="card-top">
+                    <span class="time-main">${formatTimeRange(route.totalTime)}</span>
+                    <span class="duration-main">${route.totalTime} min</span>
                 </div>
-                <div class="walk-info">
-                    <div class="walk-time">${route.totalTime}m</div>
+                <div class="card-mid">
+                    ${iconFlow}
+                </div>
+                <div class="card-bottom">
+                    <div class="station-name">
+                        <span class="station-prefix">From:</span> ${originStation}
+                    </div>
+                    <div class="dep-times">${depTimesStr}</div>
                 </div>
             </div>
         `;
-    });
+    }
 
     modalTransit.innerHTML = transitHTML;
 }
@@ -238,26 +262,16 @@ async function loadModalArrivals(mic) {
     const hasUserOrigin = STATE?.userOrigin?.lat && STATE?.userOrigin?.lng;
     if (!hasUserOrigin) {
         modalTransit.innerHTML = '';
-        // Don't overwrite travel time if mic already has transitMins
-        if (!mic.transitMins) {
-            modalTravelTime.innerText = '--';
-        }
         return;
     }
 
     // Show loading state
-    modalTransit.innerHTML = `
-        <div class="transit-row">
-            <div style="grid-column: 1 / -1; text-align: center; color: var(--text-sec); font-size: 13px;">
-                Loading transit info...
-            </div>
-        </div>
-    `;
+    modalTransit.innerHTML = '<div class="loading-card">Loading transit info...</div>';
 
     const originLat = STATE.userOrigin.lat;
     const originLng = STATE.userOrigin.lng;
 
-    // Thresholds based on actual walking distance (not straight-line)
+    // Thresholds based on actual walking distance
     const WALK_ONLY_THRESHOLD = 0.5; // miles - under this, just walk
     const SHOW_WALK_OPTION = 1.0;    // miles - under this, show walk as an option
 
@@ -274,20 +288,30 @@ async function loadModalArrivals(mic) {
         walkMins = Math.ceil(walkDist * 20); // 20 min/mile
     }
 
-    // Under 0.5 miles actual walk - just show walking
+    // Under 0.5 miles actual walk - just show walking card
     if (walkDist < WALK_ONLY_THRESHOLD) {
         const distDisplay = walkDist < 0.2
             ? `${(walkDist * 5280).toFixed(0)} ft`
             : `${walkDist.toFixed(2)} mi`;
-        modalTravelTime.innerText = walkMins + 'm';
+
         modalTransit.innerHTML = `
-            <div class="transit-row">
-                <div class="walk-route">
-                    ${iconWalk}
-                    <div class="walk-details">
-                        <div class="walk-title">Walk directly</div>
-                        <div class="walk-distance">${distDisplay} · ${walkMins} min</div>
+            <div class="card-base">
+                <div class="card-top">
+                    <span class="time-main">${formatTimeRange(walkMins)}</span>
+                    <span class="duration-main">${walkMins} min</span>
+                </div>
+                <div class="card-mid">
+                    <span>🚶 Start</span>
+                    <span class="arrow">→</span>
+                    <div class="badge-pill-green">Walk</div>
+                    <span class="arrow">→</span>
+                    <span>${distDisplay}</span>
+                </div>
+                <div class="card-bottom">
+                    <div class="station-name">
+                        <span class="station-prefix">Route:</span> Direct
                     </div>
+                    <div class="status-text">No transit needed</div>
                 </div>
             </div>
         `;
@@ -310,25 +334,24 @@ async function loadModalArrivals(mic) {
     // Display routes with walking option if under 1 mile actual walk
     if (routes && routes.length > 0) {
         console.log('🚇 Displaying subway routes');
-        displaySubwayRoutes(routes, mic, walkDist < SHOW_WALK_OPTION ? { walkMins, directDist: walkDist } : null, schedule);
+        await displaySubwayRoutes(routes, mic, walkDist < SHOW_WALK_OPTION ? { walkMins, directDist: walkDist } : null, schedule);
         return;
     }
     console.log('🚇 No subway routes, falling back to station arrivals');
 
-    // Find 2 nearest stations to USER's origin
+    // Fallback: Find 2 nearest stations to USER's origin and show arrivals
     const nearestStations = findNearestStations(originLat, originLng, 2);
     if (!nearestStations || nearestStations.length === 0) {
-        modalTransit.innerHTML = '<div class="transit-empty">No nearby stations</div>';
+        modalTransit.innerHTML = '<div class="empty-card">No nearby stations</div>';
         return;
     }
 
-    // Fetch alerts once for all stations (use cache if available)
+    // Fetch alerts once for all stations
     const alerts = mtaService.alertsCache || await mtaService.fetchAlerts() || [];
 
     let transitHTML = '';
-    let bestTotalTime = Infinity;
 
-    // Process each station (ONE ROW PER STATION, not per line)
+    // Process each station
     for (const station of nearestStations) {
         const lineMatch = station.name.match(/\(([^)]+)\)/);
         if (!lineMatch) continue;
@@ -336,18 +359,17 @@ async function loadModalArrivals(mic) {
         const lines = lineMatch[1].split(' ').filter(l => l.length > 0);
         const stationName = station.name.replace(/\s*\([^)]+\)/, '');
 
-        // Calculate walk time using HERE API (accurate) with fallback to estimate
-        let walkMins;
+        // Calculate walk time
+        let stationWalkMins;
         try {
             const walkData = await getHereWalkingTime(originLat, originLng, station.lat, station.lng);
-            walkMins = walkData.durationMins;
+            stationWalkMins = walkData.durationMins;
         } catch (e) {
-            // Fallback to estimate
             const walkMiles = calculateDistance(originLat, originLng, station.lat, station.lng);
-            walkMins = Math.ceil(walkMiles * 20);
+            stationWalkMins = Math.ceil(walkMiles * 20);
         }
 
-        // Fetch arrivals for ALL lines at this station - NEVER GUESS, use real-time data
+        // Fetch arrivals for ALL lines at this station
         let allArrivals = [];
         const linesWithService = new Set();
 
@@ -355,146 +377,83 @@ async function loadModalArrivals(mic) {
             try {
                 const lineArrivals = await mtaService.fetchArrivals(line, station.gtfsStopId);
                 if (lineArrivals && lineArrivals.length > 0) {
-                    // Tag each arrival with its line
                     lineArrivals.forEach(a => a.line = line);
                     allArrivals.push(...lineArrivals);
                     linesWithService.add(line);
                 }
             } catch (e) {
-                // Line has no service right now - skip it
+                // Line has no service right now
             }
         }
 
-        // Sort all arrivals by time
         allArrivals.sort((a, b) => a.minsAway - b.minsAway);
 
-        // Use the first line with actual service as primary
-        const primaryLine = linesWithService.size > 0 ? [...linesWithService][0] : lines[0];
-        let arrivals = allArrivals;
-
-        // DIRECTION FILTERING: Only show trains going TOWARD the venue
-        const venueClusterId = resolveClusterId(mic);
-        const venueCluster = venueClusterId !== null
-            ? TRANSIT_DATA?.clusters?.find(c => c.id === venueClusterId)
-            : null;
-
-        let filteredArrivals = arrivals;
-        let directionLabel = '';
-        if (venueCluster && arrivals.length > 0) {
-            // Determine needed direction based on venue position vs station
-            const neededDirection = getDirectionToward(station, venueCluster, primaryLine);
-            directionLabel = neededDirection;
-            filteredArrivals = arrivals.filter(a => a.direction === neededDirection);
-
-            // If no trains in needed direction, show all (better than empty)
-            if (filteredArrivals.length === 0) {
-                filteredArrivals = arrivals;
-                directionLabel = ''; // Don't show direction if we couldn't filter
-            }
-        }
-
         // Filter out trains user can't catch
-        // 1 min walk → 1+ min, 2 min walk → 2+ min, 3 min walk → 3+ min
-        // After 3 min walk, apply -2 buffer: 4 min walk → 2+ min, 5 min → 3+ min, 8 min → 6+ min
-        const minCatchableTime = walkMins <= 3 ? walkMins : (walkMins - 2);
-        filteredArrivals = filteredArrivals.filter(a => a.minsAway >= minCatchableTime);
+        const minCatchableTime = stationWalkMins <= 3 ? stationWalkMins : (stationWalkMins - 2);
+        const catchableArrivals = allArrivals.filter(a => a.minsAway >= minCatchableTime);
 
-        // Get next 3 arrival times
-        const nextArrivals = filteredArrivals.slice(0, 3);
+        // Get next 3 arrivals
+        const nextArrivals = catchableArrivals.slice(0, 3);
         const timesStr = nextArrivals.length > 0
-            ? nextArrivals.map(a => a.minsAway === 0 ? 'Now' : a.minsAway).join(', ')
+            ? nextArrivals.map(a => a.minsAway === 0 ? 'Now' : a.minsAway + 'm').join(', ')
             : 'No trains';
-        const directionStr = directionLabel ? `→ ${directionLabel}` : '';
 
-        // Calculate total commute time for this option using standardized function
-        if (nextArrivals.length > 0 && venueClusterId !== null) {
-            const commute = calculateLiveCommute({
-                userLat: originLat,
-                userLng: originLng,
-                stationLat: station.lat,
-                stationLng: station.lng,
-                stationId: station.id,
-                arrivals: nextArrivals,
-                clusterId: venueClusterId,
-                venueLat: mic.lat,
-                venueLng: mic.lng
-            });
-
-            if (commute.total < bestTotalTime) {
-                bestTotalTime = commute.total;
-            }
-        }
-
-        // Build bullet HTML - ONLY show lines with actual real-time service
-        const displayLines = linesWithService.size > 0
-            ? [...linesWithService].slice(0, 3)
-            : lines.slice(0, 1); // Fallback to first line if no real-time data
-        const bulletHTML = displayLines.length === 1
-            ? `<div class="bullet b-${displayLines[0]}">${displayLines[0]}</div>`
-            : `<div class="bullet-stack">${displayLines.map(l => `<div class="bullet b-${l}">${l}</div>`).join('')}</div>`;
-
-        // Determine express vs local
-        const isExpress = ['2','3','4','5','A','D','N','Q'].includes(primaryLine);
-        const svcBadge = isExpress ? 'svc-express' : 'svc-local';
-        const svcLabel = isExpress ? 'Express' : 'Local';
-
-        // Check if any line at this station has alerts
+        // Check for alerts on this station's lines
         const stationAlerts = alerts.filter(alert =>
             alert.lines && alert.lines.some(l => lines.includes(l))
         );
-        const hasDelay = stationAlerts.length > 0;
-        const alertText = hasDelay ? (stationAlerts[0].text || 'Service alert') : '';
+        const hasAlert = stationAlerts.length > 0;
+        const alertText = hasAlert ? stationAlerts[0].text : '';
 
-        // Check if transfer is needed to reach venue
-        const transferInfo = venueClusterId !== null ? checkTransferNeeded(station, venueClusterId) : null;
-        let transferHTML = '';
-        if (transferInfo?.needsTransfer && transferInfo.transferHub) {
-            const hub = transferInfo.transferHub;
-            const transferLine = hub.transferTo[0]; // First line to transfer to
-            transferHTML = `<div class="transfer-msg">↔ Transfer at ${hub.name} to <span class="bullet-inline b-${transferLine}">${transferLine}</span></div>`;
-        }
+        // Build badge flow
+        const displayLines = linesWithService.size > 0
+            ? [...linesWithService].slice(0, 3)
+            : lines.slice(0, 1);
+
+        let badgeFlow = `<span>🚶${stationWalkMins}m</span><span class="arrow">→</span>`;
+        displayLines.forEach((line, idx) => {
+            if (hasAlert && idx === 0) {
+                badgeFlow += `<div class="badge-wrap" onclick="event.stopPropagation(); showAlertModal('${line}', '${alertText.replace(/'/g, "\\'")}')">
+                    <div class="badge b-${line}">${line}</div>
+                    <div class="alert-dot"></div>
+                </div>`;
+            } else {
+                badgeFlow += `<div class="badge b-${line}">${line}</div>`;
+            }
+        });
+
+        // Estimate total time (walk + wait + ride estimate)
+        const waitTime = nextArrivals.length > 0 ? nextArrivals[0].minsAway : 5;
+        const rideEstimate = 15; // Rough estimate
+        const totalTime = stationWalkMins + waitTime + rideEstimate;
 
         transitHTML += `
-            <div class="transit-row ${hasDelay ? 'delayed-row' : ''}">
-                ${bulletHTML}
-                <div>
-                    <div class="station-header">
-                        <span class="st-name">${stationName}</span>
-                        ${directionStr ? `<span class="direction-label">${directionStr}</span>` : ''}
-                    </div>
-                    <div class="arrival-data">
-                        <div class="time-row">${timesStr}${nextArrivals.length > 0 ? ' <span class="unit">min</span>' : ''}</div>
-                        ${transferHTML}
-                        ${hasDelay ? `<div class="delay-toggle" onclick="this.classList.toggle('expanded')"><span class="delay-label">Alert</span><svg class="delay-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></div><div class="delay-msg">${alertText}</div>` : ''}
-                    </div>
+            <div class="card-base">
+                <div class="card-top">
+                    <span class="time-main">${formatTimeRange(totalTime)}</span>
+                    <span class="duration-main">~${totalTime} min</span>
                 </div>
-                <div class="walk-info">
-                    ${iconWalk}
-                    <div class="walk-time">${walkMins} min</div>
+                <div class="card-mid">
+                    ${badgeFlow}
+                </div>
+                <div class="card-bottom">
+                    <div class="station-name">
+                        <span class="station-prefix">From:</span> ${stationName}
+                    </div>
+                    <div class="dep-times">${timesStr}</div>
                 </div>
             </div>
         `;
     }
 
-    modalTransit.innerHTML = transitHTML || '';
-
-    // Update travel time badge in header
-    // Only update if we calculated a real time, otherwise keep mic.transitMins
-    if (bestTotalTime < Infinity) {
-        modalTravelTime.innerText = bestTotalTime + 'm';
-    }
-    // Don't reset to '--' - mic.transitMins was already set earlier
+    modalTransit.innerHTML = transitHTML || '<div class="empty-card">No transit info available</div>';
 }
 
 // Find nearest stations to a lat/lng (returns array)
-// Uses getStationsNearUser() from utils.js for proper Haversine distance
 function findNearestStations(lat, lng, count = 2) {
     return getStationsNearUser(lat, lng, count);
 }
 
 function closeVenueModal() {
     venueModal.classList.remove('active');
-    // Collapse the details element when closing
-    const micRow = venueModal.querySelector('details.mic-row');
-    if (micRow) micRow.removeAttribute('open');
 }
