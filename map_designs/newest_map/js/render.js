@@ -3,6 +3,16 @@
    Main rendering function for list and map
    ================================================================= */
 
+// Format set time to always show "Xmin" (e.g., "5" -> "5min", "5min" -> "5min")
+function formatSetTime(setTime) {
+    if (!setTime) return '5min';
+    const str = String(setTime).toLowerCase().trim();
+    // Extract just the number
+    const num = str.replace(/[^0-9]/g, '');
+    if (!num) return '5min';
+    return num + 'min';
+}
+
 function render(mode) {
     const container = document.getElementById('list-content');
     if (!container) return;
@@ -143,13 +153,23 @@ function render(mode) {
     // Sort: Transit time (if in transit mode) OR start time
     if (STATE.isTransitMode && STATE.userOrigin) {
         // Sort by transit time - closest first, then by start time for ties
-        filtered.sort((a, b) =>
-            (a.transitMins || 999) - (b.transitMins || 999) ||
-            (a.start || 0) - (b.start || 0)
-        );
+        filtered.sort((a, b) => {
+            const aTransit = a.transitMins || 999;
+            const bTransit = b.transitMins || 999;
+            if (aTransit !== bTransit) return aTransit - bTransit;
+
+            // For ties, sort by start time
+            const aStart = a.start instanceof Date ? a.start.getTime() : (a.start || 0);
+            const bStart = b.start instanceof Date ? b.start.getTime() : (b.start || 0);
+            return aStart - bStart;
+        });
     } else {
         // Default: Sort by start time
-        filtered.sort((a, b) => (a.start || 0) - (b.start || 0));
+        filtered.sort((a, b) => {
+            const aStart = a.start instanceof Date ? a.start.getTime() : (a.start || 0);
+            const bStart = b.start instanceof Date ? b.start.getTime() : (b.start || 0);
+            return aStart - bStart;
+        });
     }
 
     // In transit mode: split into visible and hidden for "Show more" functionality
@@ -227,23 +247,20 @@ function render(mode) {
                 <!-- LEFT: Specs -->
                 <div class="specs-col">
                     <div class="start-time">${mic.timeStr}</div>
-                    <div class="stage-time">${mic.setTime}</div>
+                    <div class="stage-time">${formatSetTime(mic.setTime)}</div>
                 </div>
 
                 <!-- CENTER: Info -->
                 <div class="info-col">
-                    <div class="status-row ${statusClass}">
-                        <div class="status-dot"></div>
-                        ${statusText}
-                    </div>
                     <div class="venue-row">
                         <div class="venue-name">${mic.title}</div>
                         ${commuteDisplay}
                     </div>
                     <div class="meta-row">
-                        <span>${mic.hood}</span>
-                        <div class="meta-separator">|</div>
-                        <span>${mic.price}</span>
+                        <span class="neighborhood">${mic.hood.toUpperCase()}</span>
+                        <span class="meta-dot">·</span>
+                        <span class="tag-pill">${mic.price.toUpperCase()}</span>
+                        <span class="tag-pill">${mic.borough ? mic.borough.toUpperCase() : 'NYC'}</span>
                     </div>
                 </div>
 

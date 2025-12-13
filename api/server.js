@@ -234,6 +234,31 @@ app.get('/api/v1/mics', cacheMiddleware, async (req, res) => {
         }
       }
 
+      // Sort the filtered results (same as MongoDB path)
+      mics = mics.sort((a, b) => {
+        // First sort by day
+        if (a.day !== b.day) {
+          const dayOrder = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+          return dayOrder.indexOf(a.day) - dayOrder.indexOf(b.day);
+        }
+
+        // Then sort by time (parse time string to compare correctly)
+        const parseTimeValue = (timeStr) => {
+          const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+          if (!match) return 0;
+          let hours = parseInt(match[1]);
+          const mins = parseInt(match[2]);
+          const period = match[3].toUpperCase();
+          if (period === 'PM' && hours !== 12) hours += 12;
+          if (period === 'AM' && hours === 12) hours = 0;
+          return hours * 60 + mins; // Convert to minutes since midnight
+        };
+
+        const aTime = parseTimeValue(a.startTime);
+        const bTime = parseTimeValue(b.startTime);
+        return aTime - bTime;
+      });
+
       console.log(`✅ Loaded ${mics.length} mics from JSON fallback`);
     } else {
       throw new Error('No data source available');
@@ -1100,9 +1125,20 @@ app.get('/api/subway/routes', async (req, res) => {
     }
 
     // Return only the requested number of routes (sorted by time)
-    const finalRoutes = validatedRoutes
+    let finalRoutes = validatedRoutes
       .sort((a, b) => a.totalTime - b.totalTime)
       .slice(0, parseInt(limit));
+
+    // FALLBACK: If all routes were filtered by validation, return best unvalidated routes
+    // This handles weekends/late nights when MTA feed is incomplete
+    if (finalRoutes.length === 0 && routes.length > 0) {
+      console.log('⚠️ All routes filtered by validation - returning unvalidated routes');
+      finalRoutes = routes
+        .sort((a, b) => a.totalTime - b.totalTime)
+        .slice(0, parseInt(limit));
+      // Mark routes as unvalidated
+      finalRoutes.forEach(r => r.unvalidated = true);
+    }
 
     // Add schedule context to response
     const scheduleInfo = {

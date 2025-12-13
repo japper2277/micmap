@@ -40,8 +40,13 @@ function openVenueModal(mic) {
     modalVenueName.innerText = mic.title || 'Unknown Venue';
     modalMicTime.innerText = mic.timeStr || '';
 
-    // 2. SUB-HEADER - Address and Maps link
-    modalAddress.innerText = mic.address || '';
+    // 2. SUB-HEADER - Address and Maps link (format: "123 Street, Borough")
+    let address = mic.address || '';
+    // Remove ", NY" and zip code if present
+    address = address.replace(/,?\s*NY\s*\d{5}(-\d{4})?/i, '').trim();
+    // Remove trailing comma if any
+    address = address.replace(/,\s*$/, '');
+    modalAddress.innerText = address;
     modalDirections.href = `https://www.google.com/maps/dir/?api=1&destination=${mic.lat},${mic.lng}`;
     modalDirections.target = '_blank';
 
@@ -93,16 +98,25 @@ function openVenueModal(mic) {
     loadModalArrivals(mic);
 }
 
-// Fetch routes from subway router API
-async function fetchSubwayRoutes(userLat, userLng, venueLat, venueLng) {
-    const url = `http://localhost:3001/api/subway/routes?userLat=${userLat}&userLng=${userLng}&venueLat=${venueLat}&venueLng=${venueLng}`;
-    console.log('🚇 Fetching subway routes:', url);
-    const response = await fetch(url);
-    if (!response.ok) throw new Error('Subway router API failed');
-    const data = await response.json();
-    console.log('🚇 Subway routes response:', data.routes?.length || 0, 'routes', data.schedule);
-    return { routes: data.routes || [], schedule: data.schedule || {} };
+// Get route - uses shared cache from transitService or fetches fresh
+async function getRouteForModal(mic, userLat, userLng) {
+    // Check if route is already cached from card calculation
+    if (mic.route) {
+        console.log('🚇 Using cached route from card calculation');
+        return { routes: [mic.route], schedule: null };
+    }
+
+    // Not cached - fetch via shared transitService
+    console.log('🚇 Fetching route via transitService');
+    const route = await transitService.fetchSubwayRoute(userLat, userLng, mic.lat, mic.lng);
+    if (route) {
+        return { routes: [route], schedule: null };
+    }
+    return { routes: [], schedule: null };
 }
+
+// Walking icon SVG (gray)
+const walkIcon = '<svg class="walk-icon" width="14" height="14" fill="#8e8e93" viewBox="0 0 24 24"><path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7z"/></svg>';
 
 // Helper: Format time range (e.g., "11:15 AM - 11:36 AM")
 function formatTimeRange(durationMins) {
@@ -110,6 +124,43 @@ function formatTimeRange(durationMins) {
     const end = new Date(now.getTime() + durationMins * 60000);
     const formatTime = (d) => d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
     return `${formatTime(now)} - ${formatTime(end)}`;
+}
+
+// Helper: Find station by name and line
+function findStationByName(stationName, line) {
+    if (!TRANSIT_DATA || !TRANSIT_DATA.stations) return null;
+
+    // Normalize the station name for matching
+    const normalizedName = stationName.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+    for (const station of TRANSIT_DATA.stations) {
+        // Extract station name without the lines part
+        const baseStationName = station.name.replace(/\s*\([^)]+\)/, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+
+        // Check if names match and if the line is at this station
+        if (baseStationName.includes(normalizedName) || normalizedName.includes(baseStationName)) {
+            const stationLines = station.name.match(/\(([^)]+)\)/);
+            if (stationLines) {
+                const lines = stationLines[1].split(' ');
+                if (lines.includes(line)) {
+                    return station;
+                }
+            }
+        }
+    }
+
+    // Fallback: try partial match
+    for (const station of TRANSIT_DATA.stations) {
+        const baseStationName = station.name.replace(/\s*\([^)]+\)/, '').toLowerCase();
+        if (baseStationName.includes(stationName.toLowerCase().split(' ')[0])) {
+            const stationLines = station.name.match(/\(([^)]+)\)/);
+            if (stationLines && stationLines[1].split(' ').includes(line)) {
+                return station;
+            }
+        }
+    }
+
+    return null;
 }
 
 // Helper: Show alert modal
@@ -148,7 +199,7 @@ async function displaySubwayRoutes(routes, mic, walkOption = null, schedule = nu
                     <span class="duration-main">${walkOption.walkMins} min</span>
                 </div>
                 <div class="card-mid">
-                    <span>🚶 Start</span>
+                    <span>${walkIcon} Start</span>
                     <span class="arrow">→</span>
                     <div class="badge-pill-green">Walk</div>
                     <span class="arrow">→</span>
@@ -167,7 +218,7 @@ async function displaySubwayRoutes(routes, mic, walkOption = null, schedule = nu
     // Subway route cards
     for (const route of routes) {
         // Build icon flow from legs
-        let iconFlow = '<span>🚶' + route.walkToStation + 'm</span>';
+        let iconFlow = '<span>' + walkIcon + route.walkToStation + 'm</span>';
         let firstLine = null;
         let originStationId = null;
 
@@ -201,7 +252,7 @@ async function displaySubwayRoutes(routes, mic, walkOption = null, schedule = nu
         });
 
         // Add final walk
-        iconFlow += `<span class="arrow">→</span><span>🚶${route.walkToVenue}m</span>`;
+        iconFlow += `<span class="arrow">→</span><span>${walkIcon}${route.walkToVenue}m</span>`;
 
         // Get first ride leg for station name
         const firstRideLeg = route.legs.find(l => l.type === 'ride');
@@ -220,7 +271,10 @@ async function displaySubwayRoutes(routes, mic, walkOption = null, schedule = nu
                         // Format as clock times like "11:18, 11:25, 11:32"
                         depTimesStr = next3.map(a => {
                             const arrivalTime = new Date(Date.now() + a.minsAway * 60000);
-                            return arrivalTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }).replace(' ', '');
+                            const hours = arrivalTime.getHours();
+                            const mins = arrivalTime.getMinutes().toString().padStart(2, '0');
+                            const displayHour = hours > 12 ? hours - 12 : (hours === 0 ? 12 : hours);
+                            return `${displayHour}:${mins}`;
                         }).join(', ');
                     }
                 }
@@ -301,7 +355,7 @@ async function loadModalArrivals(mic) {
                     <span class="duration-main">${walkMins} min</span>
                 </div>
                 <div class="card-mid">
-                    <span>🚶 Start</span>
+                    <span>${walkIcon} Start</span>
                     <span class="arrow">→</span>
                     <div class="badge-pill-green">Walk</div>
                     <span class="arrow">→</span>
@@ -318,17 +372,16 @@ async function loadModalArrivals(mic) {
         return;
     }
 
-    // Call subway router API
+    // Get route (uses cache from card calculation if available)
     let routes = [];
     let schedule = null;
     try {
-        console.log('🚇 Calling fetchSubwayRoutes with:', { originLat, originLng, venueLat: mic.lat, venueLng: mic.lng });
-        const result = await fetchSubwayRoutes(originLat, originLng, mic.lat, mic.lng);
+        const result = await getRouteForModal(mic, originLat, originLng);
         routes = result.routes || [];
         schedule = result.schedule || null;
-        console.log('🚇 Got routes:', routes.length, 'schedule:', schedule);
+        console.log('🚇 Got routes:', routes.length);
     } catch (error) {
-        console.error('Subway router API failed:', error);
+        console.error('Route fetch failed:', error);
     }
 
     // Display routes with walking option if under 1 mile actual walk
@@ -410,7 +463,7 @@ async function loadModalArrivals(mic) {
             ? [...linesWithService].slice(0, 3)
             : lines.slice(0, 1);
 
-        let badgeFlow = `<span>🚶${stationWalkMins}m</span><span class="arrow">→</span>`;
+        let badgeFlow = `<span>${walkIcon}${stationWalkMins}m</span><span class="arrow">→</span>`;
         displayLines.forEach((line, idx) => {
             if (hasAlert && idx === 0) {
                 badgeFlow += `<div class="badge-wrap" onclick="event.stopPropagation(); showAlertModal('${line}', '${alertText.replace(/'/g, "\\'")}')">
