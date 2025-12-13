@@ -59,6 +59,14 @@ function processMics(rawMics) {
         // API field mapping: name, venueName, signUpDetails, lon
         const signup = m.signUpDetails || m.signup || '';
 
+        // Extract IG handle from host field (e.g., "Dina Marie (@fabulousdinamarie)" -> "fabulousdinamarie")
+        let contact = '';
+        const hostStr = m.host || '';
+        const igMatch = hostStr.match(/@([a-zA-Z0-9_.]+)/);
+        if (igMatch) {
+            contact = igMatch[1];
+        }
+
         // Shorten venue names: "Comedy Club" → "CC"
         let venueName = m.venueName || m.venue || m.name;
         if (venueName.endsWith('Comedy Club')) {
@@ -80,7 +88,9 @@ function processMics(rawMics) {
             signupUrl: extractSignupUrl(signup),
             signupEmail: extractSignupEmail(signup),
             signupInstructions: signup || 'No signup info available',
-            lng: m.lng || m.lon  // API uses 'lon', normalize to 'lng'
+            lng: m.lng || m.lon,  // API uses 'lon', normalize to 'lng'
+            contact: contact,
+            borough: m.borough
         };
     });
 }
@@ -109,27 +119,6 @@ function formatDistance(miles) {
     if (miles < 0.1) return `${Math.round(miles * 5280)} ft`;
     if (miles < 10) return `${miles.toFixed(1)} mi`;
     return `${Math.round(miles)} mi`;
-}
-
-/* =========================================================================
-   TRANSIT DATA & CLUSTER UTILITIES
-   ========================================================================= */
-
-// Global transit data (loaded from transit_data.json)
-var TRANSIT_DATA = null;
-window.TRANSIT_DATA = null; // Also expose on window for other modules
-const CLUSTER_SNAP_RADIUS = 0.3; // miles - for snapping new venues to clusters
-
-// Load transit data JSON
-async function loadTransitData() {
-    try {
-        const response = await fetch('js/transit_data.json');
-        TRANSIT_DATA = await response.json();
-        window.TRANSIT_DATA = TRANSIT_DATA; // Expose on window
-        console.log(`✅ Loaded transit data: ${TRANSIT_DATA.clusters.length} clusters`);
-    } catch (e) {
-        console.warn('Transit data not available:', e.message);
-    }
 }
 
 /* =========================================================================
@@ -176,300 +165,6 @@ function isMicVisible(mic) {
     }
 
     return true;
-}
-
-/* =========================================================================
-   resolveClusterId - Find which cluster a venue belongs to
-   ========================================================================= */
-function createSlug(str) {
-    return str.toLowerCase().replace(/[^a-z0-9]/g, '');
-}
-
-function resolveClusterId(venue) {
-    if (!TRANSIT_DATA) return null;
-
-    // 1. PRIMARY: Check venue_map by mic ID
-    const venueId = venue.id;
-    if (venueId && TRANSIT_DATA.venue_map[venueId] !== undefined) {
-        return TRANSIT_DATA.venue_map[venueId];
-    }
-
-    // 2. FALLBACK: Check slug_map
-    const title = venue.venue || venue.title;
-    if (title) {
-        const slug = createSlug(title);
-        if (TRANSIT_DATA.slug_map && TRANSIT_DATA.slug_map[slug] !== undefined) {
-            return TRANSIT_DATA.slug_map[slug];
-        }
-    }
-
-    // 3. LAST RESORT: Dynamic snap to closest cluster
-    let closestId = null;
-    let minDist = Infinity;
-
-    TRANSIT_DATA.clusters.forEach(c => {
-        const d = calculateDistance(venue.lat, venue.lng, c.lat, c.lng);
-        if (d <= CLUSTER_SNAP_RADIUS && d < minDist) {
-            minDist = d;
-            closestId = c.id;
-        }
-    });
-
-    return closestId;
-}
-
-function getUserClusterId(originLat, originLng) {
-    if (!TRANSIT_DATA) return null;
-
-    let closestId = null;
-    let minDist = Infinity;
-
-    TRANSIT_DATA.clusters.forEach(c => {
-        const d = calculateDistance(originLat, originLng, c.lat, c.lng);
-        if (d < minDist) {
-            minDist = d;
-            closestId = c.id;
-        }
-    });
-
-    return closestId;
-}
-
-// Find nearest subway station to user's location (for pre-computed matrix lookup)
-function getNearestStation(lat, lng) {
-    if (!TRANSIT_DATA || !TRANSIT_DATA.stations) return null;
-
-    let nearest = null;
-    let minDist = Infinity;
-    const MAX_STATION_DISTANCE = 0.5; // miles - max distance to snap to a station
-
-    TRANSIT_DATA.stations.forEach(station => {
-        const d = calculateDistance(lat, lng, station.lat, station.lng);
-        if (d < minDist && d <= MAX_STATION_DISTANCE) {
-            minDist = d;
-            nearest = { ...station, distance: d };
-        }
-    });
-
-    return nearest;
-}
-
-// Find N nearest subway stations to user's location (for departure assistant)
-function getStationsNearUser(lat, lng, count = 3) {
-    if (!TRANSIT_DATA || !TRANSIT_DATA.stations) return [];
-
-    const MAX_STATION_DISTANCE = 0.5; // miles - max distance to consider
-
-    // Calculate distance for all stations within range
-    const stationsWithDistance = TRANSIT_DATA.stations
-        .map(station => ({
-            ...station,
-            distance: calculateDistance(lat, lng, station.lat, station.lng)
-        }))
-        .filter(s => s.distance <= MAX_STATION_DISTANCE)
-        .sort((a, b) => a.distance - b.distance)
-        .slice(0, count);
-
-    return stationsWithDistance;
-}
-
-// Extract line letters from station name (e.g., "14 St (N Q R W)" -> ["N", "Q", "R", "W"])
-function extractLinesFromStation(station) {
-    const match = station.name.match(/\(([^)]+)\)/);
-    if (!match) return [];
-    return match[1].split(' ').filter(l => l.length > 0);
-}
-
-/* =========================================================================
-   TRANSFER DETECTION
-   Determines if a transfer is needed and suggests the best transfer hub
-   ========================================================================= */
-
-// Major transfer hubs with lines available
-const TRANSFER_HUBS = {
-    // Manhattan
-    'times-sq': { name: 'Times Sq-42 St', lines: ['1','2','3','7','N','Q','R','W','S','A','C','E'], lat: 40.7559, lng: -73.9871 },
-    'union-sq': { name: '14 St-Union Sq', lines: ['L','N','Q','R','W','4','5','6'], lat: 40.7359, lng: -73.9906 },
-    'herald-sq': { name: '34 St-Herald Sq', lines: ['B','D','F','M','N','Q','R','W'], lat: 40.7496, lng: -73.9877 },
-    '14-8av': { name: '14 St (8 Av)', lines: ['A','C','E','L'], lat: 40.7408, lng: -74.0021 },
-    'fulton': { name: 'Fulton St', lines: ['2','3','4','5','A','C','J','Z'], lat: 40.7102, lng: -74.0073 },
-    'chambers': { name: 'Chambers St', lines: ['1','2','3','A','C'], lat: 40.7142, lng: -74.0087 },
-    'canal': { name: 'Canal St', lines: ['1','A','C','E','N','Q','R','W','J','Z','6'], lat: 40.7197, lng: -74.0011 },
-    'lexington-59': { name: 'Lexington Av/59 St', lines: ['4','5','6','N','R','W'], lat: 40.7627, lng: -73.9676 },
-    // Brooklyn
-    'atlantic': { name: 'Atlantic Av-Barclays', lines: ['2','3','4','5','B','D','N','Q','R'], lat: 40.6841, lng: -73.9784 },
-    'jay-st': { name: 'Jay St-MetroTech', lines: ['A','C','F','R'], lat: 40.6923, lng: -73.9872 },
-    'broadway-jct': { name: 'Broadway Junction', lines: ['A','C','J','Z','L'], lat: 40.6783, lng: -73.9053 },
-    // Queens
-    'jackson-hts': { name: 'Jackson Hts-Roosevelt', lines: ['7','E','F','M','R'], lat: 40.7465, lng: -73.8912 },
-    'court-sq': { name: 'Court Sq', lines: ['7','E','M','G'], lat: 40.7471, lng: -73.9456 },
-    'queensboro': { name: 'Queensboro Plaza', lines: ['7','N','W'], lat: 40.7510, lng: -73.9403 }
-};
-
-// Get lines that serve stations near a cluster
-function getLinesThatServeCluster(clusterId) {
-    if (!TRANSIT_DATA?.clusters || !TRANSIT_DATA?.stations) return [];
-
-    const cluster = TRANSIT_DATA.clusters.find(c => c.id === clusterId);
-    if (!cluster) return [];
-
-    const SERVE_RADIUS = 0.25; // miles - stations within this radius serve the cluster
-    const nearbyLines = new Set();
-
-    TRANSIT_DATA.stations.forEach(station => {
-        const dist = calculateDistance(cluster.lat, cluster.lng, station.lat, station.lng);
-        if (dist <= SERVE_RADIUS) {
-            extractLinesFromStation(station).forEach(l => nearbyLines.add(l));
-        }
-    });
-
-    return Array.from(nearbyLines);
-}
-
-// Find the best transfer hub between user's lines and venue's lines
-function findTransferHub(userLines, venueLines) {
-    let bestHub = null;
-    let bestScore = -1;
-
-    for (const [hubId, hub] of Object.entries(TRANSFER_HUBS)) {
-        // Check if hub connects user's lines to venue's lines
-        const userCanReach = userLines.some(l => hub.lines.includes(l));
-        const hubReachesVenue = venueLines.some(l => hub.lines.includes(l));
-
-        if (userCanReach && hubReachesVenue) {
-            // Score by how many connecting lines (more = better)
-            const userConnections = userLines.filter(l => hub.lines.includes(l));
-            const venueConnections = venueLines.filter(l => hub.lines.includes(l));
-            const score = userConnections.length + venueConnections.length;
-
-            if (score > bestScore) {
-                bestScore = score;
-                bestHub = {
-                    ...hub,
-                    id: hubId,
-                    takeLines: userConnections,
-                    transferTo: venueConnections
-                };
-            }
-        }
-    }
-
-    return bestHub;
-}
-
-// Check if transfer is needed and return transfer info
-function checkTransferNeeded(userStation, venueClusterId) {
-    const userLines = extractLinesFromStation(userStation);
-    const venueLines = getLinesThatServeCluster(venueClusterId);
-
-    // Check for direct connection (any line serves both)
-    const directLines = userLines.filter(l => venueLines.includes(l));
-
-    if (directLines.length > 0) {
-        return {
-            needsTransfer: false,
-            directLines,
-            userLines,
-            venueLines
-        };
-    }
-
-    // Need transfer - find best hub
-    const transferHub = findTransferHub(userLines, venueLines);
-
-    return {
-        needsTransfer: true,
-        directLines: [],
-        userLines,
-        venueLines,
-        transferHub
-    };
-}
-
-/* =========================================================================
-   getDirectionToward - Determine which direction a train should go to reach venue
-   Returns: direction label that matches MTA API response (e.g., "Manhattan", "Uptown")
-   ========================================================================= */
-function getDirectionToward(station, destCluster, line) {
-    // Line-specific direction labels (matches server.js customDirections)
-    const CUSTOM_DIRECTIONS = {
-        'L': { N: 'Manhattan', S: 'Brooklyn' },
-        'G': { N: 'Queens', S: 'Brooklyn' },
-        'J': { N: 'Manhattan', S: 'Queens' },
-        'Z': { N: 'Manhattan', S: 'Queens' },
-        'M': { N: 'Manhattan', S: 'Brooklyn' },
-        'S': { N: 'Times Sq', S: 'Grand Central' }
-    };
-
-    // Determine if venue is north/south or east/west of station
-    const isEastWestLine = ['L', 'G', 'S'].includes(line);
-
-    let needsNorthbound;
-    if (isEastWestLine) {
-        // For east-west lines: Manhattan is generally west (higher lng = more east = Brooklyn direction)
-        // L: going toward Manhattan = going west = lower lng
-        needsNorthbound = destCluster.lng < station.lng;
-    } else {
-        // For north-south lines: uptown = higher lat
-        needsNorthbound = destCluster.lat > station.lat;
-    }
-
-    // Get direction label
-    if (CUSTOM_DIRECTIONS[line]) {
-        return needsNorthbound ? CUSTOM_DIRECTIONS[line].N : CUSTOM_DIRECTIONS[line].S;
-    }
-    return needsNorthbound ? 'Uptown' : 'Downtown';
-}
-
-/* =========================================================================
-   calculateLiveCommute - Standardized commute calculation with live arrivals
-   Returns: { total, breakdown: { walkToStation, waitTime, rideTime, walkToVenue }, catchTrain }
-   ========================================================================= */
-function calculateLiveCommute(options) {
-    const {
-        userLat, userLng,           // User's origin
-        stationLat, stationLng,     // Departure station
-        stationId,                  // For matrix lookup
-        arrivals,                   // Filtered arrivals array (with minsAway)
-        clusterId,                  // Destination cluster ID
-        venueLat, venueLng          // Final destination
-    } = options;
-
-    // 1. Walk to station (20 min/mile)
-    const walkToStationMiles = calculateDistance(userLat, userLng, stationLat, stationLng);
-    const walkToStation = Math.ceil(walkToStationMiles * 20);
-
-    // 2. Find first catchable train (arrives after we get to station)
-    const catchableTrain = arrivals.find(a => a.minsAway >= walkToStation) || arrivals[arrivals.length - 1];
-    const trainArrival = catchableTrain?.minsAway || 0;
-    const waitTime = Math.max(0, trainArrival - walkToStation);
-
-    // 3. Ride time from matrix (or distance estimate)
-    let rideTime = 15; // default fallback
-    if (TRANSIT_DATA?.matrix?.[stationId]?.[clusterId]) {
-        rideTime = Math.ceil(TRANSIT_DATA.matrix[stationId][clusterId] / 60);
-    } else {
-        // Distance-based estimate: find cluster centroid
-        const cluster = TRANSIT_DATA?.clusters?.find(c => c.id === clusterId);
-        if (cluster) {
-            const rideDist = calculateDistance(stationLat, stationLng, cluster.lat, cluster.lng);
-            rideTime = Math.ceil(rideDist * 4) + 5; // 4 min/mile + buffer
-        }
-    }
-
-    // 4. Walk from cluster to venue
-    const cluster = TRANSIT_DATA?.clusters?.find(c => c.id === clusterId);
-    let walkToVenue = 3; // default
-    if (cluster) {
-        const walkToVenueMiles = calculateDistance(cluster.lat, cluster.lng, venueLat, venueLng);
-        walkToVenue = Math.ceil(walkToVenueMiles * 20);
-    }
-
-    return {
-        total: walkToStation + waitTime + rideTime + walkToVenue,
-        breakdown: { walkToStation, waitTime, rideTime, walkToVenue },
-        catchTrain: catchableTrain || null
-    };
 }
 
 /* =========================================================================
