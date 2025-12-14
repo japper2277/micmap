@@ -3,9 +3,9 @@
    Application constants and configuration
    ================================================================= */
 
-// Detect environment - use relative URLs in production, localhost in development
+// Detect environment - use Railway API in production, localhost in development
 const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-const API_BASE = isLocalDev ? 'http://localhost:3001' : '';
+const API_BASE = isLocalDev ? 'http://localhost:3001' : 'https://YOUR_RAILWAY_URL_HERE';
 
 const CONFIG = {
     dayNames: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],

@@ -252,7 +252,7 @@ async function displaySubwayRoutes(routes, mic, walkOption = null, schedule = nu
                 const lines = [leg.line, ...(leg.altLines || [])];
                 if (!firstLine) {
                     firstLine = leg.line;
-                    originStationId = leg.fromStopId;
+                    originStationId = leg.fromId;
                 }
                 // Check if this leg has alerts
                 const hasAlert = route.alerts && route.alerts.some(a =>
@@ -288,17 +288,35 @@ async function displaySubwayRoutes(routes, mic, walkOption = null, schedule = nu
         const waitTime = route.waitTime || 0;
         const adjustedTotalTime = route.adjustedTotalTime || route.totalTime;
 
-        // Format departure info
-        let depTimesStr = '';
-        if (waitTime > 0) {
-            depTimesStr = `${route.walkToStation}m walk · ${waitTime}m wait`;
-            // Add transfer waits if any
-            if (route.transferWaits && route.transferWaits.length > 0) {
-                const transferInfo = route.transferWaits.map(t => `${t.wait}m @ ${t.at}`).join(', ');
-                depTimesStr += ` · Transfers: ${transferInfo}`;
+        // Format departure times - fetch next 3 catchable departures from origin station
+        let depTimesStr = 'Now';
+        if (firstLine && originStationId) {
+            try {
+                // Try both directions (N and S) since fromId doesn't include direction
+                const [arrivalsN, arrivalsS] = await Promise.all([
+                    mtaService.fetchArrivals(firstLine, originStationId + 'N').catch(() => []),
+                    mtaService.fetchArrivals(firstLine, originStationId + 'S').catch(() => [])
+                ]);
+                // Combine and sort by arrival time
+                const allArrivals = [...(arrivalsN || []), ...(arrivalsS || [])];
+                allArrivals.sort((a, b) => a.minsAway - b.minsAway);
+
+                // Filter to only trains user can catch (walk time - 2 min buffer)
+                const minCatchTime = Math.max(0, (route.walkToStation || 0) - 2);
+                const catchable = allArrivals.filter(a => a.minsAway >= minCatchTime);
+
+                if (catchable.length > 0) {
+                    // Get next 3 departures, format as clock times
+                    const next3 = catchable.slice(0, 3);
+                    depTimesStr = next3.map(a => {
+                        if (a.minsAway === 0) return 'Now';
+                        const depTime = new Date(Date.now() + a.minsAway * 60000);
+                        return depTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+                    }).join(', ');
+                }
+            } catch (e) {
+                // Fallback to "Now" if fetch fails
             }
-        } else {
-            depTimesStr = `${route.walkToStation}m walk · ${route.subwayTime}m ride`;
         }
 
         transitHTML += `
@@ -344,12 +362,12 @@ async function loadModalArrivals(mic) {
     const WALK_ONLY_THRESHOLD = 0.5; // miles - under this, just walk
     const SHOW_WALK_OPTION = 1.0;    // miles - under this, show walk as an option
 
-    // Get walking time AND distance from HERE API (accurate street-level)
+    // Get walking time AND distance from OSRM (local Docker, falls back to public)
     let walkMins, walkDist;
     try {
-        const walkData = await getHereWalkingTime(originLat, originLng, mic.lat, mic.lng);
-        walkMins = walkData.durationMins;
-        walkDist = walkData.distanceMiles;
+        const walkData = await SubwayRouter.getWalkingTime(originLat, originLng, mic.lat, mic.lng);
+        walkMins = walkData.mins;
+        walkDist = walkData.miles;
     } catch (e) {
         // Fallback to straight-line estimate
         const straightDist = calculateDistance(originLat, originLng, mic.lat, mic.lng);
@@ -424,11 +442,11 @@ async function loadModalArrivals(mic) {
         const lines = lineMatch[1].split(' ').filter(l => l.length > 0);
         const stationName = station.name.replace(/\s*\([^)]+\)/, '');
 
-        // Calculate walk time
+        // Calculate walk time using OSRM
         let stationWalkMins;
         try {
-            const walkData = await getHereWalkingTime(originLat, originLng, station.lat, station.lng);
-            stationWalkMins = walkData.durationMins;
+            const walkData = await SubwayRouter.getWalkingTime(originLat, originLng, station.lat, station.lng);
+            stationWalkMins = walkData.mins;
         } catch (e) {
             const walkMiles = calculateDistance(originLat, originLng, station.lat, station.lng);
             stationWalkMins = Math.ceil(walkMiles * 20);

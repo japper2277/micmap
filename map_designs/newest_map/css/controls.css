@@ -332,7 +332,6 @@
 .search-wrapper.active {
     background: #2c2c2e;
     border-color: rgba(255,255,255,0.2);
-    transform: translateY(-2px);
     box-shadow: 0 10px 25px rgba(0,0,0,0.5);
 }
 
