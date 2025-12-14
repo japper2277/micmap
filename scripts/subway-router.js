@@ -135,21 +135,17 @@ function findStationsWithinRadius(lat, lng, radiusMiles = 0.5) {
 
 // --- DIJKSTRA'S ALGORITHM ---
 /**
- * Multi-source, multi-target Dijkstra
- * @param {string[]} startNodes - All entry nodes (e.g., all platforms at origin station)
- * @param {Set<string>} endNodes - All exit nodes (platforms at destination stations)
- * @param {Object} graph - The subway graph
- * @returns {{ time: number, path: string[] } | null}
+ * Dijkstra that finds ALL reachable destinations and their paths
+ * Caller can then calculate total time (subway + walk) for each
  */
-function dijkstra(startNodes, endNodes, graph) {
+function dijkstraAllDests(startNodes, endNodes, graph, maxTime = 1800) {
     const dist = {};
     const prev = {};
     const visited = new Set();
-
-    // Priority queue as sorted array (fine for ~2000 nodes)
+    const results = [];
+    const foundDests = new Set();
     const queue = [];
 
-    // Multi-source initialization
     for (const node of startNodes) {
         if (graph[node]) {
             dist[node] = 0;
@@ -159,27 +155,25 @@ function dijkstra(startNodes, endNodes, graph) {
     }
 
     while (queue.length > 0) {
-        // Sort and pop minimum
         queue.sort((a, b) => a.d - b.d);
         const { node: u, d } = queue.shift();
 
-        // Skip if already visited with shorter path
         if (visited.has(u)) continue;
+        if (d > maxTime) break;
         visited.add(u);
 
-        // Check if we've reached any destination
-        if (endNodes.has(u)) {
-            // Reconstruct path
+        // Record destination but keep searching for others
+        if (endNodes.has(u) && !foundDests.has(u)) {
+            foundDests.add(u);
             const path = [];
             let curr = u;
             while (curr !== null) {
                 path.unshift(curr);
                 curr = prev[curr];
             }
-            return { time: d, path };
+            results.push({ time: d, path, endNode: u });
         }
 
-        // Relax edges
         const edges = graph[u] || [];
         for (const edge of edges) {
             if (visited.has(edge.to)) continue;
@@ -192,7 +186,7 @@ function dijkstra(startNodes, endNodes, graph) {
         }
     }
 
-    return null; // No path found
+    return results;
 }
 
 // --- EXTRACT STATION INFO FROM NODE ---
@@ -363,9 +357,9 @@ async function findTopRoutes(userLat, userLng, venueLat, venueLng, limit = 3) {
     const MAX_TIME_PENALTY = 1.5; // Don't show routes >50% longer than best
     const graph = getGraph();
 
-    // Find nearby stations
+    // Find nearby stations (larger dest radius since OSRM filters by actual walk time)
     const originStations = findStationsWithinRadius(userLat, userLng, 0.5);
-    const destStations = findStationsWithinRadius(venueLat, venueLng, 0.6);
+    const destStations = findStationsWithinRadius(venueLat, venueLng, 1.0);
 
     if (originStations.length === 0 || destStations.length === 0) {
         return [];

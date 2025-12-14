@@ -222,15 +222,15 @@ function render(mode) {
         // Build commute display - show departure times if route available
         let commuteDisplay = '';
         if (mic.route && mic.route.legs) {
-            // Has route with legs - show line badge + placeholder for departure times
+            // Has route with legs - show line badge + commute time
             const firstRideLeg = mic.route.legs.find(l => l.type === 'ride');
             if (firstRideLeg) {
                 const line = firstRideLeg.line;
-                const stopId = firstRideLeg.fromStopId;
-                // Show line badge + loading placeholder, will be updated async
-                commuteDisplay = `<div class="commute-departures" data-line="${line}" data-stop-id="${stopId}" data-mic-id="${mic.id}">
+                const isWithin2Hours = mic.start && (mic.start - currentTime) / 60000 <= 120;
+                const approx = isWithin2Hours ? '' : '~';
+                commuteDisplay = `<div class="commute-live">
                     <span class="dep-badge b-${line}">${line}</span>
-                    <span class="dep-times-card">...</span>
+                    <span>${approx}${mic.transitMins}m</span>
                 </div>`;
             } else {
                 // Route but no ride leg (walk only)
