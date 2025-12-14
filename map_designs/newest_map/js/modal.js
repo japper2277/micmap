@@ -284,45 +284,22 @@ async function displaySubwayRoutes(routes, mic, walkOption = null, schedule = nu
         const firstRideLeg = route.legs.find(l => l.type === 'ride');
         const originStation = firstRideLeg?.from || route.originStation;
 
-        // Fetch actual departure times for first line at origin station
+        // Use wait times from API (already calculated with real-time + GTFS fallback)
+        const waitTime = route.waitTime || 0;
+        const adjustedTotalTime = route.adjustedTotalTime || route.totalTime;
+
+        // Format departure info
         let depTimesStr = '';
-        let waitTime = 0;
-        if (firstLine && originStation) {
-            try {
-                // Look up the station by name to get GTFS stop ID
-                const stationData = findStationByName(originStation, firstLine);
-                if (stationData && stationData.gtfsStopId) {
-                    const arrivals = await mtaService.fetchArrivals(firstLine, stationData.gtfsStopId);
-                    if (arrivals && arrivals.length > 0) {
-                        // Find first train you can catch (arrives after you get to station)
-                        const catchable = arrivals.filter(a => a.minsAway >= route.walkToStation);
-                        const trainsToShow = catchable.length > 0 ? catchable.slice(0, 3) : arrivals.slice(0, 3);
-
-                        // Calculate wait time from first catchable train
-                        if (catchable.length > 0) {
-                            waitTime = Math.max(0, catchable[0].minsAway - route.walkToStation);
-                        }
-
-                        // Format as clock times like "11:18, 11:25, 11:32"
-                        depTimesStr = trainsToShow.map(a => {
-                            const arrivalTime = new Date(Date.now() + a.minsAway * 60000);
-                            const hours = arrivalTime.getHours();
-                            const mins = arrivalTime.getMinutes().toString().padStart(2, '0');
-                            const displayHour = hours > 12 ? hours - 12 : (hours === 0 ? 12 : hours);
-                            return `${displayHour}:${mins}`;
-                        }).join(', ');
-                    }
-                }
-            } catch (e) {
-                // Silently fail - will show fallback text
+        if (waitTime > 0) {
+            depTimesStr = `${route.walkToStation}m walk · ${waitTime}m wait`;
+            // Add transfer waits if any
+            if (route.transferWaits && route.transferWaits.length > 0) {
+                const transferInfo = route.transferWaits.map(t => `${t.wait}m @ ${t.at}`).join(', ');
+                depTimesStr += ` · Transfers: ${transferInfo}`;
             }
-        }
-        if (!depTimesStr) {
+        } else {
             depTimesStr = `${route.walkToStation}m walk · ${route.subwayTime}m ride`;
         }
-
-        // Add wait time to total
-        const adjustedTotalTime = route.totalTime + waitTime;
 
         transitHTML += `
             <div class="card-base">

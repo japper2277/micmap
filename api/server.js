@@ -24,6 +24,47 @@ const logger = require('./utils/logger');
 // Subway Router
 const subwayRouter = require('../scripts/subway-router');
 
+// Load GTFS departure index for scheduled wait times (fallback when real-time unavailable)
+let departureIndex = {};
+try {
+  const indexPath = path.join(__dirname, '..', 'public', 'data', 'departure-index.json');
+  if (fs.existsSync(indexPath)) {
+    departureIndex = JSON.parse(fs.readFileSync(indexPath, 'utf-8'));
+    console.log(`📊 Loaded GTFS departures for ${Object.keys(departureIndex).length} stops`);
+  }
+} catch (e) {
+  console.warn('⚠️ Could not load departure-index.json:', e.message);
+}
+
+// Get next scheduled departure from GTFS (returns wait time in minutes)
+function getScheduledWait(stopId, line, arrivalMins) {
+  // arrivalMins = minutes from midnight when user arrives at platform
+  const stopDepartures = departureIndex[stopId];
+  if (!stopDepartures) return null;
+
+  const lineDepartures = stopDepartures[line.toUpperCase()];
+  if (!lineDepartures || lineDepartures.length === 0) return null;
+
+  // Binary search for next departure after arrivalMins
+  let left = 0, right = lineDepartures.length - 1;
+  while (left < right) {
+    const mid = Math.floor((left + right) / 2);
+    if (lineDepartures[mid] < arrivalMins) {
+      left = mid + 1;
+    } else {
+      right = mid;
+    }
+  }
+
+  // Check if we found a valid departure
+  if (lineDepartures[left] >= arrivalMins) {
+    return lineDepartures[left] - arrivalMins;
+  }
+
+  // Wrap to next day (first departure)
+  return lineDepartures[0] + (24 * 60) - arrivalMins;
+}
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -856,7 +897,7 @@ async function getArrivalsForLine(line, stopId) {
     // Check cache
     if (mtaCache.feeds[lineUpper]?.data &&
         Date.now() - mtaCache.feeds[lineUpper].timestamp < MTA_CACHE_TTL.feed) {
-      return extractArrivals(mtaCache.feeds[lineUpper].data, stopId);
+      return extractArrivals(mtaCache.feeds[lineUpper].data, stopId, lineUpper);
     }
 
     // Fetch fresh data
@@ -868,7 +909,7 @@ async function getArrivalsForLine(line, stopId) {
     const feed = GtfsRealtimeBindings.transit_realtime.FeedMessage.decode(new Uint8Array(buffer));
     mtaCache.feeds[lineUpper] = { data: feed, timestamp: Date.now() };
 
-    return extractArrivals(feed, stopId);
+    return extractArrivals(feed, stopId, lineUpper);
   } catch (e) {
     return [];
   }
@@ -1156,39 +1197,152 @@ app.get('/api/subway/routes', async (req, res) => {
       }
     }
 
-    // Calculate wait times AFTER validation (so we use validated lines)
+    // Calculate wait times AFTER validation (first train + all transfers)
+    console.log(`🚇 Starting wait time calculation for ${validatedRoutes.length} routes`);
     await Promise.all(validatedRoutes.map(async (route) => {
-      const firstLeg = route.legs?.find(l => l.type === 'ride');
-      if (!firstLeg || !route.path || route.path.length === 0) {
+      console.log(`  Route: ${route.summary || 'no summary'}, legs: ${route.legs?.length || 0}`);
+      const legs = route.legs || [];
+      const rideLegs = legs.filter(l => l.type === 'ride');
+
+      if (rideLegs.length === 0 || !route.path || route.path.length === 0) {
+        console.log('  ❌ Early return - no ride legs or path');
         route.waitTime = 0;
+        route.transferWaits = [];
+        route.totalWaitTime = 0;
         route.adjustedTotalTime = route.totalTime;
         return;
       }
 
-      // Get stop ID with direction suffix (e.g., "L15N" from "L15N_L")
+      let totalWaitTime = 0;
+      const transferWaits = [];
+
+      // 1. First train wait
+      const firstLeg = rideLegs[0];
       const stopId = route.path[0].split('_')[0];
-      const line = firstLeg.line; // Use VALIDATED line
+      let firstWait = 0;
 
       try {
-        const arrivals = await getArrivalsForLine(line, stopId);
-        if (!arrivals || arrivals.length === 0) {
-          route.waitTime = 0;
-          route.adjustedTotalTime = route.totalTime;
-          return;
+        const arrivals = await getArrivalsForLine(firstLeg.line, stopId);
+        if (arrivals?.length > 0) {
+          const catchable = arrivals.filter(a => a.minsAway >= route.walkToStation);
+          if (catchable.length > 0) {
+            firstWait = Math.max(0, catchable[0].minsAway - route.walkToStation);
+          }
         }
+      } catch (e) { /* ignore */ }
 
-        // Find first train you can catch (arrives after you walk to station)
-        const catchable = arrivals.filter(a => a.minsAway >= route.walkToStation);
-        if (catchable.length > 0) {
-          route.waitTime = Math.max(0, catchable[0].minsAway - route.walkToStation);
-        } else {
-          route.waitTime = 0;
+      totalWaitTime += firstWait;
+      route.waitTime = firstWait;
+
+      // 2. Transfer waits - track cumulative time through route
+      let cumulativeTime = route.walkToStation + firstWait;
+
+      for (let i = 0; i < legs.length; i++) {
+        const leg = legs[i];
+
+        if (leg.type === 'ride') {
+          cumulativeTime += leg.time;
+        } else if (leg.type === 'transfer') {
+          cumulativeTime += leg.time; // transfer walking time
+
+          // Find the next ride leg to get the line we're boarding
+          const nextRide = legs.slice(i + 1).find(l => l.type === 'ride');
+          if (!nextRide) continue;
+
+          // Find stop ID with direction from path for this leg
+          // Match by station ID since path may have original line letters (before validation)
+          let transferStopId = null;
+          const nextRideFromId = nextRide.fromId;
+          for (const node of route.path) {
+            const [nodeStopId] = node.split('_');
+            const baseStopId = nodeStopId.replace(/[NS]$/, '');
+            // Check if this node matches the transfer station
+            if (baseStopId === nextRideFromId) {
+              transferStopId = nodeStopId;
+              break;
+            }
+          }
+
+          if (!transferStopId) {
+            // Fallback: use the station ID with direction guess based on route
+            const fromStation = stationsData?.[nextRide.fromId];
+            const toStation = stationsData?.[nextRide.toId];
+            const direction = (fromStation?.lat && toStation?.lat && toStation.lat > fromStation.lat) ? 'N' : 'S';
+            transferStopId = nextRide.fromId + direction;
+          }
+
+          try {
+            const arrivals = await getArrivalsForLine(nextRide.line, transferStopId);
+            if (arrivals?.length > 0) {
+              // Find first train arriving after we reach the platform
+              const catchable = arrivals.filter(a => a.minsAway >= cumulativeTime);
+              if (catchable.length > 0) {
+                const transferWait = Math.max(0, catchable[0].minsAway - cumulativeTime);
+                totalWaitTime += transferWait;
+                transferWaits.push({
+                  at: leg.at,
+                  line: nextRide.line,
+                  wait: transferWait,
+                  estimated: false
+                });
+                cumulativeTime += transferWait;
+              } else {
+                // No real-time train after arrival - use GTFS scheduled departures
+                const now = new Date();
+                const currentMins = now.getHours() * 60 + now.getMinutes();
+                const arrivalMins = (currentMins + cumulativeTime) % (24 * 60);
+                const scheduledWait = getScheduledWait(transferStopId, nextRide.line, arrivalMins);
+                const estimatedWait = scheduledWait !== null ? scheduledWait : 5;
+                totalWaitTime += estimatedWait;
+                transferWaits.push({
+                  at: leg.at,
+                  line: nextRide.line,
+                  wait: estimatedWait,
+                  estimated: true,
+                  source: scheduledWait !== null ? 'gtfs' : 'fallback'
+                });
+                cumulativeTime += estimatedWait;
+              }
+            } else {
+              // No real-time arrivals data - use GTFS scheduled departures
+              const now = new Date();
+              const currentMins = now.getHours() * 60 + now.getMinutes();
+              const arrivalMins = (currentMins + cumulativeTime) % (24 * 60);
+              const scheduledWait = getScheduledWait(transferStopId, nextRide.line, arrivalMins);
+              const estimatedWait = scheduledWait !== null ? scheduledWait : 5;
+              totalWaitTime += estimatedWait;
+              transferWaits.push({
+                at: leg.at,
+                line: nextRide.line,
+                wait: estimatedWait,
+                estimated: true,
+                source: scheduledWait !== null ? 'gtfs' : 'fallback'
+              });
+              cumulativeTime += estimatedWait;
+            }
+          } catch (e) {
+            // Error fetching - use GTFS scheduled departures
+            const now = new Date();
+            const currentMins = now.getHours() * 60 + now.getMinutes();
+            const arrivalMins = (currentMins + cumulativeTime) % (24 * 60);
+            const scheduledWait = getScheduledWait(transferStopId, nextRide.line, arrivalMins);
+            const estimatedWait = scheduledWait !== null ? scheduledWait : 5;
+            totalWaitTime += estimatedWait;
+            transferWaits.push({
+              at: leg.at,
+              line: nextRide.line,
+              wait: estimatedWait,
+              estimated: true,
+              source: scheduledWait !== null ? 'gtfs' : 'fallback'
+            });
+            cumulativeTime += estimatedWait;
+          }
         }
-        route.adjustedTotalTime = route.totalTime + route.waitTime;
-      } catch (e) {
-        route.waitTime = 0;
-        route.adjustedTotalTime = route.totalTime;
       }
+
+      route.transferWaits = transferWaits;
+      route.totalWaitTime = totalWaitTime;
+      route.adjustedTotalTime = route.totalTime + totalWaitTime;
     }));
 
     // Return only the requested number of routes (sorted by adjusted time with wait)
@@ -1293,29 +1447,89 @@ app.get('/api/subway/routes', async (req, res) => {
         if (altValidatedRoutes.length > 0) {
           console.log(`✅ Found ${altValidatedRoutes.length} validated routes from ${nearbyStation.name}`);
 
-          // Calculate wait times for these routes
+          // Calculate wait times for these routes (first train + transfers)
           await Promise.all(altValidatedRoutes.map(async (route) => {
-            const firstLeg = route.legs?.find(l => l.type === 'ride');
-            if (!firstLeg || !route.path || route.path.length === 0) {
+            const legs = route.legs || [];
+            const rideLegs = legs.filter(l => l.type === 'ride');
+
+            if (rideLegs.length === 0 || !route.path || route.path.length === 0) {
               route.waitTime = 0;
+              route.transferWaits = [];
+              route.totalWaitTime = 0;
               route.adjustedTotalTime = route.totalTime;
               return;
             }
+
+            let totalWaitTime = 0;
+            const transferWaits = [];
+
+            // First train wait
+            const firstLeg = rideLegs[0];
             const stopId = route.path[0].split('_')[0];
-            const line = firstLeg.line;
+            let firstWait = 0;
+
             try {
-              const arrivals = await getArrivalsForLine(line, stopId);
-              if (!arrivals || arrivals.length === 0) {
-                route.waitTime = 0;
-              } else {
+              const arrivals = await getArrivalsForLine(firstLeg.line, stopId);
+              if (arrivals?.length > 0) {
                 const catchable = arrivals.filter(a => a.minsAway >= route.walkToStation);
-                route.waitTime = catchable.length > 0 ? Math.max(0, catchable[0].minsAway - route.walkToStation) : 0;
+                if (catchable.length > 0) {
+                  firstWait = Math.max(0, catchable[0].minsAway - route.walkToStation);
+                }
               }
-              route.adjustedTotalTime = route.totalTime + route.waitTime;
-            } catch (e) {
-              route.waitTime = 0;
-              route.adjustedTotalTime = route.totalTime;
+            } catch (e) { /* ignore */ }
+
+            totalWaitTime += firstWait;
+            route.waitTime = firstWait;
+
+            // Transfer waits
+            let cumulativeTime = route.walkToStation + firstWait;
+
+            for (let i = 0; i < legs.length; i++) {
+              const leg = legs[i];
+              if (leg.type === 'ride') {
+                cumulativeTime += leg.time;
+              } else if (leg.type === 'transfer') {
+                cumulativeTime += leg.time;
+                const nextRide = legs.slice(i + 1).find(l => l.type === 'ride');
+                if (!nextRide) continue;
+
+                let transferStopId = null;
+                const nextRideFromId = nextRide.fromId;
+                for (const node of route.path) {
+                  const [nodeStopId] = node.split('_');
+                  const baseStopId = nodeStopId.replace(/[NS]$/, '');
+                  if (baseStopId === nextRideFromId ||
+                      stationsData?.[nextRideFromId]?.nodes?.some(n => n.startsWith(nodeStopId.slice(0, -1)))) {
+                    transferStopId = nodeStopId;
+                    break;
+                  }
+                }
+
+                if (!transferStopId) {
+                  const fromStation = stationsData?.[nextRide.fromId];
+                  const toStation = stationsData?.[nextRide.toId];
+                  const direction = (fromStation?.lat && toStation?.lat && toStation.lat > fromStation.lat) ? 'N' : 'S';
+                  transferStopId = nextRide.fromId + direction;
+                }
+
+                try {
+                  const arrivals = await getArrivalsForLine(nextRide.line, transferStopId);
+                  if (arrivals?.length > 0) {
+                    const catchable = arrivals.filter(a => a.minsAway >= cumulativeTime);
+                    if (catchable.length > 0) {
+                      const transferWait = Math.max(0, catchable[0].minsAway - cumulativeTime);
+                      totalWaitTime += transferWait;
+                      transferWaits.push({ at: leg.at, line: nextRide.line, wait: transferWait });
+                      cumulativeTime += transferWait;
+                    }
+                  }
+                } catch (e) { /* ignore */ }
+              }
             }
+
+            route.transferWaits = transferWaits;
+            route.totalWaitTime = totalWaitTime;
+            route.adjustedTotalTime = route.totalTime + totalWaitTime;
           }));
 
           finalRoutes = altValidatedRoutes
@@ -1325,17 +1539,81 @@ app.get('/api/subway/routes', async (req, res) => {
         }
       }
 
-      // If still no routes, fall back to unvalidated
+      // If still no routes, fall back to unvalidated but still calculate GTFS-based wait times
       if (finalRoutes.length === 0) {
-        console.log('⚠️ No validated routes found from nearby stations - returning unvalidated routes');
+        console.log('⚠️ No validated routes found from nearby stations - returning unvalidated routes with GTFS wait times');
         finalRoutes = routes
           .sort((a, b) => a.totalTime - b.totalTime)
           .slice(0, parseInt(limit));
-        finalRoutes.forEach(r => {
-          r.unvalidated = true;
-          r.waitTime = 0;
-          r.adjustedTotalTime = r.totalTime;
-        });
+
+        // Calculate GTFS-based wait times for unvalidated routes
+        await Promise.all(finalRoutes.map(async (route) => {
+          route.unvalidated = true;
+          const legs = route.legs || [];
+          const rideLegs = legs.filter(l => l.type === 'ride');
+
+          if (rideLegs.length === 0 || !route.path || route.path.length === 0) {
+            route.waitTime = 0;
+            route.transferWaits = [];
+            route.totalWaitTime = 0;
+            route.adjustedTotalTime = route.totalTime;
+            return;
+          }
+
+          let totalWaitTime = 0;
+          const transferWaits = [];
+          const now = new Date();
+          const currentMins = now.getHours() * 60 + now.getMinutes();
+
+          // First train wait from GTFS
+          const firstLeg = rideLegs[0];
+          const firstStopId = route.path[0]?.split('_')[0];
+          const arrivalMins = (currentMins + route.walkToStation) % (24 * 60);
+          const firstWait = getScheduledWait(firstStopId, firstLeg.line, arrivalMins) || 3;
+          totalWaitTime += firstWait;
+          route.waitTime = firstWait;
+
+          // Transfer waits from GTFS
+          let cumulativeTime = route.walkToStation + firstWait;
+          for (let i = 0; i < legs.length; i++) {
+            const leg = legs[i];
+            if (leg.type === 'ride') {
+              cumulativeTime += leg.time;
+            } else if (leg.type === 'transfer') {
+              cumulativeTime += leg.time;
+              const nextRide = legs.slice(i + 1).find(l => l.type === 'ride');
+              if (!nextRide) continue;
+
+              // Find stop ID from path
+              let transferStopId = null;
+              for (const node of route.path) {
+                const [nodeStopId] = node.split('_');
+                const baseStopId = nodeStopId.replace(/[NS]$/, '');
+                if (baseStopId === nextRide.fromId) {
+                  transferStopId = nodeStopId;
+                  break;
+                }
+              }
+              if (!transferStopId) transferStopId = nextRide.fromId + 'N';
+
+              const transferArrival = (currentMins + cumulativeTime) % (24 * 60);
+              const transferWait = getScheduledWait(transferStopId, nextRide.line, transferArrival) || 3;
+              totalWaitTime += transferWait;
+              transferWaits.push({
+                at: leg.at,
+                line: nextRide.line,
+                wait: transferWait,
+                estimated: true,
+                source: 'gtfs'
+              });
+              cumulativeTime += transferWait;
+            }
+          }
+
+          route.transferWaits = transferWaits;
+          route.totalWaitTime = totalWaitTime;
+          route.adjustedTotalTime = route.totalTime + totalWaitTime;
+        }));
       }
     }
 
