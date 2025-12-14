@@ -1,5 +1,6 @@
 {
   "scripts": {
+    "start": "cd api && node server.js",
     "watch": "node scripts/watch-mics.js",
     "generate": "node scripts/generate-venue-list.js"
   },
