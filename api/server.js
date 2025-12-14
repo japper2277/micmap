@@ -21,8 +21,13 @@ const { getCacheStats } = require('./utils/cache-invalidation');
 const { requestLoggingMiddleware } = require('./middleware/logging');
 const logger = require('./utils/logger');
 
-// Subway Router
-const subwayRouter = require('../scripts/subway-router');
+// Subway Router (optional - only in development)
+let subwayRouter = null;
+try {
+  subwayRouter = require('../scripts/subway-router');
+} catch (e) {
+  console.warn('⚠️ Subway router not available in production');
+}
 
 // Load GTFS departure index for scheduled wait times (fallback when real-time unavailable)
 let departureIndex = {};
