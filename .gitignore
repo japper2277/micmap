@@ -36,3 +36,4 @@ npm-debug.log*
 *.osrm
 *.osrm.*
 
+gtfs_supplemented/stop_times.txt
