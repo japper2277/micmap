@@ -3,6 +3,27 @@
    Pure utility functions
    ================================================================= */
 
+// Escape HTML to prevent XSS attacks
+function escapeHtml(str) {
+    if (!str) return '';
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
+// Escape for use in inline onclick handlers (escapes quotes and special chars)
+function escapeAttr(str) {
+    if (!str) return '';
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/'/g, '&#39;')
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\n/g, '&#10;')
+        .replace(/\r/g, '&#13;');
+}
+
 // Always get fresh time (never use a stale cached value)
 function getNow() {
     return new Date();
@@ -73,9 +94,23 @@ function processMics(rawMics) {
         }
 
         // Shorten venue names: "Comedy Club" → "CC"
-        let venueName = m.venueName || m.venue || m.name;
+        let venueName = m.venueName || m.venue || m.name || 'Unknown Venue';
         if (venueName.endsWith('Comedy Club')) {
             venueName = venueName.replace(/Comedy Club$/, 'CC');
+        }
+
+        // Derive day from API data or date field
+        let day = m.day;
+        if (!day && m.date) {
+            // If API provides a date string, parse it to get day name
+            const dateObj = new Date(m.date);
+            if (!isNaN(dateObj.getTime())) {
+                day = CONFIG.dayNames[dateObj.getDay()];
+            }
+        }
+        if (!day) {
+            // Fallback: assume today if no day info available
+            day = CONFIG.dayNames[new Date().getDay()];
         }
 
         return {
@@ -85,7 +120,7 @@ function processMics(rawMics) {
             venue: venueName,
             start: startDate,
             timeStr: m.startTime ? m.startTime.replace(/\s*(AM|PM)/i, '').trim() : '',
-            hood: m.neighborhood,
+            hood: m.neighborhood || 'NYC',
             price: m.cost || 'Free',
             setTime: m.stageTime || '5min',
             type: m.borough || 'NYC',
@@ -93,9 +128,11 @@ function processMics(rawMics) {
             signupUrl: extractSignupUrl(signup),
             signupEmail: extractSignupEmail(signup),
             signupInstructions: signup || 'No signup info available',
-            lng: m.lng || m.lon,  // API uses 'lon', normalize to 'lng'
+            lng: m.lon || m.lng,  // API returns 'lon', normalize to 'lng'
+            address: m.address || '',
             contact: contact,
-            borough: m.borough
+            borough: m.borough,
+            day: day
         };
     });
 }
@@ -157,7 +194,8 @@ function isMicVisible(mic) {
 
     // Price filter
     if (STATE.activeFilters.price !== 'All') {
-        const isFree = mic.price.toLowerCase().includes('free');
+        const priceStr = (mic.price || 'Free').toLowerCase();
+        const isFree = priceStr.includes('free');
         if (STATE.activeFilters.price === 'Free' && !isFree) return false;
         if (STATE.activeFilters.price === 'Paid' && isFree) return false;
     }

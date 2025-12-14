@@ -240,10 +240,8 @@ const searchService = {
 
     // Event delegation for dropdown clicks (more reliable than inline onclick)
     bindDropdownClicks() {
-        console.log('🔗 Binding dropdown clicks...');
         this.dropdown.querySelectorAll('.dropdown-item').forEach(item => {
             item.addEventListener('click', (e) => {
-                console.log('👆 Dropdown item clicked:', item.dataset);
                 e.preventDefault();
                 e.stopPropagation();
                 const action = item.dataset.action;
@@ -263,9 +261,7 @@ const searchService = {
     },
 
     selectVenue(micId) {
-        console.log('🎤 selectVenue called with ID:', micId, 'type:', typeof micId);
         const mic = STATE.mics.find(m => m.id === micId || String(m.id) === String(micId));
-        console.log('🎤 Found mic:', mic ? mic.title || mic.venue : 'NOT FOUND');
         if (mic) {
             this.hideDropdown();
             this.input.value = mic.title || mic.venue;
@@ -286,15 +282,11 @@ const searchService = {
     },
 
     selectLocation(lat, lng, name) {
-        console.log('🚀 selectLocation called:', { lat, lng, name });
         this.hideDropdown();
         this.input.value = name;
         // Auto-fire transit calculation (no button needed)
         if (typeof transitService !== 'undefined' && transitService.calculateFromOrigin) {
-            console.log('📍 Calling transitService.calculateFromOrigin...');
             transitService.calculateFromOrigin(lat, lng, name, null);
-        } else {
-            console.error('❌ transitService not available!');
         }
     },
 

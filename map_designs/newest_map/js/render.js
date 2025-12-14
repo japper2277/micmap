@@ -51,7 +51,8 @@ function render(mode) {
     let filtered = baseMics.filter(m => {
         // Filter by price
         if (STATE.activeFilters.price !== 'All') {
-            const isFree = m.price.toLowerCase().includes('free');
+            const priceStr = (m.price || 'Free').toLowerCase();
+            const isFree = priceStr.includes('free');
             if (STATE.activeFilters.price === 'Free' && !isFree) return false;
             if (STATE.activeFilters.price === 'Paid' && isFree) return false;
         }
@@ -128,12 +129,13 @@ function render(mode) {
         // Combine times: "4:30, 6:00"
         const timesStr = venueMics.map(m => m.timeStr).join(', ');
 
-        // Tooltip content based on status
+        // Tooltip content based on status (escape user data)
+        const tooltipTitle = escapeHtml((firstMic.title || 'Unknown Venue').toUpperCase());
         const tooltipContent = bestStatus === 'live'
-            ? `<span style="color: #30d158;">LIVE</span><span style="opacity: 0.6; margin: 0 8px;">|</span><span>${firstMic.title.toUpperCase()}</span>`
+            ? `<span style="color: #30d158;">LIVE</span><span style="opacity: 0.6; margin: 0 8px;">|</span><span>${tooltipTitle}</span>`
             : bestStatus === 'upcoming'
-            ? `<span style="color: #ff453a;">${timesStr}</span><span style="opacity: 0.5; margin: 0 8px;">|</span><span>${firstMic.title.toUpperCase()}</span>`
-            : `<span style="color: #8e8e93;">${timesStr}</span><span style="opacity: 0.5; margin: 0 8px;">|</span><span>${firstMic.title.toUpperCase()}</span>`;
+            ? `<span style="color: #ff453a;">${escapeHtml(timesStr)}</span><span style="opacity: 0.5; margin: 0 8px;">|</span><span>${tooltipTitle}</span>`
+            : `<span style="color: #8e8e93;">${escapeHtml(timesStr)}</span><span style="opacity: 0.5; margin: 0 8px;">|</span><span>${tooltipTitle}</span>`;
 
         const marker = L.marker([firstMic.lat, firstMic.lng], {
             icon: createPin(bestStatus),
@@ -221,29 +223,11 @@ function render(mode) {
 
         // Build commute display - show departure times if route available
         let commuteDisplay = '';
-        if (mic.route && mic.route.legs) {
-            // Has route with legs - show line badge + commute time
-            const firstRideLeg = mic.route.legs.find(l => l.type === 'ride');
-            if (firstRideLeg) {
-                const line = firstRideLeg.line;
-                const isWithin2Hours = mic.start && (mic.start - currentTime) / 60000 <= 120;
-                const approx = isWithin2Hours ? '' : '~';
-                commuteDisplay = `<div class="commute-live">
-                    <span class="dep-badge b-${line}">${line}</span>
-                    <span>${approx}${mic.transitMins}m</span>
-                </div>`;
-            } else {
-                // Route but no ride leg (walk only)
-                commuteDisplay = `<div class="commute-live">
-                    <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-                    ${mic.transitMins}m
-                </div>`;
-            }
-        } else if (mic.transitMins !== undefined) {
+        if (mic.transitMins !== undefined) {
             commuteDisplay = `<div class="commute-live">
-                   <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-                   ${mic.transitType === 'estimate' ? '~' : ''}${mic.transitMins}m
-               </div>`;
+                <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                ${mic.transitMins}m
+            </div>`;
         } else if (mic.distanceMiles !== undefined) {
             // Show distance if no transit time
             commuteDisplay = `<span class="commute-distance">${mic.distanceMiles < 0.1 ? Math.round(mic.distanceMiles * 5280) + 'ft' : mic.distanceMiles.toFixed(1) + 'mi'}</span>`;
@@ -253,44 +237,54 @@ function render(mode) {
         const statusClass = mic.status === 'live' ? 'is-live' : (mic.status === 'upcoming' ? 'is-upcoming' : 'is-future');
         const statusText = getStatusText(mic, mic.status);
 
+        // Safely escape user data for HTML
+        const safeTitle = escapeHtml(mic.title || 'Unknown Venue');
+        const safeHood = escapeHtml((mic.hood || 'NYC').toUpperCase());
+        const safePrice = escapeHtml((mic.price || 'Free').toUpperCase());
+        const safeBorough = escapeHtml((mic.borough || 'NYC').toUpperCase());
+        const safeSignupInstructions = escapeHtml(mic.signupInstructions || 'Sign up in person only');
+        const safeContact = mic.contact ? escapeHtml(mic.contact.replace(/^@/, '')) : '';
+        const safeSignupEmail = mic.signupEmail ? escapeHtml(mic.signupEmail) : '';
+        const safeSignupUrl = mic.signupUrl ? escapeHtml(mic.signupUrl) : '';
+
         card.innerHTML = `
             <!-- FRONT: Card Content -->
             <div class="card-front">
                 <!-- LEFT: Specs -->
                 <div class="specs-col">
-                    <div class="start-time">${mic.timeStr}</div>
-                    <div class="stage-time">${formatSetTime(mic.setTime)}</div>
+                    <div class="start-time">${escapeHtml(mic.timeStr)}</div>
+                    <div class="stage-time">${escapeHtml(formatSetTime(mic.setTime))}</div>
                 </div>
 
                 <!-- CENTER: Info -->
                 <div class="info-col">
                     <div class="venue-row">
-                        <div class="venue-name">${mic.title}</div>
+                        <div class="venue-name">${safeTitle}</div>
                         ${commuteDisplay}
                     </div>
                     <div class="meta-row">
-                        <span class="neighborhood">${mic.hood.toUpperCase()}</span>
+                        <span class="neighborhood">${safeHood}</span>
                         <span class="meta-dot">·</span>
-                        <span class="tag-pill">${mic.price.toUpperCase()}</span>
-                        <span class="tag-pill">${mic.borough ? mic.borough.toUpperCase() : 'NYC'}</span>
+                        <span class="tag-pill">${safePrice}</span>
+                        <span class="tag-pill">${safeBorough}</span>
                     </div>
                 </div>
 
                 <!-- RIGHT: Actions -->
                 <div class="action-col">
                     ${mic.signupUrl
-                        ? `<a href="${mic.signupUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation();" class="icon-btn" title="Visit Website">
+                        ? `<a href="${safeSignupUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation();" class="icon-btn" title="Visit Website">
                             <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
                         </a>`
                         : mic.signupEmail
-                            ? `<a href="mailto:${mic.signupEmail}" onclick="event.stopPropagation();" class="icon-btn" title="Email ${mic.signupEmail}">
+                            ? `<a href="mailto:${safeSignupEmail}" onclick="event.stopPropagation();" class="icon-btn" title="Email ${safeSignupEmail}">
                                 <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
                             </a>`
                             : `<button onclick="event.stopPropagation(); flipCard(this);" class="icon-btn" title="Signup info">
                                 <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                             </button>`
                     }
-                    ${mic.contact ? `<a href="https://instagram.com/${mic.contact.replace(/^@/, '')}" target="_blank" rel="noopener" onclick="event.stopPropagation();" class="icon-btn" title="@${mic.contact.replace(/^@/, '')}">
+                    ${safeContact ? `<a href="https://instagram.com/${safeContact}" target="_blank" rel="noopener" onclick="event.stopPropagation();" class="icon-btn" title="@${safeContact}">
                         <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
                     </a>` : ''}
                 </div>
@@ -304,7 +298,7 @@ function render(mode) {
                         <svg viewBox="0 0 24 24" width="20" height="20"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                     </button>
                 </div>
-                <div class="signup-text">${mic.signupInstructions || 'Sign up in person only'}</div>
+                <div class="signup-text">${safeSignupInstructions}</div>
             </div>
         `;
         container.appendChild(card);

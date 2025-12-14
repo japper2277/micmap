@@ -138,7 +138,7 @@ function findStationsWithinRadius(lat, lng, radiusMiles = 0.5) {
  * Dijkstra that finds ALL reachable destinations and their paths
  * Caller can then calculate total time (subway + walk) for each
  */
-function dijkstraAllDests(startNodes, endNodes, graph, maxTime = 1800) {
+function dijkstraAllDests(startNodes, endNodes, graph, maxTime = 7200) {
     const dist = {};
     const prev = {};
     const visited = new Set();
@@ -400,8 +400,7 @@ async function findTopRoutes(userLat, userLng, venueLat, venueLng, limit = 3) {
         return [];
     }
 
-    // Collect entry nodes from all stations within 0.1 miles of the closest
-    // (same station complex with different platform IDs)
+    // Collect entry nodes from all nearby origin stations
     const entryNodes = [];
     for (const station of originStations) {
         if (station.distance <= closestOrigin.distance + 0.1) {
@@ -417,120 +416,26 @@ async function findTopRoutes(userLat, userLng, venueLat, venueLng, limit = 3) {
         return [];
     }
 
-    const routes = [];
-    const seenSignatures = new Set();
-    const blockedEdges = new Set(); // Block specific edges, not whole stations
-    let bestTime = null;
+    // Find ALL paths to all destination nodes
+    const allPaths = dijkstraAllDests(entryNodes, destNodes, graph);
 
-    // Helper: find the station where a specific line is in the path
-    const findLineStation = (path, line) => {
-        for (const node of path) {
-            if (node.includes(`_${line}`)) {
-                // Find parent station for this node
-                for (const [stationId, station] of Object.entries(getStations())) {
-                    if (station.nodes?.includes(node)) {
-                        return stationId;
-                    }
-                }
-            }
-        }
-        return null;
-    };
+    // Calculate total time for each path and build route objects
+    const candidates = [];
+    for (const result of allPaths) {
+        const exitStation = destNodeToStation[result.endNode];
+        if (!exitStation) continue;
 
-    // Helper: block a specific line at its station
-    const blockLineAtStation = (stationId, line) => {
-        if (!stationId) return;
-        const stationData = getStations()[stationId];
-        if (!stationData?.nodes) return;
-        stationData.nodes.forEach(node => {
-            if (node.includes(`_${line}`)) {
-                blockedEdges.add(node);
-            }
-        });
-    };
+        const walkToVenue = destWalkTimes[exitStation.id] || estimateWalkingTime(exitStation.distance);
+        const totalTime = Math.round(walkToStation + (result.time / 60) + walkToVenue);
 
-    // Iteratively find routes, blocking specific line transfers
-    for (let attempt = 0; attempt < limit * 4 && routes.length < limit; attempt++) {
-        const result = dijkstraWithBlocked(entryNodes, destNodes, graph, blockedEdges);
-        if (!result || !result.path || result.path.length < 2) break;
-
-        // Find exit station
-        const exitNode = result.path[result.path.length - 1];
-        const exitStation = destNodeToStation[exitNode];
-        const walkToVenue = exitStation ? (destWalkTimes[exitStation.id] || estimateWalkingTime(exitStation.distance)) : 0;
-
-        // Format legs
+        // Format legs and get lines used
         const legs = formatLegs(result.path, graph);
         const lines = legs.filter(l => l.type === 'ride').map(l => l.line);
 
-        // Calculate signature by STATION SEQUENCE
-        // N/Q have same stops → same signature → grouped
-        // R has different stops → different signature → separate
-        const stationSequence = [];
-        let lastStation = null;
-        for (const node of result.path) {
-            for (const [stationId, station] of Object.entries(getStations())) {
-                if (station.nodes?.includes(node)) {
-                    if (stationId !== lastStation) {
-                        stationSequence.push(stationId);
-                        lastStation = stationId;
-                    }
-                    break;
-                }
-            }
-        }
-        const signature = stationSequence.join('→');
+        // Create line signature for diversity (e.g., "L" or "L→G" or "J→M")
+        const lineSignature = lines.join('→');
 
-        const totalTime = Math.round(walkToStation + (result.time / 60) + walkToVenue);
-
-        // Track best time for penalty threshold
-        if (bestTime === null) bestTime = totalTime;
-
-        // Skip if too slow compared to best route
-        if (totalTime > bestTime * MAX_TIME_PENALTY) {
-            // Block the destination line at its actual station
-            const transfers = legs.filter(l => l.type === 'transfer');
-            if (transfers.length > 0) {
-                const destLineStation = findLineStation(result.path, transfers[0].toLine);
-                blockLineAtStation(destLineStation, transfers[0].toLine);
-            } else if (lines.length > 0) {
-                blockLineAtStation(closestOrigin.id, lines[0]);
-            }
-            continue;
-        }
-
-        // Check for duplicate signature
-        if (seenSignatures.has(signature)) {
-            // MERGE: Add alternative lines to matching legs
-            const existingRoute = routes.find(r => r.signature === signature);
-            if (existingRoute) {
-                // Match legs by position and add alternatives
-                legs.forEach((leg, idx) => {
-                    if (leg.type === 'ride' && existingRoute.legs[idx]?.type === 'ride') {
-                        const existingLeg = existingRoute.legs[idx];
-                        // Only add alt if: different line AND serves both stations
-                        if (leg.line !== existingLeg.line &&
-                            lineServesStation(leg.line, existingLeg.fromId) &&
-                            lineServesStation(leg.line, existingLeg.toId)) {
-                            if (!existingLeg.altLines) existingLeg.altLines = [];
-                            if (!existingLeg.altLines.includes(leg.line)) {
-                                existingLeg.altLines.push(leg.line);
-                            }
-                        }
-                    }
-                });
-            }
-            // Still block to find more diverse routes
-            const transfers = legs.filter(l => l.type === 'transfer');
-            if (transfers.length > 0) {
-                const destLineStation = findLineStation(result.path, transfers[0].toLine);
-                blockLineAtStation(destLineStation, transfers[0].toLine);
-            }
-            continue;
-        }
-
-        seenSignatures.add(signature);
-        routes.push({
+        candidates.push({
             type: 'transit',
             totalTime,
             walkToStation: Math.round(walkToStation),
@@ -538,28 +443,33 @@ async function findTopRoutes(userLat, userLng, venueLat, venueLng, limit = 3) {
             walkToVenue: Math.round(walkToVenue),
             originStation: closestOrigin.name,
             originStationId: closestOrigin.id,
-            exitStation: exitStation?.name || 'Unknown',
-            exitStationId: exitStation?.id || null,
+            exitStation: exitStation.name,
+            exitStationId: exitStation.id,
             lines,
             legs,
-            signature,
+            lineSignature,
             path: result.path
         });
-
-        // Block the DESTINATION LINE at its actual station to find alternatives
-        // This allows L→N at Union Sq even after finding L→2 at Union Sq
-        const transfers = legs.filter(l => l.type === 'transfer');
-        if (transfers.length > 0) {
-            const destLineStation = findLineStation(result.path, transfers[0].toLine);
-            blockLineAtStation(destLineStation, transfers[0].toLine);
-        } else {
-            // Direct route - block this line's nodes at midpoint
-            const midIdx = Math.floor(result.path.length / 2);
-            blockedEdges.add(result.path[midIdx]);
-        }
     }
 
-    return routes.sort((a, b) => a.totalTime - b.totalTime);
+    // Sort by total time
+    candidates.sort((a, b) => a.totalTime - b.totalTime);
+
+    // Pick diverse routes: best route per unique line combination
+    const routes = [];
+    const seenLineSignatures = new Set();
+
+    for (const route of candidates) {
+        if (routes.length >= limit) break;
+
+        // Skip if we already have a route with same lines (keep the faster one)
+        if (seenLineSignatures.has(route.lineSignature)) continue;
+
+        seenLineSignatures.add(route.lineSignature);
+        routes.push(route);
+    }
+
+    return routes;
 }
 
 // --- QUICK TIME LOOKUP ---

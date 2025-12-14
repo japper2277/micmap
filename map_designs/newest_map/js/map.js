@@ -59,10 +59,9 @@ function getUserLocation() {
                     lat: position.coords.latitude,
                     lng: position.coords.longitude
                 };
-                console.log('User location:', STATE.userLocation);
             },
-            (error) => {
-                console.log('Geolocation error:', error);
+            () => {
+                // Geolocation error - silently ignore, user can manually enable later
             }
         );
     }
@@ -113,9 +112,8 @@ function centerOnUser() {
                     btn.style.opacity = '1';
                     centerOnUser(); // Recurse now that we have location
                 },
-                (error) => {
+                () => {
                     btn.style.opacity = '1';
-                    console.log('Location denied:', error);
                     if (typeof toastService !== 'undefined') {
                         toastService.show('Unable to get location. Enable location services.', 'error');
                     } else {

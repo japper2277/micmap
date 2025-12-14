@@ -31,6 +31,19 @@ function initModal() {
             closeVenueModal();
         }
     });
+
+    // Event delegation for alert triggers (avoids inline onclick XSS)
+    document.addEventListener('click', (e) => {
+        const alertTrigger = e.target.closest('.alert-trigger');
+        if (alertTrigger) {
+            e.stopPropagation();
+            const line = alertTrigger.dataset.line;
+            const alertText = alertTrigger.dataset.alert;
+            if (line && alertText) {
+                showAlertModal(line, alertText);
+            }
+        }
+    });
 }
 
 function openVenueModal(mic) {
@@ -116,12 +129,10 @@ function openVenueModal(mic) {
 async function getRouteForModal(mic, userLat, userLng) {
     // Check if route is already cached from card calculation
     if (mic.route) {
-        console.log('🚇 Using cached route from card calculation');
         return { routes: [mic.route], schedule: null };
     }
 
     // Not cached - fetch via shared transitService
-    console.log('🚇 Fetching route via transitService');
     const route = await transitService.fetchSubwayRoute(userLat, userLng, mic.lat, mic.lng);
     if (route) {
         return { routes: [route], schedule: null };
@@ -254,12 +265,13 @@ async function displaySubwayRoutes(routes, mic, walkOption = null, schedule = nu
                 // Add badge for each line
                 lines.forEach((line, lineIdx) => {
                     if (hasAlert && lineIdx === 0) {
-                        iconFlow += `<div class="badge-wrap" onclick="event.stopPropagation(); showAlertModal('${line}', '${alertText.replace(/'/g, "\\'")}')">
-                            <div class="badge b-${line}">${line}</div>
+                        // Use data attributes to avoid XSS - event handler will read them
+                        iconFlow += `<div class="badge-wrap alert-trigger" data-line="${escapeAttr(line)}" data-alert="${escapeAttr(alertText)}">
+                            <div class="badge b-${escapeHtml(line)}">${escapeHtml(line)}</div>
                             <div class="alert-dot"></div>
                         </div>`;
                     } else {
-                        iconFlow += `<div class="badge b-${line}">${line}</div>`;
+                        iconFlow += `<div class="badge b-${escapeHtml(line)}">${escapeHtml(line)}</div>`;
                     }
                 });
             }
@@ -274,6 +286,7 @@ async function displaySubwayRoutes(routes, mic, walkOption = null, schedule = nu
 
         // Fetch actual departure times for first line at origin station
         let depTimesStr = '';
+        let waitTime = 0;
         if (firstLine && originStation) {
             try {
                 // Look up the station by name to get GTFS stop ID
@@ -281,9 +294,17 @@ async function displaySubwayRoutes(routes, mic, walkOption = null, schedule = nu
                 if (stationData && stationData.gtfsStopId) {
                     const arrivals = await mtaService.fetchArrivals(firstLine, stationData.gtfsStopId);
                     if (arrivals && arrivals.length > 0) {
-                        const next3 = arrivals.slice(0, 3);
+                        // Find first train you can catch (arrives after you get to station)
+                        const catchable = arrivals.filter(a => a.minsAway >= route.walkToStation);
+                        const trainsToShow = catchable.length > 0 ? catchable.slice(0, 3) : arrivals.slice(0, 3);
+
+                        // Calculate wait time from first catchable train
+                        if (catchable.length > 0) {
+                            waitTime = Math.max(0, catchable[0].minsAway - route.walkToStation);
+                        }
+
                         // Format as clock times like "11:18, 11:25, 11:32"
-                        depTimesStr = next3.map(a => {
+                        depTimesStr = trainsToShow.map(a => {
                             const arrivalTime = new Date(Date.now() + a.minsAway * 60000);
                             const hours = arrivalTime.getHours();
                             const mins = arrivalTime.getMinutes().toString().padStart(2, '0');
@@ -293,18 +314,21 @@ async function displaySubwayRoutes(routes, mic, walkOption = null, schedule = nu
                     }
                 }
             } catch (e) {
-                console.log('Could not fetch arrivals for', originStation, firstLine, e);
+                // Silently fail - will show fallback text
             }
         }
         if (!depTimesStr) {
             depTimesStr = `${route.walkToStation}m walk · ${route.subwayTime}m ride`;
         }
 
+        // Add wait time to total
+        const adjustedTotalTime = route.totalTime + waitTime;
+
         transitHTML += `
             <div class="card-base">
                 <div class="card-top">
-                    <span class="time-main">${formatTimeRange(route.totalTime)}</span>
-                    <span class="duration-main">${route.totalTime} min</span>
+                    <span class="time-main">${formatTimeRange(adjustedTotalTime)}</span>
+                    <span class="duration-main">${adjustedTotalTime} min</span>
                 </div>
                 <div class="card-mid">
                     ${iconFlow}
@@ -393,18 +417,15 @@ async function loadModalArrivals(mic) {
         const result = await getRouteForModal(mic, originLat, originLng);
         routes = result.routes || [];
         schedule = result.schedule || null;
-        console.log('🚇 Got routes:', routes.length);
     } catch (error) {
-        console.error('Route fetch failed:', error);
+        // Route fetch failed - will fall back to station arrivals
     }
 
     // Display routes with walking option if under 1 mile actual walk
     if (routes && routes.length > 0) {
-        console.log('🚇 Displaying subway routes');
         await displaySubwayRoutes(routes, mic, walkDist < SHOW_WALK_OPTION ? { walkMins, directDist: walkDist } : null, schedule);
         return;
     }
-    console.log('🚇 No subway routes, falling back to station arrivals');
 
     // Fallback: Find 2 nearest stations to USER's origin and show arrivals
     const nearestStations = findNearestStations(originLat, originLng, 2);
@@ -477,22 +498,24 @@ async function loadModalArrivals(mic) {
             ? [...linesWithService].slice(0, 3)
             : lines.slice(0, 1);
 
-        let badgeFlow = `<span>${walkIcon}${stationWalkMins}m</span><span class="arrow">→</span>`;
+        let badgeFlow = `<span>${walkIcon}${stationWalkMins || 0}m</span><span class="arrow">→</span>`;
         displayLines.forEach((line, idx) => {
             if (hasAlert && idx === 0) {
-                badgeFlow += `<div class="badge-wrap" onclick="event.stopPropagation(); showAlertModal('${line}', '${alertText.replace(/'/g, "\\'")}')">
-                    <div class="badge b-${line}">${line}</div>
+                // Use data attributes to avoid XSS - event handler will read them
+                badgeFlow += `<div class="badge-wrap alert-trigger" data-line="${escapeAttr(line)}" data-alert="${escapeAttr(alertText)}">
+                    <div class="badge b-${escapeHtml(line)}">${escapeHtml(line)}</div>
                     <div class="alert-dot"></div>
                 </div>`;
             } else {
-                badgeFlow += `<div class="badge b-${line}">${line}</div>`;
+                badgeFlow += `<div class="badge b-${escapeHtml(line)}">${escapeHtml(line)}</div>`;
             }
         });
 
         // Estimate total time (walk + wait + ride estimate)
-        const waitTime = nextArrivals.length > 0 ? nextArrivals[0].minsAway : 5;
+        const waitTime = nextArrivals.length > 0 ? (nextArrivals[0].minsAway || 0) : 5;
         const rideEstimate = 15; // Rough estimate
-        const totalTime = stationWalkMins + waitTime + rideEstimate;
+        const safeWalkMins = stationWalkMins || 0;
+        const totalTime = safeWalkMins + waitTime + rideEstimate;
 
         transitHTML += `
             <div class="card-base">

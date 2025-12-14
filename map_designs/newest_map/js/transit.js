@@ -11,9 +11,11 @@
 // CONSTANTS
 const WALK_MINS_PER_MILE = 20;      // ~3 mph walking pace
 
-// OSRM Walking API - local server (unlimited, fast)
-const OSRM_FOOT_API = 'http://localhost:5001/route/v1/foot';
-// const OSRM_FOOT_API = 'https://routing.openstreetmap.de/routed-foot/route/v1/foot'; // Public API fallback (1 req/sec limit)
+// OSRM Walking API - use local server in dev, public API in production
+const isLocalDevTransit = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const OSRM_FOOT_API = isLocalDevTransit
+    ? 'http://localhost:5001/route/v1/foot'
+    : 'https://routing.openstreetmap.de/routed-foot/route/v1/foot';
 
 const transitService = {
 
@@ -41,7 +43,6 @@ const transitService = {
         if (Date.now() - this.cacheTimestamp > 5 * 60 * 1000) {
             this.routeCache = {};
             this.cacheTimestamp = Date.now();
-            console.log('Route cache cleared (5min TTL)');
         }
 
         // Return cached result if available
@@ -213,18 +214,15 @@ const transitService = {
         const signal = this.abortController.signal;
 
         const mics = STATE.mics;
-        console.log(`🚇 Calculating routes for ${mics.length} venues...`);
 
         for (let i = 0; i < mics.length; i += BATCH_SIZE) {
             // Check if aborted
             if (signal.aborted) {
-                console.log('Route calculation aborted');
                 return;
             }
 
             // Check if went offline
             if (!navigator.onLine) {
-                console.warn('Lost connection - aborting');
                 this.applyFallbackTimes();
                 return;
             }
@@ -270,8 +268,7 @@ const transitService = {
                         mic.route = null;
                     }
                 } catch (error) {
-                    // Network error, timeout, or server error
-                    console.error(`Route fetch failed for ${mic.name}:`, error.message);
+                    // Network error, timeout, or server error - use fallback
                     mic.transitMins = Math.round(distance * WALK_MINS_PER_MILE);
                     mic.transitSeconds = mic.transitMins * 60;
                     mic.transitType = 'estimate';
@@ -284,8 +281,6 @@ const transitService = {
                 await new Promise(r => setTimeout(r, 10));
             }
         }
-
-        console.log(`✅ Routes calculated for ${mics.length} venues`);
     },
 
     // Update loading UI with progress

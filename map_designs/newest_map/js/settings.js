@@ -65,8 +65,12 @@ const settingsService = {
 
                 // Recalculate if in transit mode
                 if (STATE.isTransitMode && STATE.userOrigin) {
-                    transitService.applyTransitTimesToMics();
-                    render(STATE.currentMode);
+                    // Re-run transit calculation with current origin
+                    transitService.calculateFromOrigin(
+                        STATE.userOrigin.lat,
+                        STATE.userOrigin.lng,
+                        STATE.userOrigin.name
+                    );
                 }
             });
         });

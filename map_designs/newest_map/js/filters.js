@@ -3,6 +3,9 @@
    Filter cycling, UI updates, reset
    ================================================================= */
 
+// Track if popover outside click listener is attached (prevents memory leak)
+let popoverListenerAttached = false;
+
 // Cycle through filter states (for Price toggle)
 function cycleFilter(type) {
     const cycle = CONFIG.filterCycles[type];
@@ -30,10 +33,12 @@ function toggleTimePopover() {
 
         chevron.style.transform = 'rotate(180deg)';
         popover.classList.add('active');
-        // Close on outside click
-        setTimeout(() => {
+
+        // Close on outside click - only add listener if not already attached
+        if (!popoverListenerAttached) {
+            popoverListenerAttached = true;
             document.addEventListener('click', closeTimePopoverOnOutsideClick);
-        }, 0);
+        }
     }
 }
 
@@ -43,7 +48,12 @@ function closeTimePopover() {
     const chevron = btn?.querySelector('.filter-chevron');
     if (chevron) chevron.style.transform = '';
     popover.classList.remove('active');
-    document.removeEventListener('click', closeTimePopoverOnOutsideClick);
+
+    // Only remove listener if it was attached
+    if (popoverListenerAttached) {
+        popoverListenerAttached = false;
+        document.removeEventListener('click', closeTimePopoverOnOutsideClick);
+    }
 }
 
 function closeTimePopoverOnOutsideClick(e) {
@@ -133,7 +143,7 @@ function showAllMics() {
     resetFilters();
     // Also clear transit mode when going back to Home
     if (STATE.isTransitMode) {
-        clearTransitData();
+        transitService.clearTransitMode();
         updateTransitButtonUI(false);
     }
     render(STATE.currentMode);

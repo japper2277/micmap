@@ -142,11 +142,7 @@ const mtaService = {
 
     // Initialize - fetch alerts on load
     async init() {
-        console.log('🚇 MTA Service initializing...');
-        const alerts = await this.fetchAlerts();
-        console.log(`🚇 Fetched ${alerts.length} alerts`);
-        const lines = this.getAllLines();
-        console.log(`🚇 Lines in transit data: ${lines.join(', ')}`);
+        await this.fetchAlerts();
         this.renderAlertsBanner();
         // Refresh alerts every 90 seconds
         setInterval(() => {

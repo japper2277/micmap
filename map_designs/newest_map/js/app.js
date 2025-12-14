@@ -10,11 +10,13 @@ async function loadData() {
         const data = await response.json();
         const rawMics = data.mics || data; // Handle both { mics: [...] } and raw array
         STATE.mics = processMics(rawMics);
-        console.log(`Loaded ${STATE.mics.length} mics`);
         render('today');
         setTimeout(() => toggleDrawer(true), 500);
     } catch (err) {
-        console.error('Failed to load mics:', err);
+        // Failed to load mics - user will see empty list
+        if (typeof toastService !== 'undefined') {
+            toastService.show('Failed to load open mics', 'error');
+        }
     }
 }
 
@@ -127,9 +129,8 @@ async function loadTransitData() {
         });
 
         window.TRANSIT_DATA = { stations };
-        console.log(`🚇 Loaded ${stations.length} stations`);
     } catch (e) {
-        console.warn('Failed to load transit data:', e);
+        // Failed to load transit data - will use fallback estimates
         window.TRANSIT_DATA = { stations: [] };
     }
 }
