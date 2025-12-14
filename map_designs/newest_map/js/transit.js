@@ -11,11 +11,11 @@
 // CONSTANTS
 const WALK_MINS_PER_MILE = 20;      // ~3 mph walking pace
 
-// OSRM Walking API - use local server in dev, public API in production
-const isLocalDevTransit = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-const OSRM_FOOT_API = isLocalDevTransit
-    ? 'http://localhost:5001/route/v1/foot'
-    : 'https://routing.openstreetmap.de/routed-foot/route/v1/foot';
+// OSRM Walking API - try local first, fallback to public
+const OSRM_LOCAL = 'http://localhost:5001/route/v1/foot';
+const OSRM_PUBLIC = 'https://routing.openstreetmap.de/routed-foot/route/v1/foot';
+let osrmEndpoint = OSRM_LOCAL;
+let osrmLocalFailed = false;
 
 const transitService = {
 
@@ -83,7 +83,7 @@ const transitService = {
         }
     },
 
-    // Fetch accurate walking time from OSRM foot API
+    // Fetch accurate walking time from OSRM foot API (local with public fallback)
     async fetchWalkingRoute(fromLat, fromLng, toLat, toLng) {
         // Cache key
         const cacheKey = `walk:${fromLat.toFixed(4)},${fromLng.toFixed(4)}|${toLat.toFixed(4)},${toLng.toFixed(4)}`;
@@ -93,47 +93,61 @@ const transitService = {
             return this.walkCache[cacheKey];
         }
 
-        try {
-            const url = `${OSRM_FOOT_API}/${fromLng},${fromLat};${toLng},${toLat}?overview=false`;
+        // Try local OSRM first, then public API as fallback
+        const endpoints = osrmLocalFailed ? [OSRM_PUBLIC] : [OSRM_LOCAL, OSRM_PUBLIC];
 
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 8000);
+        for (const endpoint of endpoints) {
+            try {
+                const url = `${endpoint}/${fromLng},${fromLat};${toLng},${toLat}?overview=false`;
 
-            const response = await fetch(url, {
-                signal: controller.signal,
-                headers: {
-                    'User-Agent': 'MicMap-NYC/1.0',
-                    'Referer': 'https://micmap.nyc'
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), endpoint === OSRM_LOCAL ? 2000 : 8000);
+
+                const response = await fetch(url, {
+                    signal: controller.signal,
+                    headers: {
+                        'User-Agent': 'MicMap-NYC/1.0',
+                        'Referer': 'https://micmap.nyc'
+                    }
+                });
+                clearTimeout(timeoutId);
+
+                if (!response.ok) {
+                    if (endpoint === OSRM_LOCAL) {
+                        osrmLocalFailed = true;
+                        console.log('Local OSRM unavailable, switching to public API');
+                        continue;
+                    }
+                    return null;
                 }
-            });
-            clearTimeout(timeoutId);
 
-            if (!response.ok) {
-                console.warn(`OSRM walk API error: ${response.status}`);
-                return null;
+                const data = await response.json();
+                if (data.routes && data.routes.length > 0) {
+                    const r = data.routes[0];
+                    const result = {
+                        meters: Math.round(r.distance),
+                        mins: Math.round(r.duration / 60),
+                        miles: Math.round(r.distance / 1609.34 * 100) / 100
+                    };
+                    // Cache the result
+                    this.walkCache[cacheKey] = result;
+                    return result;
+                }
+            } catch (error) {
+                if (endpoint === OSRM_LOCAL) {
+                    osrmLocalFailed = true;
+                    console.log('Local OSRM unavailable, switching to public API');
+                    continue;
+                }
+                // Public API also failed
+                if (error.name === 'AbortError') {
+                    console.warn('OSRM walk timeout');
+                } else {
+                    console.warn('OSRM walk error:', error.message);
+                }
             }
-
-            const data = await response.json();
-            if (data.routes && data.routes.length > 0) {
-                const r = data.routes[0];
-                const result = {
-                    meters: Math.round(r.distance),
-                    mins: Math.round(r.duration / 60),
-                    miles: Math.round(r.distance / 1609.34 * 100) / 100
-                };
-                // Cache the result
-                this.walkCache[cacheKey] = result;
-                return result;
-            }
-            return null;
-        } catch (error) {
-            if (error.name === 'AbortError') {
-                console.warn('OSRM walk timeout');
-            } else {
-                console.warn('OSRM walk error:', error.message);
-            }
-            return null;
         }
+        return null;
     },
 
     // Get walking time - tries OSRM first, falls back to estimate
