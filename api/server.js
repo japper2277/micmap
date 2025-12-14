@@ -911,6 +911,39 @@ async function getLinesWithService(lines, stopId, neededDirection = null) {
   return linesWithService;
 }
 
+// Helper: Find nearby stations within radius (in miles)
+function findNearbyStations(lat, lng, radiusMiles, stationsData, excludeStationIds = []) {
+  const nearbyStations = [];
+  const radiusKm = radiusMiles * 1.60934;
+
+  for (const [stationId, station] of Object.entries(stationsData || {})) {
+    if (excludeStationIds.includes(stationId)) continue;
+    if (!station.lat || !station.lng) continue;
+
+    // Haversine distance
+    const R = 6371; // Earth radius in km
+    const dLat = (station.lat - lat) * Math.PI / 180;
+    const dLng = (station.lng - lng) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat * Math.PI / 180) * Math.cos(station.lat * Math.PI / 180) *
+              Math.sin(dLng/2) * Math.sin(dLng/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const distKm = R * c;
+
+    if (distKm <= radiusKm) {
+      nearbyStations.push({
+        stationId,
+        name: station.name,
+        lat: station.lat,
+        lng: station.lng,
+        distMiles: distKm / 1.60934
+      });
+    }
+  }
+
+  return nearbyStations.sort((a, b) => a.distMiles - b.distMiles);
+}
+
 // Subway Routes API - with real-time validation
 app.get('/api/subway/routes', async (req, res) => {
   try {
@@ -991,12 +1024,8 @@ app.get('/api/subway/routes', async (req, res) => {
         }
 
         // Check if this line has real-time service at BOTH origin AND destination
-        // First try with direction filter, then try without (MTA feed direction can be delayed)
-        let serviceAtOrigin = await getLinesWithService([leg.line], fromStationId, neededDirection);
-        if (serviceAtOrigin.length === 0) {
-          // Fallback: check if line has ANY service at origin (direction might not be in feed yet)
-          serviceAtOrigin = await getLinesWithService([leg.line], fromStationId, null);
-        }
+        // Direction filter is required - we need trains going the RIGHT way
+        const serviceAtOrigin = await getLinesWithService([leg.line], fromStationId, neededDirection);
         const serviceAtDest = await getLinesWithService([leg.line], toStationId, null);
 
         const hasService = serviceAtOrigin.length > 0 && serviceAtDest.length > 0;
@@ -1127,20 +1156,187 @@ app.get('/api/subway/routes', async (req, res) => {
       }
     }
 
-    // Return only the requested number of routes (sorted by time)
+    // Calculate wait times AFTER validation (so we use validated lines)
+    await Promise.all(validatedRoutes.map(async (route) => {
+      const firstLeg = route.legs?.find(l => l.type === 'ride');
+      if (!firstLeg || !route.path || route.path.length === 0) {
+        route.waitTime = 0;
+        route.adjustedTotalTime = route.totalTime;
+        return;
+      }
+
+      // Get stop ID with direction suffix (e.g., "L15N" from "L15N_L")
+      const stopId = route.path[0].split('_')[0];
+      const line = firstLeg.line; // Use VALIDATED line
+
+      try {
+        const arrivals = await getArrivalsForLine(line, stopId);
+        if (!arrivals || arrivals.length === 0) {
+          route.waitTime = 0;
+          route.adjustedTotalTime = route.totalTime;
+          return;
+        }
+
+        // Find first train you can catch (arrives after you walk to station)
+        const catchable = arrivals.filter(a => a.minsAway >= route.walkToStation);
+        if (catchable.length > 0) {
+          route.waitTime = Math.max(0, catchable[0].minsAway - route.walkToStation);
+        } else {
+          route.waitTime = 0;
+        }
+        route.adjustedTotalTime = route.totalTime + route.waitTime;
+      } catch (e) {
+        route.waitTime = 0;
+        route.adjustedTotalTime = route.totalTime;
+      }
+    }));
+
+    // Return only the requested number of routes (sorted by adjusted time with wait)
     let finalRoutes = validatedRoutes
-      .sort((a, b) => a.totalTime - b.totalTime)
+      .sort((a, b) => (a.adjustedTotalTime || a.totalTime) - (b.adjustedTotalTime || b.totalTime))
       .slice(0, parseInt(limit));
 
-    // FALLBACK: If all routes were filtered by validation, return best unvalidated routes
-    // This handles weekends/late nights when MTA feed is incomplete
+    // RETRY: If all routes failed validation, try nearby stations within 1 mile
     if (finalRoutes.length === 0 && routes.length > 0) {
-      console.log('⚠️ All routes filtered by validation - returning unvalidated routes');
-      finalRoutes = routes
-        .sort((a, b) => a.totalTime - b.totalTime)
-        .slice(0, parseInt(limit));
-      // Mark routes as unvalidated
-      finalRoutes.forEach(r => r.unvalidated = true);
+      console.log('⚠️ All routes from nearest station failed validation - trying nearby stations...');
+
+      // Get the origin station that failed
+      const failedOriginId = routes[0]?.originStationId;
+      const userLatF = parseFloat(userLat);
+      const userLngF = parseFloat(userLng);
+      const venueLatF = parseFloat(venueLat);
+      const venueLngF = parseFloat(venueLng);
+
+      // Find nearby stations within 1 mile
+      const nearbyStations = findNearbyStations(userLatF, userLngF, 1.0, stationsData, [failedOriginId]);
+
+      // Try routes from each nearby station (limit to 5 attempts)
+      for (const nearbyStation of nearbyStations.slice(0, 5)) {
+        console.log(`🔄 Trying routes from ${nearbyStation.name} (${nearbyStation.distMiles.toFixed(2)} mi away)...`);
+
+        // Get routes starting from this station's coordinates
+        const altRoutes = await subwayRouter.findTopRoutes(
+          nearbyStation.lat,
+          nearbyStation.lng,
+          venueLatF,
+          venueLngF,
+          fetchLimit
+        );
+
+        if (!altRoutes || altRoutes.length === 0) continue;
+
+        // Validate these routes (same logic as above)
+        const altValidatedRoutes = [];
+        for (const route of altRoutes) {
+          if (!route.legs || route.legs.length === 0) {
+            altValidatedRoutes.push(route);
+            continue;
+          }
+
+          let routeValid = true;
+          const rideLegs = route.legs.filter(l => l.type === 'ride');
+
+          for (const leg of rideLegs) {
+            const fromStationId = leg.fromId;
+            const toStationId = leg.toId;
+            if (!fromStationId || !toStationId) continue;
+
+            const fromStation = stationsData?.[fromStationId];
+            const toStation = stationsData?.[toStationId];
+            let neededDirection = null;
+            if (fromStation?.lat && toStation?.lat) {
+              neededDirection = toStation.lat > fromStation.lat ? 'Uptown' : 'Downtown';
+            }
+
+            const serviceAtOrigin = await getLinesWithService([leg.line], fromStationId, neededDirection);
+            const serviceAtDest = await getLinesWithService([leg.line], toStationId, null);
+
+            if (serviceAtOrigin.length === 0 || serviceAtDest.length === 0) {
+              // Try to find alternative line
+              const originNodes = stationsData?.[fromStationId]?.nodes || [];
+              const destNodes = stationsData?.[toStationId]?.nodes || [];
+              const originLines = new Set(originNodes.map(n => n.match(/_([A-Z0-9]+)$/)?.[1]).filter(Boolean));
+              const destLines = new Set(destNodes.map(n => n.match(/_([A-Z0-9]+)$/)?.[1]).filter(Boolean));
+              const commonLines = [...originLines].filter(l => destLines.has(l));
+
+              const alternativesAtOrigin = await getLinesWithService(commonLines, fromStationId, neededDirection);
+              let foundAlt = false;
+              for (const altLine of alternativesAtOrigin) {
+                const altAtDest = await getLinesWithService([altLine], toStationId, null);
+                if (altAtDest.length > 0) {
+                  leg.line = altLine;
+                  route.realTimeValidated = true;
+                  foundAlt = true;
+                  break;
+                }
+              }
+              if (!foundAlt) {
+                routeValid = false;
+                break;
+              }
+            }
+          }
+
+          if (routeValid) {
+            // Rebuild lines array and add extra walk time from user to this station
+            route.lines = route.legs.filter(l => l.type === 'ride').map(l => l.line);
+            // Add walk time from user's actual location to this alternate station
+            const extraWalkMins = Math.round(nearbyStation.distMiles * 20); // ~3mph walking
+            route.walkToStation = (route.walkToStation || 0) + extraWalkMins;
+            route.totalTime = (route.totalTime || 0) + extraWalkMins;
+            route.fromAlternateStation = nearbyStation.name;
+            altValidatedRoutes.push(route);
+          }
+        }
+
+        // If we found validated routes from this station, use them
+        if (altValidatedRoutes.length > 0) {
+          console.log(`✅ Found ${altValidatedRoutes.length} validated routes from ${nearbyStation.name}`);
+
+          // Calculate wait times for these routes
+          await Promise.all(altValidatedRoutes.map(async (route) => {
+            const firstLeg = route.legs?.find(l => l.type === 'ride');
+            if (!firstLeg || !route.path || route.path.length === 0) {
+              route.waitTime = 0;
+              route.adjustedTotalTime = route.totalTime;
+              return;
+            }
+            const stopId = route.path[0].split('_')[0];
+            const line = firstLeg.line;
+            try {
+              const arrivals = await getArrivalsForLine(line, stopId);
+              if (!arrivals || arrivals.length === 0) {
+                route.waitTime = 0;
+              } else {
+                const catchable = arrivals.filter(a => a.minsAway >= route.walkToStation);
+                route.waitTime = catchable.length > 0 ? Math.max(0, catchable[0].minsAway - route.walkToStation) : 0;
+              }
+              route.adjustedTotalTime = route.totalTime + route.waitTime;
+            } catch (e) {
+              route.waitTime = 0;
+              route.adjustedTotalTime = route.totalTime;
+            }
+          }));
+
+          finalRoutes = altValidatedRoutes
+            .sort((a, b) => (a.adjustedTotalTime || a.totalTime) - (b.adjustedTotalTime || b.totalTime))
+            .slice(0, parseInt(limit));
+          break; // Found valid routes, stop trying other stations
+        }
+      }
+
+      // If still no routes, fall back to unvalidated
+      if (finalRoutes.length === 0) {
+        console.log('⚠️ No validated routes found from nearby stations - returning unvalidated routes');
+        finalRoutes = routes
+          .sort((a, b) => a.totalTime - b.totalTime)
+          .slice(0, parseInt(limit));
+        finalRoutes.forEach(r => {
+          r.unvalidated = true;
+          r.waitTime = 0;
+          r.adjustedTotalTime = r.totalTime;
+        });
+      }
     }
 
     // Add schedule context to response

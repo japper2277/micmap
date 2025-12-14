@@ -1,0 +1,59 @@
+TRANSFER WAIT TIME CALCULATION - TODO
+=====================================
+
+Current State (as of 12/14/25):
+- Wait time calculated for FIRST train only
+- Uses validated line (A→C swap if needed)
+- Uses correct direction suffix (A50N vs A50S)
+
+What's Missing:
+- Wait time at each transfer station
+
+Implementation Plan:
+1. Track cumulative time through route
+   - walkToStation + waitTime + rideTime = arrival at transfer
+
+2. At each transfer, calculate:
+   - arrivalTime = cumulative time so far
+   - Query MTA arrivals for next line at transfer station
+   - Find first train arriving AFTER arrivalTime
+   - transferWait = nextTrain.arrival - arrivalTime
+
+3. Challenges:
+   - MTA arrivals only accurate ~30 min ahead
+   - For long routes, later transfers may not have data yet
+   - Need to handle "no data" gracefully (use average wait?)
+
+4. Data needed per transfer:
+   - Transfer station ID (with direction suffix)
+   - Next line to board
+   - Estimated arrival time at transfer
+
+5. Where to implement:
+   - api/server.js in the wait time calculation block (lines 1130-1163)
+   - After first leg wait, loop through remaining ride legs
+
+Example:
+  Route: C → 4 → N (Jefferson St to QED)
+
+  Leg 1: C train
+    - Walk to station: 2 min
+    - Wait for C: 1 min (calculated)
+    - Ride C: 18 min
+    - Arrive Fulton St: 21 min from now
+
+  Leg 2: 4 train
+    - Transfer walk: 3 min
+    - Arrive platform: 24 min from now
+    - Next 4 train: query MTA for 4 at 418N
+    - Transfer wait: (next 4 arrival) - 24 min
+
+  Leg 3: N train
+    - Similar calculation at 59 St
+
+Code Location:
+  api/server.js:1130-1163 (wait time calculation block)
+
+Related Files:
+  - scripts/subway-router.js (has fetchArrivals function)
+  - api/server.js (has getArrivalsForLine function)

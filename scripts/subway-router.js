@@ -40,9 +40,8 @@ async function calculateWaitTime(route) {
     }
 
     // Get stop ID from first path node (e.g., "L15N" from "L15N_L")
-    // Strip N/S suffix - MTA API uses base stop ID (e.g., "A50" not "A50N")
-    const rawStopId = route.path[0].split('_')[0];
-    const stopId = rawStopId.replace(/[NS]$/, '');
+    // Keep N/S suffix - MTA API filters by direction
+    const stopId = route.path[0].split('_')[0];
     const line = firstLeg.line;
 
     const arrivals = await fetchArrivals(line, stopId);
@@ -514,15 +513,8 @@ async function findTopRoutes(userLat, userLng, venueLat, venueLng, limit = 3) {
         routes.push(route);
     }
 
-    // Calculate wait times for selected routes (in parallel)
-    await Promise.all(routes.map(async (route) => {
-        const waitTime = await calculateWaitTime(route);
-        route.waitTime = waitTime;
-        route.adjustedTotalTime = route.totalTime + waitTime;
-    }));
-
-    // Re-sort by adjusted total time
-    routes.sort((a, b) => a.adjustedTotalTime - b.adjustedTotalTime);
+    // NOTE: Wait time calculation moved to server.js (after real-time validation)
+    // This ensures we calculate wait for the VALIDATED line, not the scheduled one
 
     return routes;
 }
