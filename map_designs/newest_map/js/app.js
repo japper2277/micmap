@@ -98,5 +98,41 @@ function init() {
     setInterval(refreshStatuses, 60000);
 }
 
+// Load transit station data for arrivals/fallback
+async function loadTransitData() {
+    try {
+        const response = await fetch(`${CONFIG.apiBase}/data/stations.json`);
+        if (!response.ok) throw new Error('Failed to fetch stations');
+        const stationsObj = await response.json();
+
+        // Transform object to array with gtfsStopId and lines
+        const stations = Object.entries(stationsObj).map(([id, station]) => {
+            // Extract lines from nodes (e.g., "101S_1" -> "1")
+            const lines = new Set();
+            (station.nodes || []).forEach(node => {
+                const match = node.match(/_([A-Z0-9]+)$/);
+                if (match) lines.add(match[1]);
+            });
+
+            // Build name with lines like "Station Name (1 2 3)"
+            const lineStr = [...lines].sort().join(' ');
+            const nameWithLines = lineStr ? `${station.name} (${lineStr})` : station.name;
+
+            return {
+                ...station,
+                gtfsStopId: id,
+                name: nameWithLines,
+                lines: [...lines]
+            };
+        });
+
+        window.TRANSIT_DATA = { stations };
+        console.log(`🚇 Loaded ${stations.length} stations`);
+    } catch (e) {
+        console.warn('Failed to load transit data:', e);
+        window.TRANSIT_DATA = { stations: [] };
+    }
+}
+
 // Run init when DOM is ready
 init();

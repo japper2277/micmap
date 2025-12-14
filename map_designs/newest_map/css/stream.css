@@ -30,13 +30,46 @@
     cursor: pointer;
 }
 
+/* Kinetic Hover: Slide & Invert */
 .stream-item:hover {
-    background: rgba(255, 255, 255, 0.05);
+    background: #ffffff;
+    color: #000000;
+    padding-left: 2rem !important;
 }
 
 /* Touch feedback for mobile */
 .stream-item:active {
     background: rgba(255, 255, 255, 0.1);
+}
+
+/* Text Color Inversion on Hover */
+.stream-item:hover .start-time,
+.stream-item:hover .stage-time,
+.stream-item:hover .venue-name,
+.stream-item:hover .venue-row,
+.stream-item:hover .meta-row,
+.stream-item:hover .status-row,
+.stream-item:hover .commute-live,
+.stream-item:hover .neighborhood {
+    color: #000 !important;
+}
+.stream-item:hover .commute-live svg {
+    fill: #000;
+}
+.stream-item:hover .tag-pill {
+    color: #000 !important;
+    border-color: #000 !important;
+}
+.stream-item:hover .stage-time {
+    background: #1C1C1E !important;
+    color: #fff !important;
+}
+.stream-item:hover .icon-btn {
+    background: rgba(0, 0, 0, 0.15) !important;
+    color: #000 !important;
+}
+.stream-item:hover .icon-btn svg {
+    stroke: #000 !important;
 }
 
 /* --- LEFT COLUMN: SPECS --- */
@@ -151,10 +184,30 @@
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 0;
-    font-size: 13px;
-    font-weight: 400;
+    gap: 8px;
+    font-size: 11px;
+    font-weight: 500;
     color: #8E8E93;
+    margin-top: 6px;
+}
+
+.neighborhood {
+    color: #8E8E93;
+    letter-spacing: 0.5px;
+}
+
+.meta-dot {
+    color: #555;
+}
+
+.tag-pill {
+    padding: 4px 10px;
+    border: 1px solid #444;
+    border-radius: 4px;
+    color: #ccc;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
 }
 
 .meta-separator {
@@ -186,6 +239,54 @@
     font-weight: 500;
     flex-shrink: 0;
 }
+
+/* Departure Times Display (on cards) */
+.commute-departures {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    font-size: 12px;
+}
+
+.dep-badge {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: white;
+    flex-shrink: 0;
+}
+
+.dep-times-card {
+    color: #4da6ff;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Hover state for departures */
+.stream-item:hover .dep-times-card {
+    color: #0066cc !important;
+}
+.stream-item:hover .dep-badge {
+    opacity: 0.9;
+}
+
+/* Line badge colors (same as MTA) */
+.dep-badge.b-1, .dep-badge.b-2, .dep-badge.b-3 { background: #ee352e; }
+.dep-badge.b-4, .dep-badge.b-5, .dep-badge.b-6 { background: #00933c; }
+.dep-badge.b-7 { background: #b933ad; }
+.dep-badge.b-A, .dep-badge.b-C, .dep-badge.b-E { background: #2850ad; }
+.dep-badge.b-B, .dep-badge.b-D, .dep-badge.b-F, .dep-badge.b-M { background: #ff6319; }
+.dep-badge.b-G { background: #6cbe45; }
+.dep-badge.b-J, .dep-badge.b-Z { background: #996633; }
+.dep-badge.b-L { background: #a7a9ac; }
+.dep-badge.b-N, .dep-badge.b-Q, .dep-badge.b-R, .dep-badge.b-W { background: #fccc0a; color: #000; }
+.dep-badge.b-S { background: #808183; }
 
 /* --- RIGHT COLUMN: ACTIONS --- */
 .action-col {

@@ -3,7 +3,7 @@
    Filter cycling, UI updates, reset
    ================================================================= */
 
-// Cycle through filter states (for Price and Time toggles)
+// Cycle through filter states (for Price toggle)
 function cycleFilter(type) {
     const cycle = CONFIG.filterCycles[type];
     const currentIndex = cycle.indexOf(STATE.activeFilters[type]);
@@ -13,27 +13,119 @@ function cycleFilter(type) {
     render(STATE.currentMode);
 }
 
+// Toggle time filter popover
+function toggleTimePopover() {
+    const popover = document.getElementById('time-popover');
+    const btn = document.getElementById('filter-time');
+    const chevron = btn.querySelector('.filter-chevron');
+    const isOpen = popover.classList.contains('active');
+
+    if (isOpen) {
+        closeTimePopover();
+    } else {
+        // Position popover below the button
+        const rect = btn.getBoundingClientRect();
+        popover.style.top = (rect.bottom + 8) + 'px';
+        popover.style.left = rect.left + 'px';
+
+        chevron.style.transform = 'rotate(180deg)';
+        popover.classList.add('active');
+        // Close on outside click
+        setTimeout(() => {
+            document.addEventListener('click', closeTimePopoverOnOutsideClick);
+        }, 0);
+    }
+}
+
+function closeTimePopover() {
+    const popover = document.getElementById('time-popover');
+    const btn = document.getElementById('filter-time');
+    const chevron = btn?.querySelector('.filter-chevron');
+    if (chevron) chevron.style.transform = '';
+    popover.classList.remove('active');
+    document.removeEventListener('click', closeTimePopoverOnOutsideClick);
+}
+
+function closeTimePopoverOnOutsideClick(e) {
+    const popover = document.getElementById('time-popover');
+    const btn = document.getElementById('filter-time');
+    if (!popover.contains(e.target) && !btn.contains(e.target)) {
+        closeTimePopover();
+    }
+}
+
+// Select time filter from popover
+function selectTimeFilter(value) {
+    STATE.activeFilters.time = value;
+
+    // Update popover option active states
+    const options = document.querySelectorAll('#time-popover .popover-option');
+    options.forEach(opt => {
+        opt.classList.toggle('active', opt.dataset.value === value);
+    });
+
+    // Update button UI
+    updateFilterPillUI('time', value);
+
+    // Close popover and re-render
+    closeTimePopover();
+    render(STATE.currentMode);
+}
+
 function updateFilterPillUI(type, value) {
     const btn = document.getElementById(`filter-${type}`);
-
     const label = CONFIG.filterLabels[type][value] || value;
-    btn.textContent = label;
+
+    if (type === 'time') {
+        // For time filter, update just the text node (preserve chevron SVG)
+        const textNode = btn.childNodes[0];
+        if (textNode.nodeType === Node.TEXT_NODE) {
+            textNode.textContent = label + ' ';
+        } else {
+            btn.firstChild.textContent = label + ' ';
+        }
+    } else {
+        btn.textContent = label;
+    }
+
     btn.classList.toggle('active', value !== 'All');
 
     // Update Home button state - active when no filters are applied
     const homeBtn = document.getElementById('btn-home');
     if (homeBtn) {
-        const hasActiveFilters = STATE.activeFilters.price !== 'All' || STATE.activeFilters.time !== 'All';
+        const hasActiveFilters = STATE.activeFilters.price !== 'All' ||
+                                 STATE.activeFilters.time !== 'All' ||
+                                 STATE.activeFilters.commute !== 'All';
         homeBtn.classList.toggle('active', !hasActiveFilters);
     }
 }
 
 function resetFilters() {
-    STATE.activeFilters = { price: 'All', time: 'All' };
-    ['price', 'time'].forEach(type => updateFilterPillUI(type, 'All'));
+    STATE.activeFilters = { price: 'All', time: 'All', commute: 'All' };
+    ['price', 'time', 'commute'].forEach(type => updateFilterPillUI(type, 'All'));
+
+    // Reset time popover option active states
+    const options = document.querySelectorAll('#time-popover .popover-option');
+    options.forEach(opt => {
+        opt.classList.toggle('active', opt.dataset.value === 'All');
+    });
+
     // Ensure Home button is active when all filters are reset
     const homeBtn = document.getElementById('btn-home');
     if (homeBtn) homeBtn.classList.add('active');
+}
+
+// Show/hide commute filter based on transit mode
+function updateCommuteFilterVisibility(show) {
+    const commuteBtn = document.getElementById('filter-commute');
+    if (commuteBtn) {
+        commuteBtn.style.display = show ? '' : 'none';
+        // Reset commute filter when hiding
+        if (!show && STATE.activeFilters.commute !== 'All') {
+            STATE.activeFilters.commute = 'All';
+            updateFilterPillUI('commute', 'All');
+        }
+    }
 }
 
 // Show all mics - reset filters
@@ -53,12 +145,15 @@ function showAllMics() {
    ================================================================= */
 
 function updateTransitButtonUI(isActive) {
-    // Transit button removed - transit mode now activates from search
-    // Just update Home button state
+    // Show/hide commute filter based on transit mode
+    updateCommuteFilterVisibility(isActive);
+
+    // Update Home button state
     const homeBtn = document.getElementById('btn-home');
     if (homeBtn) {
         const hasActiveFilters = STATE.activeFilters.price !== 'All' ||
                                  STATE.activeFilters.time !== 'All' ||
+                                 STATE.activeFilters.commute !== 'All' ||
                                  STATE.isTransitMode;
         homeBtn.classList.toggle('active', !hasActiveFilters);
     }

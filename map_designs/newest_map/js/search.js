@@ -116,6 +116,7 @@ const searchService = {
                 <div class="item-icon">${this.icons.nav}</div>
                 <div class="item-text">
                     <span class="item-name">Use Current Location</span>
+                    <span class="item-sub">Show transit times from where you are</span>
                 </div>
             </div>
             <div class="section-header">Popular Neighborhoods</div>`;
@@ -177,12 +178,13 @@ const searchService = {
     renderDropdown(results) {
         let html = '';
 
-        // "Use My Location" option (always show)
+        // "Use My Location" option (always show) - with subtitle for clarity
         html += `
             <div class="dropdown-item current-location" data-action="location">
                 <div class="item-icon">${this.icons.nav}</div>
                 <div class="item-text">
                     <span class="item-name">Use Current Location</span>
+                    <span class="item-sub">Show transit times from where you are</span>
                 </div>
             </div>`;
 

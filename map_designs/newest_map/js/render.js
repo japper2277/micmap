@@ -59,8 +59,16 @@ function render(mode) {
         // Filter by time
         if (STATE.activeFilters.time !== 'All' && m.start) {
             const hour = m.start.getHours();
-            if (STATE.activeFilters.time === 'early' && hour >= 17) return false;
-            if (STATE.activeFilters.time === 'late' && hour < 17) return false;
+            const range = CONFIG.timeRanges[STATE.activeFilters.time];
+            if (range && (hour < range.start || hour >= range.end)) return false;
+        }
+
+        // Filter by commute (only when transit mode active)
+        if (STATE.activeFilters.commute !== 'All' && STATE.isTransitMode) {
+            const maxMins = STATE.activeFilters.commute;
+            // If no transit data, hide when commute filter is active
+            if (!m.transitMins) return false;
+            if (m.transitMins > maxMins) return false;
         }
 
         return true;
@@ -150,27 +158,13 @@ function render(mode) {
         return;
     }
 
-    // Sort: Transit time (if in transit mode) OR start time
-    if (STATE.isTransitMode && STATE.userOrigin) {
-        // Sort by transit time - closest first, then by start time for ties
-        filtered.sort((a, b) => {
-            const aTransit = a.transitMins || 999;
-            const bTransit = b.transitMins || 999;
-            if (aTransit !== bTransit) return aTransit - bTransit;
-
-            // For ties, sort by start time
-            const aStart = a.start instanceof Date ? a.start.getTime() : (a.start || 0);
-            const bStart = b.start instanceof Date ? b.start.getTime() : (b.start || 0);
-            return aStart - bStart;
-        });
-    } else {
-        // Default: Sort by start time
-        filtered.sort((a, b) => {
-            const aStart = a.start instanceof Date ? a.start.getTime() : (a.start || 0);
-            const bStart = b.start instanceof Date ? b.start.getTime() : (b.start || 0);
-            return aStart - bStart;
-        });
-    }
+    // Sort by start time (chronological order) - always, even in transit mode
+    // Transit distance info still displays, but doesn't affect sort order
+    filtered.sort((a, b) => {
+        const aStart = a.start instanceof Date ? a.start.getTime() : (a.start || 0);
+        const bStart = b.start instanceof Date ? b.start.getTime() : (b.start || 0);
+        return aStart - bStart;
+    });
 
     // In transit mode: split into visible and hidden for "Show more" functionality
     const searchQuery = document.getElementById('search-input')?.value?.toLowerCase() || '';
@@ -225,9 +219,27 @@ function render(mode) {
         card.onclick = () => locateMic(mic.lat, mic.lng, mic.id);
         card.className = `stream-item group ${isRecentPast ? 'is-past' : ''}`;
 
-        // Build commute display - walking time if <1mi, otherwise distance
+        // Build commute display - show departure times if route available
         let commuteDisplay = '';
-        if (mic.transitMins !== undefined) {
+        if (mic.route && mic.route.legs) {
+            // Has route with legs - show line badge + placeholder for departure times
+            const firstRideLeg = mic.route.legs.find(l => l.type === 'ride');
+            if (firstRideLeg) {
+                const line = firstRideLeg.line;
+                const stopId = firstRideLeg.fromStopId;
+                // Show line badge + loading placeholder, will be updated async
+                commuteDisplay = `<div class="commute-departures" data-line="${line}" data-stop-id="${stopId}" data-mic-id="${mic.id}">
+                    <span class="dep-badge b-${line}">${line}</span>
+                    <span class="dep-times-card">...</span>
+                </div>`;
+            } else {
+                // Route but no ride leg (walk only)
+                commuteDisplay = `<div class="commute-live">
+                    <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                    ${mic.transitMins}m
+                </div>`;
+            }
+        } else if (mic.transitMins !== undefined) {
             commuteDisplay = `<div class="commute-live">
                    <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
                    ${mic.transitType === 'estimate' ? '~' : ''}${mic.transitMins}m
@@ -270,9 +282,13 @@ function render(mode) {
                         ? `<a href="${mic.signupUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation();" class="icon-btn" title="Visit Website">
                             <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
                         </a>`
-                        : `<button onclick="event.stopPropagation(); flipCard(this);" class="icon-btn" title="Signup info">
-                            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                        </button>`
+                        : mic.signupEmail
+                            ? `<a href="mailto:${mic.signupEmail}" onclick="event.stopPropagation();" class="icon-btn" title="Email ${mic.signupEmail}">
+                                <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                            </a>`
+                            : `<button onclick="event.stopPropagation(); flipCard(this);" class="icon-btn" title="Signup info">
+                                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                            </button>`
                     }
                     ${mic.contact ? `<a href="https://instagram.com/${mic.contact.replace(/^@/, '')}" target="_blank" rel="noopener" onclick="event.stopPropagation();" class="icon-btn" title="@${mic.contact.replace(/^@/, '')}">
                         <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
@@ -304,6 +320,65 @@ function render(mode) {
             </button>
         `;
         container.appendChild(showMoreContainer);
+    }
+
+    // Fetch and update departure times for cards with routes
+    if (STATE.isTransitMode) {
+        updateCardDepartureTimes();
+    }
+}
+
+// Fetch live departure times and update card displays
+async function updateCardDepartureTimes() {
+    const departureElements = document.querySelectorAll('.commute-departures');
+    if (departureElements.length === 0) return;
+
+    // Group by line+stopId to batch similar requests
+    const requests = new Map();
+    departureElements.forEach(el => {
+        const line = el.dataset.line;
+        const stopId = el.dataset.stopId;
+        const key = `${line}|${stopId}`;
+        if (!requests.has(key)) {
+            requests.set(key, { line, stopId, elements: [] });
+        }
+        requests.get(key).elements.push(el);
+    });
+
+    // Fetch arrivals for each unique station
+    for (const [key, data] of requests) {
+        try {
+            const arrivals = await mtaService.fetchArrivals(data.line, data.stopId);
+            if (arrivals && arrivals.length > 0) {
+                // Format next 2-3 arrivals as clock times
+                const next3 = arrivals.slice(0, 3);
+                const timesStr = next3.map(a => {
+                    const arrivalTime = new Date(Date.now() + a.minsAway * 60000);
+                    const hours = arrivalTime.getHours();
+                    const mins = arrivalTime.getMinutes().toString().padStart(2, '0');
+                    const displayHour = hours > 12 ? hours - 12 : (hours === 0 ? 12 : hours);
+                    return `${displayHour}:${mins}`;
+                }).join(', ');
+
+                // Update all elements for this station
+                data.elements.forEach(el => {
+                    const timesEl = el.querySelector('.dep-times-card');
+                    if (timesEl) timesEl.textContent = timesStr;
+                });
+            } else {
+                // No arrivals - show fallback
+                data.elements.forEach(el => {
+                    const timesEl = el.querySelector('.dep-times-card');
+                    if (timesEl) timesEl.textContent = 'No trains';
+                });
+            }
+        } catch (e) {
+            console.warn('Failed to fetch departures for', data.line, data.stopId, e);
+            data.elements.forEach(el => {
+                const timesEl = el.querySelector('.dep-times-card');
+                if (timesEl) timesEl.textContent = '--';
+            });
+        }
     }
 }
 

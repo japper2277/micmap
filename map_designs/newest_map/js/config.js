@@ -11,10 +11,19 @@ const CONFIG = {
     mapZoom: 13,
     filterCycles: {
         price: ['All', 'Free', 'Paid'],
-        time: ['All', 'early', 'late']
+        time: ['All', 'morning', 'afternoon', 'evening', 'latenight'],
+        commute: ['All', 15, 30, 45, 60]
     },
     filterLabels: {
         price: { All: 'Price', Free: 'Free', Paid: '< $5' },
-        time: { All: 'Time', early: '< 5pm', late: '5pm+' }
+        time: { All: 'Time', morning: 'Morning', afternoon: 'Afternoon', evening: 'Evening', latenight: 'Late Night' },
+        commute: { All: 'Commute', 15: '< 15m', 30: '< 30m', 45: '< 45m', 60: '< 1hr' }
+    },
+    timeRanges: {
+        All: { start: 0, end: 24 },
+        morning: { start: 0, end: 12 },      // Before 12pm
+        afternoon: { start: 12, end: 17 },   // 12pm - 5pm
+        evening: { start: 17, end: 21 },     // 5pm - 9pm
+        latenight: { start: 21, end: 24 }    // 9pm+
     }
 };

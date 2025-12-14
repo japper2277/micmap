@@ -68,7 +68,7 @@ function getUserLocation() {
     }
 }
 
-// Center map on user's location
+// Center map on user's location AND trigger transit mode
 function centerOnUser() {
     const btn = document.getElementById('locate-btn');
 
@@ -91,6 +91,13 @@ function centerOnUser() {
             }).addTo(map);
         }
 
+        // Trigger transit calculations from user location
+        if (typeof transitService !== 'undefined' && transitService.calculateFromOrigin) {
+            const searchInput = document.getElementById('search-input');
+            if (searchInput) searchInput.value = 'My Location';
+            transitService.calculateFromOrigin(STATE.userLocation.lat, STATE.userLocation.lng, 'My Location', null);
+        }
+
         // Remove active state after animation
         setTimeout(() => btn.classList.remove('active'), 1500);
     } else {
@@ -109,12 +116,20 @@ function centerOnUser() {
                 (error) => {
                     btn.style.opacity = '1';
                     console.log('Location denied:', error);
-                    alert('Unable to get your location. Please enable location services.');
+                    if (typeof toastService !== 'undefined') {
+                        toastService.show('Unable to get location. Enable location services.', 'error');
+                    } else {
+                        alert('Unable to get your location. Please enable location services.');
+                    }
                 },
                 { enableHighAccuracy: true, timeout: 10000 }
             );
         } else {
-            alert('Geolocation is not supported by your browser.');
+            if (typeof toastService !== 'undefined') {
+                toastService.show('Geolocation not supported by your browser', 'error');
+            } else {
+                alert('Geolocation is not supported by your browser.');
+            }
         }
     }
 }

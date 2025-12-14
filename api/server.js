@@ -36,6 +36,9 @@ app.use(express.json());
 // Request logging with unique IDs
 app.use(requestLoggingMiddleware);
 
+// Serve static data files (stations.json, graph.json)
+app.use('/data', express.static(path.join(__dirname, '..', 'public', 'data')));
+
 // Connect to MongoDB (skip in test - tests handle their own connection)
 if (process.env.NODE_ENV !== 'test') {
   connectDB();
@@ -920,7 +923,7 @@ app.get('/api/subway/routes', async (req, res) => {
     // Fetch more routes than requested, then filter by real-time validation
     // This ensures we find valid alternatives when E/F/M don't run at certain times
     const fetchLimit = Math.max(parseInt(limit) * 4, 10);
-    const routes = subwayRouter.findTopRoutes(
+    const routes = await subwayRouter.findTopRoutes(
       parseFloat(userLat),
       parseFloat(userLng),
       parseFloat(venueLat),

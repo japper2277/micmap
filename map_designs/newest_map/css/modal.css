@@ -113,6 +113,8 @@
 
 /* MID ROW (Icons) */
 .card-mid { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: #e5e5e5; flex-wrap: wrap; }
+.card-mid span { display: inline-flex; align-items: center; gap: 2px; }
+.walk-icon { vertical-align: middle; }
 .arrow { color: #555; font-size: 12px; }
 
 /* Badges */

@@ -25,8 +25,13 @@ function parseTime(timeStr) {
 // Extract URL from signup text
 function extractSignupUrl(signupText) {
     if (!signupText) return null;
-    const urlMatch = signupText.match(/(https?:\/\/[^\s]+)/);
-    return urlMatch ? urlMatch[1] : null;
+    // First try full URLs with http/https
+    const fullUrlMatch = signupText.match(/(https?:\/\/[^\s]+)/);
+    if (fullUrlMatch) return fullUrlMatch[1];
+    // Then try domain-style URLs (www.site.com or site.com/path)
+    const domainMatch = signupText.match(/(?:^|\s)((?:www\.)?[a-zA-Z0-9-]+\.[a-zA-Z]{2,}(?:\/[^\s]*)?)/i);
+    if (domainMatch) return 'https://' + domainMatch[1];
+    return null;
 }
 
 // Extract email from signup text

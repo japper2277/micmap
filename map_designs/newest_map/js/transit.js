@@ -11,7 +11,14 @@
 // CONSTANTS
 const WALK_MINS_PER_MILE = 20;      // ~3 mph walking pace
 
+// OSRM Walking API - local server (unlimited, fast)
+const OSRM_FOOT_API = 'http://localhost:5001/route/v1/foot';
+// const OSRM_FOOT_API = 'https://routing.openstreetmap.de/routed-foot/route/v1/foot'; // Public API fallback (1 req/sec limit)
+
 const transitService = {
+
+    // Walking route cache
+    walkCache: {},
 
     // Route cache: keyed by "userLat,userLng|venueLat,venueLng"
     routeCache: {},
@@ -43,7 +50,7 @@ const transitService = {
         }
 
         try {
-            const url = `/api/subway/routes?userLat=${userLat}&userLng=${userLng}&venueLat=${venueLat}&venueLng=${venueLng}`;
+            const url = `${CONFIG.apiBase}/api/subway/routes?userLat=${userLat}&userLng=${userLng}&venueLat=${venueLat}&venueLng=${venueLng}`;
 
             // 5-second timeout for Dijkstra calculation
             const controller = new AbortController();
@@ -75,10 +82,92 @@ const transitService = {
         }
     },
 
+    // Fetch accurate walking time from OSRM foot API
+    async fetchWalkingRoute(fromLat, fromLng, toLat, toLng) {
+        // Cache key
+        const cacheKey = `walk:${fromLat.toFixed(4)},${fromLng.toFixed(4)}|${toLat.toFixed(4)},${toLng.toFixed(4)}`;
+
+        // Return cached result if available
+        if (this.walkCache[cacheKey]) {
+            return this.walkCache[cacheKey];
+        }
+
+        try {
+            const url = `${OSRM_FOOT_API}/${fromLng},${fromLat};${toLng},${toLat}?overview=false`;
+
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+            const response = await fetch(url, {
+                signal: controller.signal,
+                headers: {
+                    'User-Agent': 'MicMap-NYC/1.0',
+                    'Referer': 'https://micmap.nyc'
+                }
+            });
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                console.warn(`OSRM walk API error: ${response.status}`);
+                return null;
+            }
+
+            const data = await response.json();
+            if (data.routes && data.routes.length > 0) {
+                const r = data.routes[0];
+                const result = {
+                    meters: Math.round(r.distance),
+                    mins: Math.round(r.duration / 60),
+                    miles: Math.round(r.distance / 1609.34 * 100) / 100
+                };
+                // Cache the result
+                this.walkCache[cacheKey] = result;
+                return result;
+            }
+            return null;
+        } catch (error) {
+            if (error.name === 'AbortError') {
+                console.warn('OSRM walk timeout');
+            } else {
+                console.warn('OSRM walk error:', error.message);
+            }
+            return null;
+        }
+    },
+
+    // Get walking time - tries OSRM first, falls back to estimate
+    async getWalkingTime(fromLat, fromLng, toLat, toLng) {
+        // Try accurate OSRM route
+        const osrmRoute = await this.fetchWalkingRoute(fromLat, fromLng, toLat, toLng);
+        if (osrmRoute) {
+            return {
+                mins: osrmRoute.mins,
+                meters: osrmRoute.meters,
+                miles: osrmRoute.miles,
+                source: 'osrm'
+            };
+        }
+
+        // Fallback to estimate (Haversine * 1.35 for NYC grid)
+        const straightLine = calculateDistance(fromLat, fromLng, toLat, toLng);
+        const adjustedMiles = straightLine * 1.35;
+        return {
+            mins: Math.round(adjustedMiles * WALK_MINS_PER_MILE),
+            meters: Math.round(adjustedMiles * 1609.34),
+            miles: Math.round(adjustedMiles * 100) / 100,
+            source: 'estimate'
+        };
+    },
+
     async calculateFromOrigin(lat, lng, name, targetMic = null) {
         STATE.userOrigin = { lat, lng, name };
         STATE.isTransitMode = true;
         STATE.isCalculatingTransit = true;
+
+        // Show commute filter button
+        if (typeof updateTransitButtonUI === 'function') {
+            updateTransitButtonUI(true);
+        }
 
         this.showLoadingState();
         this.addOriginMarker(lat, lng, name);
@@ -112,11 +201,9 @@ const transitService = {
 
     // Calculate Dijkstra routes for all mics in batches
     async calculateAllRoutes(userLat, userLng) {
-        // BATCH_SIZE = 10 is optimal based on testing:
-        // - Smaller (5): 2.5s total, underutilizes server capacity
-        // - 10: 1.5s total, good balance
-        // - Larger (20): 1.2s total but risks timeout on slower connections
-        const BATCH_SIZE = 10;
+        // BATCH_SIZE = 30 since we have local OSRM (fast)
+        // If using remote APIs, reduce to 10
+        const BATCH_SIZE = 30;
 
         // Abort previous calculation if user searches again
         if (this.abortController) {
@@ -149,12 +236,15 @@ const transitService = {
 
             // Process batch in parallel
             await Promise.all(batch.map(async (mic) => {
-                // Check if walkable first (< 0.4 miles = ~8 min walk)
+                // Check if walkable first (< 0.5 miles straight line)
                 const distance = calculateDistance(userLat, userLng, mic.lat, mic.lng);
-                if (distance < 0.4) {
-                    mic.transitMins = Math.round(distance * WALK_MINS_PER_MILE);
-                    mic.transitSeconds = mic.transitMins * 60;
+                if (distance < 0.5) {
+                    // Get accurate walking time from OSRM
+                    const walkData = await this.getWalkingTime(userLat, userLng, mic.lat, mic.lng);
+                    mic.transitMins = walkData.mins;
+                    mic.transitSeconds = walkData.mins * 60;
                     mic.transitType = 'walk';
+                    mic.walkData = walkData; // Store for display
                     mic.route = null;
                     return;
                 }
@@ -189,9 +279,9 @@ const transitService = {
                 }
             }));
 
-            // 50ms delay between batches (prevents server overload)
+            // 10ms delay between batches (local OSRM is fast)
             if (i + BATCH_SIZE < mics.length) {
-                await new Promise(r => setTimeout(r, 50));
+                await new Promise(r => setTimeout(r, 10));
             }
         }
 

@@ -240,6 +240,80 @@
     color: white;
 }
 
+/* --- FILTER POPOVER --- */
+.filter-popover-wrapper {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.filter-chevron {
+    transition: transform 0.2s ease;
+}
+
+.filter-popover-wrapper.open .filter-chevron {
+    transform: rotate(180deg);
+}
+
+.filter-popover {
+    position: fixed;
+    min-width: 180px;
+    background: rgba(20, 20, 22, 0.98);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 6px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    transition: all 0.2s ease;
+    z-index: 2000;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.filter-popover.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.popover-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 10px 12px;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    text-align: left;
+}
+
+.popover-option:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.popover-option.active {
+    background: rgba(244, 43, 78, 0.15);
+}
+
+.popover-option .option-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #fff;
+}
+
+.popover-option.active .option-label {
+    color: #F42B4E;
+}
+
+.popover-option .option-detail {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.4);
+}
+
 /* --- NEW SEARCH BAR DESIGN --- */
 .search-wrapper {
     position: relative;
@@ -315,6 +389,49 @@
 }
 .search-clear-btn.visible {
     display: flex;
+}
+
+/* Divider in search bar */
+.search-divider {
+    width: 1px;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    margin: 0 8px;
+    flex-shrink: 0;
+}
+
+/* Quick location button inside search bar */
+.search-location-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(59, 130, 246, 0.15);
+    border: none;
+    color: #3b82f6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+}
+
+.search-location-btn:hover {
+    background: rgba(59, 130, 246, 0.25);
+    transform: scale(1.05);
+}
+
+.search-location-btn:active {
+    transform: scale(0.95);
+}
+
+.search-location-btn.loading {
+    animation: pulse-location 1.5s infinite;
+}
+
+@keyframes pulse-location {
+    0%, 100% { background: rgba(59, 130, 246, 0.15); }
+    50% { background: rgba(59, 130, 246, 0.35); }
 }
 
 /* =================================================================
@@ -399,8 +516,18 @@
 .dropdown-item.location-type .item-icon { background: rgba(255, 255, 255, 0.08); color: rgba(255, 255, 255, 0.6); border-radius: 50%; }
 .dropdown-item.location-type .item-name { font-weight: 400; color: rgba(255, 255, 255, 0.9); }
 
+/* Improved current location row - more prominent */
+.dropdown-item.current-location {
+    background: rgba(59, 130, 246, 0.08);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 14px 16px;
+}
+.dropdown-item.current-location:hover {
+    background: rgba(59, 130, 246, 0.15);
+}
 .dropdown-item.current-location .item-icon { background: rgba(59, 130, 246, 0.2); color: #3b82f6; border-radius: 50%; }
-.dropdown-item.current-location .item-name { color: #3b82f6; font-weight: 500; }
+.dropdown-item.current-location .item-name { color: #3b82f6; font-weight: 600; font-size: 15px; }
+.dropdown-item.current-location .item-sub { color: rgba(59, 130, 246, 0.6); }
 
 .item-subtext {
     font-size: 13px;

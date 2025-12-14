@@ -11,6 +11,57 @@
 const fs = require('fs');
 const path = require('path');
 
+// --- OSRM WALKING API ---
+const OSRM_FOOT_API = 'http://localhost:5001/route/v1/foot';
+
+// Cache for OSRM walking times (key: "lat1,lng1|lat2,lng2" -> { mins, meters })
+const walkingCache = new Map();
+
+/**
+ * Get accurate walking time from OSRM (with caching)
+ * @returns {{ mins: number, meters: number, miles: number }} or null on error
+ */
+async function getOSRMWalkingTime(fromLat, fromLng, toLat, toLng) {
+    // Round to 4 decimals for cache key (~11m precision)
+    const cacheKey = `${fromLat.toFixed(4)},${fromLng.toFixed(4)}|${toLat.toFixed(4)},${toLng.toFixed(4)}`;
+
+    if (walkingCache.has(cacheKey)) {
+        return walkingCache.get(cacheKey);
+    }
+
+    try {
+        const url = `${OSRM_FOOT_API}/${fromLng},${fromLat};${toLng},${toLat}?overview=false`;
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000); // 3s timeout
+
+        const response = await fetch(url, { signal: controller.signal });
+        clearTimeout(timeoutId);
+
+        if (!response.ok) return null;
+
+        const data = await response.json();
+        if (data.routes && data.routes.length > 0) {
+            const result = {
+                mins: Math.round(data.routes[0].duration / 60),
+                meters: Math.round(data.routes[0].distance),
+                miles: Math.round(data.routes[0].distance / 1609.34 * 100) / 100
+            };
+            walkingCache.set(cacheKey, result);
+            return result;
+        }
+        return null;
+    } catch (e) {
+        // OSRM unavailable - return null (caller will use Haversine fallback)
+        return null;
+    }
+}
+
+// Haversine fallback for walking time (when OSRM unavailable)
+function estimateWalkingTime(distanceMiles) {
+    const WALK_SPEED = 24; // minutes per mile (2.5 mph)
+    return Math.round(distanceMiles * WALK_SPEED);
+}
+
 // --- LOAD DATA ---
 const DATA_DIR = path.join(__dirname, '..', 'public', 'data');
 
@@ -308,8 +359,7 @@ function dijkstraWithBlocked(startNodes, endNodes, graph, blockedNodes = new Set
  * Find top N diverse routes between two locations
  * Uses iterative blocking to find alternative transfer strategies
  */
-function findTopRoutes(userLat, userLng, venueLat, venueLng, limit = 3) {
-    const WALK_SPEED = 24; // minutes per mile (2.5 mph)
+async function findTopRoutes(userLat, userLng, venueLat, venueLng, limit = 3) {
     const MAX_TIME_PENALTY = 1.5; // Don't show routes >50% longer than best
     const graph = getGraph();
 
@@ -320,6 +370,25 @@ function findTopRoutes(userLat, userLng, venueLat, venueLng, limit = 3) {
     if (originStations.length === 0 || destStations.length === 0) {
         return [];
     }
+
+    // Pre-fetch OSRM walking times for origin station and all dest stations
+    const closestOrigin = originStations[0];
+
+    // Get accurate walking time to origin station
+    const originWalk = await getOSRMWalkingTime(userLat, userLng, closestOrigin.lat, closestOrigin.lng);
+    const walkToStation = originWalk ? originWalk.mins : estimateWalkingTime(closestOrigin.distance);
+
+    // Pre-fetch walking times from each destination station to venue (in parallel)
+    const destWalkPromises = destStations.map(async (station) => {
+        const walk = await getOSRMWalkingTime(station.lat, station.lng, venueLat, venueLng);
+        return {
+            stationId: station.id,
+            walkMins: walk ? walk.mins : estimateWalkingTime(station.distance)
+        };
+    });
+    const destWalkResults = await Promise.all(destWalkPromises);
+    const destWalkTimes = {};
+    destWalkResults.forEach(r => { destWalkTimes[r.stationId] = r.walkMins; });
 
     // Collect all destination nodes
     const destNodes = new Set();
@@ -336,11 +405,6 @@ function findTopRoutes(userLat, userLng, venueLat, venueLng, limit = 3) {
     if (destNodes.size === 0) {
         return [];
     }
-
-    // Get entry nodes from ALL nearby origin stations (not just closest)
-    // This ensures we consider all lines at a station complex (e.g., A/C/E AND B/D/F/M at W 4 St)
-    const closestOrigin = originStations[0];
-    const walkToStation = closestOrigin.distance * WALK_SPEED;
 
     // Collect entry nodes from all stations within 0.1 miles of the closest
     // (same station complex with different platform IDs)
@@ -399,7 +463,7 @@ function findTopRoutes(userLat, userLng, venueLat, venueLng, limit = 3) {
         // Find exit station
         const exitNode = result.path[result.path.length - 1];
         const exitStation = destNodeToStation[exitNode];
-        const walkToVenue = exitStation ? exitStation.distance * WALK_SPEED : 0;
+        const walkToVenue = exitStation ? (destWalkTimes[exitStation.id] || estimateWalkingTime(exitStation.distance)) : 0;
 
         // Format legs
         const legs = formatLegs(result.path, graph);
@@ -508,8 +572,8 @@ function findTopRoutes(userLat, userLng, venueLat, venueLng, limit = 3) {
 /**
  * Get just the travel time (for sorting mics)
  */
-function getRouteTime(userLat, userLng, venueLat, venueLng) {
-    const routes = findTopRoutes(userLat, userLng, venueLat, venueLng, 1);
+async function getRouteTime(userLat, userLng, venueLat, venueLng) {
+    const routes = await findTopRoutes(userLat, userLng, venueLat, venueLng, 1);
     return routes.length > 0 ? routes[0].totalTime : null;
 }
 

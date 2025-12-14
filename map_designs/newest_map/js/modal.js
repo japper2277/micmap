@@ -55,19 +55,32 @@ function openVenueModal(mic) {
     // Remove URLs from display text (button will handle the link)
     instructions = instructions.replace(/https?:\/\/[^\s]+/g, '').trim();
     instructions = instructions.replace(/\s*(sign\s*up\s*)?(at|@)\s*$/i, '').trim();
+    // Remove email addresses from display text (button will handle it)
+    if (mic.signupEmail) {
+        instructions = instructions.replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, '').trim();
+        instructions = instructions.replace(/^email\s*/i, '').trim();
+    }
     if (!instructions || instructions.length < 3) {
-        instructions = mic.signupUrl ? 'Online signup available' : 'Sign up in person';
+        instructions = mic.signupUrl ? 'Online signup available' :
+                       mic.signupEmail ? 'Email to sign up' : 'Sign up in person';
     }
     modalInstructions.innerText = instructions;
 
     // 4. ACTION BUTTONS - Sign up and IG
     const hasSignupUrl = !!mic.signupUrl;
+    const hasSignupEmail = !!mic.signupEmail;
     const igHandle = mic.contact || mic.host || mic.hostIg;
     const hasIg = igHandle && igHandle !== 'TBD';
 
     if (hasSignupUrl) {
         modalSignupBtn.href = mic.signupUrl;
         modalSignupBtn.target = '_blank';
+        modalSignupBtn.innerText = 'Sign Up';
+        modalSignupBtn.style.display = 'flex';
+    } else if (hasSignupEmail) {
+        modalSignupBtn.href = `mailto:${mic.signupEmail}`;
+        modalSignupBtn.removeAttribute('target');
+        modalSignupBtn.innerText = 'Email';
         modalSignupBtn.style.display = 'flex';
     } else {
         modalSignupBtn.style.display = 'none';
@@ -82,14 +95,15 @@ function openVenueModal(mic) {
     }
 
     // Adjust grid based on button count
-    if (hasSignupUrl && hasIg) {
+    const hasSignupAction = hasSignupUrl || hasSignupEmail;
+    if (hasSignupAction && hasIg) {
         modalActions.classList.remove('single-btn');
     } else {
         modalActions.classList.add('single-btn');
     }
 
     // Hide actions row entirely if no buttons
-    modalActions.style.display = (hasSignupUrl || hasIg) ? 'grid' : 'none';
+    modalActions.style.display = (hasSignupAction || hasIg) ? 'grid' : 'none';
 
     // Show modal
     venueModal.classList.add('active');
@@ -128,12 +142,12 @@ function formatTimeRange(durationMins) {
 
 // Helper: Find station by name and line
 function findStationByName(stationName, line) {
-    if (!TRANSIT_DATA || !TRANSIT_DATA.stations) return null;
+    if (!window.TRANSIT_DATA?.stations) return null;
 
     // Normalize the station name for matching
     const normalizedName = stationName.toLowerCase().replace(/[^a-z0-9]/g, '');
 
-    for (const station of TRANSIT_DATA.stations) {
+    for (const station of window.TRANSIT_DATA.stations) {
         // Extract station name without the lines part
         const baseStationName = station.name.replace(/\s*\([^)]+\)/, '').toLowerCase().replace(/[^a-z0-9]/g, '');
 
@@ -150,7 +164,7 @@ function findStationByName(stationName, line) {
     }
 
     // Fallback: try partial match
-    for (const station of TRANSIT_DATA.stations) {
+    for (const station of window.TRANSIT_DATA.stations) {
         const baseStationName = station.name.replace(/\s*\([^)]+\)/, '').toLowerCase();
         if (baseStationName.includes(stationName.toLowerCase().split(' ')[0])) {
             const stationLines = station.name.match(/\(([^)]+)\)/);
@@ -504,7 +518,17 @@ async function loadModalArrivals(mic) {
 
 // Find nearest stations to a lat/lng (returns array)
 function findNearestStations(lat, lng, count = 2) {
-    return getStationsNearUser(lat, lng, count);
+    if (!window.TRANSIT_DATA?.stations) return [];
+
+    // Calculate distance to each station and sort
+    const stationsWithDist = window.TRANSIT_DATA.stations.map(station => ({
+        ...station,
+        dist: calculateDistance(lat, lng, station.lat, station.lng)
+    }));
+
+    stationsWithDist.sort((a, b) => a.dist - b.dist);
+
+    return stationsWithDist.slice(0, count);
 }
 
 function closeVenueModal() {

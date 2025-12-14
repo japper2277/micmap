@@ -57,8 +57,16 @@
                     <line x1="6" y1="6" x2="18" y2="18"></line>
                 </svg>
             </button>
+            <!-- Divider -->
+            <div class="search-divider"></div>
+            <!-- Quick Location Button -->
+            <button id="search-location-btn" class="search-location-btn" onclick="searchService.useMyLocation()" aria-label="Use my location">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
+                </svg>
+            </button>
             <!-- Divider (hidden on mobile) -->
-            <div class="w-[1px] h-5 bg-white/10 mx-3 hidden md:block flex-shrink-0"></div>
+            <div class="w-[1px] h-5 bg-white/10 mx-1 hidden md:block flex-shrink-0"></div>
             <!-- Drawer Btn (hidden on mobile - use drag handle instead) -->
             <button onclick="toggleDrawer()" id="drawer-btn" class="hidden md:flex w-8 h-8 rounded-full hover:bg-white/10 items-center justify-center text-neutral-400 hover:text-white transition-all active:scale-90 flex-shrink-0">
                 <svg id="chevron-icon" class="w-5 h-5 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
@@ -126,8 +134,16 @@
                 </button>
 
                 <!-- Time Filter -->
-                <button class="drawer-filter-btn" id="filter-time" onclick="event.stopPropagation(); cycleFilter('time')">
+                <button class="drawer-filter-btn" id="filter-time" onclick="event.stopPropagation(); toggleTimePopover()">
                     Time
+                    <svg class="filter-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <path d="M6 9l6 6 6-6"/>
+                    </svg>
+                </button>
+
+                <!-- Commute Filter (only visible in transit mode) -->
+                <button class="drawer-filter-btn" id="filter-commute" onclick="event.stopPropagation(); cycleFilter('commute')" style="display: none;">
+                    Commute
                 </button>
 
             </div>
@@ -179,6 +195,29 @@
                 <!-- Transit cards injected dynamically -->
             </div>
         </div>
+    </div>
+
+    <!-- Time Filter Popover (outside drawer for z-index) -->
+    <div class="filter-popover" id="time-popover">
+        <button class="popover-option active" data-value="All" onclick="selectTimeFilter('All')">
+            <span class="option-label">All Times</span>
+        </button>
+        <button class="popover-option" data-value="morning" onclick="selectTimeFilter('morning')">
+            <span class="option-label">Morning</span>
+            <span class="option-detail">Before 12pm</span>
+        </button>
+        <button class="popover-option" data-value="afternoon" onclick="selectTimeFilter('afternoon')">
+            <span class="option-label">Afternoon</span>
+            <span class="option-detail">12pm – 5pm</span>
+        </button>
+        <button class="popover-option" data-value="evening" onclick="selectTimeFilter('evening')">
+            <span class="option-label">Evening</span>
+            <span class="option-detail">5pm – 9pm</span>
+        </button>
+        <button class="popover-option" data-value="latenight" onclick="selectTimeFilter('latenight')">
+            <span class="option-label">Late Night</span>
+            <span class="option-detail">After 9pm</span>
+        </button>
     </div>
 
     <!-- Alert Modal -->

@@ -18,6 +18,13 @@ function toggleDrawer(forceOpen) {
             hideDateCarousel();
             render('calendar');
         }
+        // Close search dropdown to prevent overlap
+        if (typeof searchService !== 'undefined' && searchService.hideDropdown) {
+            searchService.hideDropdown();
+            // Also blur input to dismiss keyboard on mobile
+            const searchInput = document.getElementById('search-input');
+            if (searchInput) searchInput.blur();
+        }
         // Open drawer
         drawer.classList.remove('drawer-closed', 'drawer-peek');
         drawer.classList.add('drawer-open');
