@@ -14,6 +14,51 @@ const path = require('path');
 // --- OSRM WALKING API ---
 const OSRM_FOOT_API = 'http://localhost:5001/route/v1/foot';
 
+// --- MTA ARRIVALS API ---
+const MTA_API_BASE = 'http://localhost:3001/api/mta/arrivals';
+
+/**
+ * Fetch MTA arrivals for a line at a stop (same as modal.js mtaService.fetchArrivals)
+ */
+async function fetchArrivals(line, stopId) {
+    try {
+        const res = await fetch(`${MTA_API_BASE}/${line}/${stopId}`);
+        if (!res.ok) return [];
+        return await res.json();
+    } catch (e) {
+        return [];
+    }
+}
+
+/**
+ * Calculate wait time for first train (matches modal.js lines 289-325)
+ */
+async function calculateWaitTime(route) {
+    const firstLeg = route.legs.find(l => l.type === 'ride');
+    if (!firstLeg || !route.path || route.path.length === 0) {
+        return 0;
+    }
+
+    // Get stop ID from first path node (e.g., "L15N" from "L15N_L")
+    // Strip N/S suffix - MTA API uses base stop ID (e.g., "A50" not "A50N")
+    const rawStopId = route.path[0].split('_')[0];
+    const stopId = rawStopId.replace(/[NS]$/, '');
+    const line = firstLeg.line;
+
+    const arrivals = await fetchArrivals(line, stopId);
+    if (!arrivals || arrivals.length === 0) {
+        return 0;
+    }
+
+    // Find first train you can catch (arrives after you get to station)
+    const catchable = arrivals.filter(a => a.minsAway >= route.walkToStation);
+    if (catchable.length > 0) {
+        return Math.max(0, catchable[0].minsAway - route.walkToStation);
+    }
+
+    return 0;
+}
+
 // Cache for OSRM walking times (key: "lat1,lng1|lat2,lng2" -> { mins, meters })
 const walkingCache = new Map();
 
@@ -468,6 +513,16 @@ async function findTopRoutes(userLat, userLng, venueLat, venueLng, limit = 3) {
         seenLineSignatures.add(route.lineSignature);
         routes.push(route);
     }
+
+    // Calculate wait times for selected routes (in parallel)
+    await Promise.all(routes.map(async (route) => {
+        const waitTime = await calculateWaitTime(route);
+        route.waitTime = waitTime;
+        route.adjustedTotalTime = route.totalTime + waitTime;
+    }));
+
+    // Re-sort by adjusted total time
+    routes.sort((a, b) => a.adjustedTotalTime - b.adjustedTotalTime);
 
     return routes;
 }
