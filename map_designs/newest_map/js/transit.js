@@ -53,9 +53,9 @@ const transitService = {
         try {
             const url = `${CONFIG.apiBase}/api/subway/routes?userLat=${userLat}&userLng=${userLng}&venueLat=${venueLat}&venueLng=${venueLng}`;
 
-            // 5-second timeout for Dijkstra calculation
+            // 15-second timeout for Dijkstra calculation (production can be slower)
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 5000);
+            const timeoutId = setTimeout(() => controller.abort(), 15000);
 
             const response = await fetch(url, { signal: controller.signal });
             clearTimeout(timeoutId);
@@ -74,7 +74,7 @@ const transitService = {
 
         } catch (error) {
             if (error.name === 'AbortError') {
-                console.error('Route calculation timeout (>5s)');
+                console.error('Route calculation timeout (>15s)');
             } else {
                 console.error('Route fetch failed:', error.message);
             }
