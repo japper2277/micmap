@@ -70,6 +70,10 @@ function init() {
     // Setup keyboard scroll for list content
     setupKeyboardScroll();
 
+    // Setup filter row accessibility (roving tabindex + scroll indicators)
+    setupFilterRovingTabindex();
+    setupFilterScrollIndicators();
+
     // Get user location
     getUserLocation();
 

@@ -240,6 +240,37 @@
     color: white;
 }
 
+/* --- FILTER ROW SCROLL INDICATORS --- */
+#drawer-filters {
+    position: relative;
+}
+#drawer-filters::before,
+#drawer-filters::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 24px;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+#drawer-filters::before {
+    left: 0;
+    background: linear-gradient(to right, #0f0f0f 0%, transparent 100%);
+}
+#drawer-filters::after {
+    right: 0;
+    background: linear-gradient(to left, #0f0f0f 0%, transparent 100%);
+}
+#drawer-filters.scroll-left::before {
+    opacity: 1;
+}
+#drawer-filters.scroll-right::after {
+    opacity: 1;
+}
+
 /* --- FILTER POPOVER --- */
 .filter-popover-wrapper {
     position: relative;

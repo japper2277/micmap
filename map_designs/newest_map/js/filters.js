@@ -6,6 +6,91 @@
 // Track if popover outside click listener is attached (prevents memory leak)
 let popoverListenerAttached = false;
 
+/* =================================================================
+   FILTER ROW ACCESSIBILITY
+   Roving tabindex + scroll indicators
+   ================================================================= */
+
+// Setup roving tabindex for filter buttons (arrow key navigation)
+function setupFilterRovingTabindex() {
+    const filterRow = document.getElementById('drawer-filters');
+    if (!filterRow) return;
+
+    const getVisibleButtons = () => {
+        return Array.from(filterRow.querySelectorAll('.drawer-filter-btn'))
+            .filter(btn => btn.style.display !== 'none' && btn.offsetParent !== null);
+    };
+
+    // Initialize: only first button is tabbable
+    const buttons = getVisibleButtons();
+    buttons.forEach((btn, i) => {
+        btn.setAttribute('tabindex', i === 0 ? '0' : '-1');
+    });
+
+    // Arrow key navigation
+    filterRow.addEventListener('keydown', (e) => {
+        if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return;
+
+        const buttons = getVisibleButtons();
+        const currentIndex = buttons.findIndex(btn => btn === document.activeElement);
+        if (currentIndex === -1) return;
+
+        let newIndex = currentIndex;
+
+        switch (e.key) {
+            case 'ArrowRight':
+                newIndex = (currentIndex + 1) % buttons.length;
+                break;
+            case 'ArrowLeft':
+                newIndex = (currentIndex - 1 + buttons.length) % buttons.length;
+                break;
+            case 'Home':
+                newIndex = 0;
+                break;
+            case 'End':
+                newIndex = buttons.length - 1;
+                break;
+        }
+
+        e.preventDefault();
+
+        // Update tabindex
+        buttons[currentIndex].setAttribute('tabindex', '-1');
+        buttons[newIndex].setAttribute('tabindex', '0');
+        buttons[newIndex].focus();
+
+        // Scroll button into view
+        buttons[newIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    });
+}
+
+// Setup scroll indicators for filter row
+function setupFilterScrollIndicators() {
+    const filterRow = document.getElementById('drawer-filters');
+    if (!filterRow) return;
+
+    const updateScrollIndicators = () => {
+        const scrollLeft = filterRow.scrollLeft;
+        const scrollWidth = filterRow.scrollWidth;
+        const clientWidth = filterRow.clientWidth;
+
+        // Show left indicator if scrolled right
+        filterRow.classList.toggle('scroll-left', scrollLeft > 5);
+
+        // Show right indicator if more content to scroll
+        filterRow.classList.toggle('scroll-right', scrollLeft < scrollWidth - clientWidth - 5);
+    };
+
+    // Initial check
+    updateScrollIndicators();
+
+    // Update on scroll
+    filterRow.addEventListener('scroll', updateScrollIndicators, { passive: true });
+
+    // Update on resize
+    window.addEventListener('resize', updateScrollIndicators, { passive: true });
+}
+
 // Cycle through filter states (for Price toggle)
 function cycleFilter(type) {
     const cycle = CONFIG.filterCycles[type];
