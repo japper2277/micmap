@@ -30,6 +30,16 @@ function selectDate(dateString) {
 
     updateDateCarouselHighlight(dateString);
     render('calendar');
+
+    // If transit mode is active, recalculate routes for new day's mics
+    if (STATE.isTransitMode && STATE.userOrigin) {
+        transitService.calculateFromOrigin(
+            STATE.userOrigin.lat,
+            STATE.userOrigin.lng,
+            STATE.userOrigin.name,
+            null
+        );
+    }
 }
 
 // Update the sliding toggle UI
@@ -96,6 +106,16 @@ function setMode(mode) {
             STATE.currentMode = 'today';
             STATE.selectedCalendarDate = currentTime.toDateString();
             render('today');
+
+            // If transit mode is active, recalculate routes for new day's mics
+            if (STATE.isTransitMode && STATE.userOrigin) {
+                transitService.calculateFromOrigin(
+                    STATE.userOrigin.lat,
+                    STATE.userOrigin.lng,
+                    STATE.userOrigin.name,
+                    null
+                );
+            }
         } else {
             updateToggleUI('calendar');
             showDateCarousel();
@@ -107,6 +127,16 @@ function setMode(mode) {
         STATE.currentMode = mode;
         STATE.selectedCalendarDate = (mode === 'today') ? currentTime.toDateString() : addDays(currentTime, 1).toDateString();
         render(mode);
+
+        // If transit mode is active, recalculate routes for new day's mics
+        if (STATE.isTransitMode && STATE.userOrigin) {
+            transitService.calculateFromOrigin(
+                STATE.userOrigin.lat,
+                STATE.userOrigin.lng,
+                STATE.userOrigin.name,
+                null
+            );
+        }
     }
 }
 
