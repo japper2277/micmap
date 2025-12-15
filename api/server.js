@@ -37,7 +37,10 @@ try {
 // Load GTFS departure index for scheduled wait times (fallback when real-time unavailable)
 let departureIndex = {};
 try {
-  const indexPath = path.join(__dirname, '..', 'public', 'data', 'departure-index.json');
+  // In production, files are in ./public/data; in development, ../public/data
+  const indexPath = process.env.NODE_ENV === 'production'
+    ? path.join(__dirname, 'public', 'data', 'departure-index.json')
+    : path.join(__dirname, '..', 'public', 'data', 'departure-index.json');
   if (fs.existsSync(indexPath)) {
     departureIndex = JSON.parse(fs.readFileSync(indexPath, 'utf-8'));
     console.log(`📊 Loaded GTFS departures for ${Object.keys(departureIndex).length} stops`);
@@ -88,7 +91,12 @@ app.use(express.json());
 app.use(requestLoggingMiddleware);
 
 // Serve static data files (stations.json, graph.json)
-app.use('/data', express.static(path.join(__dirname, '..', 'public', 'data')));
+// In production (Railway), files are in ./public/data relative to api folder
+// In development, files are in ../public/data
+const dataPath = process.env.NODE_ENV === 'production'
+  ? path.join(__dirname, 'public', 'data')
+  : path.join(__dirname, '..', 'public', 'data');
+app.use('/data', express.static(dataPath));
 
 // Connect to MongoDB (skip in test - tests handle their own connection)
 if (process.env.NODE_ENV !== 'test') {
