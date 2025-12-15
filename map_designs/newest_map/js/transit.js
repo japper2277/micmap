@@ -227,7 +227,37 @@ const transitService = {
         this.abortController = new AbortController();
         const signal = this.abortController.signal;
 
-        const mics = STATE.mics;
+        // OPTIMIZATION: Filter by current mode AND skip already-calculated routes
+        const currentTime = new Date();
+        const todayName = CONFIG.dayNames[currentTime.getDay()];
+        const tomorrowName = CONFIG.dayNames[(currentTime.getDay() + 1) % 7];
+
+        const mics = STATE.mics.filter(m => {
+            // Skip if already has route data from this location
+            if (m.transitMins !== undefined && m.transitOrigin) {
+                const originMatch =
+                    Math.abs(m.transitOrigin.lat - userLat) < 0.0001 &&
+                    Math.abs(m.transitOrigin.lng - userLng) < 0.0001;
+                if (originMatch) return false; // Already calculated from this location
+            }
+
+            const diffMins = m.start ? (m.start - currentTime) / 60000 : 999;
+
+            // Filter by current mode
+            if (STATE.currentMode === 'today') {
+                if (diffMins < -60) return false; // Skip deep past
+                return m.day === todayName;
+            }
+            if (STATE.currentMode === 'tomorrow') {
+                return m.day === tomorrowName;
+            }
+            if (STATE.currentMode === 'calendar') {
+                const selectedDate = new Date(STATE.selectedCalendarDate);
+                const selectedDayName = CONFIG.dayNames[selectedDate.getDay()];
+                return m.day === selectedDayName;
+            }
+            return true; // 'all' mode
+        });
 
         for (let i = 0; i < mics.length; i += BATCH_SIZE) {
             // Check if aborted
@@ -258,6 +288,7 @@ const transitService = {
                     mic.transitType = 'walk';
                     mic.walkData = walkData; // Store for display
                     mic.route = null;
+                    mic.transitOrigin = { lat: userLat, lng: userLng }; // Cache origin
                     return;
                 }
 
@@ -281,12 +312,14 @@ const transitService = {
                         mic.transitType = 'estimate';
                         mic.route = null;
                     }
+                    mic.transitOrigin = { lat: userLat, lng: userLng }; // Cache origin
                 } catch (error) {
                     // Network error, timeout, or server error - use fallback
                     mic.transitMins = Math.round(distance * WALK_MINS_PER_MILE);
                     mic.transitSeconds = mic.transitMins * 60;
                     mic.transitType = 'estimate';
                     mic.route = null;
+                    mic.transitOrigin = { lat: userLat, lng: userLng }; // Cache origin
                 }
             }));
 
