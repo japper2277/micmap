@@ -3,6 +3,25 @@
    Drawer toggle, mobile swipe, viewport handling
    ================================================================= */
 
+// Screen reader announcement helper
+function announceToScreenReader(message) {
+    let announcer = document.getElementById('sr-announcer');
+    if (!announcer) {
+        announcer = document.createElement('div');
+        announcer.id = 'sr-announcer';
+        announcer.setAttribute('role', 'status');
+        announcer.setAttribute('aria-live', 'polite');
+        announcer.setAttribute('aria-atomic', 'true');
+        announcer.className = 'sr-only';
+        // Visually hidden but accessible
+        announcer.style.cssText = 'position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;';
+        document.body.appendChild(announcer);
+    }
+    // Clear and set to trigger announcement
+    announcer.textContent = '';
+    setTimeout(() => { announcer.textContent = message; }, 100);
+}
+
 function toggleDrawer(forceOpen) {
     const drawer = document.getElementById('list-drawer');
     const icon = document.getElementById('chevron-icon');
@@ -44,6 +63,9 @@ function toggleDrawer(forceOpen) {
     document.querySelectorAll('[aria-controls="list-drawer"], [aria-controls="list-content"]').forEach(toggleBtn => {
         toggleBtn.setAttribute('aria-expanded', STATE.isDrawerOpen ? 'true' : 'false');
     });
+
+    // Announce state change to screen readers
+    announceToScreenReader(STATE.isDrawerOpen ? 'Mic list expanded' : 'Mic list collapsed');
 }
 
 // Mobile swipe functionality - swipe up to expand, swipe down to peek
@@ -113,4 +135,41 @@ function initDrawerState() {
     const drawer = document.getElementById('list-drawer');
     const isDesktop = window.matchMedia('(min-width: 768px)').matches;
     drawer.classList.add(isDesktop ? 'drawer-closed' : 'drawer-peek');
+}
+
+// Keyboard scroll support for list-content
+function setupKeyboardScroll() {
+    const listContent = document.getElementById('list-content');
+    if (!listContent) return;
+
+    listContent.addEventListener('keydown', (e) => {
+        const scrollAmount = 100;
+
+        switch (e.key) {
+            case 'ArrowDown':
+                e.preventDefault();
+                listContent.scrollBy({ top: scrollAmount, behavior: 'smooth' });
+                break;
+            case 'ArrowUp':
+                e.preventDefault();
+                listContent.scrollBy({ top: -scrollAmount, behavior: 'smooth' });
+                break;
+            case 'PageDown':
+                e.preventDefault();
+                listContent.scrollBy({ top: listContent.clientHeight * 0.8, behavior: 'smooth' });
+                break;
+            case 'PageUp':
+                e.preventDefault();
+                listContent.scrollBy({ top: -listContent.clientHeight * 0.8, behavior: 'smooth' });
+                break;
+            case 'Home':
+                e.preventDefault();
+                listContent.scrollTo({ top: 0, behavior: 'smooth' });
+                break;
+            case 'End':
+                e.preventDefault();
+                listContent.scrollTo({ top: listContent.scrollHeight, behavior: 'smooth' });
+                break;
+        }
+    });
 }

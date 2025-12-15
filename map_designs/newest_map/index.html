@@ -75,7 +75,7 @@
     </div>
 
     <!-- LIST DRAWER -->
-    <div id="list-drawer" class="glass-panel rounded-3xl overflow-hidden flex flex-col
+    <div id="list-drawer" role="region" aria-label="Mic listings" class="glass-panel rounded-3xl overflow-hidden flex flex-col
         fixed bottom-4 left-3 right-3 z-[900]
         md:absolute md:top-[80px] md:left-auto md:right-4 md:w-[400px] md:bottom-auto md:z-[999]">
 
@@ -91,7 +91,7 @@
                 <!-- Left: Title & Count -->
                 <div class="title-group">
                     <h1 class="title-text">Mics</h1>
-                    <span class="count-text" id="mic-count">0</span>
+                    <span class="count-text" id="mic-count" aria-live="polite" aria-atomic="true">0</span>
                 </div>
 
                 <!-- Right: Controls -->
@@ -124,7 +124,7 @@
             </div>
 
             <!-- Filter Row -->
-            <div class="flex gap-2 overflow-x-auto no-scrollbar px-4 py-2 bg-[#0f0f0f]" id="drawer-filters">
+            <div class="flex gap-2 overflow-x-auto no-scrollbar px-4 py-2 bg-[#0f0f0f]" id="drawer-filters" role="group" aria-label="Filter options">
                 <!-- Home Button -->
                 <button class="drawer-filter-btn active" id="btn-home" onclick="event.stopPropagation(); showAllMics()" aria-label="Show all mics">
                     Home
@@ -152,10 +152,10 @@
         </div>
 
         <!-- MTA ALERTS BANNER -->
-        <div id="mta-alerts" class="mta-alerts-container" style="display: none;"></div>
+        <div id="mta-alerts" class="mta-alerts-container" role="alert" aria-live="assertive" style="display: none;"></div>
 
         <!-- CONTENT LIST -->
-        <div id="list-content" class="overflow-y-auto no-scrollbar scroll-smooth bg-transparent">
+        <div id="list-content" class="overflow-y-auto no-scrollbar scroll-smooth bg-transparent" role="feed" aria-label="Upcoming mics" tabindex="0">
             <!-- CARDS INJECTED HERE -->
         </div>
     </div>

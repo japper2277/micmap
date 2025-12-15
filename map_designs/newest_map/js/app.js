@@ -67,6 +67,9 @@ function init() {
     // Setup mobile swipe
     setupMobileSwipe();
 
+    // Setup keyboard scroll for list content
+    setupKeyboardScroll();
+
     // Get user location
     getUserLocation();
 
