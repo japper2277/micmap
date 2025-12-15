@@ -26,9 +26,11 @@ let subwayRouter = null;
 try {
   // Try local scripts folder first (production), then parent folder (development)
   subwayRouter = require('./scripts/subway-router');
+  console.log('✅ Subway router loaded successfully');
 } catch (e1) {
   try {
     subwayRouter = require('../scripts/subway-router');
+    console.log('✅ Subway router loaded successfully');
   } catch (e2) {
     console.warn('⚠️ Subway router not available');
   }
