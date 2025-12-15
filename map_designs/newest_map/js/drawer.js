@@ -39,6 +39,11 @@ function toggleDrawer(forceOpen) {
         btn.classList.remove('bg-white/10', 'text-white');
         searchWrapper.classList.remove('active');
     }
+
+    // Accessibility: Update aria-expanded on all drawer toggle buttons
+    document.querySelectorAll('[aria-controls="list-drawer"], [aria-controls="list-content"]').forEach(toggleBtn => {
+        toggleBtn.setAttribute('aria-expanded', STATE.isDrawerOpen ? 'true' : 'false');
+    });
 }
 
 // Mobile swipe functionality - swipe up to expand, swipe down to peek

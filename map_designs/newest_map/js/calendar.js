@@ -14,7 +14,9 @@ function hideDateCarousel() {
 
 function updateDateCarouselHighlight(dateString) {
     document.querySelectorAll('.date-capsule').forEach(cap => {
-        cap.classList.toggle('active-date', cap.dataset.date === dateString);
+        const isActive = cap.dataset.date === dateString;
+        cap.classList.toggle('active-date', isActive);
+        cap.setAttribute('aria-pressed', isActive ? 'true' : 'false');
     });
 }
 
@@ -142,20 +144,33 @@ function setMode(mode) {
 
 function generateDateCarousel() {
     const container = document.getElementById('cal-grid');
+    container.setAttribute('role', 'listbox');
+    container.setAttribute('aria-label', 'Select a date');
+
     const days = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+    const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
     for (let i = 0; i < 7; i++) {
         const date = addDays(new Date(), i);
         const dayStr = days[date.getDay()];
         const dateNum = date.getDate();
         const dateString = date.toDateString();
+        const isActive = dateString === STATE.selectedCalendarDate;
 
-        const capsule = document.createElement('div');
+        // Create accessible label: "Monday, December 16"
+        const fullDayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+        const monthName = months[date.getMonth()];
+        const ariaLabel = `${fullDayName}, ${monthName} ${dateNum}`;
+
+        const capsule = document.createElement('button');
         capsule.className = `date-capsule flex-shrink-0 w-14 h-16 rounded-xl transition-all cursor-pointer flex flex-col items-center justify-center text-center text-neutral-400 font-bold bg-black/40 hover:bg-white/10 active:scale-95
-                             ${dateString === STATE.selectedCalendarDate ? 'active-date' : ''}`;
+                             ${isActive ? 'active-date' : ''}`;
         capsule.dataset.date = dateString;
+        capsule.setAttribute('role', 'option');
+        capsule.setAttribute('aria-label', ariaLabel);
+        capsule.setAttribute('aria-pressed', isActive ? 'true' : 'false');
         capsule.onclick = () => selectDate(dateString);
-        capsule.innerHTML = `<span class="text-xs uppercase">${dayStr}</span><span class="text-2xl mt-0.5 leading-none text-white">${dateNum}</span>`;
+        capsule.innerHTML = `<span class="text-xs uppercase" aria-hidden="true">${dayStr}</span><span class="text-2xl mt-0.5 leading-none text-white" aria-hidden="true">${dateNum}</span>`;
         container.appendChild(capsule);
     }
 

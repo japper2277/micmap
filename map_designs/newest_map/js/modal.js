@@ -7,6 +7,10 @@ let venueModal, modalVenueName, modalAddress, modalDirections;
 let modalMicTime, modalInstructions, modalActions, modalSignupBtn, modalIgBtn;
 let modalTransit;
 
+// Focus trap state
+let modalTriggerElement = null;
+let modalFocusTrapHandler = null;
+
 // Initialize modal DOM references
 function initModal() {
     venueModal = document.getElementById('venue-modal');
@@ -121,8 +125,69 @@ function openVenueModal(mic) {
     // Show modal
     venueModal.classList.add('active');
 
+    // Accessibility: Focus trap and management
+    modalTriggerElement = document.activeElement;
+    setupFocusTrap(venueModal);
+
     // 5. TRANSIT - Load live arrivals
     loadModalArrivals(mic);
+}
+
+// Setup focus trap for modal accessibility
+function setupFocusTrap(modal) {
+    // Find all focusable elements in modal
+    const focusableSelectors = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+
+    // Small delay to ensure modal content is rendered
+    setTimeout(() => {
+        const focusableElements = modal.querySelectorAll(focusableSelectors);
+        const focusableArray = Array.from(focusableElements).filter(el => {
+            return el.offsetParent !== null && !el.disabled;
+        });
+
+        if (focusableArray.length === 0) return;
+
+        const firstFocusable = focusableArray[0];
+        const lastFocusable = focusableArray[focusableArray.length - 1];
+
+        // Focus first element
+        firstFocusable.focus();
+
+        // Remove old handler if exists
+        if (modalFocusTrapHandler) {
+            modal.removeEventListener('keydown', modalFocusTrapHandler);
+        }
+
+        // Create focus trap handler
+        modalFocusTrapHandler = (e) => {
+            if (e.key !== 'Tab') return;
+
+            // Re-query in case modal content changed
+            const currentFocusable = Array.from(modal.querySelectorAll(focusableSelectors))
+                .filter(el => el.offsetParent !== null && !el.disabled);
+
+            if (currentFocusable.length === 0) return;
+
+            const first = currentFocusable[0];
+            const last = currentFocusable[currentFocusable.length - 1];
+
+            if (e.shiftKey) {
+                // Shift+Tab: if on first, go to last
+                if (document.activeElement === first) {
+                    e.preventDefault();
+                    last.focus();
+                }
+            } else {
+                // Tab: if on last, go to first
+                if (document.activeElement === last) {
+                    e.preventDefault();
+                    first.focus();
+                }
+            }
+        };
+
+        modal.addEventListener('keydown', modalFocusTrapHandler);
+    }, 100);
 }
 
 // Get route - uses shared cache from transitService or fetches fresh
@@ -551,4 +616,16 @@ function findNearestStations(lat, lng, count = 2) {
 
 function closeVenueModal() {
     venueModal.classList.remove('active');
+
+    // Accessibility: Remove focus trap and restore focus
+    if (modalFocusTrapHandler) {
+        venueModal.removeEventListener('keydown', modalFocusTrapHandler);
+        modalFocusTrapHandler = null;
+    }
+
+    // Return focus to trigger element
+    if (modalTriggerElement && modalTriggerElement.focus) {
+        modalTriggerElement.focus();
+        modalTriggerElement = null;
+    }
 }

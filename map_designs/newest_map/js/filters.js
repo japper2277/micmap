@@ -34,6 +34,9 @@ function toggleTimePopover() {
         chevron.style.transform = 'rotate(180deg)';
         popover.classList.add('active');
 
+        // Accessibility: Update aria-expanded
+        btn.setAttribute('aria-expanded', 'true');
+
         // Close on outside click - only add listener if not already attached
         if (!popoverListenerAttached) {
             popoverListenerAttached = true;
@@ -48,6 +51,9 @@ function closeTimePopover() {
     const chevron = btn?.querySelector('.filter-chevron');
     if (chevron) chevron.style.transform = '';
     popover.classList.remove('active');
+
+    // Accessibility: Update aria-expanded
+    if (btn) btn.setAttribute('aria-expanded', 'false');
 
     // Only remove listener if it was attached
     if (popoverListenerAttached) {
@@ -68,10 +74,12 @@ function closeTimePopoverOnOutsideClick(e) {
 function selectTimeFilter(value) {
     STATE.activeFilters.time = value;
 
-    // Update popover option active states
+    // Update popover option active states and aria-selected
     const options = document.querySelectorAll('#time-popover .popover-option');
     options.forEach(opt => {
-        opt.classList.toggle('active', opt.dataset.value === value);
+        const isSelected = opt.dataset.value === value;
+        opt.classList.toggle('active', isSelected);
+        opt.setAttribute('aria-selected', isSelected ? 'true' : 'false');
     });
 
     // Update button UI

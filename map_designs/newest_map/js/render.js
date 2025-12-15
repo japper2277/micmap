@@ -220,6 +220,16 @@ function render(mode) {
         card.id = `card-${mic.id}`;
         card.onclick = () => locateMic(mic.lat, mic.lng, mic.id);
         card.className = `stream-item group ${isRecentPast ? 'is-past' : ''}`;
+        // Accessibility: make card keyboard navigable
+        card.setAttribute('tabindex', '0');
+        card.setAttribute('role', 'article');
+        card.setAttribute('aria-label', `${mic.title || 'Mic'} at ${mic.timeStr}, ${mic.hood || 'NYC'}, ${mic.price || 'Free'}`);
+        card.onkeydown = (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                locateMic(mic.lat, mic.lng, mic.id);
+            }
+        };
 
         // Build commute display - show departure times if route available
         let commuteDisplay = '';
@@ -273,29 +283,29 @@ function render(mode) {
                 <!-- RIGHT: Actions -->
                 <div class="action-col">
                     ${mic.signupUrl
-                        ? `<a href="${safeSignupUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation();" class="icon-btn" title="Visit Website">
-                            <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                        ? `<a href="${safeSignupUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation();" class="icon-btn" title="Visit Website" aria-label="Sign up online for ${safeTitle}">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
                         </a>`
                         : mic.signupEmail
-                            ? `<a href="mailto:${safeSignupEmail}" onclick="event.stopPropagation();" class="icon-btn" title="Email ${safeSignupEmail}">
-                                <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                            ? `<a href="mailto:${safeSignupEmail}" onclick="event.stopPropagation();" class="icon-btn" title="Email ${safeSignupEmail}" aria-label="Email to sign up for ${safeTitle}">
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
                             </a>`
-                            : `<button onclick="event.stopPropagation(); flipCard(this);" class="icon-btn" title="Signup info">
-                                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                            : `<button onclick="event.stopPropagation(); flipCard(this);" class="icon-btn" title="Signup info" aria-label="View signup instructions for ${safeTitle}">
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                             </button>`
                     }
-                    ${safeContact ? `<a href="https://instagram.com/${safeContact}" target="_blank" rel="noopener" onclick="event.stopPropagation();" class="icon-btn" title="@${safeContact}">
-                        <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+                    ${safeContact ? `<a href="https://instagram.com/${safeContact}" target="_blank" rel="noopener" onclick="event.stopPropagation();" class="icon-btn" title="@${safeContact}" aria-label="View ${safeContact} on Instagram">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
                     </a>` : ''}
                 </div>
             </div>
 
             <!-- BACK: Signup Instructions -->
-            <div class="card-back">
+            <div class="card-back" role="region" aria-label="Signup instructions">
                 <div class="signup-header">
                     <span class="signup-title">SIGNUP INSTRUCTIONS</span>
-                    <button onclick="event.stopPropagation(); flipCard(this);" class="close-btn">
-                        <svg viewBox="0 0 24 24" width="20" height="20"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    <button onclick="event.stopPropagation(); flipCard(this);" class="close-btn" aria-label="Close signup instructions">
+                        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                     </button>
                 </div>
                 <div class="signup-text">${safeSignupInstructions}</div>

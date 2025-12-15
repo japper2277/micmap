@@ -200,23 +200,23 @@
     </div>
 
     <!-- Time Filter Popover (outside drawer for z-index) -->
-    <div class="filter-popover" id="time-popover">
-        <button class="popover-option active" data-value="All" onclick="selectTimeFilter('All')">
+    <div class="filter-popover" id="time-popover" role="listbox" aria-label="Filter by time of day">
+        <button class="popover-option active" data-value="All" onclick="selectTimeFilter('All')" role="option" aria-selected="true">
             <span class="option-label">All Times</span>
         </button>
-        <button class="popover-option" data-value="morning" onclick="selectTimeFilter('morning')">
+        <button class="popover-option" data-value="morning" onclick="selectTimeFilter('morning')" role="option" aria-selected="false">
             <span class="option-label">Morning</span>
             <span class="option-detail">Before 12pm</span>
         </button>
-        <button class="popover-option" data-value="afternoon" onclick="selectTimeFilter('afternoon')">
+        <button class="popover-option" data-value="afternoon" onclick="selectTimeFilter('afternoon')" role="option" aria-selected="false">
             <span class="option-label">Afternoon</span>
             <span class="option-detail">12pm – 5pm</span>
         </button>
-        <button class="popover-option" data-value="evening" onclick="selectTimeFilter('evening')">
+        <button class="popover-option" data-value="evening" onclick="selectTimeFilter('evening')" role="option" aria-selected="false">
             <span class="option-label">Evening</span>
             <span class="option-detail">5pm – 9pm</span>
         </button>
-        <button class="popover-option" data-value="latenight" onclick="selectTimeFilter('latenight')">
+        <button class="popover-option" data-value="latenight" onclick="selectTimeFilter('latenight')" role="option" aria-selected="false">
             <span class="option-label">Late Night</span>
             <span class="option-detail">After 9pm</span>
         </button>
