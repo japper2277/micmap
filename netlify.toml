@@ -1,0 +1,30 @@
+[build]
+  publish = "map_designs/newest_map"
+  command = "echo 'No build needed - static site'"
+
+# Disable asset optimization to prevent caching issues during development
+[build.processing]
+  skip_processing = false
+
+# Cache control for static assets
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/js/*"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/css/*"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# API proxy settings (if needed)
+[[redirects]]
+  from = "/api/*"
+  to = "https://micmap-api.netlify.app/api/:splat"
+  status = 200
+  force = true
