@@ -28,11 +28,19 @@ const searchService = {
         this.dropdown = document.createElement('div');
         this.dropdown.id = 'search-dropdown';
         this.dropdown.className = 'search-dropdown';
+        // Accessibility: listbox role for dropdown
+        this.dropdown.setAttribute('role', 'listbox');
+        this.dropdown.setAttribute('aria-label', 'Search results');
 
         const wrapper = document.querySelector('.search-wrapper');
         if (wrapper) {
             wrapper.parentNode.insertBefore(this.dropdown, wrapper.nextSibling);
         }
+
+        // Link input to dropdown for screen readers
+        this.input.setAttribute('aria-controls', 'search-dropdown');
+        this.input.setAttribute('aria-autocomplete', 'list');
+        this.input.setAttribute('aria-expanded', 'false');
     },
 
     bindEvents() {
@@ -88,10 +96,16 @@ const searchService = {
 
     highlightItem(items) {
         items.forEach((item, i) => {
-            item.classList.toggle('highlighted', i === this.selectedIndex);
+            const isHighlighted = i === this.selectedIndex;
+            item.classList.toggle('highlighted', isHighlighted);
+            item.setAttribute('aria-selected', isHighlighted ? 'true' : 'false');
         });
         if (this.selectedIndex >= 0) {
             items[this.selectedIndex].scrollIntoView({ block: 'nearest' });
+            // Update aria-activedescendant for screen readers
+            this.input.setAttribute('aria-activedescendant', items[this.selectedIndex].id);
+        } else {
+            this.input.removeAttribute('aria-activedescendant');
         }
     },
 
@@ -112,19 +126,19 @@ const searchService = {
 
     renderEmptyState() {
         let html = `
-            <div class="dropdown-item current-location" data-action="location">
-                <div class="item-icon">${this.icons.nav}</div>
+            <div class="dropdown-item current-location" id="search-option-0" role="option" aria-selected="false" data-action="location">
+                <div class="item-icon" aria-hidden="true">${this.icons.nav}</div>
                 <div class="item-text">
                     <span class="item-name">Use Current Location</span>
                     <span class="item-sub">Show transit times from where you are</span>
                 </div>
             </div>
-            <div class="section-header">Popular Neighborhoods</div>`;
+            <div class="section-header" role="presentation">Popular Neighborhoods</div>`;
 
-        this.popularHoods.forEach(hood => {
+        this.popularHoods.forEach((hood, idx) => {
             html += `
-                <div class="dropdown-item location-type" data-action="geo" data-lat="${hood.lat}" data-lng="${hood.lng}" data-name="${this.escapeHtml(hood.name)}">
-                    <div class="item-icon">${this.icons.pin}</div>
+                <div class="dropdown-item location-type" id="search-option-${idx + 1}" role="option" aria-selected="false" data-action="geo" data-lat="${hood.lat}" data-lng="${hood.lng}" data-name="${this.escapeHtml(hood.name)}">
+                    <div class="item-icon" aria-hidden="true">${this.icons.pin}</div>
                     <div class="item-text">
                         <span class="item-name">${this.escapeHtml(hood.name)}</span>
                     </div>
@@ -177,11 +191,12 @@ const searchService = {
 
     renderDropdown(results) {
         let html = '';
+        let optionIndex = 0;
 
         // "Use My Location" option (always show) - with subtitle for clarity
         html += `
-            <div class="dropdown-item current-location" data-action="location">
-                <div class="item-icon">${this.icons.nav}</div>
+            <div class="dropdown-item current-location" id="search-option-${optionIndex++}" role="option" aria-selected="false" data-action="location">
+                <div class="item-icon" aria-hidden="true">${this.icons.nav}</div>
                 <div class="item-text">
                     <span class="item-name">Use Current Location</span>
                     <span class="item-sub">Show transit times from where you are</span>
@@ -190,13 +205,13 @@ const searchService = {
 
         // Venues section
         if (results.venues.length > 0) {
-            html += `<div class="section-header">Venues</div>`;
+            html += `<div class="section-header" role="presentation">Venues</div>`;
             results.venues.forEach(v => {
                 const title = v.title || v.venue || 'Unknown';
                 const hood = v.hood || v.neighborhood || '';
                 html += `
-                    <div class="dropdown-item venue-type" data-action="venue" data-id="${v.id}">
-                        <div class="item-icon">${this.icons.mic}</div>
+                    <div class="dropdown-item venue-type" id="search-option-${optionIndex++}" role="option" aria-selected="false" data-action="venue" data-id="${v.id}">
+                        <div class="item-icon" aria-hidden="true">${this.icons.mic}</div>
                         <div class="item-text">
                             <span class="item-name">${this.escapeHtml(title)}</span>
                         </div>
@@ -207,7 +222,7 @@ const searchService = {
 
         // Locations section
         if (results.locations.length > 0) {
-            html += `<div class="section-header">Locations</div>`;
+            html += `<div class="section-header" role="presentation">Locations</div>`;
             results.locations.forEach(l => {
                 // Clean up address - remove "Community Board" references and simplify
                 const addressParts = (l.address || '').split(',').map(p => p.trim());
@@ -219,8 +234,8 @@ const searchService = {
                     .slice(0, 2); // take first 2 useful parts
                 const subtext = cleanParts.join(', ');
                 html += `
-                    <div class="dropdown-item location-type" data-action="geo" data-lat="${l.lat}" data-lng="${l.lng}" data-name="${this.escapeHtml(l.name)}">
-                        <div class="item-icon">${this.icons.pin}</div>
+                    <div class="dropdown-item location-type" id="search-option-${optionIndex++}" role="option" aria-selected="false" data-action="geo" data-lat="${l.lat}" data-lng="${l.lng}" data-name="${this.escapeHtml(l.name)}">
+                        <div class="item-icon" aria-hidden="true">${this.icons.pin}</div>
                         <div class="item-text">
                             <span class="item-name">${this.escapeHtml(l.name)}</span>
                         </div>
@@ -230,7 +245,7 @@ const searchService = {
         }
 
         if (results.venues.length === 0 && results.locations.length === 0) {
-            html += '<div class="dropdown-empty">No results found</div>';
+            html += '<div class="dropdown-empty" role="status">No results found</div>';
         }
 
         this.dropdown.innerHTML = html;
@@ -332,12 +347,15 @@ const searchService = {
     showDropdown() {
         if (this.dropdown) {
             this.dropdown.classList.add('active');
+            this.input.setAttribute('aria-expanded', 'true');
         }
     },
 
     hideDropdown() {
         if (this.dropdown) {
             this.dropdown.classList.remove('active');
+            this.input.setAttribute('aria-expanded', 'false');
+            this.input.removeAttribute('aria-activedescendant');
         }
         this.selectedIndex = -1;
     },
