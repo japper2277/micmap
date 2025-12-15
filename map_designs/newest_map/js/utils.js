@@ -85,9 +85,9 @@ function processMics(rawMics) {
         // API field mapping: name, venueName, signUpDetails, lon
         const signup = m.signUpDetails || m.signup || '';
 
-        // Extract IG handle from host field (e.g., "Dina Marie (@fabulousdinamarie)" -> "fabulousdinamarie")
+        // Extract IG handle from host or contact field (e.g., "Dina Marie (@fabulousdinamarie)" -> "fabulousdinamarie")
         let contact = '';
-        const hostStr = m.host || '';
+        const hostStr = m.host || m.contact || '';
         const igMatch = hostStr.match(/@([a-zA-Z0-9_.]+)/);
         if (igMatch) {
             contact = igMatch[1];
