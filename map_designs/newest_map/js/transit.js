@@ -212,6 +212,102 @@ const transitService = {
 
         STATE.isCalculatingTransit = false;
         render(STATE.currentMode);
+
+        // Background preload: Calculate routes for other days
+        this.preloadOtherDays(lat, lng);
+    },
+
+    // Preload routes for other days in the background
+    async preloadOtherDays(userLat, userLng) {
+        // Wait 2 seconds before starting background loading
+        await new Promise(r => setTimeout(r, 2000));
+
+        const currentTime = new Date();
+        const todayName = CONFIG.dayNames[currentTime.getDay()];
+        const tomorrowName = CONFIG.dayNames[(currentTime.getDay() + 1) % 7];
+
+        // Determine which days to preload based on current mode
+        const modesMap = {
+            'today': ['tomorrow'],     // If viewing today, preload tomorrow
+            'tomorrow': ['today'],     // If viewing tomorrow, preload today
+            'calendar': ['today', 'tomorrow']  // If viewing calendar, preload both
+        };
+
+        const modesToPreload = modesMap[STATE.currentMode] || [];
+
+        for (const mode of modesToPreload) {
+            // Get mics for this mode that don't have routes yet
+            const dayName = mode === 'today' ? todayName : tomorrowName;
+            const micsToLoad = STATE.mics.filter(m => {
+                // Only load if: correct day AND no route data from this origin
+                if (m.day !== dayName) return false;
+
+                if (m.transitMins !== undefined && m.transitOrigin) {
+                    const originMatch =
+                        Math.abs(m.transitOrigin.lat - userLat) < 0.0001 &&
+                        Math.abs(m.transitOrigin.lng - userLng) < 0.0001;
+                    if (originMatch) return false; // Already cached
+                }
+                return true;
+            });
+
+            if (micsToLoad.length > 0) {
+                console.log(`Background preloading ${micsToLoad.length} mics for ${mode}`);
+                await this.calculateRoutesForMics(micsToLoad, userLat, userLng, 20); // Slower batch size for background
+            }
+        }
+    },
+
+    // Calculate routes for a specific set of mics
+    async calculateRoutesForMics(mics, userLat, userLng, batchSize = 30) {
+        const WALK_MINS_PER_MILE = 20;
+
+        for (let i = 0; i < mics.length; i += batchSize) {
+            const batch = mics.slice(i, i + batchSize);
+
+            await Promise.all(batch.map(async (mic) => {
+                const distance = calculateDistance(userLat, userLng, mic.lat, mic.lng);
+
+                if (distance < 0.5) {
+                    const walkData = await this.getWalkingTime(userLat, userLng, mic.lat, mic.lng);
+                    mic.transitMins = walkData.mins;
+                    mic.transitSeconds = walkData.mins * 60;
+                    mic.transitType = 'walk';
+                    mic.walkData = walkData;
+                    mic.route = null;
+                    mic.transitOrigin = { lat: userLat, lng: userLng };
+                    return;
+                }
+
+                try {
+                    const route = await this.fetchSubwayRoute(userLat, userLng, mic.lat, mic.lng);
+
+                    if (route) {
+                        mic.transitMins = route.totalTime;
+                        mic.transitSeconds = route.totalTime * 60;
+                        mic.transitType = 'transit';
+                        mic.route = route;
+                    } else {
+                        mic.transitMins = Math.round(distance * WALK_MINS_PER_MILE);
+                        mic.transitSeconds = mic.transitMins * 60;
+                        mic.transitType = 'estimate';
+                        mic.route = null;
+                    }
+                    mic.transitOrigin = { lat: userLat, lng: userLng };
+                } catch (error) {
+                    mic.transitMins = Math.round(distance * WALK_MINS_PER_MILE);
+                    mic.transitSeconds = mic.transitMins * 60;
+                    mic.transitType = 'estimate';
+                    mic.route = null;
+                    mic.transitOrigin = { lat: userLat, lng: userLng };
+                }
+            }));
+
+            // Longer delay for background processing
+            if (i + batchSize < mics.length) {
+                await new Promise(r => setTimeout(r, 50));
+            }
+        }
     },
 
     // Calculate Dijkstra routes for all mics in batches
