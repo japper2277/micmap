@@ -88,32 +88,20 @@
     opacity: 0.95;
 }
 
-/* Count text (two-line layout) */
-.pill-count-line {
+/* Black chip badge for venue count */
+.venue-chip {
+    position: absolute;
+    bottom: -12px;
+    right: -20px;
+    background: #1a1a1a;
+    color: white;
     font-size: 10px;
-    font-weight: 600;
-    opacity: 0.9;
-    margin-top: 1px;
-    letter-spacing: 0.2px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 10px;
     white-space: nowrap;
-}
-
-/* Two-line pill layout */
-.cluster-pill.has-count {
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 5px 14px 8px;
-    height: auto;
-    min-height: 44px;
-}
-
-.cluster-pill.has-count .pill-main-text {
-    line-height: 1.2;
-}
-
-.cluster-pill.has-count .pill-tail {
-    bottom: -4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    border: 1.5px solid rgba(255, 255, 255, 0.15);
 }
 
 /* Geometric tail (rotated square) */

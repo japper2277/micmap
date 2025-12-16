@@ -135,25 +135,26 @@ function createPin(status, timeStr, extraCount, venueName, extraType = 'mics') {
             iconAnchor: [ticketWidth / 2, 44]
         });
     } else {
-        // PILL STYLE: Two lines - time on top, count below
+        // PILL STYLE: Main pill with white chip badge for venue count
         const isLive = statusClass === 'live';
         const mainText = isLive ? 'LIVE' : displayTime;
         const hasCount = extraCount > 0;
 
-        // Build pill content - two lines if has count
-        const countHtml = hasCount
-            ? `<div class="pill-count-line">+${extraCount} ${countLabel}</div>`
+        // White chip badge for venue count
+        const chipHtml = hasCount
+            ? `<div class="venue-chip">+${extraCount} ${countLabel}</div>`
             : '';
 
-        // Calculate width
+        // Calculate dimensions
         const textWidth = isLive ? 50 : (displayTime.length * 10 + 16);
-        const totalWidth = Math.max(textWidth, hasCount ? 80 : 56);
-        const totalHeight = hasCount ? 52 : 42;
+        const totalWidth = Math.max(textWidth, 56) + (hasCount ? 20 : 0);
+        const totalHeight = 42;
 
         return L.divIcon({
             className: 'bg-transparent',
-            html: `<div class="cluster-pill status-${statusClass} ${hasCount ? 'has-count' : ''}">
-                    <span class="pill-main-text ${isLive ? 'is-live-text' : ''}">${mainText}</span>${countHtml}
+            html: `<div class="cluster-pill status-${statusClass}">
+                    <span class="pill-main-text ${isLive ? 'is-live-text' : ''}">${mainText}</span>
+                    ${chipHtml}
                     <div class="pill-tail"></div>
                    </div>`,
             iconSize: [totalWidth, totalHeight],
