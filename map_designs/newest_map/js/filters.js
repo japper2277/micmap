@@ -281,11 +281,24 @@ function selectBoroughFilter(value) {
     // Update button UI
     updateFilterPillUI('borough', value);
 
-    // Zoom map to borough (or reset to default view for "All")
-    if (value !== 'All' && CONFIG.boroughBounds[value]) {
-        const bounds = CONFIG.boroughBounds[value];
-        map.setView(bounds.center, bounds.zoom, { animate: true });
-    } else if (value === 'All') {
+    // Zoom map to fit all mics in borough (or reset to default view for "All")
+    if (value !== 'All') {
+        // Get all mics in this borough
+        const boroughMics = STATE.mics.filter(m =>
+            (m.borough || '').toLowerCase() === value.toLowerCase()
+        );
+
+        if (boroughMics.length > 0) {
+            // Calculate bounds from mic locations
+            const lats = boroughMics.map(m => m.lat);
+            const lngs = boroughMics.map(m => m.lng);
+            const bounds = L.latLngBounds(
+                [Math.min(...lats), Math.min(...lngs)],
+                [Math.max(...lats), Math.max(...lngs)]
+            );
+            map.fitBounds(bounds, { padding: [50, 50], animate: true });
+        }
+    } else {
         // Reset to default NYC view
         map.setView(CONFIG.mapCenter, CONFIG.mapZoom, { animate: true });
     }

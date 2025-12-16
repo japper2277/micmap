@@ -31,11 +31,5 @@ const CONFIG = {
         afternoon: { start: 12, end: 17 },   // 12pm - 5pm
         evening: { start: 17, end: 21 },     // 5pm - 9pm
         latenight: { start: 21, end: 24 }    // 9pm+
-    },
-    boroughBounds: {
-        Manhattan: { center: [40.7831, -73.9712], zoom: 12 },
-        Brooklyn: { center: [40.6782, -73.9442], zoom: 12 },
-        Queens: { center: [40.7282, -73.7949], zoom: 12 },
-        Bronx: { center: [40.8448, -73.8648], zoom: 12 }
     }
 };
