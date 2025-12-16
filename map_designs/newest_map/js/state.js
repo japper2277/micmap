@@ -14,6 +14,7 @@ const STATE = {
     // UI state
     isDrawerOpen: false,
     drawerState: 'peek', // 'peek', 'half', or 'open' (mobile only)
+    showHappeningNowFirst: localStorage.getItem('showHappeningNowFirst') === 'true', // Show in-progress mics at top
 
     // Map state
     markerLookup: {},

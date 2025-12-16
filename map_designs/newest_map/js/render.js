@@ -32,8 +32,8 @@ function render(mode) {
     let baseMics = STATE.mics.filter(m => {
         const diffMins = m.start ? (m.start - currentTime) / 60000 : 999;
 
-        // Deep past (>1 hour ago): REMOVE from DOM - only for TODAY
-        if (mode === 'today' && diffMins < -60) return false;
+        // Hide mics started >30 min ago (too late to catch from start)
+        if (mode === 'today' && diffMins < -30) return false;
 
         // Filter by day of week
         if (mode === 'today' && m.day !== todayName) return false;
@@ -160,13 +160,32 @@ function render(mode) {
         return;
     }
 
-    // Sort by start time (chronological order) - always, even in transit mode
-    // Transit distance info still displays, but doesn't affect sort order
+    // Sort by start time (chronological order)
     filtered.sort((a, b) => {
         const aStart = a.start instanceof Date ? a.start.getTime() : (a.start || 0);
         const bStart = b.start instanceof Date ? b.start.getTime() : (b.start || 0);
         return aStart - bStart;
     });
+
+    // Split into upcoming and happening now (started within last 30 min)
+    const upcomingMics = [];
+    const happeningNowMics = [];
+
+    if (mode === 'today') {
+        filtered.forEach(m => {
+            const diffMins = m.start ? (m.start - currentTime) / 60000 : 999;
+            if (diffMins < 0) {
+                happeningNowMics.push(m);
+            } else {
+                upcomingMics.push(m);
+            }
+        });
+        // Reorder: upcoming first, then happening now (unless setting says otherwise)
+        const showHappeningFirst = STATE.showHappeningNowFirst || false;
+        filtered = showHappeningFirst
+            ? [...happeningNowMics, ...upcomingMics]
+            : [...upcomingMics, ...happeningNowMics];
+    }
 
     // In transit mode: split into visible and hidden for "Show more" functionality
     const searchQuery = document.getElementById('search-input')?.value?.toLowerCase() || '';
@@ -195,11 +214,26 @@ function render(mode) {
 
     // Group by Hour with Sticky Headers
     let currentHour = -1;
+    let happeningNowHeaderShown = false;
+    const showHappeningFirst = STATE.showHappeningNowFirst || false;
 
     visibleMics.forEach(mic => {
         const micHour = mic.start ? mic.start.getHours() : 0;
         const diffMins = mic.start ? (mic.start - currentTime) / 60000 : 999;
-        const isRecentPast = (mode === 'today') && diffMins < 0 && diffMins >= -60;
+        const isHappeningNow = (mode === 'today') && diffMins < 0 && diffMins >= -30;
+
+        // --- HAPPENING NOW SECTION HEADER ---
+        if (mode === 'today' && isHappeningNow && !happeningNowHeaderShown && !showHappeningFirst) {
+            happeningNowHeaderShown = true;
+            currentHour = -1; // Reset hour tracking for new section
+            const sectionHeader = document.createElement('div');
+            sectionHeader.className = 'happening-now-header';
+            sectionHeader.innerHTML = `
+                <span class="happening-now-label">Happening Now</span>
+                <span class="happening-now-count">${happeningNowMics.length}</span>
+            `;
+            container.appendChild(sectionHeader);
+        }
 
         // --- STICKY HOUR HEADER ---
         if (micHour !== currentHour) {
@@ -219,7 +253,7 @@ function render(mode) {
         const card = document.createElement('div');
         card.id = `card-${mic.id}`;
         card.onclick = () => locateMic(mic.lat, mic.lng, mic.id);
-        card.className = `stream-item group ${isRecentPast ? 'is-past' : ''}`;
+        card.className = `stream-item group ${isHappeningNow ? 'is-happening-now' : ''}`;
         // Accessibility: make card keyboard navigable
         card.setAttribute('tabindex', '0');
         card.setAttribute('role', 'article');

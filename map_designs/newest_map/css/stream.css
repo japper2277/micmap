@@ -18,6 +18,49 @@
     gap: 12px;
 }
 
+/* --- HAPPENING NOW SECTION HEADER --- */
+.happening-now-header {
+    position: sticky;
+    top: 0;
+    z-index: 51;
+    background: rgba(30, 30, 30, 0.98);
+    backdrop-filter: blur(10px);
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: 8px;
+}
+
+.happening-now-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #ff9500;
+}
+
+.happening-now-count {
+    background: rgba(255, 149, 0, 0.2);
+    color: #ff9500;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+
+/* --- HAPPENING NOW CARD STYLE --- */
+.stream-item.is-happening-now {
+    opacity: 0.7;
+}
+
+.stream-item.is-happening-now .start-time {
+    color: #ff9500;
+}
+
 /* --- STREAM ITEM (New Card Design) --- */
 .stream-item {
     display: flex;
