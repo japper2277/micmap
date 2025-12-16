@@ -23,8 +23,10 @@ function shortenVenueName(name) {
 
     // Known venue shortcuts
     const shortcuts = {
+        // Classic NYC venues
         'grisly pear': 'Pear',
         'the grisly pear': 'Pear',
+        'grisly pear midtown': 'Pear Midtown',
         'comedy shop': 'Shop',
         'the comedy shop': 'Shop',
         'stand nyc': 'Stand',
@@ -40,16 +42,57 @@ function shortenVenueName(name) {
         'cream': 'Cream',
         'tiny cupboard': 'Tiny Cupboard',
         'easy laughter': 'Easy Laughter',
+        'the comic strip live': 'Comic Strip',
+        'comic strip live': 'Comic Strip',
+
+        // NYCC locations
+        'new york comedy club east village': 'NYCC EV',
+        'new york comedy club midtown': 'NYCC Midtown',
+        'new york comedy club': 'NYCC',
+
+        // Brooklyn venues
+        'brooklyn comedy collective': 'BK Collective',
+        'brooklyn art haus': 'BK Art Haus',
+        'brooklyn dreams juice lounge': 'BK Dreams',
+        'cobra club brooklyn': 'Cobra Club',
+        'the gutter williamsburg': 'Gutter',
+        'gutter williamsburg': 'Gutter',
+        'corner store bk': 'Corner Store',
+
+        // Other long names
+        'greenwich village comedy club': 'Greenwich',
+        'pine box rock shop': 'Pine Box',
+        'pete\'s candy store': 'Pete\'s',
+        'caravan of dreams': 'Caravan',
+        'caffeine underground': 'Caffeine UG',
+        'phoenix bar avenue a': 'Phoenix Bar',
+        'alligator lounge': 'Alligator',
+        'harlem nights bar': 'Harlem Nights',
+        'oh craft beer harlem': 'Oh Craft',
+        'second city blackbox': 'Second City',
+        'skybox sports bar & grill': 'SkyBox',
+        'cool beans coffee': 'Cool Beans',
+        'comedy in harlem': 'Harlem',
+        'scorpion records': 'Scorpion',
+        'logan\'s run bar': 'Logan\'s Run',
+        'island ribhouse': 'Island',
+        'block hill station': 'Block Hill',
     };
 
     const lower = name.toLowerCase().trim();
     if (shortcuts[lower]) return shortcuts[lower];
 
-    // Strip common suffixes
+    // Strip common suffixes and prefixes
     let short = name
-        .replace(/\s*(comedy club|comedy cellar|cc|comedy|club|nyc|ny)$/i, '')
+        .replace(/\s*(comedy club|comedy cellar|cc|comedy|club|nyc)$/i, '')
         .replace(/^the\s+/i, '')
         .trim();
+
+    // Abbreviate remaining long names
+    short = short
+        .replace(/\bNew York\b/gi, 'NY')
+        .replace(/\bBrooklyn\b/gi, 'BK')
+        .replace(/\bWilliamsburg\b/gi, 'Wburg');
 
     return short || name;
 }
