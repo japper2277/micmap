@@ -256,9 +256,9 @@ function render(mode) {
     // --- PROXIMITY CLUSTERING ---
     // Cluster nearby venues to prevent overlapping markers
     const isZoomedIn = map.getZoom() >= 16;
-    // When zoomed in: cluster overlapping tickets (~80m)
-    // When zoomed out: larger radius for cleaner pills (~100m)
-    const CLUSTER_RADIUS_METERS = isZoomedIn ? 80 : 100;
+    // When zoomed in: cluster nearby venues (~200m)
+    // When zoomed out: larger radius for cleaner pills (~200m)
+    const CLUSTER_RADIUS_METERS = 200;
 
     // Haversine distance in meters
     function getDistanceMeters(lat1, lng1, lat2, lng2) {
