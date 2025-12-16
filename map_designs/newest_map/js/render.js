@@ -165,8 +165,9 @@ function render(mode) {
     document.getElementById('mic-count').textContent = filtered.length;
 
     // --- PROXIMITY CLUSTERING ---
-    // Group nearby venues (within ~75 meters) into clusters
-    const CLUSTER_RADIUS_METERS = 75;
+    // Only cluster when zoomed out (pill view). At ticket zoom, show all individually.
+    const isZoomedIn = map.getZoom() >= 15;
+    const CLUSTER_RADIUS_METERS = isZoomedIn ? 0 : 75; // No clustering when zoomed in
 
     // Haversine distance in meters
     function getDistanceMeters(lat1, lng1, lat2, lng2) {
@@ -268,15 +269,9 @@ function render(mode) {
             interactive: false
         })
         .on('click', () => {
-            // If cluster has multiple venues, zoom in or show picker
+            // If cluster has multiple venues, zoom in to break it apart
             if (cluster.venueCount > 1) {
-                // If already zoomed in enough, show venue picker
-                if (map.getZoom() >= 17) {
-                    showClusterPicker(cluster);
-                } else {
-                    // Zoom in to break up the cluster
-                    map.setView([cluster.lat, cluster.lng], map.getZoom() + 2);
-                }
+                map.setView([cluster.lat, cluster.lng], 15); // Zoom to ticket level
             } else {
                 openVenueModal(firstMic);
             }
