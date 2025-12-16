@@ -49,15 +49,6 @@ const settingsService = {
                             </label>
                         </div>
                     </div>
-                    <div class="settings-section">
-                        <h3>List Order</h3>
-                        <p class="settings-description">Where to show mics that already started</p>
-                        <label class="settings-toggle">
-                            <input type="checkbox" id="happeningNowFirst">
-                            <span class="toggle-switch"></span>
-                            <span class="toggle-label">Show "Happening Now" at top</span>
-                        </label>
-                    </div>
                 </div>
             </div>
         `;
@@ -67,11 +58,6 @@ const settingsService = {
         const currentPref = STATE.walkPreference || '15min';
         const radio = this.modal.querySelector(`input[value="${currentPref}"]`);
         if (radio) radio.checked = true;
-
-        const happeningNowCheckbox = this.modal.querySelector('#happeningNowFirst');
-        if (happeningNowCheckbox) {
-            happeningNowCheckbox.checked = STATE.showHappeningNowFirst || false;
-        }
 
         // Listen for walk preference changes
         this.modal.querySelectorAll('input[name="walkPref"]').forEach(input => {
@@ -90,15 +76,6 @@ const settingsService = {
                 }
             });
         });
-
-        // Listen for happening now toggle
-        if (happeningNowCheckbox) {
-            happeningNowCheckbox.addEventListener('change', (e) => {
-                STATE.showHappeningNowFirst = e.target.checked;
-                localStorage.setItem('showHappeningNowFirst', e.target.checked);
-                render(STATE.currentMode); // Re-render list
-            });
-        }
 
         // Close on overlay click
         this.modal.addEventListener('click', (e) => {

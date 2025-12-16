@@ -180,11 +180,53 @@ function render(mode) {
                 upcomingMics.push(m);
             }
         });
-        // Reorder: upcoming first, then happening now (unless setting says otherwise)
-        const showHappeningFirst = STATE.showHappeningNowFirst || false;
-        filtered = showHappeningFirst
-            ? [...happeningNowMics, ...upcomingMics]
-            : [...upcomingMics, ...happeningNowMics];
+        // Only show upcoming mics in main list (happening now shown in card)
+        filtered = STATE.happeningNowExpanded ? [...happeningNowMics] : [...upcomingMics];
+    }
+
+    // Render "Happening Now" collapsed card at top (only if there are in-progress mics)
+    if (mode === 'today' && happeningNowMics.length > 0 && !STATE.happeningNowExpanded) {
+        const venueNames = happeningNowMics.slice(0, 2).map(m => m.title || m.venue || 'Mic').join(', ');
+        const moreCount = happeningNowMics.length > 2 ? ` +${happeningNowMics.length - 2} more` : '';
+
+        const card = document.createElement('div');
+        card.className = 'happening-now-card';
+        card.onclick = () => {
+            STATE.happeningNowExpanded = true;
+            render(mode);
+        };
+        card.innerHTML = `
+            <div class="happening-now-card-left">
+                <span class="happening-now-dot"></span>
+                <span class="happening-now-card-count">${happeningNowMics.length}</span>
+                <span class="happening-now-card-label">Happening Now</span>
+            </div>
+            <div class="happening-now-card-right">
+                <span class="happening-now-card-venues">${escapeHtml(venueNames)}${moreCount}</span>
+                <svg class="happening-now-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 18l6-6-6-6"/>
+                </svg>
+            </div>
+        `;
+        container.appendChild(card);
+    }
+
+    // Show "Back to Upcoming" button when viewing happening now
+    if (mode === 'today' && STATE.happeningNowExpanded) {
+        const backBtn = document.createElement('div');
+        backBtn.className = 'happening-now-back';
+        backBtn.onclick = () => {
+            STATE.happeningNowExpanded = false;
+            render(mode);
+        };
+        backBtn.innerHTML = `
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M15 18l-6-6 6-6"/>
+            </svg>
+            <span>Back to Upcoming</span>
+            <span class="happening-now-back-count">${upcomingMics.length} mics</span>
+        `;
+        container.appendChild(backBtn);
     }
 
     // In transit mode: split into visible and hidden for "Show more" functionality
@@ -214,26 +256,11 @@ function render(mode) {
 
     // Group by Hour with Sticky Headers
     let currentHour = -1;
-    let happeningNowHeaderShown = false;
-    const showHappeningFirst = STATE.showHappeningNowFirst || false;
 
     visibleMics.forEach(mic => {
         const micHour = mic.start ? mic.start.getHours() : 0;
         const diffMins = mic.start ? (mic.start - currentTime) / 60000 : 999;
         const isHappeningNow = (mode === 'today') && diffMins < 0 && diffMins >= -30;
-
-        // --- HAPPENING NOW SECTION HEADER ---
-        if (mode === 'today' && isHappeningNow && !happeningNowHeaderShown && !showHappeningFirst) {
-            happeningNowHeaderShown = true;
-            currentHour = -1; // Reset hour tracking for new section
-            const sectionHeader = document.createElement('div');
-            sectionHeader.className = 'happening-now-header';
-            sectionHeader.innerHTML = `
-                <span class="happening-now-label">Happening Now</span>
-                <span class="happening-now-count">${happeningNowMics.length}</span>
-            `;
-            container.appendChild(sectionHeader);
-        }
 
         // --- STICKY HOUR HEADER ---
         if (micHour !== currentHour) {

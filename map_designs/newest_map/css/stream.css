@@ -18,43 +18,114 @@
     gap: 12px;
 }
 
-/* --- HAPPENING NOW SECTION HEADER --- */
-.happening-now-header {
-    position: sticky;
-    top: 0;
-    z-index: 51;
-    background: rgba(30, 30, 30, 0.98);
-    backdrop-filter: blur(10px);
-    padding: 12px 20px;
+/* --- HAPPENING NOW CARD (Collapsed) --- */
+.happening-now-card {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    margin-top: 8px;
+    padding: 12px 16px;
+    margin: 8px 12px;
+    background: rgba(255, 149, 0, 0.1);
+    border: 1px solid rgba(255, 149, 0, 0.3);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
 }
 
-.happening-now-label {
-    font-family: 'Space Grotesk', sans-serif;
+.happening-now-card:hover {
+    background: rgba(255, 149, 0, 0.15);
+    border-color: rgba(255, 149, 0, 0.5);
+}
+
+.happening-now-card:active {
+    transform: scale(0.98);
+}
+
+.happening-now-card-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.happening-now-dot {
+    width: 8px;
+    height: 8px;
+    background: #ff9500;
+    border-radius: 50%;
+    animation: pulse-orange 2s infinite;
+}
+
+@keyframes pulse-orange {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(255, 149, 0, 0.7); }
+    50% { opacity: 0.8; box-shadow: 0 0 0 4px rgba(255, 149, 0, 0); }
+}
+
+.happening-now-card-count {
+    font-weight: 700;
+    font-size: 15px;
+    color: #ff9500;
+}
+
+.happening-now-card-label {
+    font-size: 14px;
     font-weight: 600;
-    font-size: 13px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
     color: #ff9500;
 }
 
-.happening-now-count {
-    background: rgba(255, 149, 0, 0.2);
-    color: #ff9500;
+.happening-now-card-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.happening-now-card-venues {
     font-size: 12px;
-    font-weight: 600;
-    padding: 2px 8px;
-    border-radius: 10px;
+    color: rgba(255, 255, 255, 0.5);
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-/* --- HAPPENING NOW CARD STYLE --- */
+.happening-now-chevron {
+    color: rgba(255, 149, 0, 0.7);
+    flex-shrink: 0;
+}
+
+/* --- HAPPENING NOW BACK BUTTON --- */
+.happening-now-back {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    margin: 8px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.happening-now-back:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.happening-now-back svg {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.happening-now-back-count {
+    margin-left: auto;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+/* --- HAPPENING NOW CARD STYLE (when viewing happening now list) --- */
 .stream-item.is-happening-now {
-    opacity: 0.7;
+    opacity: 0.85;
 }
 
 .stream-item.is-happening-now .start-time {
