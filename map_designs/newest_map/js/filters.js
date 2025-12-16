@@ -262,7 +262,73 @@ function closeBoroughPopover() {
 function closeBoroughPopoverOnOutsideClick(e) {
     const popover = document.getElementById('borough-popover');
     const btn = document.getElementById('filter-borough');
-    if (!popover.contains(e.target) && !btn.contains(e.target)) {
+    const mobileBtn = document.getElementById('mobile-filter-borough');
+    if (!popover.contains(e.target) && !btn?.contains(e.target) && !mobileBtn?.contains(e.target)) {
+        closeBoroughPopover();
+    }
+}
+
+/* =================================================================
+   MOBILE FILTER POPOVERS
+   Position popovers relative to mobile pills
+   ================================================================= */
+
+function toggleMobileTimePopover(triggerBtn) {
+    const popover = document.getElementById('time-popover');
+    const isOpen = popover.classList.contains('active');
+
+    if (isOpen) {
+        closeTimePopover();
+    } else {
+        // Position popover below the mobile pill
+        const rect = triggerBtn.getBoundingClientRect();
+        popover.style.top = (rect.bottom + 8) + 'px';
+        popover.style.left = rect.left + 'px';
+
+        popover.classList.add('active');
+
+        // Close on outside click
+        if (!popoverListenerAttached) {
+            popoverListenerAttached = true;
+            document.addEventListener('click', closeMobileTimePopoverOnOutsideClick);
+        }
+    }
+}
+
+function closeMobileTimePopoverOnOutsideClick(e) {
+    const popover = document.getElementById('time-popover');
+    const mobileBtn = document.getElementById('mobile-filter-time');
+    if (!popover.contains(e.target) && !mobileBtn?.contains(e.target)) {
+        closeTimePopover();
+    }
+}
+
+function toggleMobileBoroughPopover(triggerBtn) {
+    const popover = document.getElementById('borough-popover');
+    const isOpen = popover.classList.contains('active');
+
+    if (isOpen) {
+        closeBoroughPopover();
+    } else {
+        // Position popover below the mobile pill
+        const rect = triggerBtn.getBoundingClientRect();
+        popover.style.top = (rect.bottom + 8) + 'px';
+        popover.style.left = rect.left + 'px';
+
+        popover.classList.add('active');
+
+        // Close on outside click
+        if (!boroughPopoverListenerAttached) {
+            boroughPopoverListenerAttached = true;
+            document.addEventListener('click', closeMobileBoroughPopoverOnOutsideClick);
+        }
+    }
+}
+
+function closeMobileBoroughPopoverOnOutsideClick(e) {
+    const popover = document.getElementById('borough-popover');
+    const mobileBtn = document.getElementById('mobile-filter-borough');
+    if (!popover.contains(e.target) && !mobileBtn?.contains(e.target)) {
         closeBoroughPopover();
     }
 }
@@ -330,22 +396,40 @@ function selectTimeFilter(value) {
 
 function updateFilterPillUI(type, value) {
     const btn = document.getElementById(`filter-${type}`);
-    if (!btn) return;
     const label = CONFIG.filterLabels[type][value] || value;
 
-    if (type === 'time' || type === 'borough') {
-        // For filters with chevron, update just the text node (preserve chevron SVG)
-        const textNode = btn.childNodes[0];
-        if (textNode.nodeType === Node.TEXT_NODE) {
-            textNode.textContent = label + ' ';
+    // Update desktop button if exists
+    if (btn) {
+        if (type === 'time' || type === 'borough') {
+            // For filters with chevron, update just the text node (preserve chevron SVG)
+            const textNode = btn.childNodes[0];
+            if (textNode.nodeType === Node.TEXT_NODE) {
+                textNode.textContent = label + ' ';
+            } else {
+                btn.firstChild.textContent = label + ' ';
+            }
         } else {
-            btn.firstChild.textContent = label + ' ';
+            btn.textContent = label;
         }
-    } else {
-        btn.textContent = label;
+        btn.classList.toggle('active', value !== 'All');
     }
 
-    btn.classList.toggle('active', value !== 'All');
+    // Update mobile pill if exists
+    const mobileBtn = document.getElementById(`mobile-filter-${type}`);
+    if (mobileBtn) {
+        mobileBtn.textContent = label;
+        mobileBtn.classList.toggle('active', value !== 'All');
+    }
+
+    // Update filter icon state - active when any filter is applied
+    const filterIcon = document.getElementById('mobile-filter-reset');
+    if (filterIcon) {
+        const hasActiveFilters = STATE.activeFilters.price !== 'All' ||
+                                 STATE.activeFilters.time !== 'All' ||
+                                 STATE.activeFilters.commute !== 'All' ||
+                                 STATE.activeFilters.borough !== 'All';
+        filterIcon.classList.toggle('active', hasActiveFilters);
+    }
 
     // Update Home button state - active when no filters are applied
     const homeBtn = document.getElementById('btn-home');

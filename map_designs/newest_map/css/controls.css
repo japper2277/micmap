@@ -240,10 +240,14 @@
     color: white;
 }
 
-/* --- FILTER ROW SCROLL INDICATORS --- */
+/* --- FILTER ROW BASE STYLES --- */
 #drawer-filters {
     position: relative;
+    padding: 8px 16px;
+    background: #0f0f0f;
 }
+
+/* --- FILTER ROW SCROLL INDICATORS --- */
 #drawer-filters::before,
 #drawer-filters::after {
     content: '';
@@ -345,29 +349,32 @@
     color: rgba(255, 255, 255, 0.6);
 }
 
-/* --- NEW SEARCH BAR DESIGN --- */
+/* --- NEW SEARCH BAR DESIGN - Glass Style --- */
 .search-wrapper {
     position: relative;
     width: 100%;
-    height: 48px;
-    background: #1c1c1e;
-    border-radius: 24px;
-    border: 1px solid rgba(255,255,255,0.08);
+    height: 50px;
+    background: rgba(20, 20, 20, 0.85);
+    backdrop-filter: blur(25px) saturate(180%);
+    -webkit-backdrop-filter: blur(25px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 100px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
     display: flex;
     align-items: center;
-    padding: 0 16px;
+    padding: 0 20px;
     transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .search-wrapper:focus-within,
 .search-wrapper.active {
-    background: #2c2c2e;
-    border-color: rgba(255,255,255,0.2);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    background: rgba(25, 25, 25, 0.92);
+    border-color: rgba(255, 255, 255, 0.25);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
 }
 
 .search-wrapper .search-icon {
-    color: #8e8e93;
+    color: #9ca3af;
     transition: color 0.2s;
     flex-shrink: 0;
 }
@@ -435,9 +442,9 @@
     width: 44px;
     height: 44px;
     border-radius: 50%;
-    background: rgba(59, 130, 246, 0.15);
+    background: rgba(10, 132, 255, 0.25);
     border: none;
-    color: #3b82f6;
+    color: #0A84FF;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -447,7 +454,7 @@
 }
 
 .search-location-btn:hover {
-    background: rgba(59, 130, 246, 0.25);
+    background: rgba(10, 132, 255, 0.35);
     transform: scale(1.05);
 }
 

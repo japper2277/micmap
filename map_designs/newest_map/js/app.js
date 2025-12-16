@@ -51,7 +51,7 @@ function refreshStatuses() {
 // Click on map dismisses date carousel
 map.on('click', () => {
     const carousel = document.getElementById('date-carousel');
-    if (carousel.style.transform === 'translateY(0)' || carousel.style.transform === 'translateY(0px)') {
+    if (carousel && carousel.classList.contains('active')) {
         hideDateCarousel();
         updateToggleUI('today');
         STATE.currentMode = 'today';

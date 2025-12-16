@@ -5,7 +5,7 @@
 
 // Detect environment - use Railway API in production, localhost in development
 const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-const API_BASE = isLocalDev ? 'http://localhost:3001' : 'https://micmap-production.up.railway.app';
+const API_BASE = isLocalDev ? 'http://localhost:3002' : 'https://micmap-production.up.railway.app';
 
 const CONFIG = {
     dayNames: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
@@ -21,7 +21,7 @@ const CONFIG = {
     },
     filterLabels: {
         price: { All: 'Price', Free: 'Free', Paid: '< $5' },
-        time: { All: 'Time', morning: 'Morning', afternoon: 'Afternoon', evening: 'Evening', latenight: 'Late Night' },
+        time: { All: 'Time', morning: '< 12pm', afternoon: '12-5pm', evening: '5-9pm', latenight: '9pm+' },
         commute: { All: 'Commute', 15: '< 15m', 30: '< 30m', 45: '< 45m', 60: '< 1hr' },
         borough: { All: 'Borough', Manhattan: 'Manhattan', Brooklyn: 'Brooklyn', Queens: 'Queens', Bronx: 'Bronx' }
     },

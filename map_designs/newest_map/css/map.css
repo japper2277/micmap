@@ -9,74 +9,128 @@
 }
 .leaflet-container { background: #e8e4dc; }
 
-/* --- TIME PILL MARKERS --- */
+/* --- CLUSTER PILL MARKERS (Premium Gradient Design) --- */
 
-/* Base pill style */
-.time-pill {
-    display: inline-flex;
+/* Base pill structure */
+.cluster-pill {
+    position: relative;
+    border-radius: 100px;
+    height: 34px;
+    padding: 0 12px;
+    display: flex;
     align-items: center;
-    gap: 2px;
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    font-size: 13px;
-    font-weight: 600;
-    white-space: nowrap;
+    justify-content: center;
     cursor: pointer;
-    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
-                box-shadow 0.2s ease;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-}
-.time-pill:hover {
-    transform: scale(1.08) translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-}
+    transition: transform 0.15s cubic-bezier(0.25, 0.8, 0.25, 1);
 
-/* Pill time text */
-.pill-time {
+    /* Premium depth: Double shadow */
+    box-shadow:
+        0 4px 12px rgba(0, 0, 0, 0.2),
+        0 1px 3px rgba(0, 0, 0, 0.1);
+
+    /* Text base */
     color: white;
-    letter-spacing: -0.02em;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+    letter-spacing: -0.2px;
+    white-space: nowrap;
 }
 
-/* Pill count badge (+2, +3, etc) */
-.pill-count {
-    color: rgba(255, 255, 255, 0.8);
-    font-size: 11px;
-    font-weight: 500;
-    margin-left: 2px;
+.cluster-pill:hover {
+    transform: scale(1.05) translateY(-1px);
 }
 
-/* LIVE: Green pill with subtle pulse */
-.pill-live {
-    background: #22c55e;
-    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.4);
-    animation: pill-pulse-green 2s infinite;
-}
-.pill-live:hover {
-    box-shadow: 0 4px 16px rgba(34, 197, 94, 0.5);
-}
-@keyframes pill-pulse-green {
-    0%, 100% { box-shadow: 0 2px 8px rgba(34, 197, 94, 0.4); }
-    50% { box-shadow: 0 2px 12px rgba(34, 197, 94, 0.6); }
+.cluster-pill:active {
+    transform: scale(0.96);
 }
 
-/* UPCOMING: Red pill (< 2 hours) */
-.pill-upcoming {
-    background: #ef4444;
-    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
-}
-.pill-upcoming:hover {
-    box-shadow: 0 4px 16px rgba(239, 68, 68, 0.5);
+/* Inner highlight (glass edge effect) */
+.cluster-pill::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 100px;
+    padding: 1px;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
 }
 
-/* FUTURE: Gray pill (tonight/later) */
-.pill-future {
-    background: #6b7280;
-    box-shadow: 0 2px 8px rgba(107, 114, 128, 0.3);
+/* Main text */
+.pill-main-text {
+    color: white;
 }
-.pill-future:hover {
-    box-shadow: 0 4px 12px rgba(107, 114, 128, 0.4);
+
+.pill-main-text.is-live-text {
+    text-transform: uppercase;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    font-size: 12px;
 }
+
+/* Separator line */
+.pill-spacer {
+    width: 1px;
+    height: 14px;
+    background: rgba(255, 255, 255, 0.25);
+    margin: 0 8px;
+    box-shadow: 1px 0 0 rgba(0, 0, 0, 0.05);
+}
+
+/* Count text */
+.pill-plus-count {
+    font-weight: 600;
+    font-size: 12px;
+    opacity: 0.95;
+}
+
+/* Geometric tail (rotated square) */
+.pill-tail {
+    position: absolute;
+    bottom: -4px;
+    left: 50%;
+    transform: translateX(-50%) rotate(45deg);
+    width: 10px;
+    height: 10px;
+    z-index: -1;
+    border-radius: 2px;
+    box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* === LIVE: Emerald Gradient === */
+.status-live {
+    background: linear-gradient(180deg, #34c759 0%, #248a3d 100%);
+    z-index: 50;
+}
+.status-live .pill-tail {
+    background: #248a3d;
+}
+
+/* === UPCOMING/SOON: Crimson Gradient === */
+.status-upcoming {
+    background: linear-gradient(180deg, #ff3b30 0%, #d70015 100%);
+    z-index: 40;
+}
+.status-upcoming .pill-tail {
+    background: #d70015;
+}
+
+/* === FUTURE/LATER: Onyx Gradient === */
+.status-future {
+    background: linear-gradient(180deg, #2c2c2e 0%, #000000 100%);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    z-index: 30;
+}
+.status-future .pill-tail {
+    background: #000000;
+}
+
+/* Legacy classes - keep for backwards compat */
+.time-pill { display: none; }
 
 /* --- TICKET MARKERS (zoomed in view) --- */
 

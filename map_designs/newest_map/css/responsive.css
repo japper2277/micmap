@@ -3,10 +3,196 @@
    Media queries, desktop/mobile adjustments
    ================================================================= */
 
-/* Desktop: Locate button positioning */
+/* =================================================================
+   MOBILE FILTER BAR - Pills below search bar
+   ================================================================= */
+.mobile-filter-bar {
+    display: none; /* Hidden by default (desktop) */
+}
+
+@media (max-width: 767px) {
+    /* Show mobile filter bar */
+    .mobile-filter-bar {
+        display: flex;
+        position: fixed;
+        top: 72px;
+        left: 12px;
+        right: 12px;
+        z-index: 1000;
+        gap: 8px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        padding: 4px 0;
+    }
+    .mobile-filter-bar::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* Filter icon button - Glass style */
+    .mobile-filter-icon {
+        flex-shrink: 0;
+        width: 34px;
+        height: 34px;
+        border-radius: 100px;
+        background: rgba(20, 20, 20, 0.85);
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: rgba(255, 255, 255, 0.9);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .mobile-filter-icon:active {
+        transform: scale(0.94);
+    }
+
+    .mobile-filter-icon.active {
+        background: white;
+        color: black;
+        border-color: white;
+        box-shadow:
+            0 0 20px rgba(255, 255, 255, 0.5),
+            0 0 40px rgba(255, 255, 255, 0.3),
+            0 4px 15px rgba(255, 255, 255, 0.25);
+        animation: subtle-glow 3s ease-in-out infinite;
+    }
+
+    @keyframes subtle-glow {
+        0%, 100% {
+            box-shadow:
+                0 0 20px rgba(255, 255, 255, 0.5),
+                0 0 40px rgba(255, 255, 255, 0.3),
+                0 4px 15px rgba(255, 255, 255, 0.25);
+        }
+        50% {
+            box-shadow:
+                0 0 25px rgba(255, 255, 255, 0.6),
+                0 0 50px rgba(255, 255, 255, 0.35),
+                0 4px 20px rgba(255, 255, 255, 0.3);
+        }
+    }
+
+    /* Mobile filter pill style - Glass style */
+    .mobile-filter-pill {
+        flex-shrink: 0;
+        height: 34px;
+        padding: 0 16px;
+        border-radius: 100px;
+        background: rgba(20, 20, 20, 0.85);
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 14px;
+        font-weight: 500;
+        font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+        white-space: nowrap;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .mobile-filter-pill:active {
+        transform: scale(0.96);
+    }
+
+    .mobile-filter-pill.active {
+        background: white;
+        color: black;
+        border-color: white;
+        box-shadow:
+            0 0 20px rgba(255, 255, 255, 0.5),
+            0 0 40px rgba(255, 255, 255, 0.3),
+            0 4px 15px rgba(255, 255, 255, 0.25);
+        animation: subtle-glow 3s ease-in-out infinite;
+    }
+
+    /* Hide drawer filters on mobile */
+    #drawer-filters {
+        display: none !important;
+    }
+
+    /* Hide calendar button in drawer on mobile (moved to filter bar) */
+    #btn-calendar {
+        display: none !important;
+    }
+
+    /* Move date carousel below filter bar on mobile */
+    #date-carousel {
+        top: 120px;
+        bottom: auto !important;
+        left: 12px;
+        right: 12px;
+        padding: 0;
+        transform: translateY(-10px) !important;
+        opacity: 0;
+        pointer-events: none;
+        transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+
+    #date-carousel.active {
+        transform: translateY(0) !important;
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    #date-carousel .glass-panel {
+        background: rgba(20, 20, 20, 0.85);
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 100px;
+    }
+
+    #date-carousel #cal-grid {
+        justify-content: center;
+    }
+
+    #date-carousel .date-capsule {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+    }
+
+    #date-carousel .date-capsule span {
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    #date-carousel .date-capsule.active-date {
+        background: white !important;
+        box-shadow:
+            0 0 20px rgba(255, 255, 255, 0.5),
+            0 0 40px rgba(255, 255, 255, 0.3),
+            0 4px 15px rgba(255, 255, 255, 0.25) !important;
+        animation: subtle-glow 3s ease-in-out infinite;
+    }
+
+    #date-carousel .date-capsule.active-date span {
+        color: #1D1D1F !important;
+    }
+
+    /* Adjust drawer header */
+    .mics-header-row {
+        padding-top: 16px;
+    }
+}
+
+/* =================================================================
+   DESKTOP STYLES
+   ================================================================= */
 @media (min-width: 768px) {
     .locate-btn {
         bottom: 24px;
         left: 24px;
+    }
+
+    /* Desktop: filters stay inside drawer with original styling */
+    #drawer-filters {
+        position: relative;
+        background: #0f0f0f;
     }
 }

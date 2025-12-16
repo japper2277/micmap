@@ -129,19 +129,29 @@ function createPin(status, timeStr, extraCount, venueName) {
             iconAnchor: [ticketWidth / 2, 44]
         });
     } else {
-        // PILL STYLE: Compact time pill
-        const countBadge = extraCount > 0 ? `<span class="pill-count">+${extraCount}</span>` : '';
-        const baseWidth = displayTime.length * 8 + 20;
-        const countWidth = extraCount > 0 ? 24 : 0;
-        const totalWidth = Math.max(baseWidth + countWidth, 54);
+        // PILL STYLE: Premium gradient pill with separator
+        const isLive = statusClass === 'live';
+        const mainText = isLive ? 'LIVE' : displayTime;
+        const hasCount = extraCount > 0;
+
+        // Build pill content
+        const countHtml = hasCount
+            ? `<div class="pill-spacer"></div><span class="pill-plus-count">+${extraCount}</span>`
+            : '';
+
+        // Calculate width
+        const textWidth = isLive ? 40 : (displayTime.length * 9);
+        const countWidth = hasCount ? 32 : 0;
+        const totalWidth = Math.max(textWidth + countWidth + 24, 56);
 
         return L.divIcon({
             className: 'bg-transparent',
-            html: `<div class="time-pill pill-${statusClass}">
-                    <span class="pill-time">${displayTime}</span>${countBadge}
+            html: `<div class="cluster-pill status-${statusClass}">
+                    <span class="pill-main-text ${isLive ? 'is-live-text' : ''}">${mainText}</span>${countHtml}
+                    <div class="pill-tail"></div>
                    </div>`,
-            iconSize: [totalWidth, 26],
-            iconAnchor: [totalWidth / 2, 13]
+            iconSize: [totalWidth, 42],
+            iconAnchor: [totalWidth / 2, 42]
         });
     }
 }

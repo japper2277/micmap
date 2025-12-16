@@ -5,11 +5,33 @@
 
 // Calendar Functions
 function showDateCarousel() {
-    document.getElementById('date-carousel').style.transform = 'translateY(0)';
+    const carousel = document.getElementById('date-carousel');
+    carousel.classList.add('active');
+
+    // Desktop uses inline transform, mobile uses CSS
+    if (window.innerWidth >= 768) {
+        carousel.style.transform = 'translateY(0)';
+    }
+
+    // Activate mobile calendar button
+    const mobileCalBtn = document.getElementById('mobile-calendar-btn');
+    if (mobileCalBtn) mobileCalBtn.classList.add('active');
 }
 
 function hideDateCarousel() {
-    document.getElementById('date-carousel').style.transform = 'translateY(100%)';
+    const carousel = document.getElementById('date-carousel');
+    carousel.classList.remove('active');
+
+    // Desktop uses inline transform, mobile uses CSS
+    if (window.innerWidth >= 768) {
+        carousel.style.transform = 'translateY(100%)';
+    } else {
+        carousel.style.transform = '';
+    }
+
+    // Deactivate mobile calendar button
+    const mobileCalBtn = document.getElementById('mobile-calendar-btn');
+    if (mobileCalBtn) mobileCalBtn.classList.remove('active');
 }
 
 function updateDateCarouselHighlight(dateString) {
@@ -26,7 +48,12 @@ function selectDate(dateString) {
     hideDateCarousel();
 
     document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById('btn-calendar').classList.add('active');
+    const btnCalendar = document.getElementById('btn-calendar');
+    if (btnCalendar) btnCalendar.classList.add('active');
+
+    // Also deactivate mobile calendar button after selection
+    const mobileCalBtn = document.getElementById('mobile-calendar-btn');
+    if (mobileCalBtn) mobileCalBtn.classList.remove('active');
 
     if (!STATE.isDrawerOpen) toggleDrawer(true);
 
@@ -70,9 +97,10 @@ function updateToggleUI(mode) {
 // Called from the toggle buttons
 function setModeFromToggle(mode) {
     const carousel = document.getElementById('date-carousel');
-    const isCarouselOpen = carousel.style.transform === 'translateY(0)' || carousel.style.transform === 'translateY(0px)';
+    const isCarouselOpen = carousel.classList.contains('active');
 
-    document.getElementById('btn-calendar').classList.remove('active');
+    const btnCalendar = document.getElementById('btn-calendar');
+    if (btnCalendar) btnCalendar.classList.remove('active');
 
     // Update selected date based on mode
     const currentTime = new Date();
@@ -97,10 +125,12 @@ function setMode(mode) {
     resetFilters();
 
     const currentTime = new Date();
+    const carousel = document.getElementById('date-carousel');
+    const isCarouselOpen = carousel && carousel.classList.contains('active');
 
     if (mode === 'calendar') {
-        // Toggle calendar if already in calendar mode
-        if (STATE.currentMode === 'calendar') {
+        // Toggle calendar if already open
+        if (isCarouselOpen) {
             hideDateCarousel();
             // Switch back to today mode
             mode = 'today';

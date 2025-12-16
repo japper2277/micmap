@@ -80,6 +80,26 @@
         </div>
     </div>
 
+    <!-- MOBILE FILTER PILLS (below search bar, mobile only) -->
+    <div id="mobile-filters" class="mobile-filter-bar" role="group" aria-label="Filter options">
+        <button class="mobile-filter-icon" id="mobile-filter-reset" onclick="showAllMics()" aria-label="Clear all filters">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+            </svg>
+        </button>
+        <button class="mobile-filter-pill" id="mobile-filter-price" data-filter="price" onclick="cycleFilter('price')">Price</button>
+        <button class="mobile-filter-pill" id="mobile-filter-time" data-filter="time" onclick="cycleFilter('time')">Time</button>
+        <button class="mobile-filter-pill" id="mobile-filter-borough" data-filter="borough" onclick="cycleFilter('borough')">Borough</button>
+        <button class="mobile-filter-icon" id="mobile-calendar-btn" onclick="setMode('calendar')" aria-label="Open calendar picker">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+        </button>
+    </div>
+
     <!-- LIST DRAWER -->
     <div id="list-drawer" role="region" aria-label="Mic listings" class="glass-panel rounded-3xl overflow-hidden flex flex-col
         fixed bottom-4 left-3 right-3 z-[900]
@@ -123,13 +143,8 @@
                 </div>
             </div>
 
-            <!-- Filter Row -->
-            <div class="flex gap-2 overflow-x-auto no-scrollbar px-4 py-2 bg-[#0f0f0f]" id="drawer-filters" role="group" aria-label="Filter options">
-                <!-- Home Button -->
-                <button class="drawer-filter-btn active" id="btn-home" onclick="event.stopPropagation(); showAllMics()" aria-label="Show all mics">
-                    Home
-                </button>
-
+            <!-- Filter Row (desktop only - hidden on mobile) -->
+            <div class="flex gap-2 overflow-x-auto no-scrollbar" id="drawer-filters" role="group" aria-label="Filter options">
                 <!-- Price Filter -->
                 <button class="drawer-filter-btn" id="filter-price" onclick="event.stopPropagation(); cycleFilter('price')" aria-label="Filter by price">
                     Price

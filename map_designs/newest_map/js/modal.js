@@ -430,7 +430,7 @@ async function loadModalArrivals(mic) {
     // Get walking time AND distance from OSRM (local Docker, falls back to public)
     let walkMins, walkDist;
     try {
-        const walkData = await SubwayRouter.getWalkingTime(originLat, originLng, mic.lat, mic.lng);
+        const walkData = await transitService.getWalkingTime(originLat, originLng, mic.lat, mic.lng);
         walkMins = walkData.mins;
         walkDist = walkData.miles;
     } catch (e) {
@@ -510,7 +510,7 @@ async function loadModalArrivals(mic) {
         // Calculate walk time using OSRM
         let stationWalkMins;
         try {
-            const walkData = await SubwayRouter.getWalkingTime(originLat, originLng, station.lat, station.lng);
+            const walkData = await transitService.getWalkingTime(originLat, originLng, station.lat, station.lng);
             stationWalkMins = walkData.mins;
         } catch (e) {
             const walkMiles = calculateDistance(originLat, originLng, station.lat, station.lng);

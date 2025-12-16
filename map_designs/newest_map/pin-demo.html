@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Map Pin Design Demo</title>
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+        background: #e8e4dc;
+        min-height: 100vh;
+        padding: 40px 20px;
+    }
+
+    h1 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 10px;
+        font-weight: 600;
+    }
+
+    .subtitle {
+        text-align: center;
+        color: #666;
+        margin-bottom: 40px;
+        font-size: 14px;
+    }
+
+    .demo-section {
+        max-width: 800px;
+        margin: 0 auto 60px;
+    }
+
+    .section-title {
+        font-size: 12px;
+        font-weight: 600;
+        color: #888;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .pin-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 30px;
+        justify-content: center;
+        align-items: end;
+        padding: 40px 20px;
+        background: #f5f2ed;
+        border-radius: 16px;
+    }
+
+    .pin-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .pin-label {
+        font-size: 11px;
+        color: #888;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* === CURRENT DESIGN: Dark Pill === */
+    .time-pill {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 14px;
+        border-radius: 100px;
+        font-size: 15px;
+        font-weight: 600;
+        white-space: nowrap;
+        cursor: pointer;
+        transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+                    box-shadow 0.2s ease;
+        background: #1D1D1F;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    }
+    .time-pill::after {
+        content: '';
+        position: absolute;
+        bottom: -6px;
+        left: 50%;
+        transform: translateX(-50%);
+        border-left: 6px solid transparent;
+        border-right: 6px solid transparent;
+        border-top: 6px solid #1D1D1F;
+    }
+    .time-pill:hover {
+        transform: scale(1.06) translateY(-2px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    }
+    .pill-time {
+        color: white;
+        letter-spacing: -0.01em;
+    }
+    .pill-count-badge {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 22px;
+        height: 22px;
+        padding: 0 6px;
+        border-radius: 50%;
+        background: #0A84FF;
+        color: white;
+        font-size: 13px;
+        font-weight: 600;
+    }
+    .pill-live {
+        box-shadow: 0 2px 10px rgba(34, 197, 94, 0.4);
+        animation: pill-pulse-green 2.5s ease-in-out infinite;
+    }
+    @keyframes pill-pulse-green {
+        0%, 100% { box-shadow: 0 2px 10px rgba(34, 197, 94, 0.4); }
+        50% { box-shadow: 0 2px 16px rgba(34, 197, 94, 0.6); }
+    }
+    .pill-upcoming {
+        box-shadow: 0 2px 10px rgba(239, 68, 68, 0.3);
+    }
+
+    /* === ALT 1: White Pill === */
+    .time-pill-white {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 14px;
+        border-radius: 100px;
+        font-size: 15px;
+        font-weight: 600;
+        background: white;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .time-pill-white::after {
+        content: '';
+        position: absolute;
+        bottom: -6px;
+        left: 50%;
+        transform: translateX(-50%);
+        border-left: 6px solid transparent;
+        border-right: 6px solid transparent;
+        border-top: 6px solid white;
+    }
+    .time-pill-white:hover {
+        transform: scale(1.06) translateY(-2px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    }
+    .time-pill-white .pill-time {
+        color: #1D1D1F;
+    }
+    .time-pill-white .pill-count-text {
+        color: #8E8E93;
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    /* === ALT 2: Glass Pill === */
+    .time-pill-glass {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 14px;
+        border-radius: 100px;
+        font-size: 15px;
+        font-weight: 600;
+        background: rgba(20, 20, 20, 0.85);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .time-pill-glass::after {
+        content: '';
+        position: absolute;
+        bottom: -6px;
+        left: 50%;
+        transform: translateX(-50%);
+        border-left: 6px solid transparent;
+        border-right: 6px solid transparent;
+        border-top: 6px solid rgba(20, 20, 20, 0.85);
+    }
+    .time-pill-glass:hover {
+        transform: scale(1.06) translateY(-2px);
+    }
+    .time-pill-glass .pill-time {
+        color: rgba(255, 255, 255, 0.95);
+    }
+
+    /* === ALT 3: Citi Bike Style (Circle) === */
+    .pin-circle {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: #1D1D1F;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: 700;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        cursor: pointer;
+        transition: transform 0.2s ease;
+        position: relative;
+    }
+    .pin-circle::after {
+        content: '';
+        position: absolute;
+        bottom: -6px;
+        left: 50%;
+        transform: translateX(-50%);
+        border-left: 6px solid transparent;
+        border-right: 6px solid transparent;
+        border-top: 6px solid #1D1D1F;
+    }
+    .pin-circle:hover {
+        transform: scale(1.1);
+    }
+    .pin-circle.green {
+        background: #22c55e;
+    }
+    .pin-circle.green::after {
+        border-top-color: #22c55e;
+    }
+    .pin-circle.red {
+        background: #ef4444;
+    }
+    .pin-circle.red::after {
+        border-top-color: #ef4444;
+    }
+
+    /* === ALT 4: Minimal (No pointer) === */
+    .time-pill-minimal {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        background: #1D1D1F;
+        color: white;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+        cursor: pointer;
+        transition: transform 0.2s ease;
+    }
+    .time-pill-minimal:hover {
+        transform: scale(1.06);
+    }
+    .time-pill-minimal .count {
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 12px;
+    }
+
+    /* === COMPARISON ROW === */
+    .comparison {
+        display: flex;
+        gap: 40px;
+        justify-content: center;
+        flex-wrap: wrap;
+        padding: 40px 20px;
+        background: linear-gradient(135deg, #d4cfc4 0%, #e8e4dc 50%, #d4cfc4 100%);
+        border-radius: 16px;
+    }
+
+    .option-card {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        text-align: center;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        min-width: 160px;
+    }
+
+    .option-card h3 {
+        font-size: 13px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 16px;
+    }
+
+    .option-card .pin-container {
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .option-card .pros {
+        margin-top: 16px;
+        font-size: 11px;
+        color: #22c55e;
+    }
+
+    .option-card .cons {
+        font-size: 11px;
+        color: #ef4444;
+        margin-top: 4px;
+    }
+</style>
+</head>
+<body>
+
+<h1>Map Pin Design Options</h1>
+<p class="subtitle">Exploring different styles for time-based map markers</p>
+
+<!-- Current Design -->
+<div class="demo-section">
+    <div class="section-title">Current Design — Dark Pill + Blue Badge</div>
+    <div class="pin-grid">
+        <div class="pin-item">
+            <div class="time-pill">
+                <span class="pill-time">6:00p</span>
+            </div>
+            <span class="pin-label">Single</span>
+        </div>
+        <div class="pin-item">
+            <div class="time-pill">
+                <span class="pill-time">7:30p</span>
+                <span class="pill-count-badge">3</span>
+            </div>
+            <span class="pin-label">Cluster</span>
+        </div>
+        <div class="pin-item">
+            <div class="time-pill pill-live">
+                <span class="pill-time">4:00p</span>
+                <span class="pill-count-badge">2</span>
+            </div>
+            <span class="pin-label">Live (green glow)</span>
+        </div>
+        <div class="pin-item">
+            <div class="time-pill pill-upcoming">
+                <span class="pill-time">5:30p</span>
+            </div>
+            <span class="pin-label">Soon (red glow)</span>
+        </div>
+    </div>
+</div>
+
+<!-- Alternative: White -->
+<div class="demo-section">
+    <div class="section-title">Alternative — White Pill + Text Count</div>
+    <div class="pin-grid">
+        <div class="pin-item">
+            <div class="time-pill-white">
+                <span class="pill-time">6:00p</span>
+            </div>
+            <span class="pin-label">Single</span>
+        </div>
+        <div class="pin-item">
+            <div class="time-pill-white">
+                <span class="pill-time">7:30p</span>
+                <span class="pill-count-text">+3</span>
+            </div>
+            <span class="pin-label">Cluster</span>
+        </div>
+        <div class="pin-item">
+            <div class="time-pill-white" style="border-left: 3px solid #22c55e;">
+                <span class="pill-time">4:00p</span>
+                <span class="pill-count-text">+2</span>
+            </div>
+            <span class="pin-label">Live (green border)</span>
+        </div>
+    </div>
+</div>
+
+<!-- Alternative: Glass -->
+<div class="demo-section">
+    <div class="section-title">Alternative — Glass Pill (matches filter UI)</div>
+    <div class="pin-grid">
+        <div class="pin-item">
+            <div class="time-pill-glass">
+                <span class="pill-time">6:00p</span>
+            </div>
+            <span class="pin-label">Single</span>
+        </div>
+        <div class="pin-item">
+            <div class="time-pill-glass">
+                <span class="pill-time">7:30p</span>
+                <span class="pill-count-badge">3</span>
+            </div>
+            <span class="pin-label">Cluster</span>
+        </div>
+    </div>
+</div>
+
+<!-- Alternative: Citi Bike Style -->
+<div class="demo-section">
+    <div class="section-title">Alternative — Citi Bike Style (Circle)</div>
+    <div class="pin-grid">
+        <div class="pin-item">
+            <div class="pin-circle">6p</div>
+            <span class="pin-label">Default</span>
+        </div>
+        <div class="pin-item">
+            <div class="pin-circle green">4p</div>
+            <span class="pin-label">Live</span>
+        </div>
+        <div class="pin-item">
+            <div class="pin-circle red">5p</div>
+            <span class="pin-label">Soon</span>
+        </div>
+    </div>
+</div>
+
+<!-- Alternative: Minimal -->
+<div class="demo-section">
+    <div class="section-title">Alternative — Minimal (No pointer)</div>
+    <div class="pin-grid">
+        <div class="pin-item">
+            <div class="time-pill-minimal">6:00p</div>
+            <span class="pin-label">Single</span>
+        </div>
+        <div class="pin-item">
+            <div class="time-pill-minimal">7:30p <span class="count">+3</span></div>
+            <span class="pin-label">Cluster</span>
+        </div>
+    </div>
+</div>
+
+<!-- Comparison -->
+<div class="demo-section">
+    <div class="section-title">Quick Comparison</div>
+    <div class="comparison">
+        <div class="option-card">
+            <h3>Dark + Blue Badge</h3>
+            <div class="pin-container">
+                <div class="time-pill">
+                    <span class="pill-time">7p</span>
+                    <span class="pill-count-badge">3</span>
+                </div>
+            </div>
+            <div class="pros">+ High contrast, unique</div>
+            <div class="cons">- Badge adds visual weight</div>
+        </div>
+        <div class="option-card">
+            <h3>White + Text</h3>
+            <div class="pin-container">
+                <div class="time-pill-white">
+                    <span class="pill-time">7p</span>
+                    <span class="pill-count-text">+3</span>
+                </div>
+            </div>
+            <div class="pros">+ Clean, minimal</div>
+            <div class="cons">- Less contrast on light areas</div>
+        </div>
+        <div class="option-card">
+            <h3>Glass</h3>
+            <div class="pin-container">
+                <div class="time-pill-glass">
+                    <span class="pill-time">7p</span>
+                    <span class="pill-count-badge">3</span>
+                </div>
+            </div>
+            <div class="pros">+ Matches UI perfectly</div>
+            <div class="cons">- Busy on detailed map</div>
+        </div>
+        <div class="option-card">
+            <h3>Circle</h3>
+            <div class="pin-container">
+                <div class="pin-circle">7p</div>
+            </div>
+            <div class="pros">+ Simple, compact</div>
+            <div class="cons">- Less info visible</div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
