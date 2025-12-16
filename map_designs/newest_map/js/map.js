@@ -14,35 +14,52 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r
 
 const markersGroup = L.layerGroup().addTo(map);
 
-// Create pill-style marker with time
-// Shows time like "6:00p" with optional "+X" for multiple mics
-function createPin(status, timeStr, extraCount) {
+// Zoom threshold for switching between pill and ticket styles
+const ZOOM_TICKET_THRESHOLD = 15;
+
+// Create marker - pill style (zoomed out) or ticket style (zoomed in)
+function createPin(status, timeStr, extraCount, venueName) {
     const displayTime = timeStr || '?';
+    const isZoomedIn = map.getZoom() >= ZOOM_TICKET_THRESHOLD;
 
-    // Add count if multiple mics at this venue
-    const countBadge = extraCount > 0 ? `<span class="pill-count">+${extraCount}</span>` : '';
-
-    // Status determines color
-    let pillClass = 'pill-future'; // gray
+    // Status determines color class
+    let statusClass = 'future'; // gray
     if (status === 'live') {
-        pillClass = 'pill-live'; // green
+        statusClass = 'live'; // green
     } else if (status === 'upcoming' || status === 'urgent' || status === 'soon') {
-        pillClass = 'pill-upcoming'; // red
+        statusClass = 'upcoming'; // red
     }
 
-    // Calculate width based on content
-    const baseWidth = displayTime.length * 8 + 20;
-    const countWidth = extraCount > 0 ? 24 : 0;
-    const totalWidth = Math.max(baseWidth + countWidth, 54);
+    if (isZoomedIn && venueName) {
+        // TICKET STYLE: Time on top, venue name below
+        const shortName = venueName.length > 10 ? venueName.substring(0, 9) + '…' : venueName;
+        const countBadge = extraCount > 0 ? `<span class="ticket-count">+${extraCount}</span>` : '';
 
-    return L.divIcon({
-        className: 'bg-transparent',
-        html: `<div class="time-pill ${pillClass}">
-                <span class="pill-time">${displayTime}</span>${countBadge}
-               </div>`,
-        iconSize: [totalWidth, 26],
-        iconAnchor: [totalWidth / 2, 13]
-    });
+        return L.divIcon({
+            className: 'bg-transparent',
+            html: `<div class="mic-ticket ticket-${statusClass}">
+                    <div class="ticket-time">${displayTime}${countBadge}</div>
+                    <div class="ticket-venue">${shortName}</div>
+                   </div>`,
+            iconSize: [72, 44],
+            iconAnchor: [36, 44]
+        });
+    } else {
+        // PILL STYLE: Compact time pill
+        const countBadge = extraCount > 0 ? `<span class="pill-count">+${extraCount}</span>` : '';
+        const baseWidth = displayTime.length * 8 + 20;
+        const countWidth = extraCount > 0 ? 24 : 0;
+        const totalWidth = Math.max(baseWidth + countWidth, 54);
+
+        return L.divIcon({
+            className: 'bg-transparent',
+            html: `<div class="time-pill pill-${statusClass}">
+                    <span class="pill-time">${displayTime}</span>${countBadge}
+                   </div>`,
+            iconSize: [totalWidth, 26],
+            iconAnchor: [totalWidth / 2, 13]
+        });
+    }
 }
 
 // Get user location
@@ -150,5 +167,20 @@ function locateMic(lat, lng, id) {
 map.on('moveend', () => {
     if (STATE.isProgrammaticMove) {
         STATE.isProgrammaticMove = false;
+    }
+});
+
+// Track zoom level for marker style switching
+let lastZoomWasTicket = map.getZoom() >= ZOOM_TICKET_THRESHOLD;
+
+map.on('zoomend', () => {
+    const isNowTicket = map.getZoom() >= ZOOM_TICKET_THRESHOLD;
+    // Only re-render if we crossed the threshold
+    if (isNowTicket !== lastZoomWasTicket) {
+        lastZoomWasTicket = isNowTicket;
+        // Re-render to swap marker styles
+        if (typeof render === 'function') {
+            render(STATE.currentMode);
+        }
     }
 });

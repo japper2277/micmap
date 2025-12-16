@@ -78,6 +78,68 @@
     box-shadow: 0 4px 12px rgba(107, 114, 128, 0.4);
 }
 
+/* --- TICKET MARKERS (zoomed in view) --- */
+
+.mic-ticket {
+    display: flex;
+    flex-direction: column;
+    min-width: 56px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.2s ease;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+.mic-ticket:hover {
+    transform: scale(1.05) translateY(-3px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
+}
+
+/* Ticket time section (top) */
+.ticket-time {
+    padding: 4px 8px;
+    font-size: 14px;
+    font-weight: 700;
+    color: white;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.ticket-count {
+    font-size: 11px;
+    font-weight: 500;
+    opacity: 0.85;
+    margin-left: 3px;
+}
+
+/* Ticket venue section (bottom) */
+.ticket-venue {
+    background: #1a1a1a;
+    color: #e5e5e5;
+    font-size: 10px;
+    font-weight: 600;
+    text-align: center;
+    padding: 4px 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Ticket status colors */
+.ticket-live .ticket-time {
+    background: #22c55e;
+}
+.ticket-upcoming .ticket-time {
+    background: #ef4444;
+}
+.ticket-future .ticket-time {
+    background: #6b7280;
+}
+
 /* Legacy pin classes - keep for backwards compat */
 .pin-container, .pin-live-container, .pin-upcoming-container,
 .pin-future-container, .pin-soon-container, .pin-later-container { display: none; }

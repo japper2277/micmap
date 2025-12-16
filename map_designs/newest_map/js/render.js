@@ -138,12 +138,13 @@ function render(mode) {
             earliestTime = firstMic.timeStr;
         }
         const extraCount = venueMics.length - 1; // How many additional mics (+2, +3, etc)
+        const venueName = firstMic.title || firstMic.venue || 'Venue';
 
         // Tooltip shows venue name
         const tooltipTitle = escapeHtml((firstMic.title || 'Unknown Venue').toUpperCase());
 
         const marker = L.marker([firstMic.lat, firstMic.lng], {
-            icon: createPin(bestStatus, earliestTime, extraCount),
+            icon: createPin(bestStatus, earliestTime, extraCount, venueName),
             zIndexOffset: bestStatus === 'live' ? 1000 : (bestStatus === 'upcoming' ? 500 : 100)
         }).addTo(markersGroup)
         .bindTooltip(tooltipTitle, {
