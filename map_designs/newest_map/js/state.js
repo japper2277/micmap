@@ -13,6 +13,7 @@ const STATE = {
 
     // UI state
     isDrawerOpen: false,
+    drawerState: 'peek', // 'peek', 'half', or 'open' (mobile only)
 
     // Map state
     markerLookup: {},
