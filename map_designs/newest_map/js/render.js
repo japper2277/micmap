@@ -166,7 +166,7 @@ function render(mode) {
 
     // --- PROXIMITY CLUSTERING ---
     // Only cluster when zoomed out (pill view). At ticket zoom, show all individually.
-    const isZoomedIn = map.getZoom() >= 15;
+    const isZoomedIn = map.getZoom() >= 16;
     const CLUSTER_RADIUS_METERS = isZoomedIn ? 0 : 75; // No clustering when zoomed in
 
     // Haversine distance in meters
@@ -271,7 +271,7 @@ function render(mode) {
         .on('click', () => {
             // If cluster has multiple venues, zoom in to break it apart
             if (cluster.venueCount > 1) {
-                map.setView([cluster.lat, cluster.lng], 15); // Zoom to ticket level
+                map.setView([cluster.lat, cluster.lng], 16); // Zoom to ticket level
             } else {
                 openVenueModal(firstMic);
             }
