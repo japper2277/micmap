@@ -51,19 +51,19 @@ function updateToggleUI(mode) {
     const btnTomorrow = document.getElementById('btn-tomorrow');
     const btnCalendar = document.getElementById('btn-calendar');
 
-    // Reset all states
-    btnToday.classList.remove('active');
-    btnTomorrow.classList.remove('active');
-    btnCalendar.classList.remove('active');
+    // Reset all states (null-safe since Today/Tomorrow toggle was removed)
+    if (btnToday) btnToday.classList.remove('active');
+    if (btnTomorrow) btnTomorrow.classList.remove('active');
+    if (btnCalendar) btnCalendar.classList.remove('active');
 
     if (mode === 'today') {
-        slider.style.transform = 'translateX(0px)';
-        btnToday.classList.add('active');
+        if (slider) slider.style.transform = 'translateX(0px)';
+        if (btnToday) btnToday.classList.add('active');
     } else if (mode === 'tomorrow') {
-        slider.style.transform = 'translateX(66px)';
-        btnTomorrow.classList.add('active');
+        if (slider) slider.style.transform = 'translateX(66px)';
+        if (btnTomorrow) btnTomorrow.classList.add('active');
     } else if (mode === 'calendar') {
-        btnCalendar.classList.add('active');
+        if (btnCalendar) btnCalendar.classList.add('active');
     }
 }
 
