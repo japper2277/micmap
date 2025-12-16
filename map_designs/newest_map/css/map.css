@@ -140,6 +140,71 @@
     background: #6b7280;
 }
 
+/* --- CLUSTER PICKER POPUP --- */
+
+.cluster-picker-popup .leaflet-popup-content-wrapper {
+    background: rgba(20, 20, 20, 0.95);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    padding: 0;
+}
+.cluster-picker-popup .leaflet-popup-content {
+    margin: 0;
+    min-width: 180px;
+}
+.cluster-picker-popup .leaflet-popup-tip {
+    background: rgba(20, 20, 20, 0.95);
+}
+.cluster-picker-popup .leaflet-popup-close-button {
+    color: #999;
+    font-size: 18px;
+    top: 8px;
+    right: 10px;
+}
+.cluster-picker-popup .leaflet-popup-close-button:hover {
+    color: white;
+}
+
+.cluster-picker {
+    padding: 12px;
+}
+.cluster-picker-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.cluster-picker-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.cluster-venue-item {
+    padding: 10px 12px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+.cluster-venue-item:hover {
+    background: rgba(255,255,255,0.12);
+}
+.cluster-venue-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 2px;
+}
+.cluster-venue-times {
+    font-size: 12px;
+    color: #ef4444;
+    font-weight: 500;
+}
+
 /* Legacy pin classes - keep for backwards compat */
 .pin-container, .pin-live-container, .pin-upcoming-container,
 .pin-future-container, .pin-soon-container, .pin-later-container { display: none; }
