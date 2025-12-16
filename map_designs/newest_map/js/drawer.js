@@ -155,77 +155,85 @@ function setDrawerState(newState) {
     announceToScreenReader(stateLabels[newState] || 'Mic list collapsed');
 }
 
-// Mobile swipe with velocity detection - works on entire drawer
+// Mobile swipe with velocity detection - works on header + drag handle
 function setupMobileSwipe() {
     const drawer = document.getElementById('list-drawer');
+    const header = document.getElementById('drawer-header');
     const listContent = document.getElementById('list-content');
 
     let startY = 0;
     let startTime = 0;
     let currentY = 0;
     let isSwiping = false;
-    let startScrollTop = 0;
+    let isHeaderSwipe = false; // Track if swipe started on header
 
-    const THRESHOLD = 20; // Minimum distance for swipe
-    const VELOCITY_THRESHOLD = 0.5; // pixels per ms for fast swipe
+    const THRESHOLD = 15; // Lower threshold for easier swiping
+    const VELOCITY_THRESHOLD = 0.3; // Lower velocity threshold
 
     function isMobile() {
         return window.matchMedia('(max-width: 767px)').matches;
     }
 
-    // Touch start - capture initial position and time
-    drawer.addEventListener('touchstart', (e) => {
+    // Header swipes - always work, ignore buttons
+    header.addEventListener('touchstart', (e) => {
         if (!isMobile()) return;
-        // Skip if touching interactive elements
-        if (e.target.closest('button:not(.drawer-filter-btn)') ||
-            e.target.closest('a') ||
-            e.target.closest('input')) return;
-
         startY = e.touches[0].clientY;
         currentY = startY;
         startTime = Date.now();
-        startScrollTop = listContent ? listContent.scrollTop : 0;
         isSwiping = true;
+        isHeaderSwipe = true;
     }, { passive: true });
 
-    // Touch move - track current position
+    // List content swipes - only for collapsing when at top
+    listContent.addEventListener('touchstart', (e) => {
+        if (!isMobile()) return;
+        // Only track if we're at the top of scroll
+        if (listContent.scrollTop <= 0) {
+            startY = e.touches[0].clientY;
+            currentY = startY;
+            startTime = Date.now();
+            isSwiping = true;
+            isHeaderSwipe = false;
+        }
+    }, { passive: true });
+
+    // Track movement on entire drawer
     drawer.addEventListener('touchmove', (e) => {
         if (!isSwiping || !isMobile()) return;
         currentY = e.touches[0].clientY;
     }, { passive: true });
 
-    // Touch end - calculate velocity and determine next state
+    // Handle swipe end
     drawer.addEventListener('touchend', () => {
         if (!isSwiping || !isMobile()) return;
-        isSwiping = false;
 
         const deltaY = currentY - startY;
-        const deltaTime = Date.now() - startTime;
-        const velocity = Math.abs(deltaY) / deltaTime; // px/ms
+        const deltaTime = Math.max(Date.now() - startTime, 1);
+        const velocity = Math.abs(deltaY) / deltaTime;
         const currentState = getDrawerState();
 
-        // If scrolled within content and at top, allow collapse
-        // If not at top, don't trigger state change
-        if (listContent && startScrollTop > 0 && deltaY > 0) {
-            return; // User is scrolling content, not drawer
-        }
+        isSwiping = false;
 
-        // Fast swipe - skip intermediate states
-        if (velocity > VELOCITY_THRESHOLD && Math.abs(deltaY) > THRESHOLD) {
-            if (deltaY < 0) {
-                // Fast swipe up -> go to open
-                setDrawerState(DRAWER_STATES.OPEN);
-            } else {
-                // Fast swipe down -> go to peek
-                setDrawerState(DRAWER_STATES.PEEK);
-            }
+        // For content swipes (not header), only allow downward collapse
+        if (!isHeaderSwipe && deltaY <= 0) {
+            isHeaderSwipe = false;
             return;
         }
 
-        // Normal swipe - move to adjacent state
-        if (Math.abs(deltaY) > THRESHOLD) {
-            if (deltaY < 0) {
-                // Swipe up - expand
+        // Determine action based on swipe
+        const isFastSwipe = velocity > VELOCITY_THRESHOLD;
+        const isValidSwipe = Math.abs(deltaY) > THRESHOLD;
+
+        if (!isValidSwipe) {
+            isHeaderSwipe = false;
+            return;
+        }
+
+        if (deltaY < 0) {
+            // Swipe UP - expand
+            if (isFastSwipe) {
+                setDrawerState(DRAWER_STATES.OPEN);
+            } else {
                 switch (currentState) {
                     case DRAWER_STATES.PEEK:
                         setDrawerState(DRAWER_STATES.HALF);
@@ -234,8 +242,12 @@ function setupMobileSwipe() {
                         setDrawerState(DRAWER_STATES.OPEN);
                         break;
                 }
+            }
+        } else {
+            // Swipe DOWN - collapse
+            if (isFastSwipe) {
+                setDrawerState(DRAWER_STATES.PEEK);
             } else {
-                // Swipe down - collapse
                 switch (currentState) {
                     case DRAWER_STATES.OPEN:
                         setDrawerState(DRAWER_STATES.HALF);
@@ -246,6 +258,8 @@ function setupMobileSwipe() {
                 }
             }
         }
+
+        isHeaderSwipe = false;
     });
 }
 
