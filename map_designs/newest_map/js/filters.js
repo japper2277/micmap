@@ -281,6 +281,15 @@ function selectBoroughFilter(value) {
     // Update button UI
     updateFilterPillUI('borough', value);
 
+    // Zoom map to borough (or reset to default view for "All")
+    if (value !== 'All' && CONFIG.boroughBounds[value]) {
+        const bounds = CONFIG.boroughBounds[value];
+        map.setView(bounds.center, bounds.zoom, { animate: true });
+    } else if (value === 'All') {
+        // Reset to default NYC view
+        map.setView(CONFIG.mapCenter, CONFIG.mapZoom, { animate: true });
+    }
+
     // Close popover and re-render
     closeBoroughPopover();
     render(STATE.currentMode);

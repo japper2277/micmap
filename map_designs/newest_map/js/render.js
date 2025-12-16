@@ -13,6 +13,56 @@ function formatSetTime(setTime) {
     return num + 'min';
 }
 
+// Show picker popup for clustered venues
+function showClusterPicker(cluster) {
+    // Group mics by venue
+    const venueMap = {};
+    cluster.mics.forEach(mic => {
+        const key = mic.title || mic.venue || 'Unknown';
+        if (!venueMap[key]) venueMap[key] = { name: key, mics: [], firstMic: mic };
+        venueMap[key].mics.push(mic);
+    });
+
+    const venues = Object.values(venueMap);
+
+    // Build popup HTML
+    const venueListHtml = venues.map(v => {
+        const times = v.mics.map(m => m.timeStr || '?').join(', ');
+        return `<div class="cluster-venue-item" data-lat="${v.firstMic.lat}" data-lng="${v.firstMic.lng}" data-id="${v.firstMic.id}">
+            <div class="cluster-venue-name">${escapeHtml(v.name)}</div>
+            <div class="cluster-venue-times">${escapeHtml(times)}</div>
+        </div>`;
+    }).join('');
+
+    // Create popup at cluster location
+    const popup = L.popup({
+        className: 'cluster-picker-popup',
+        closeButton: true,
+        autoClose: true,
+        maxWidth: 250
+    })
+    .setLatLng([cluster.lat, cluster.lng])
+    .setContent(`<div class="cluster-picker">
+        <div class="cluster-picker-title">${venues.length} Venues Nearby</div>
+        <div class="cluster-picker-list">${venueListHtml}</div>
+    </div>`)
+    .openOn(map);
+
+    // Add click handlers after popup opens
+    setTimeout(() => {
+        document.querySelectorAll('.cluster-venue-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const id = item.dataset.id;
+                const mic = cluster.mics.find(m => m.id === id);
+                if (mic) {
+                    map.closePopup();
+                    openVenueModal(mic);
+                }
+            });
+        });
+    }, 50);
+}
+
 function render(mode) {
     const container = document.getElementById('list-content');
     if (!container) return;
@@ -220,8 +270,13 @@ function render(mode) {
         .on('click', () => {
             // If cluster has multiple venues, zoom in or show picker
             if (cluster.venueCount > 1) {
-                // Zoom in to break up the cluster
-                map.setView([cluster.lat, cluster.lng], map.getZoom() + 2);
+                // If already zoomed in enough, show venue picker
+                if (map.getZoom() >= 17) {
+                    showClusterPicker(cluster);
+                } else {
+                    // Zoom in to break up the cluster
+                    map.setView([cluster.lat, cluster.lng], map.getZoom() + 2);
+                }
             } else {
                 openVenueModal(firstMic);
             }
