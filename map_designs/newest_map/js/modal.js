@@ -5,11 +5,15 @@
 // DOM element references (initialized after DOM loads)
 let venueModal, modalVenueName, modalAddress, modalDirections;
 let modalMicTime, modalInstructions, modalActions, modalSignupBtn, modalIgBtn;
-let modalTransit;
+let modalTransit, modalTabs;
 
 // Focus trap state
 let modalTriggerElement = null;
 let modalFocusTrapHandler = null;
+
+// Current mics for tab switching
+let modalMicsArray = [];
+let modalActiveMicIndex = 0;
 
 // Initialize modal DOM references
 function initModal() {
@@ -23,6 +27,7 @@ function initModal() {
     modalSignupBtn = document.getElementById('modal-signup-btn');
     modalIgBtn = document.getElementById('modal-ig-btn');
     modalTransit = document.getElementById('modal-transit');
+    modalTabs = document.getElementById('modal-tabs');
 
     // Close modal on background click
     venueModal.addEventListener('click', (e) => {
@@ -50,8 +55,166 @@ function initModal() {
     });
 }
 
+// Store venue map for tab switching
+let modalVenueMap = {};
+
+// Open modal with multiple mics (shows tabs)
+function openVenueModalWithMics(mics) {
+    if (!mics || mics.length === 0) return;
+
+    // Store mics for tab switching
+    modalMicsArray = mics;
+    modalActiveMicIndex = 0;
+
+    // Group mics by venue name
+    modalVenueMap = {};
+    mics.forEach(mic => {
+        const key = mic.title || mic.venue || 'Unknown';
+        if (!modalVenueMap[key]) modalVenueMap[key] = [];
+        modalVenueMap[key].push(mic);
+    });
+
+    const venues = Object.entries(modalVenueMap);
+
+    // If only one venue (regardless of mic count), show without tabs
+    if (venues.length === 1) {
+        modalTabs.innerHTML = '';
+        modalTabs.style.display = 'none';
+        const venueMics = venues[0][1];
+        populateModalContent(venueMics[0], venueMics);
+        venueModal.classList.add('active');
+        modalTriggerElement = document.activeElement;
+        setupFocusTrap(venueModal);
+        return;
+    }
+
+    // Build tabs - one per venue
+    const tabsHtml = venues.map(([venueName, venueMics], idx) => {
+        const shortName = typeof shortenVenueName === 'function'
+            ? shortenVenueName(venueName)
+            : venueName;
+        const displayName = shortName.length > 14 ? shortName.substring(0, 13) + '…' : shortName;
+        return `<button class="modal-tab ${idx === 0 ? 'active' : ''}" data-venue-name="${escapeHtml(venueName)}">${escapeHtml(displayName)}</button>`;
+    }).join('');
+
+    modalTabs.innerHTML = tabsHtml;
+    modalTabs.style.display = 'flex';
+
+    // Add tab click handlers
+    modalTabs.querySelectorAll('.modal-tab').forEach(tab => {
+        tab.addEventListener('click', (e) => {
+            const venueName = e.target.dataset.venueName;
+            if (!venueName) return;
+
+            // Update active tab
+            modalTabs.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
+            e.target.classList.add('active');
+
+            // Update modal content with all mics at this venue
+            const venueMics = modalVenueMap[venueName] || [];
+            if (venueMics.length > 0) {
+                populateModalContent(venueMics[0], venueMics);
+            }
+        });
+    });
+
+    // Show first venue's mics
+    const firstVenueMics = venues[0][1];
+    populateModalContent(firstVenueMics[0], firstVenueMics);
+
+    // Show modal
+    venueModal.classList.add('active');
+
+    // Accessibility
+    modalTriggerElement = document.activeElement;
+    setupFocusTrap(venueModal);
+}
+
+// Populate modal content without showing it (for tab switching)
+function populateModalContent(mic, allMicsAtVenue = null) {
+    if (!mic) return;
+
+    // 1. HEADER - Venue name and time(s)
+    modalVenueName.innerText = mic.title || 'Unknown Venue';
+
+    // If multiple mics at same venue, show all times
+    if (allMicsAtVenue && allMicsAtVenue.length > 1) {
+        const times = allMicsAtVenue.map(m => m.timeStr || '?').join(', ');
+        modalMicTime.innerText = times;
+    } else {
+        modalMicTime.innerText = mic.timeStr || '';
+    }
+
+    // 2. SUB-HEADER - Address and Maps link
+    let address = mic.address || '';
+    address = address.replace(/,?\s*NY\s*\d{5}(-\d{4})?/i, '').trim();
+    address = address.replace(/,\s*$/, '');
+    modalAddress.innerText = address;
+    modalDirections.href = `https://www.google.com/maps/dir/?api=1&destination=${mic.lat},${mic.lng}`;
+    modalDirections.target = '_blank';
+
+    // 3. NOTE TEXT - Signup instructions
+    let instructions = mic.signupInstructions || '';
+    instructions = instructions.replace(/https?:\/\/[^\s]+/g, '').trim();
+    instructions = instructions.replace(/\s*(sign\s*up\s*)?(at|@)\s*$/i, '').trim();
+    if (mic.signupEmail) {
+        instructions = instructions.replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, '').trim();
+        instructions = instructions.replace(/^email\s*/i, '').trim();
+    }
+    if (!instructions || instructions.length < 3) {
+        instructions = mic.signupUrl ? 'Online signup available' :
+                       mic.signupEmail ? 'Email to sign up' : 'Sign up in person';
+    }
+    modalInstructions.innerText = instructions;
+
+    // 4. ACTION BUTTONS
+    const hasSignupUrl = !!mic.signupUrl;
+    const hasSignupEmail = !!mic.signupEmail;
+    const igHandle = mic.contact || mic.host || mic.hostIg;
+    const hasIg = igHandle && igHandle !== 'TBD';
+
+    if (hasSignupUrl) {
+        modalSignupBtn.href = mic.signupUrl;
+        modalSignupBtn.target = '_blank';
+        modalSignupBtn.innerText = 'Sign Up';
+        modalSignupBtn.style.display = 'flex';
+    } else if (hasSignupEmail) {
+        modalSignupBtn.href = `mailto:${mic.signupEmail}`;
+        modalSignupBtn.removeAttribute('target');
+        modalSignupBtn.innerText = 'Email';
+        modalSignupBtn.style.display = 'flex';
+    } else {
+        modalSignupBtn.style.display = 'none';
+    }
+
+    if (hasIg) {
+        modalIgBtn.href = `https://instagram.com/${igHandle.replace(/^@/, '')}`;
+        modalIgBtn.target = '_blank';
+        modalIgBtn.style.display = 'flex';
+    } else {
+        modalIgBtn.style.display = 'none';
+    }
+
+    const hasSignupAction = hasSignupUrl || hasSignupEmail;
+    if (hasSignupAction && hasIg) {
+        modalActions.classList.remove('single-btn');
+    } else {
+        modalActions.classList.add('single-btn');
+    }
+    modalActions.style.display = (hasSignupAction || hasIg) ? 'grid' : 'none';
+
+    // 5. TRANSIT
+    loadModalArrivals(mic);
+}
+
 function openVenueModal(mic) {
     if (!mic) return;
+
+    // Clear tabs for single mic
+    modalTabs.innerHTML = '';
+    modalTabs.style.display = 'none';
+    modalMicsArray = [mic];
+    modalActiveMicIndex = 0;
 
     // 1. HEADER - Venue name and time
     modalVenueName.innerText = mic.title || 'Unknown Venue';

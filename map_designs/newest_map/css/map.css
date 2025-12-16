@@ -81,11 +81,39 @@
     box-shadow: 1px 0 0 rgba(0, 0, 0, 0.05);
 }
 
-/* Count text */
+/* Count text (inline) */
 .pill-plus-count {
     font-weight: 600;
     font-size: 12px;
     opacity: 0.95;
+}
+
+/* Count text (two-line layout) */
+.pill-count-line {
+    font-size: 10px;
+    font-weight: 600;
+    opacity: 0.9;
+    margin-top: 1px;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+}
+
+/* Two-line pill layout */
+.cluster-pill.has-count {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 5px 14px 8px;
+    height: auto;
+    min-height: 44px;
+}
+
+.cluster-pill.has-count .pill-main-text {
+    line-height: 1.2;
+}
+
+.cluster-pill.has-count .pill-tail {
+    bottom: -4px;
 }
 
 /* Geometric tail (rotated square) */
@@ -363,4 +391,133 @@
     border: none !important;
     color: white !important;
     font-weight: 600;
+}
+
+/* =================================================================
+   TABBED VENUE POPUP (Co-located venues)
+   ================================================================= */
+
+.tabbed-venue-popup .leaflet-popup-content-wrapper {
+    background: rgba(20, 20, 20, 0.98);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    padding: 0;
+    overflow: hidden;
+}
+.tabbed-venue-popup .leaflet-popup-content {
+    margin: 0;
+    width: auto !important;
+}
+.tabbed-venue-popup .leaflet-popup-tip {
+    background: rgba(20, 20, 20, 0.98);
+}
+.tabbed-venue-popup .leaflet-popup-close-button {
+    color: #666;
+    font-size: 20px;
+    top: 6px;
+    right: 8px;
+    z-index: 10;
+}
+.tabbed-venue-popup .leaflet-popup-close-button:hover {
+    color: white;
+}
+
+.tabbed-popup-container {
+    min-width: 200px;
+}
+
+/* Tabs row */
+.tabbed-popup-tabs {
+    display: flex;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.tabbed-popup-tab {
+    flex: 1;
+    padding: 12px 16px;
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 140px;
+}
+
+.tabbed-popup-tab:hover {
+    color: rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.tabbed-popup-tab.active {
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+    border-bottom: 2px solid #ef4444;
+    margin-bottom: -1px;
+}
+
+/* Content area */
+.tabbed-popup-contents {
+    padding: 12px 16px 16px;
+}
+
+.tabbed-popup-content {
+    display: none;
+}
+
+.tabbed-popup-content.active {
+    display: block;
+}
+
+/* Mics list */
+.tabbed-mics-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.tabbed-mic-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.tabbed-mic-item:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.tabbed-mic-time {
+    font-size: 16px;
+    font-weight: 700;
+    color: #ef4444;
+    min-width: 50px;
+}
+
+.tabbed-mic-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: white;
+    flex: 1;
+}
+
+/* Price display */
+.tabbed-venue-price {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.6);
+    text-align: right;
 }

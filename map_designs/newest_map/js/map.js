@@ -98,7 +98,8 @@ function shortenVenueName(name) {
 }
 
 // Create marker - pill style (zoomed out) or ticket style (zoomed in)
-function createPin(status, timeStr, extraCount, venueName) {
+// extraCount: number of additional items, extraType: 'mics' or 'venues'
+function createPin(status, timeStr, extraCount, venueName, extraType = 'mics') {
     const displayTime = timeStr || '?';
     const isZoomedIn = map.getZoom() >= ZOOM_TICKET_THRESHOLD;
 
@@ -110,11 +111,16 @@ function createPin(status, timeStr, extraCount, venueName) {
         statusClass = 'upcoming'; // red
     }
 
+    // Label for count badge (singular/plural)
+    const countLabel = extraType === 'venues'
+        ? (extraCount === 1 ? 'venue' : 'venues')
+        : (extraCount === 1 ? 'mic' : 'mics');
+
     if (isZoomedIn && venueName) {
         // TICKET STYLE: Time on top, venue name below
         const shortName = shortenVenueName(venueName);
         const displayName = shortName.length > 14 ? shortName.substring(0, 13) + '…' : shortName;
-        const countBadge = extraCount > 0 ? `<span class="ticket-count">+${extraCount}</span>` : '';
+        const countBadge = extraCount > 0 ? `<span class="ticket-count">+${extraCount} ${countLabel}</span>` : '';
 
         // Dynamic width based on name length
         const ticketWidth = Math.max(70, Math.min(displayName.length * 7 + 16, 120));
@@ -129,29 +135,29 @@ function createPin(status, timeStr, extraCount, venueName) {
             iconAnchor: [ticketWidth / 2, 44]
         });
     } else {
-        // PILL STYLE: Premium gradient pill with separator
+        // PILL STYLE: Two lines - time on top, count below
         const isLive = statusClass === 'live';
         const mainText = isLive ? 'LIVE' : displayTime;
         const hasCount = extraCount > 0;
 
-        // Build pill content
+        // Build pill content - two lines if has count
         const countHtml = hasCount
-            ? `<div class="pill-spacer"></div><span class="pill-plus-count">+${extraCount}</span>`
+            ? `<div class="pill-count-line">+${extraCount} ${countLabel}</div>`
             : '';
 
         // Calculate width
-        const textWidth = isLive ? 40 : (displayTime.length * 9);
-        const countWidth = hasCount ? 32 : 0;
-        const totalWidth = Math.max(textWidth + countWidth + 24, 56);
+        const textWidth = isLive ? 50 : (displayTime.length * 10 + 16);
+        const totalWidth = Math.max(textWidth, hasCount ? 80 : 56);
+        const totalHeight = hasCount ? 52 : 42;
 
         return L.divIcon({
             className: 'bg-transparent',
-            html: `<div class="cluster-pill status-${statusClass}">
+            html: `<div class="cluster-pill status-${statusClass} ${hasCount ? 'has-count' : ''}">
                     <span class="pill-main-text ${isLive ? 'is-live-text' : ''}">${mainText}</span>${countHtml}
                     <div class="pill-tail"></div>
                    </div>`,
-            iconSize: [totalWidth, 42],
-            iconAnchor: [totalWidth / 2, 42]
+            iconSize: [totalWidth, totalHeight],
+            iconAnchor: [totalWidth / 2, totalHeight]
         });
     }
 }

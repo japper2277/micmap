@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#09090b">
     <title>MicFinder NYC</title>
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="../manifest.json">
 
     <!-- External Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -197,6 +197,9 @@
     <!-- VENUE MODAL -->
     <div class="modal-overlay" id="venue-modal" role="dialog" aria-modal="true" aria-labelledby="modal-venue-name">
         <div class="venue-card">
+            <!-- 0. TABS (shown when multiple mics at same location) -->
+            <div class="modal-tabs" id="modal-tabs"></div>
+
             <!-- 1. HEADER SECTION -->
             <div class="header-section">
                 <div class="header-top">

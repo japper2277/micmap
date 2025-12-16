@@ -63,6 +63,95 @@ function showClusterPicker(cluster) {
     }, 50);
 }
 
+// Show tabbed popup for co-located venues (when zoomed in)
+function showTabbedVenuePopup(cluster) {
+    // Group mics by venue
+    const venueMap = {};
+    cluster.mics.forEach(mic => {
+        const key = mic.title || mic.venue || 'Unknown';
+        if (!venueMap[key]) venueMap[key] = { name: key, mics: [], firstMic: mic };
+        venueMap[key].mics.push(mic);
+    });
+
+    const venues = Object.values(venueMap);
+
+    // Sort venues alphabetically
+    venues.sort((a, b) => a.name.localeCompare(b.name));
+
+    // Build tabs HTML
+    const tabsHtml = venues.map((v, i) => {
+        const shortName = shortenVenueName(v.name);
+        const displayName = shortName.length > 12 ? shortName.substring(0, 11) + '…' : shortName;
+        return `<button class="tabbed-popup-tab ${i === 0 ? 'active' : ''}" data-venue-index="${i}">${escapeHtml(displayName)}</button>`;
+    }).join('');
+
+    // Build content for each venue (mics list)
+    const contentHtml = venues.map((v, i) => {
+        const micsHtml = v.mics.map(mic => {
+            const micName = mic.name || mic.micName || '';
+            return `<div class="tabbed-mic-item" data-mic-id="${mic.id}">
+                <span class="tabbed-mic-time">${escapeHtml(mic.timeStr || '?')}</span>
+                ${micName ? `<span class="tabbed-mic-name">${escapeHtml(micName)}</span>` : ''}
+            </div>`;
+        }).join('');
+
+        // Add price if available
+        const price = v.firstMic.price || 'Free';
+        const priceHtml = price.toLowerCase() !== 'free'
+            ? `<div class="tabbed-venue-price">${escapeHtml(price)}</div>`
+            : '';
+
+        return `<div class="tabbed-popup-content ${i === 0 ? 'active' : ''}" data-venue-index="${i}">
+            <div class="tabbed-mics-list">${micsHtml}</div>
+            ${priceHtml}
+        </div>`;
+    }).join('');
+
+    // Create popup
+    const popup = L.popup({
+        className: 'tabbed-venue-popup',
+        closeButton: true,
+        autoClose: true,
+        maxWidth: 280,
+        minWidth: 200
+    })
+    .setLatLng([cluster.lat, cluster.lng])
+    .setContent(`<div class="tabbed-popup-container">
+        <div class="tabbed-popup-tabs">${tabsHtml}</div>
+        <div class="tabbed-popup-contents">${contentHtml}</div>
+    </div>`)
+    .openOn(map);
+
+    // Add tab click handlers
+    setTimeout(() => {
+        document.querySelectorAll('.tabbed-popup-tab').forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                const index = e.target.dataset.venueIndex;
+
+                // Update active tab
+                document.querySelectorAll('.tabbed-popup-tab').forEach(t => t.classList.remove('active'));
+                e.target.classList.add('active');
+
+                // Update active content
+                document.querySelectorAll('.tabbed-popup-content').forEach(c => c.classList.remove('active'));
+                document.querySelector(`.tabbed-popup-content[data-venue-index="${index}"]`)?.classList.add('active');
+            });
+        });
+
+        // Add mic item click handlers - open venue modal
+        document.querySelectorAll('.tabbed-mic-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const micId = item.dataset.micId;
+                const mic = cluster.mics.find(m => m.id === micId);
+                if (mic) {
+                    map.closePopup();
+                    openVenueModal(mic);
+                }
+            });
+        });
+    }, 50);
+}
+
 function render(mode) {
     const container = document.getElementById('list-content');
     if (!container) return;
@@ -165,9 +254,11 @@ function render(mode) {
     document.getElementById('mic-count').textContent = filtered.length;
 
     // --- PROXIMITY CLUSTERING ---
-    // Only cluster when zoomed out (pill view). At ticket zoom, show all individually.
+    // Cluster nearby venues to prevent overlapping markers
     const isZoomedIn = map.getZoom() >= 16;
-    const CLUSTER_RADIUS_METERS = isZoomedIn ? 0 : 75; // No clustering when zoomed in
+    // When zoomed in: cluster overlapping tickets (~80m)
+    // When zoomed out: larger radius for cleaner pills (~100m)
+    const CLUSTER_RADIUS_METERS = isZoomedIn ? 80 : 100;
 
     // Haversine distance in meters
     function getDistanceMeters(lat1, lng1, lat2, lng2) {
@@ -249,31 +340,26 @@ function render(mode) {
             earliestTime = firstMic.timeStr;
         }
 
-        // Count: total mics minus 1 (the one shown in time)
-        const extraCount = cluster.mics.length - 1;
+        // Count unique venues
+        const venueNames = [...new Set(cluster.mics.map(m => m.title || m.venue))];
+        const isMultiVenue = venueNames.length > 1;
+
+        // Only show +X badge for multiple venues (not for multiple mics at same venue)
+        const extraCount = isMultiVenue ? (venueNames.length - 1) : 0;
+        const extraType = 'venues';
         const venueName = firstMic.title || firstMic.venue || 'Venue';
 
-        // Tooltip: show venue name(s)
-        const venueNames = [...new Set(cluster.mics.map(m => m.title || m.venue))];
-        const tooltipTitle = venueNames.length > 1
-            ? `${venueNames.length} VENUES`
-            : escapeHtml((firstMic.title || 'Unknown Venue').toUpperCase());
-
         const marker = L.marker([cluster.lat, cluster.lng], {
-            icon: createPin(bestStatus, earliestTime, extraCount, cluster.venueCount > 1 ? null : venueName),
+            icon: createPin(bestStatus, earliestTime, extraCount, isMultiVenue ? null : venueName, extraType),
             zIndexOffset: bestStatus === 'live' ? 1000 : (bestStatus === 'upcoming' ? 500 : 100)
-        }).addTo(markersGroup)
-        .bindTooltip(tooltipTitle, {
-            direction: 'top',
-            offset: [0, -16],
-            className: 'mic-tooltip',
-            interactive: false
-        })
+        }).addTo(markersGroup);
+
+        marker
         .on('click', () => {
-            // If cluster has multiple venues, zoom in progressively to break it apart
-            if (cluster.venueCount > 1) {
-                const newZoom = Math.min(map.getZoom() + 3, 18); // Zoom in +3 levels, max 18
-                map.setView([cluster.lat, cluster.lng], newZoom);
+            // If cluster has multiple venues OR multiple mics at same venue
+            if (cluster.venueCount > 1 || cluster.mics.length > 1) {
+                // Always show venue card with tabs
+                openVenueModalWithMics(cluster.mics);
             } else {
                 openVenueModal(firstMic);
             }
