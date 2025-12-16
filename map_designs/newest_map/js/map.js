@@ -32,8 +32,11 @@ function createPin(status, timeStr, extraCount, venueName) {
 
     if (isZoomedIn && venueName) {
         // TICKET STYLE: Time on top, venue name below
-        const shortName = venueName.length > 10 ? venueName.substring(0, 9) + '…' : venueName;
+        const shortName = venueName.length > 16 ? venueName.substring(0, 15) + '…' : venueName;
         const countBadge = extraCount > 0 ? `<span class="ticket-count">+${extraCount}</span>` : '';
+
+        // Dynamic width based on name length
+        const ticketWidth = Math.max(70, Math.min(shortName.length * 7 + 16, 120));
 
         return L.divIcon({
             className: 'bg-transparent',
@@ -41,8 +44,8 @@ function createPin(status, timeStr, extraCount, venueName) {
                     <div class="ticket-time">${displayTime}${countBadge}</div>
                     <div class="ticket-venue">${shortName}</div>
                    </div>`,
-            iconSize: [72, 44],
-            iconAnchor: [36, 44]
+            iconSize: [ticketWidth, 44],
+            iconAnchor: [ticketWidth / 2, 44]
         });
     } else {
         // PILL STYLE: Compact time pill
