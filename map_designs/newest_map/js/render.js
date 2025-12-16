@@ -72,6 +72,13 @@ function render(mode) {
             if (m.transitMins > maxMins) return false;
         }
 
+        // Filter by borough
+        if (STATE.activeFilters.borough !== 'All') {
+            const micBorough = (m.borough || '').toLowerCase();
+            const filterBorough = STATE.activeFilters.borough.toLowerCase();
+            if (micBorough !== filterBorough) return false;
+        }
+
         return true;
     });
 

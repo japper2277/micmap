@@ -112,11 +112,12 @@
                         </svg>
                     </button>
 
-                    <!-- Settings Button -->
-                    <button class="settings-icon-btn" id="btn-settings" onclick="settingsService.open()" aria-label="Open settings">
+                    <!-- More Button (three dots) -->
+                    <button class="more-icon-btn" id="btn-more" onclick="toggleMoreMenu()" aria-label="More options" aria-expanded="false" aria-controls="more-popover">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="3"></circle>
-                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                            <circle cx="12" cy="5" r="1.5" fill="currentColor"></circle>
+                            <circle cx="12" cy="12" r="1.5" fill="currentColor"></circle>
+                            <circle cx="12" cy="19" r="1.5" fill="currentColor"></circle>
                         </svg>
                     </button>
                 </div>
@@ -137,6 +138,14 @@
                 <!-- Time Filter -->
                 <button class="drawer-filter-btn" id="filter-time" onclick="event.stopPropagation(); toggleTimePopover()" aria-label="Filter by time" aria-expanded="false" aria-controls="time-popover">
                     Time
+                    <svg class="filter-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                        <path d="M6 9l6 6 6-6"/>
+                    </svg>
+                </button>
+
+                <!-- Borough Filter -->
+                <button class="drawer-filter-btn" id="filter-borough" onclick="event.stopPropagation(); toggleBoroughPopover()" aria-label="Filter by borough" aria-expanded="false" aria-controls="borough-popover">
+                    Borough
                     <svg class="filter-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
                         <path d="M6 9l6 6 6-6"/>
                     </svg>
@@ -198,6 +207,36 @@
                 <!-- Transit cards injected dynamically -->
             </div>
         </div>
+    </div>
+
+    <!-- More Menu Popover -->
+    <div class="more-popover" id="more-popover" role="menu" aria-label="More options">
+        <button class="more-option" onclick="settingsService.open(); toggleMoreMenu()" role="menuitem">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+            <span>Settings</span>
+        </button>
+    </div>
+
+    <!-- Borough Filter Popover -->
+    <div class="filter-popover" id="borough-popover" role="listbox" aria-label="Filter by borough">
+        <button class="popover-option active" data-value="All" onclick="selectBoroughFilter('All')" role="option" aria-selected="true">
+            <span class="option-label">All Boroughs</span>
+        </button>
+        <button class="popover-option" data-value="Manhattan" onclick="selectBoroughFilter('Manhattan')" role="option" aria-selected="false">
+            <span class="option-label">Manhattan</span>
+        </button>
+        <button class="popover-option" data-value="Brooklyn" onclick="selectBoroughFilter('Brooklyn')" role="option" aria-selected="false">
+            <span class="option-label">Brooklyn</span>
+        </button>
+        <button class="popover-option" data-value="Queens" onclick="selectBoroughFilter('Queens')" role="option" aria-selected="false">
+            <span class="option-label">Queens</span>
+        </button>
+        <button class="popover-option" data-value="Bronx" onclick="selectBoroughFilter('Bronx')" role="option" aria-selected="false">
+            <span class="option-label">Bronx</span>
+        </button>
     </div>
 
     <!-- Time Filter Popover (outside drawer for z-index) -->

@@ -570,7 +570,8 @@
 /* =================================================================
    SETTINGS BUTTON & MODAL
    ================================================================= */
-.settings-icon-btn {
+/* --- MORE MENU BUTTON & POPOVER --- */
+.more-icon-btn {
     width: 44px;
     height: 44px;
     border-radius: 50%;
@@ -584,9 +585,63 @@
     transition: all 0.2s;
 }
 
-.settings-icon-btn:hover {
+.more-icon-btn:hover {
     background: rgba(255, 255, 255, 0.1);
     color: white;
+}
+
+.more-icon-btn.active {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.more-popover {
+    position: fixed;
+    min-width: 160px;
+    background: rgba(20, 20, 22, 0.98);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 6px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    transition: all 0.2s ease;
+    z-index: 2000;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.more-popover.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.more-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 12px 14px;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    text-align: left;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.more-option:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.more-option svg {
+    color: rgba(255, 255, 255, 0.6);
+    flex-shrink: 0;
 }
 
 .settings-modal-overlay {

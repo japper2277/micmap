@@ -21,7 +21,7 @@ const STATE = {
     isProgrammaticMove: false,
 
     // Filters
-    activeFilters: { price: 'All', time: 'All', commute: 'All' },
+    activeFilters: { price: 'All', time: 'All', commute: 'All', borough: 'All' },
 
     // Geolocation
     userLocation: null,

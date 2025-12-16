@@ -5,6 +5,8 @@
 
 // Track if popover outside click listener is attached (prevents memory leak)
 let popoverListenerAttached = false;
+let moreMenuListenerAttached = false;
+let boroughPopoverListenerAttached = false;
 
 /* =================================================================
    FILTER ROW ACCESSIBILITY
@@ -155,6 +157,135 @@ function closeTimePopoverOnOutsideClick(e) {
     }
 }
 
+/* =================================================================
+   MORE MENU
+   Three-dot menu for settings and other rare actions
+   ================================================================= */
+
+function toggleMoreMenu() {
+    const popover = document.getElementById('more-popover');
+    const btn = document.getElementById('btn-more');
+    const isOpen = popover.classList.contains('active');
+
+    if (isOpen) {
+        closeMoreMenu();
+    } else {
+        // Position popover below the button, aligned to right edge
+        const rect = btn.getBoundingClientRect();
+        popover.style.top = (rect.bottom + 8) + 'px';
+        popover.style.right = (window.innerWidth - rect.right) + 'px';
+        popover.style.left = 'auto';
+
+        btn.classList.add('active');
+        popover.classList.add('active');
+        btn.setAttribute('aria-expanded', 'true');
+
+        // Close on outside click
+        if (!moreMenuListenerAttached) {
+            moreMenuListenerAttached = true;
+            setTimeout(() => {
+                document.addEventListener('click', closeMoreMenuOnOutsideClick);
+            }, 0);
+        }
+    }
+}
+
+function closeMoreMenu() {
+    const popover = document.getElementById('more-popover');
+    const btn = document.getElementById('btn-more');
+
+    popover.classList.remove('active');
+    if (btn) {
+        btn.classList.remove('active');
+        btn.setAttribute('aria-expanded', 'false');
+    }
+
+    if (moreMenuListenerAttached) {
+        moreMenuListenerAttached = false;
+        document.removeEventListener('click', closeMoreMenuOnOutsideClick);
+    }
+}
+
+function closeMoreMenuOnOutsideClick(e) {
+    const popover = document.getElementById('more-popover');
+    const btn = document.getElementById('btn-more');
+    if (!popover.contains(e.target) && !btn.contains(e.target)) {
+        closeMoreMenu();
+    }
+}
+
+/* =================================================================
+   BOROUGH FILTER POPOVER
+   ================================================================= */
+
+function toggleBoroughPopover() {
+    const popover = document.getElementById('borough-popover');
+    const btn = document.getElementById('filter-borough');
+    const chevron = btn.querySelector('.filter-chevron');
+    const isOpen = popover.classList.contains('active');
+
+    if (isOpen) {
+        closeBoroughPopover();
+    } else {
+        // Position popover below the button
+        const rect = btn.getBoundingClientRect();
+        popover.style.top = (rect.bottom + 8) + 'px';
+        popover.style.left = rect.left + 'px';
+
+        chevron.style.transform = 'rotate(180deg)';
+        popover.classList.add('active');
+        btn.setAttribute('aria-expanded', 'true');
+
+        // Close on outside click
+        if (!boroughPopoverListenerAttached) {
+            boroughPopoverListenerAttached = true;
+            document.addEventListener('click', closeBoroughPopoverOnOutsideClick);
+        }
+    }
+}
+
+function closeBoroughPopover() {
+    const popover = document.getElementById('borough-popover');
+    const btn = document.getElementById('filter-borough');
+    const chevron = btn?.querySelector('.filter-chevron');
+    if (chevron) chevron.style.transform = '';
+    popover.classList.remove('active');
+
+    if (btn) btn.setAttribute('aria-expanded', 'false');
+
+    if (boroughPopoverListenerAttached) {
+        boroughPopoverListenerAttached = false;
+        document.removeEventListener('click', closeBoroughPopoverOnOutsideClick);
+    }
+}
+
+function closeBoroughPopoverOnOutsideClick(e) {
+    const popover = document.getElementById('borough-popover');
+    const btn = document.getElementById('filter-borough');
+    if (!popover.contains(e.target) && !btn.contains(e.target)) {
+        closeBoroughPopover();
+    }
+}
+
+function selectBoroughFilter(value) {
+    STATE.activeFilters.borough = value;
+
+    // Update popover option active states
+    const options = document.querySelectorAll('#borough-popover .popover-option');
+    options.forEach(opt => {
+        const isSelected = opt.dataset.value === value;
+        opt.classList.toggle('active', isSelected);
+        opt.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+    });
+
+    // Update button UI
+    updateFilterPillUI('borough', value);
+
+    // Close popover and re-render
+    closeBoroughPopover();
+    render(STATE.currentMode);
+}
+
 // Select time filter from popover
 function selectTimeFilter(value) {
     STATE.activeFilters.time = value;
@@ -177,10 +308,11 @@ function selectTimeFilter(value) {
 
 function updateFilterPillUI(type, value) {
     const btn = document.getElementById(`filter-${type}`);
+    if (!btn) return;
     const label = CONFIG.filterLabels[type][value] || value;
 
-    if (type === 'time') {
-        // For time filter, update just the text node (preserve chevron SVG)
+    if (type === 'time' || type === 'borough') {
+        // For filters with chevron, update just the text node (preserve chevron SVG)
         const textNode = btn.childNodes[0];
         if (textNode.nodeType === Node.TEXT_NODE) {
             textNode.textContent = label + ' ';
@@ -198,18 +330,25 @@ function updateFilterPillUI(type, value) {
     if (homeBtn) {
         const hasActiveFilters = STATE.activeFilters.price !== 'All' ||
                                  STATE.activeFilters.time !== 'All' ||
-                                 STATE.activeFilters.commute !== 'All';
+                                 STATE.activeFilters.commute !== 'All' ||
+                                 STATE.activeFilters.borough !== 'All';
         homeBtn.classList.toggle('active', !hasActiveFilters);
     }
 }
 
 function resetFilters() {
-    STATE.activeFilters = { price: 'All', time: 'All', commute: 'All' };
-    ['price', 'time', 'commute'].forEach(type => updateFilterPillUI(type, 'All'));
+    STATE.activeFilters = { price: 'All', time: 'All', commute: 'All', borough: 'All' };
+    ['price', 'time', 'commute', 'borough'].forEach(type => updateFilterPillUI(type, 'All'));
 
     // Reset time popover option active states
-    const options = document.querySelectorAll('#time-popover .popover-option');
-    options.forEach(opt => {
+    const timeOptions = document.querySelectorAll('#time-popover .popover-option');
+    timeOptions.forEach(opt => {
+        opt.classList.toggle('active', opt.dataset.value === 'All');
+    });
+
+    // Reset borough popover option active states
+    const boroughOptions = document.querySelectorAll('#borough-popover .popover-option');
+    boroughOptions.forEach(opt => {
         opt.classList.toggle('active', opt.dataset.value === 'All');
     });
 
@@ -257,6 +396,7 @@ function updateTransitButtonUI(isActive) {
         const hasActiveFilters = STATE.activeFilters.price !== 'All' ||
                                  STATE.activeFilters.time !== 'All' ||
                                  STATE.activeFilters.commute !== 'All' ||
+                                 STATE.activeFilters.borough !== 'All' ||
                                  STATE.isTransitMode;
         homeBtn.classList.toggle('active', !hasActiveFilters);
     }

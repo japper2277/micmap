@@ -16,12 +16,14 @@ const CONFIG = {
     filterCycles: {
         price: ['All', 'Free', 'Paid'],
         time: ['All', 'morning', 'afternoon', 'evening', 'latenight'],
-        commute: ['All', 15, 30, 45, 60]
+        commute: ['All', 15, 30, 45, 60],
+        borough: ['All', 'Manhattan', 'Brooklyn', 'Queens', 'Bronx']
     },
     filterLabels: {
         price: { All: 'Price', Free: 'Free', Paid: '< $5' },
         time: { All: 'Time', morning: 'Morning', afternoon: 'Afternoon', evening: 'Evening', latenight: 'Late Night' },
-        commute: { All: 'Commute', 15: '< 15m', 30: '< 30m', 45: '< 45m', 60: '< 1hr' }
+        commute: { All: 'Commute', 15: '< 15m', 30: '< 30m', 45: '< 45m', 60: '< 1hr' },
+        borough: { All: 'Borough', Manhattan: 'Manhattan', Brooklyn: 'Brooklyn', Queens: 'Queens', Bronx: 'Bronx' }
     },
     timeRanges: {
         All: { start: 0, end: 24 },
