@@ -126,24 +126,29 @@ function render(mode) {
             (statusPriority[mic.status] || 0) > (statusPriority[best] || 0) ? mic.status : best
         , 'future');
 
-        // Combine times: "4:30, 6:00"
-        const timesStr = venueMics.map(m => m.timeStr).join(', ');
+        // Get earliest time for pill display (format: "6:00p")
+        let earliestTime = '?';
+        if (firstMic.start instanceof Date) {
+            const hours = firstMic.start.getHours();
+            const mins = firstMic.start.getMinutes();
+            const displayHour = hours > 12 ? hours - 12 : (hours === 0 ? 12 : hours);
+            const period = hours >= 12 ? 'p' : 'a';
+            earliestTime = `${displayHour}:${mins.toString().padStart(2, '0')}${period}`;
+        } else if (firstMic.timeStr) {
+            earliestTime = firstMic.timeStr;
+        }
+        const extraCount = venueMics.length - 1; // How many additional mics (+2, +3, etc)
 
-        // Tooltip content based on status (escape user data)
+        // Tooltip shows venue name
         const tooltipTitle = escapeHtml((firstMic.title || 'Unknown Venue').toUpperCase());
-        const tooltipContent = bestStatus === 'live'
-            ? `<span style="color: #30d158;">LIVE</span><span style="opacity: 0.6; margin: 0 8px;">|</span><span>${tooltipTitle}</span>`
-            : bestStatus === 'upcoming'
-            ? `<span style="color: #ff453a;">${escapeHtml(timesStr)}</span><span style="opacity: 0.5; margin: 0 8px;">|</span><span>${tooltipTitle}</span>`
-            : `<span style="color: #8e8e93;">${escapeHtml(timesStr)}</span><span style="opacity: 0.5; margin: 0 8px;">|</span><span>${tooltipTitle}</span>`;
 
         const marker = L.marker([firstMic.lat, firstMic.lng], {
-            icon: createPin(bestStatus),
+            icon: createPin(bestStatus, earliestTime, extraCount),
             zIndexOffset: bestStatus === 'live' ? 1000 : (bestStatus === 'upcoming' ? 500 : 100)
         }).addTo(markersGroup)
-        .bindTooltip(tooltipContent, {
+        .bindTooltip(tooltipTitle, {
             direction: 'top',
-            offset: [0, -12],
+            offset: [0, -16],
             className: 'mic-tooltip',
             interactive: false
         })

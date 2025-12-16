@@ -14,40 +14,35 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r
 
 const markersGroup = L.layerGroup().addTo(map);
 
-// Create pin icon based on status
-// 3-tier system: live (green pulse), upcoming (red), future (gray hollow)
-function createPin(status) {
+// Create pill-style marker with time
+// Shows time like "6:00p" with optional "+X" for multiple mics
+function createPin(status, timeStr, extraCount) {
+    const displayTime = timeStr || '?';
+
+    // Add count if multiple mics at this venue
+    const countBadge = extraCount > 0 ? `<span class="pill-count">+${extraCount}</span>` : '';
+
+    // Status determines color
+    let pillClass = 'pill-future'; // gray
     if (status === 'live') {
-        // LIVE: Green pulsing dot
-        return L.divIcon({
-            className: 'bg-transparent',
-            html: `<div class="pin-container pin-live-container">
-                    <div class="pin-live-dot"></div>
-                   </div>`,
-            iconSize: [20, 20],
-            iconAnchor: [10, 10]
-        });
+        pillClass = 'pill-live'; // green
     } else if (status === 'upcoming' || status === 'urgent' || status === 'soon') {
-        // UPCOMING: Red solid dot (< 2 hours away)
-        return L.divIcon({
-            className: 'bg-transparent',
-            html: `<div class="pin-container pin-upcoming-container">
-                    <div class="pin-upcoming-dot"></div>
-                   </div>`,
-            iconSize: [20, 20],
-            iconAnchor: [10, 10]
-        });
-    } else {
-        // FUTURE: Gray hollow circle (tonight or tomorrow+)
-        return L.divIcon({
-            className: 'bg-transparent',
-            html: `<div class="pin-container pin-future-container">
-                    <div class="pin-future-dot"></div>
-                   </div>`,
-            iconSize: [18, 18],
-            iconAnchor: [9, 9]
-        });
+        pillClass = 'pill-upcoming'; // red
     }
+
+    // Calculate width based on content
+    const baseWidth = displayTime.length * 8 + 20;
+    const countWidth = extraCount > 0 ? 24 : 0;
+    const totalWidth = Math.max(baseWidth + countWidth, 54);
+
+    return L.divIcon({
+        className: 'bg-transparent',
+        html: `<div class="time-pill ${pillClass}">
+                <span class="pill-time">${displayTime}</span>${countBadge}
+               </div>`,
+        iconSize: [totalWidth, 26],
+        iconAnchor: [totalWidth / 2, 13]
+    });
 }
 
 // Get user location
