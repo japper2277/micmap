@@ -145,9 +145,9 @@ function createPin(status, timeStr, extraCount, venueName, extraType = 'mics') {
             ? `<div class="venue-chip">+${extraCount} ${countLabel}</div>`
             : '';
 
-        // Calculate dimensions
-        const textWidth = isLive ? 50 : (displayTime.length * 10 + 16);
-        const totalWidth = Math.max(textWidth, 56) + (hasCount ? 20 : 0);
+        // Calculate dimensions - tighter fit for short times like "7p"
+        const textWidth = isLive ? 50 : (displayTime.length * 11 + 12);
+        const totalWidth = Math.max(textWidth, 44) + (hasCount ? 20 : 0);
         const totalHeight = 42;
 
         return L.divIcon({

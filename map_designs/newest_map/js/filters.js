@@ -142,10 +142,11 @@ function closeTimePopover() {
     // Accessibility: Update aria-expanded
     if (btn) btn.setAttribute('aria-expanded', 'false');
 
-    // Only remove listener if it was attached
+    // Only remove listener if it was attached (could be desktop or mobile handler)
     if (popoverListenerAttached) {
         popoverListenerAttached = false;
         document.removeEventListener('click', closeTimePopoverOnOutsideClick);
+        document.removeEventListener('click', closeMobileTimePopoverOnOutsideClick);
     }
 }
 
@@ -256,6 +257,7 @@ function closeBoroughPopover() {
     if (boroughPopoverListenerAttached) {
         boroughPopoverListenerAttached = false;
         document.removeEventListener('click', closeBoroughPopoverOnOutsideClick);
+        document.removeEventListener('click', closeMobileBoroughPopoverOnOutsideClick);
     }
 }
 
@@ -430,16 +432,6 @@ function updateFilterPillUI(type, value) {
                                  STATE.activeFilters.borough !== 'All';
         filterIcon.classList.toggle('active', hasActiveFilters);
     }
-
-    // Update Home button state - active when no filters are applied
-    const homeBtn = document.getElementById('btn-home');
-    if (homeBtn) {
-        const hasActiveFilters = STATE.activeFilters.price !== 'All' ||
-                                 STATE.activeFilters.time !== 'All' ||
-                                 STATE.activeFilters.commute !== 'All' ||
-                                 STATE.activeFilters.borough !== 'All';
-        homeBtn.classList.toggle('active', !hasActiveFilters);
-    }
 }
 
 function resetFilters() {
@@ -457,10 +449,6 @@ function resetFilters() {
     boroughOptions.forEach(opt => {
         opt.classList.toggle('active', opt.dataset.value === 'All');
     });
-
-    // Ensure Home button is active when all filters are reset
-    const homeBtn = document.getElementById('btn-home');
-    if (homeBtn) homeBtn.classList.add('active');
 }
 
 // Show/hide commute filter based on transit mode
@@ -495,15 +483,4 @@ function showAllMics() {
 function updateTransitButtonUI(isActive) {
     // Show/hide commute filter based on transit mode
     updateCommuteFilterVisibility(isActive);
-
-    // Update Home button state
-    const homeBtn = document.getElementById('btn-home');
-    if (homeBtn) {
-        const hasActiveFilters = STATE.activeFilters.price !== 'All' ||
-                                 STATE.activeFilters.time !== 'All' ||
-                                 STATE.activeFilters.commute !== 'All' ||
-                                 STATE.activeFilters.borough !== 'All' ||
-                                 STATE.isTransitMode;
-        homeBtn.classList.toggle('active', !hasActiveFilters);
-    }
 }

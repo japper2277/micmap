@@ -504,6 +504,11 @@ const transitService = {
         render(STATE.currentMode);
     },
 
+    expandNeighborhoods() {
+        STATE.transitExpanded = true;
+        render(STATE.currentMode);
+    },
+
     showLoadingState() {
         const container = document.getElementById('list-content');
         if (container) {

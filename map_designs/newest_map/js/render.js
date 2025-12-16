@@ -328,16 +328,20 @@ function render(mode) {
             (statusPriority[mic.status] || 0) > (statusPriority[best] || 0) ? mic.status : best
         , 'future');
 
-        // Get earliest time for pill display (format: "6:00p")
+        // Get earliest time for pill display (format: "6p" or "6:30p")
         let earliestTime = '?';
         if (firstMic.start instanceof Date) {
             const hours = firstMic.start.getHours();
             const mins = firstMic.start.getMinutes();
             const displayHour = hours > 12 ? hours - 12 : (hours === 0 ? 12 : hours);
             const period = hours >= 12 ? 'p' : 'a';
-            earliestTime = `${displayHour}:${mins.toString().padStart(2, '0')}${period}`;
+            // Only show minutes if not on the hour
+            earliestTime = mins === 0
+                ? `${displayHour}${period}`
+                : `${displayHour}:${mins.toString().padStart(2, '0')}${period}`;
         } else if (firstMic.timeStr) {
-            earliestTime = firstMic.timeStr;
+            // Clean up timeStr too (e.g., "6:00p" -> "6p")
+            earliestTime = firstMic.timeStr.replace(/:00([ap])$/, '$1');
         }
 
         // Count unique venues

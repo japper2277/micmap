@@ -203,8 +203,8 @@ function isMicVisible(mic) {
     // Time filter
     if (STATE.activeFilters.time !== 'All' && mic.start) {
         const hour = mic.start.getHours();
-        if (STATE.activeFilters.time === 'early' && hour >= 17) return false;
-        if (STATE.activeFilters.time === 'late' && hour < 17) return false;
+        const range = CONFIG.timeRanges[STATE.activeFilters.time];
+        if (range && (hour < range.start || hour >= range.end)) return false;
     }
 
     return true;
