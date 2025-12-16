@@ -167,8 +167,8 @@ function setupMobileSwipe() {
     let isSwiping = false;
     let isHeaderSwipe = false; // Track if swipe started on header
 
-    const THRESHOLD = 15; // Lower threshold for easier swiping
-    const VELOCITY_THRESHOLD = 0.3; // Lower velocity threshold
+    const THRESHOLD = 15; // Minimum distance for swipe
+    const VELOCITY_THRESHOLD = 0.8; // Only skip states on very fast swipes
 
     function isMobile() {
         return window.matchMedia('(max-width: 767px)').matches;
