@@ -10,7 +10,28 @@ async function loadData() {
         const data = await response.json();
         const rawMics = data.mics || data; // Handle both { mics: [...] } and raw array
         STATE.mics = processMics(rawMics);
-        render('today');
+
+        // Check if there are any mics left for today
+        const now = new Date();
+        const todayName = CONFIG.dayNames[now.getDay()];
+        const todayMics = STATE.mics.filter(m => {
+            if (m.day !== todayName) return false;
+            // Only count mics that haven't started > 30 min ago
+            const diffMins = m.start ? (m.start - now) / 60000 : 999;
+            return diffMins >= -30;
+        });
+
+        // If no mics left today, switch to tomorrow
+        if (todayMics.length === 0) {
+            STATE.currentMode = 'tomorrow';
+            const tomorrow = new Date(now);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            STATE.selectedCalendarDate = tomorrow.toDateString();
+            render('tomorrow');
+        } else {
+            render('today');
+        }
+
         setTimeout(() => toggleDrawer(true), 500);
     } catch (err) {
         // Failed to load mics - user will see empty list
