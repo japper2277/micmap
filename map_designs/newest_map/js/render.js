@@ -271,7 +271,7 @@ function render(mode) {
         .on('click', () => {
             // If cluster has multiple venues, zoom in progressively to break it apart
             if (cluster.venueCount > 1) {
-                const newZoom = Math.min(map.getZoom() + 2, 18); // Zoom in +2 levels, max 18
+                const newZoom = Math.min(map.getZoom() + 3, 18); // Zoom in +3 levels, max 18
                 map.setView([cluster.lat, cluster.lng], newZoom);
             } else {
                 openVenueModal(firstMic);
