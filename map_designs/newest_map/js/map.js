@@ -17,6 +17,43 @@ const markersGroup = L.layerGroup().addTo(map);
 // Zoom threshold for switching between pill and ticket styles
 const ZOOM_TICKET_THRESHOLD = 15;
 
+// Shorten venue names for ticket display
+function shortenVenueName(name) {
+    if (!name) return 'Venue';
+
+    // Known venue shortcuts
+    const shortcuts = {
+        'grisly pear': 'Pear',
+        'the grisly pear': 'Pear',
+        'comedy shop': 'Shop',
+        'the comedy shop': 'Shop',
+        'stand nyc': 'Stand',
+        'the stand': 'Stand',
+        'stand up ny': 'Stand Up NY',
+        'qed astoria': 'QED',
+        'qed': 'QED',
+        'fear city': 'Fear City',
+        'comedy cellar': 'Cellar',
+        'the comedy cellar': 'Cellar',
+        'village underground': 'Village UG',
+        'fat black pussycat': 'Pussycat',
+        'cream': 'Cream',
+        'tiny cupboard': 'Tiny Cupboard',
+        'easy laughter': 'Easy Laughter',
+    };
+
+    const lower = name.toLowerCase().trim();
+    if (shortcuts[lower]) return shortcuts[lower];
+
+    // Strip common suffixes
+    let short = name
+        .replace(/\s*(comedy club|comedy cellar|cc|comedy|club|nyc|ny)$/i, '')
+        .replace(/^the\s+/i, '')
+        .trim();
+
+    return short || name;
+}
+
 // Create marker - pill style (zoomed out) or ticket style (zoomed in)
 function createPin(status, timeStr, extraCount, venueName) {
     const displayTime = timeStr || '?';
@@ -32,17 +69,18 @@ function createPin(status, timeStr, extraCount, venueName) {
 
     if (isZoomedIn && venueName) {
         // TICKET STYLE: Time on top, venue name below
-        const shortName = venueName.length > 16 ? venueName.substring(0, 15) + '…' : venueName;
+        const shortName = shortenVenueName(venueName);
+        const displayName = shortName.length > 14 ? shortName.substring(0, 13) + '…' : shortName;
         const countBadge = extraCount > 0 ? `<span class="ticket-count">+${extraCount}</span>` : '';
 
         // Dynamic width based on name length
-        const ticketWidth = Math.max(70, Math.min(shortName.length * 7 + 16, 120));
+        const ticketWidth = Math.max(70, Math.min(displayName.length * 7 + 16, 120));
 
         return L.divIcon({
             className: 'bg-transparent',
             html: `<div class="mic-ticket ticket-${statusClass}">
                     <div class="ticket-time">${displayTime}${countBadge}</div>
-                    <div class="ticket-venue">${shortName}</div>
+                    <div class="ticket-venue">${displayName}</div>
                    </div>`,
             iconSize: [ticketWidth, 44],
             iconAnchor: [ticketWidth / 2, 44]
