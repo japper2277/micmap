@@ -114,7 +114,22 @@ function render(mode) {
     // Update mic count in header
     document.getElementById('mic-count').textContent = filtered.length;
 
-    // Group mics by venue (same lat/lng) into one marker - use baseMics for ALL map pins
+    // --- PROXIMITY CLUSTERING ---
+    // Group nearby venues (within ~75 meters) into clusters
+    const CLUSTER_RADIUS_METERS = 75;
+
+    // Haversine distance in meters
+    function getDistanceMeters(lat1, lng1, lat2, lng2) {
+        const R = 6371000; // Earth radius in meters
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLng = (lng2 - lng1) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                  Math.sin(dLng/2) * Math.sin(dLng/2);
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    }
+
+    // First group by exact venue (same lat/lng)
     const venueGroups = {};
     baseMics.forEach(mic => {
         const key = `${mic.lat},${mic.lng}`;
@@ -122,14 +137,51 @@ function render(mode) {
         venueGroups[key].push(mic);
     });
 
-    // Render one marker per venue with all times
-    Object.values(venueGroups).forEach(venueMics => {
-        venueMics.sort((a, b) => (a.start || 0) - (b.start || 0));
-        const firstMic = venueMics[0];
+    // Convert to array of venue objects with all their mics
+    const venues = Object.entries(venueGroups).map(([key, mics]) => {
+        const [lat, lng] = key.split(',').map(Number);
+        mics.sort((a, b) => (a.start || 0) - (b.start || 0));
+        return { lat, lng, mics, clustered: false };
+    });
+
+    // Cluster nearby venues together
+    const clusters = [];
+    venues.forEach(venue => {
+        if (venue.clustered) return;
+
+        // Find all unclustered venues within radius
+        const nearby = venues.filter(v =>
+            !v.clustered &&
+            getDistanceMeters(venue.lat, venue.lng, v.lat, v.lng) <= CLUSTER_RADIUS_METERS
+        );
+
+        // Mark all as clustered
+        nearby.forEach(v => v.clustered = true);
+
+        // Merge all mics from nearby venues
+        const allMics = nearby.flatMap(v => v.mics);
+        allMics.sort((a, b) => (a.start || 0) - (b.start || 0));
+
+        // Calculate cluster center (average of all venues)
+        const centerLat = nearby.reduce((sum, v) => sum + v.lat, 0) / nearby.length;
+        const centerLng = nearby.reduce((sum, v) => sum + v.lng, 0) / nearby.length;
+
+        clusters.push({
+            lat: centerLat,
+            lng: centerLng,
+            mics: allMics,
+            venues: nearby,
+            venueCount: nearby.length
+        });
+    });
+
+    // Render one marker per cluster
+    clusters.forEach(cluster => {
+        const firstMic = cluster.mics[0];
 
         // Use best status for pin color (3-tier: live > upcoming > future)
         const statusPriority = { live: 3, upcoming: 2, future: 0 };
-        const bestStatus = venueMics.reduce((best, mic) =>
+        const bestStatus = cluster.mics.reduce((best, mic) =>
             (statusPriority[mic.status] || 0) > (statusPriority[best] || 0) ? mic.status : best
         , 'future');
 
@@ -144,14 +196,19 @@ function render(mode) {
         } else if (firstMic.timeStr) {
             earliestTime = firstMic.timeStr;
         }
-        const extraCount = venueMics.length - 1; // How many additional mics (+2, +3, etc)
+
+        // Count: total mics minus 1 (the one shown in time)
+        const extraCount = cluster.mics.length - 1;
         const venueName = firstMic.title || firstMic.venue || 'Venue';
 
-        // Tooltip shows venue name
-        const tooltipTitle = escapeHtml((firstMic.title || 'Unknown Venue').toUpperCase());
+        // Tooltip: show venue name(s)
+        const venueNames = [...new Set(cluster.mics.map(m => m.title || m.venue))];
+        const tooltipTitle = venueNames.length > 1
+            ? `${venueNames.length} VENUES`
+            : escapeHtml((firstMic.title || 'Unknown Venue').toUpperCase());
 
-        const marker = L.marker([firstMic.lat, firstMic.lng], {
-            icon: createPin(bestStatus, earliestTime, extraCount, venueName),
+        const marker = L.marker([cluster.lat, cluster.lng], {
+            icon: createPin(bestStatus, earliestTime, extraCount, cluster.venueCount > 1 ? null : venueName),
             zIndexOffset: bestStatus === 'live' ? 1000 : (bestStatus === 'upcoming' ? 500 : 100)
         }).addTo(markersGroup)
         .bindTooltip(tooltipTitle, {
@@ -160,10 +217,18 @@ function render(mode) {
             className: 'mic-tooltip',
             interactive: false
         })
-        .on('click', () => openVenueModal(firstMic));
+        .on('click', () => {
+            // If cluster has multiple venues, zoom in or show picker
+            if (cluster.venueCount > 1) {
+                // Zoom in to break up the cluster
+                map.setView([cluster.lat, cluster.lng], map.getZoom() + 2);
+            } else {
+                openVenueModal(firstMic);
+            }
+        });
 
-        // Store marker reference for each mic at this venue
-        venueMics.forEach(mic => {
+        // Store marker reference for each mic in this cluster
+        cluster.mics.forEach(mic => {
             STATE.markerLookup[mic.id] = marker;
         });
     });
