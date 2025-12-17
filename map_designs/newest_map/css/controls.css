@@ -42,6 +42,11 @@
     align-items: center;
     gap: 12px;
 }
+@media (max-width: 639px) {
+    .controls-group {
+        gap: 8px;
+    }
+}
 
 .toggle-container {
     background: #1c1c1e;

@@ -57,13 +57,13 @@
         border-radius: 24px 24px 0 0 !important;
         transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
     }
-    /* Peek state: shows header + 1 mic card (~180px visible) */
+    /* Peek state: shows header + happening now + 1 mic card (~260px visible) */
     #list-drawer.drawer-peek {
-        transform: translateY(calc(100% - 180px)) !important;
+        transform: translateY(calc(100% - 260px)) !important;
         pointer-events: auto !important;
     }
-    /* Hide first time header in peek mode so mic card is visible */
-    #list-drawer.drawer-peek #list-content > .time-header:first-of-type {
+    /* Hide time headers in peek mode so mic cards are visible */
+    #list-drawer.drawer-peek #list-content > .time-header {
         display: none;
     }
     /* Tighten spacing in peek mode for better card visibility */

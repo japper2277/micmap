@@ -149,6 +149,37 @@ function setupMobileSwipe() {
         }
     }, { passive: true });
 
+    // Google Maps style: pull down at top to collapse
+    let pullStartY = 0;
+    let isPulling = false;
+
+    listContent.addEventListener('touchstart', (e) => {
+        if (!isMobile()) return;
+        // Only track if at top and drawer is open
+        if (listContent.scrollTop <= 0 && getDrawerState() === DRAWER_STATES.OPEN) {
+            pullStartY = e.touches[0].clientY;
+            isPulling = true;
+        }
+    }, { passive: true });
+
+    listContent.addEventListener('touchmove', (e) => {
+        if (!isMobile() || !isPulling) return;
+        if (listContent.scrollTop > 0) {
+            isPulling = false;
+            return;
+        }
+        const pullDistance = e.touches[0].clientY - pullStartY;
+        // If pulled down more than 50px while at top, collapse
+        if (pullDistance > 50) {
+            setDrawerState(DRAWER_STATES.PEEK);
+            isPulling = false;
+        }
+    }, { passive: true });
+
+    listContent.addEventListener('touchend', () => {
+        isPulling = false;
+    }, { passive: true });
+
     // Header/handle swipes - always work
     header.addEventListener('touchstart', startSwipe, { passive: true });
 
