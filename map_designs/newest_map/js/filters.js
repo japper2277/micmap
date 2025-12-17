@@ -353,60 +353,11 @@ function selectBoroughFilter(value) {
     closeBoroughPopover();
     render(STATE.currentMode);
 
-    // Zoom map to fit visible mics in borough (or reset to default view for "All")
+    // Zoom map to fit visible markers (or reset to default view for "All")
     if (value !== 'All') {
-        // Get mics that are actually visible after all filters (same logic as render)
-        const currentTime = new Date();
-        const todayName = CONFIG.dayNames[currentTime.getDay()];
-        const tomorrowName = CONFIG.dayNames[(currentTime.getDay() + 1) % 7];
-        const mode = STATE.currentMode;
-
-        const visibleMics = STATE.mics.filter(m => {
-            const diffMins = m.start ? (m.start - currentTime) / 60000 : 999;
-
-            // Hide mics started >30 min ago
-            if (mode === 'today' && diffMins < -30) return false;
-
-            // Filter by day of week
-            if (mode === 'today' && m.day !== todayName) return false;
-            if (mode === 'tomorrow' && m.day !== tomorrowName) return false;
-            if (mode === 'calendar') {
-                const selectedDate = new Date(STATE.selectedCalendarDate);
-                const selectedDayName = CONFIG.dayNames[selectedDate.getDay()];
-                if (m.day !== selectedDayName) return false;
-            }
-
-            // Filter by price
-            if (STATE.activeFilters.price !== 'All') {
-                const priceStr = (m.price || 'Free').toLowerCase();
-                const isFree = priceStr.includes('free');
-                if (STATE.activeFilters.price === 'Free' && !isFree) return false;
-                if (STATE.activeFilters.price === 'Paid' && isFree) return false;
-            }
-
-            // Filter by time
-            if (STATE.activeFilters.time !== 'All' && m.start) {
-                const hour = m.start.getHours();
-                const range = CONFIG.timeRanges[STATE.activeFilters.time];
-                if (range && (hour < range.start || hour >= range.end)) return false;
-            }
-
-            // Filter by borough
-            const micBorough = (m.borough || '').toLowerCase();
-            const filterBorough = value.toLowerCase();
-            if (micBorough !== filterBorough) return false;
-
-            return true;
-        });
-
-        if (visibleMics.length > 0) {
-            // Calculate bounds from visible mic locations
-            const lats = visibleMics.map(m => m.lat);
-            const lngs = visibleMics.map(m => m.lng);
-            const bounds = L.latLngBounds(
-                [Math.min(...lats), Math.min(...lngs)],
-                [Math.max(...lats), Math.max(...lngs)]
-            );
+        // Use the markers that were just rendered - they already have all filters applied
+        const bounds = markersGroup.getBounds();
+        if (bounds.isValid()) {
             map.fitBounds(bounds, { padding: [50, 50], animate: true });
         }
     } else {
