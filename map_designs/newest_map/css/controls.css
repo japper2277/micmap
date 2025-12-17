@@ -108,73 +108,35 @@
     box-shadow: 0 0 15px var(--rose-glow);
 }
 
-/* --- SYNC WITH MAP TOGGLE (floating on map) --- */
-.sync-map-toggle {
-    position: fixed;
-    bottom: 156px;
-    left: 16px;
-    z-index: 800;
+/* --- MOBILE ONLY UTILITY --- */
+.mobile-only {
     display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
-    background: rgba(0, 0, 0, 0.85);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 20px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
-.sync-map-toggle:hover {
-    background: rgba(0, 0, 0, 0.95);
-    border-color: rgba(255, 255, 255, 0.2);
-}
-.sync-map-toggle:active {
-    transform: scale(0.97);
-}
-.sync-checkbox {
-    width: 16px;
-    height: 16px;
-    border: 2px solid rgba(255, 255, 255, 0.4);
-    border-radius: 4px;
-    transition: all 0.2s;
-}
-.sync-map-toggle.active .sync-checkbox {
-    background: #3b82f6;
-    border-color: #3b82f6;
-}
-.sync-map-toggle.active .sync-checkbox::after {
-    content: '';
-    display: block;
-    width: 4px;
-    height: 8px;
-    border: solid white;
-    border-width: 0 2px 2px 0;
-    transform: rotate(45deg) translate(1px, -1px);
-    margin-left: 4px;
-}
-.sync-label {
-    font-size: 13px;
-    font-weight: 500;
-    color: rgba(255, 255, 255, 0.7);
-}
-.sync-map-toggle.active .sync-label {
-    color: #fff;
-}
-/* Move above drawer on mobile */
-@media (max-width: 639px) {
-    .sync-map-toggle {
-        bottom: 195px;
+@media (min-width: 640px) {
+    .mobile-only {
+        display: none !important;
     }
 }
 
-/* Desktop: sync toggle at bottom left */
-@media (min-width: 640px) {
-    .sync-map-toggle {
-        bottom: 16px !important;
-    }
+/* --- SYNC MAP BUTTON (header) --- */
+.sync-map-btn {
+    padding: 6px 12px;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.sync-map-btn:active {
+    transform: scale(0.95);
+}
+.sync-map-btn.active {
+    background: rgba(59, 130, 246, 0.2);
+    border-color: #3b82f6;
+    color: #3b82f6;
 }
 
 /* --- MINIMIZE BUTTON (hidden on full desktop, shown only on mobile) --- */

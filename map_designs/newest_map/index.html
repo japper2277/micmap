@@ -41,12 +41,6 @@
         </svg>
     </button>
 
-    <!-- SYNC WITH MAP TOGGLE -->
-    <button onclick="toggleSyncWithMap()" id="btn-sync-map" class="sync-map-toggle" aria-label="Search as I move the map" aria-pressed="false">
-        <span class="sync-checkbox"></span>
-        <span class="sync-label">Search as I move the map</span>
-    </button>
-
     <!-- COMMAND BAR -->
     <div class="absolute top-4 left-3 right-3 md:left-auto md:right-4 md:w-[400px] z-[1000] flex flex-col pointer-events-none" role="search">
         <div class="search-wrapper pointer-events-auto relative z-20">
@@ -141,12 +135,16 @@
                         </svg>
                     </button>
 
-                    <!-- More Button (three dots) -->
-                    <button class="more-icon-btn" id="btn-more" onclick="toggleMoreMenu()" aria-label="More options" aria-expanded="false" aria-controls="more-popover">
+                    <!-- Sync Map Toggle (mobile only) -->
+                    <button class="sync-map-btn mobile-only" id="btn-sync-map" onclick="toggleSyncWithMap()" aria-label="Sync list with map view" aria-pressed="false">
+                        Sync W/Map
+                    </button>
+
+                    <!-- Settings Button (gear) -->
+                    <button class="more-icon-btn" id="btn-settings" onclick="settingsService.open()" aria-label="Settings">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="5" r="1.5" fill="currentColor"></circle>
-                            <circle cx="12" cy="12" r="1.5" fill="currentColor"></circle>
-                            <circle cx="12" cy="19" r="1.5" fill="currentColor"></circle>
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
                         </svg>
                     </button>
                 </div>
