@@ -301,6 +301,25 @@
 .pin-container, .pin-live-container, .pin-upcoming-container,
 .pin-future-container, .pin-soon-container, .pin-later-container { display: none; }
 
+/* =================================================================
+   MARKER HIGHLIGHT (when hovering card in list)
+   ================================================================= */
+.marker-highlight {
+    z-index: 1000 !important;
+}
+.marker-highlight .cluster-pill,
+.marker-highlight .mic-ticket {
+    transform: scale(1.25) translateY(-4px);
+    filter:
+        drop-shadow(0 0 4px rgba(59, 130, 246, 0.4))
+        drop-shadow(0 0 10px rgba(59, 130, 246, 0.25))
+        drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
+    outline: 1.5px solid rgba(255, 255, 255, 0.2);
+    outline-offset: 2px;
+    border-radius: 100px;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 /* Map pin tooltip - Styled like mockup */
 .mic-tooltip {
     background: var(--deep-void) !important;

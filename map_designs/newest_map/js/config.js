@@ -21,15 +21,15 @@ const CONFIG = {
     },
     filterLabels: {
         price: { All: 'Price', Free: 'Free', Paid: '< $5' },
-        time: { All: 'Time', morning: '< 12pm', afternoon: '12-5pm', evening: '5-9pm', latenight: '9pm+' },
+        time: { All: 'Time', afternoon: '12-5pm', evening: '5-9pm', latenight: '9pm+', custom: 'Custom' },
         commute: { All: 'Commute', 15: '< 15m', 30: '< 30m', 45: '< 45m', 60: '< 1hr' },
         borough: { All: 'Borough', Manhattan: 'Manhattan', Brooklyn: 'Brooklyn', Queens: 'Queens', Bronx: 'Bronx' }
     },
     timeRanges: {
         All: { start: 0, end: 24 },
-        morning: { start: 0, end: 12 },      // Before 12pm
         afternoon: { start: 12, end: 17 },   // 12pm - 5pm
         evening: { start: 17, end: 21 },     // 5pm - 9pm
-        latenight: { start: 21, end: 24 }    // 9pm+
+        latenight: { start: 21, end: 24 },   // 9pm+
+        custom: { start: 0, end: 24 }        // User-defined (updated dynamically)
     }
 };

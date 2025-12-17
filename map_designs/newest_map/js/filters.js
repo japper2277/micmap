@@ -385,6 +385,10 @@ function selectBoroughFilter(value) {
 function selectTimeFilter(value) {
     STATE.activeFilters.time = value;
 
+    // Hide custom inputs when selecting preset
+    const customInputs = document.getElementById('custom-time-inputs');
+    if (customInputs) customInputs.style.display = 'none';
+
     // Update popover option active states and aria-selected
     const options = document.querySelectorAll('#time-popover .popover-option');
     options.forEach(opt => {
@@ -397,6 +401,50 @@ function selectTimeFilter(value) {
     updateFilterPillUI('time', value);
 
     // Close popover and re-render
+    closeTimePopover();
+    render(STATE.currentMode);
+}
+
+// Show custom time inputs
+function showCustomTimeInputs() {
+    const customInputs = document.getElementById('custom-time-inputs');
+    if (customInputs) {
+        customInputs.style.display = customInputs.style.display === 'none' ? 'block' : 'none';
+    }
+
+    // Mark custom option as selected
+    const options = document.querySelectorAll('#time-popover .popover-option');
+    options.forEach(opt => {
+        const isSelected = opt.dataset.value === 'custom';
+        opt.classList.toggle('active', isSelected);
+        opt.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+    });
+}
+
+// Apply custom time range
+function applyCustomTime() {
+    const startInput = document.getElementById('custom-time-start');
+    const endInput = document.getElementById('custom-time-end');
+
+    if (!startInput || !endInput) return;
+
+    const startHour = parseInt(startInput.value.split(':')[0]);
+    const endHour = parseInt(endInput.value.split(':')[0]);
+
+    // Update the custom range in config
+    CONFIG.timeRanges.custom = { start: startHour, end: endHour === 0 ? 24 : endHour };
+
+    // Format label for display
+    const formatHour = (h) => {
+        if (h === 0 || h === 24) return '12am';
+        if (h === 12) return '12pm';
+        return h > 12 ? `${h - 12}pm` : `${h}am`;
+    };
+    CONFIG.filterLabels.time.custom = `${formatHour(startHour)}-${formatHour(endHour === 0 ? 24 : endHour)}`;
+
+    // Apply the filter
+    STATE.activeFilters.time = 'custom';
+    updateFilterPillUI('time', 'custom');
     closeTimePopover();
     render(STATE.currentMode);
 }
@@ -489,3 +537,34 @@ function updateTransitButtonUI(isActive) {
     // Show/hide commute filter based on transit mode
     updateCommuteFilterVisibility(isActive);
 }
+
+/* =================================================================
+   SYNC WITH MAP
+   Filter list to only show mics visible in current map bounds
+   ================================================================= */
+
+function toggleSyncWithMap() {
+    STATE.syncWithMap = !STATE.syncWithMap;
+    const btn = document.getElementById('btn-sync-map');
+    if (btn) {
+        btn.classList.toggle('active', STATE.syncWithMap);
+        btn.setAttribute('aria-pressed', STATE.syncWithMap);
+    }
+    render(STATE.currentMode);
+}
+
+// Setup map move listener for sync with map
+function setupSyncWithMapListener() {
+    if (typeof map === 'undefined') return;
+
+    map.on('moveend', () => {
+        if (STATE.syncWithMap) {
+            render(STATE.currentMode);
+        }
+    });
+}
+
+// Call on init (after map is ready)
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(setupSyncWithMapListener, 100);
+});

@@ -42,5 +42,8 @@ const STATE = {
     isWaitingForMapClick: false, // Waiting for user to tap map (geolocation fallback)
 
     // User Preferences (persisted to localStorage)
-    walkPreference: localStorage.getItem('walkPref') || '15min'
+    walkPreference: localStorage.getItem('walkPref') || '15min',
+
+    // Sync with map (filter list to visible bounds)
+    syncWithMap: false
 };

@@ -259,7 +259,7 @@ const transitService = {
     },
 
     // Calculate routes for a specific set of mics
-    async calculateRoutesForMics(mics, userLat, userLng, batchSize = 30) {
+    async calculateRoutesForMics(mics, userLat, userLng, batchSize = 15) {
         const WALK_MINS_PER_MILE = 20;
 
         for (let i = 0; i < mics.length; i += batchSize) {
@@ -312,9 +312,8 @@ const transitService = {
 
     // Calculate Dijkstra routes for all mics in batches
     async calculateAllRoutes(userLat, userLng) {
-        // BATCH_SIZE = 30 since we have local OSRM (fast)
-        // If using remote APIs, reduce to 10
-        const BATCH_SIZE = 30;
+        // BATCH_SIZE = 15 for progressive loading
+        const BATCH_SIZE = 15;
 
         // Abort previous calculation if user searches again
         if (this.abortController) {

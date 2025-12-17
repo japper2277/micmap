@@ -93,11 +93,9 @@ function processMics(rawMics) {
             contact = igMatch[1];
         }
 
-        // Shorten venue names: "Comedy Club" → "CC"
+        // Shorten venue names: "Comedy Club" → "CC" (anywhere in name)
         let venueName = m.venueName || m.venue || m.name || 'Unknown Venue';
-        if (venueName.endsWith('Comedy Club')) {
-            venueName = venueName.replace(/Comedy Club$/, 'CC');
-        }
+        venueName = venueName.replace(/Comedy Club/gi, 'CC');
 
         // Derive day from API data or date field
         let day = m.day;

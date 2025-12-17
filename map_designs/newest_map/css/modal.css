@@ -43,6 +43,48 @@
     opacity: 1;
 }
 
+/* Mobile: 70% size */
+@media (max-width: 639px) {
+    .venue-card {
+        width: 280px;
+        border-radius: 18px;
+    }
+    .header-section {
+        padding: 16px 14px 12px 14px;
+    }
+    .header-top h2 {
+        font-size: 18px;
+    }
+    .time-display {
+        font-size: 14px;
+    }
+    .address {
+        font-size: 12px;
+    }
+    .maps-link {
+        font-size: 11px;
+        padding: 3px 10px;
+    }
+    .note-text {
+        font-size: 11px;
+        margin-bottom: 10px;
+    }
+    .btn {
+        padding: 10px;
+        font-size: 12px;
+        border-radius: 10px;
+    }
+    .content-sheet {
+        padding: 12px 10px;
+        border-radius: 18px 18px 0 0;
+    }
+    .card-base {
+        padding: 10px 12px;
+        border-radius: 12px;
+        gap: 8px;
+    }
+}
+
 /* --- HEADER SECTION --- */
 .header-section {
     padding: 24px 20px 16px 20px;

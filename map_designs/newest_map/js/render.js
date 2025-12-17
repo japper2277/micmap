@@ -218,6 +218,12 @@ function render(mode) {
             if (micBorough !== filterBorough) return false;
         }
 
+        // Filter by map bounds (sync with map)
+        if (STATE.syncWithMap && typeof map !== 'undefined') {
+            const bounds = map.getBounds();
+            if (!bounds.contains([m.lat, m.lng])) return false;
+        }
+
         return true;
     });
 
@@ -250,8 +256,10 @@ function render(mode) {
     baseMics = baseMics.map(m => ({ ...m, status: calcStatus(m) }));
     filtered = filtered.map(m => ({ ...m, status: calcStatus(m) }));
 
-    // Update mic count in header
+    // Update mic count in header and hide loading spinner
     document.getElementById('mic-count').textContent = filtered.length;
+    const spinner = document.getElementById('mic-count-spinner');
+    if (spinner) spinner.style.display = 'none';
 
     // --- PROXIMITY CLUSTERING ---
     // Cluster nearby venues to prevent overlapping markers
@@ -550,6 +558,7 @@ function render(mode) {
                 <!-- CENTER: Info -->
                 <div class="info-col">
                     <div class="venue-row">
+                        <span class="venue-dot dot-${mic.status}"></span>
                         <div class="venue-name">${safeTitle}</div>
                         ${commuteDisplay}
                     </div>
@@ -592,6 +601,23 @@ function render(mode) {
                 <div class="signup-text">${safeSignupInstructions}</div>
             </div>
         `;
+
+        // Hover effect: highlight corresponding map pin
+        card.addEventListener('mouseenter', () => {
+            const marker = STATE.markerLookup[mic.id];
+            if (marker) {
+                const el = marker.getElement();
+                if (el) el.classList.add('marker-highlight');
+            }
+        });
+        card.addEventListener('mouseleave', () => {
+            const marker = STATE.markerLookup[mic.id];
+            if (marker) {
+                const el = marker.getElement();
+                if (el) el.classList.remove('marker-highlight');
+            }
+        });
+
         container.appendChild(card);
     });
 

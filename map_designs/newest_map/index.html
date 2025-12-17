@@ -41,6 +41,12 @@
         </svg>
     </button>
 
+    <!-- SYNC WITH MAP TOGGLE -->
+    <button onclick="toggleSyncWithMap()" id="btn-sync-map" class="sync-map-toggle" aria-label="Search as I move the map" aria-pressed="false">
+        <span class="sync-checkbox"></span>
+        <span class="sync-label">Search as I move the map</span>
+    </button>
+
     <!-- COMMAND BAR -->
     <div class="absolute top-4 left-3 right-3 md:left-auto md:right-4 md:w-[400px] z-[1000] flex flex-col pointer-events-none" role="search">
         <div class="search-wrapper pointer-events-auto relative z-20">
@@ -113,7 +119,7 @@
                 <!-- Left: Title & Count -->
                 <div class="title-group">
                     <h1 class="title-text">Mics</h1>
-                    <span class="count-text" id="mic-count" aria-live="polite" aria-atomic="true">—</span>
+                    <span class="count-text" id="mic-count" aria-live="polite" aria-atomic="true"></span><span class="loading-spinner" id="mic-count-spinner"></span>
                 </div>
 
                 <!-- Right: Controls -->
@@ -265,10 +271,6 @@
         <button class="popover-option active" data-value="All" onclick="selectTimeFilter('All')" role="option" aria-selected="true">
             <span class="option-label">All Times</span>
         </button>
-        <button class="popover-option" data-value="morning" onclick="selectTimeFilter('morning')" role="option" aria-selected="false">
-            <span class="option-label">Morning</span>
-            <span class="option-detail">Before 12pm</span>
-        </button>
         <button class="popover-option" data-value="afternoon" onclick="selectTimeFilter('afternoon')" role="option" aria-selected="false">
             <span class="option-label">Afternoon</span>
             <span class="option-detail">12pm – 5pm</span>
@@ -281,6 +283,22 @@
             <span class="option-label">Late Night</span>
             <span class="option-detail">After 9pm</span>
         </button>
+        <div class="popover-divider"></div>
+        <button class="popover-option" data-value="custom" onclick="showCustomTimeInputs()" role="option" aria-selected="false">
+            <span class="option-label">Custom</span>
+            <svg class="custom-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="custom-time-inputs" id="custom-time-inputs" style="display: none;">
+            <div class="time-input-row">
+                <label>From</label>
+                <input type="time" id="custom-time-start" value="17:00">
+            </div>
+            <div class="time-input-row">
+                <label>To</label>
+                <input type="time" id="custom-time-end" value="21:00">
+            </div>
+            <button class="custom-time-apply" onclick="applyCustomTime()">Apply</button>
+        </div>
     </div>
 
     <!-- Alert Modal -->

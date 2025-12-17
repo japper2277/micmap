@@ -324,10 +324,8 @@ const searchService = {
             map.flyTo([lat, lng], 15, { duration: 1.5 });
         }
 
-        // Auto-fire transit calculation (no button needed)
-        if (typeof transitService !== 'undefined' && transitService.calculateFromOrigin) {
-            transitService.calculateFromOrigin(lat, lng, name, null);
-        }
+        // Don't auto-fire transit - just zoom to the area
+        // User can use "My Location" or tap map if they want commute times
     },
 
     // Handle "Use My Location" with geolocation API

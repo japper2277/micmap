@@ -48,9 +48,9 @@ function shortenVenueName(name) {
         'comic strip live': 'Comic Strip',
 
         // NYCC locations
-        'new york comedy club east village': 'NYCC EV',
-        'new york comedy club midtown': 'NYCC Midtown',
-        'new york comedy club': 'NYCC',
+        'new york comedy club east village': 'NY CC East Village',
+        'new york comedy club midtown': 'NY CC Midtown',
+        'new york comedy club': 'NY CC',
 
         // Brooklyn venues
         'brooklyn comedy collective': 'BK Collective',

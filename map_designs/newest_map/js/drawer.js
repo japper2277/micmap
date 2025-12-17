@@ -133,8 +133,16 @@ function setupMobileSwipe() {
         isSwiping = true;
     }
 
-    // Auto-expand drawer when user interacts with list content in peek mode
-    listContent.addEventListener('touchstart', () => {
+    // Auto-expand drawer when user scrolls list content in peek mode
+    listContent.addEventListener('scroll', () => {
+        if (!isMobile()) return;
+        if (getDrawerState() === DRAWER_STATES.PEEK) {
+            setDrawerState(DRAWER_STATES.OPEN);
+        }
+    }, { passive: true });
+
+    // Also expand on touchmove (scroll attempt) in peek mode
+    listContent.addEventListener('touchmove', () => {
         if (!isMobile()) return;
         if (getDrawerState() === DRAWER_STATES.PEEK) {
             setDrawerState(DRAWER_STATES.OPEN);
@@ -211,11 +219,19 @@ function fixDrawerStateForViewport() {
 // Initialize drawer state based on screen size
 function initDrawerState() {
     const drawer = document.getElementById('list-drawer');
+    const isDesktop = window.matchMedia('(min-width: 640px)').matches;
 
-    // Always start in peek state - drawer never fully hides
-    STATE.drawerState = DRAWER_STATES.PEEK;
-    STATE.isDrawerOpen = false;
-    drawer.classList.add('drawer-peek');
+    if (isDesktop) {
+        // Desktop: start open
+        STATE.drawerState = DRAWER_STATES.OPEN;
+        STATE.isDrawerOpen = true;
+        drawer.classList.add('drawer-open');
+    } else {
+        // Mobile: start in peek
+        STATE.drawerState = DRAWER_STATES.PEEK;
+        STATE.isDrawerOpen = false;
+        drawer.classList.add('drawer-peek');
+    }
 }
 
 // Keyboard scroll support for list-content
