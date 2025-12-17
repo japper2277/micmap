@@ -23,57 +23,35 @@ function announceToScreenReader(message) {
 }
 
 function toggleDrawer(forceOpen) {
-    const isDesktop = window.matchMedia('(min-width: 768px)').matches;
-    const currentState = getDrawerState();
-
     // If calendar is open, close it first
     if (STATE.currentMode === 'calendar') {
         hideDateCarousel();
         render('calendar');
     }
 
-    // Determine target state
+    // Simple binary toggle - peek or open
+    const currentState = getDrawerState();
     let targetState;
+
     if (forceOpen !== undefined) {
         targetState = forceOpen ? DRAWER_STATES.OPEN : DRAWER_STATES.PEEK;
     } else {
-        // Toggle behavior: cycle through states on mobile, binary on desktop
-        if (isDesktop) {
-            targetState = STATE.isDrawerOpen ? DRAWER_STATES.PEEK : DRAWER_STATES.OPEN;
-        } else {
-            // Mobile: tap cycles peek -> half -> open -> peek
-            switch (currentState) {
-                case DRAWER_STATES.PEEK:
-                    targetState = DRAWER_STATES.HALF;
-                    break;
-                case DRAWER_STATES.HALF:
-                    targetState = DRAWER_STATES.OPEN;
-                    break;
-                case DRAWER_STATES.OPEN:
-                    targetState = DRAWER_STATES.PEEK;
-                    break;
-                default:
-                    targetState = DRAWER_STATES.HALF;
-            }
-        }
+        targetState = currentState === DRAWER_STATES.OPEN ? DRAWER_STATES.PEEK : DRAWER_STATES.OPEN;
     }
 
     setDrawerState(targetState);
 }
 
-// Drawer state constants
+// Drawer state constants - TWO STATES ONLY for snappy feel
 const DRAWER_STATES = {
     PEEK: 'peek',
-    HALF: 'half',
     OPEN: 'open'
 };
 
 // Get current drawer state
 function getDrawerState() {
     const drawer = document.getElementById('list-drawer');
-    if (drawer.classList.contains('drawer-open')) return DRAWER_STATES.OPEN;
-    if (drawer.classList.contains('drawer-half')) return DRAWER_STATES.HALF;
-    return DRAWER_STATES.PEEK;
+    return drawer.classList.contains('drawer-open') ? DRAWER_STATES.OPEN : DRAWER_STATES.PEEK;
 }
 
 // Set drawer to specific state with haptic feedback
@@ -82,80 +60,55 @@ function setDrawerState(newState) {
     const icon = document.getElementById('chevron-icon');
     const btn = document.getElementById('drawer-btn');
     const searchWrapper = document.querySelector('.search-wrapper');
-    const isDesktop = window.matchMedia('(min-width: 768px)').matches;
+    const backdrop = document.getElementById('drawer-backdrop');
+    const isDesktop = window.matchMedia('(min-width: 640px)').matches;
+    const isMobile = !isDesktop;
 
     // Remove all state classes
-    drawer.classList.remove('drawer-closed', 'drawer-peek', 'drawer-half', 'drawer-open');
+    drawer.classList.remove('drawer-peek', 'drawer-open');
 
     // Haptic feedback on state change (if supported)
     if ('vibrate' in navigator) {
-        navigator.vibrate(10);
+        navigator.vibrate(8);
     }
 
-    if (isDesktop) {
-        // Desktop only has open/closed
-        if (newState === DRAWER_STATES.PEEK) {
-            drawer.classList.add('drawer-closed');
-            STATE.isDrawerOpen = false;
-        } else {
-            drawer.classList.add('drawer-open');
-            STATE.isDrawerOpen = true;
-        }
-    } else {
-        // Mobile has 3 states
-        switch (newState) {
-            case DRAWER_STATES.OPEN:
-                drawer.classList.add('drawer-open');
-                STATE.isDrawerOpen = true;
-                STATE.drawerState = DRAWER_STATES.OPEN;
-                break;
-            case DRAWER_STATES.HALF:
-                drawer.classList.add('drawer-half');
-                STATE.isDrawerOpen = true;
-                STATE.drawerState = DRAWER_STATES.HALF;
-                break;
-            case DRAWER_STATES.PEEK:
-            default:
-                drawer.classList.add('drawer-peek');
-                STATE.isDrawerOpen = false;
-                STATE.drawerState = DRAWER_STATES.PEEK;
-                break;
-        }
+    const isOpen = newState === DRAWER_STATES.OPEN;
+
+    // Both desktop and mobile use peek/open states
+    // On desktop: peek = hidden, open = visible
+    // On mobile: peek = collapsed, open = expanded
+    drawer.classList.add(isOpen ? 'drawer-open' : 'drawer-peek');
+    STATE.drawerState = newState;
+    STATE.isDrawerOpen = isOpen;
+
+    // Backdrop for mobile full state
+    if (backdrop && isMobile) {
+        backdrop.classList.toggle('active', isOpen);
     }
 
     // Update UI elements
-    if (STATE.isDrawerOpen) {
-        icon.style.transform = 'rotate(180deg)';
-        btn.classList.add('bg-white/10', 'text-white');
-        searchWrapper.classList.add('active');
+    icon.style.transform = isOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+    btn.classList.toggle('bg-white/10', isOpen);
+    btn.classList.toggle('text-white', isOpen);
+    searchWrapper.classList.toggle('active', isOpen);
 
-        // Close search dropdown when opening drawer
-        if (typeof searchService !== 'undefined' && searchService.hideDropdown) {
-            searchService.hideDropdown();
-            const searchInput = document.getElementById('search-input');
-            if (searchInput) searchInput.blur();
-        }
-    } else {
-        icon.style.transform = 'rotate(0deg)';
-        btn.classList.remove('bg-white/10', 'text-white');
-        searchWrapper.classList.remove('active');
+    // Close search dropdown when opening drawer
+    if (isOpen && typeof searchService !== 'undefined' && searchService.hideDropdown) {
+        searchService.hideDropdown();
+        const searchInput = document.getElementById('search-input');
+        if (searchInput) searchInput.blur();
     }
 
     // Update ARIA
     document.querySelectorAll('[aria-controls="list-drawer"], [aria-controls="list-content"]').forEach(toggleBtn => {
-        toggleBtn.setAttribute('aria-expanded', STATE.isDrawerOpen ? 'true' : 'false');
+        toggleBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
     });
 
     // Announce state change
-    const stateLabels = {
-        [DRAWER_STATES.PEEK]: 'Mic list minimized',
-        [DRAWER_STATES.HALF]: 'Mic list half expanded',
-        [DRAWER_STATES.OPEN]: 'Mic list fully expanded'
-    };
-    announceToScreenReader(stateLabels[newState] || 'Mic list collapsed');
+    announceToScreenReader(isOpen ? 'Mic list expanded' : 'Mic list minimized');
 }
 
-// Mobile swipe with velocity detection - works on header + drag handle
+// Mobile swipe with velocity detection - simple two-state snapping
 function setupMobileSwipe() {
     const drawer = document.getElementById('list-drawer');
     const header = document.getElementById('drawer-header');
@@ -165,101 +118,62 @@ function setupMobileSwipe() {
     let startTime = 0;
     let currentY = 0;
     let isSwiping = false;
-    let isHeaderSwipe = false; // Track if swipe started on header
 
-    const THRESHOLD = 15; // Minimum distance for swipe
-    const VELOCITY_THRESHOLD = 0.8; // Only skip states on very fast swipes
+    // Tuned for snappy feel
+    const DRAG_THRESHOLD = 30;      // 20% of ~150px travel
+    const VELOCITY_THRESHOLD = 0.5; // px/ms - fast flick wins
 
     function isMobile() {
-        return window.matchMedia('(max-width: 767px)').matches;
+        return window.matchMedia('(max-width: 639px)').matches;
     }
 
-    // Header swipes - always work, ignore buttons
-    header.addEventListener('touchstart', (e) => {
+    function startSwipe(e) {
         if (!isMobile()) return;
         startY = e.touches[0].clientY;
         currentY = startY;
         startTime = Date.now();
         isSwiping = true;
-        isHeaderSwipe = true;
-    }, { passive: true });
+    }
 
-    // List content swipes - only for collapsing when at top
+    // Header/handle swipes - always work
+    header.addEventListener('touchstart', startSwipe, { passive: true });
+
+    // List content swipes - only when scrolled to top (to collapse)
     listContent.addEventListener('touchstart', (e) => {
-        if (!isMobile()) return;
-        // Only track if we're at the top of scroll
-        if (listContent.scrollTop <= 0) {
-            startY = e.touches[0].clientY;
-            currentY = startY;
-            startTime = Date.now();
-            isSwiping = true;
-            isHeaderSwipe = false;
-        }
+        if (!isMobile() || listContent.scrollTop > 0) return;
+        startSwipe(e);
     }, { passive: true });
 
-    // Track movement on entire drawer
+    // Track movement
     drawer.addEventListener('touchmove', (e) => {
         if (!isSwiping || !isMobile()) return;
         currentY = e.touches[0].clientY;
     }, { passive: true });
 
-    // Handle swipe end
+    // Handle swipe end - velocity beats distance
     drawer.addEventListener('touchend', () => {
         if (!isSwiping || !isMobile()) return;
+        isSwiping = false;
 
         const deltaY = currentY - startY;
         const deltaTime = Math.max(Date.now() - startTime, 1);
         const velocity = Math.abs(deltaY) / deltaTime;
         const currentState = getDrawerState();
 
-        isSwiping = false;
-
-        // For content swipes (not header), only allow downward collapse
-        if (!isHeaderSwipe && deltaY <= 0) {
-            isHeaderSwipe = false;
+        // Velocity wins: fast flick in either direction snaps immediately
+        if (velocity > VELOCITY_THRESHOLD) {
+            setDrawerState(deltaY > 0 ? DRAWER_STATES.PEEK : DRAWER_STATES.OPEN);
             return;
         }
 
-        // Determine action based on swipe
-        const isFastSwipe = velocity > VELOCITY_THRESHOLD;
-        const isValidSwipe = Math.abs(deltaY) > THRESHOLD;
+        // Slow drag: use threshold
+        if (Math.abs(deltaY) < DRAG_THRESHOLD) return; // Too small, ignore
 
-        if (!isValidSwipe) {
-            isHeaderSwipe = false;
-            return;
+        if (deltaY < 0 && currentState === DRAWER_STATES.PEEK) {
+            setDrawerState(DRAWER_STATES.OPEN);
+        } else if (deltaY > 0 && currentState === DRAWER_STATES.OPEN) {
+            setDrawerState(DRAWER_STATES.PEEK);
         }
-
-        if (deltaY < 0) {
-            // Swipe UP - expand
-            if (isFastSwipe) {
-                setDrawerState(DRAWER_STATES.OPEN);
-            } else {
-                switch (currentState) {
-                    case DRAWER_STATES.PEEK:
-                        setDrawerState(DRAWER_STATES.HALF);
-                        break;
-                    case DRAWER_STATES.HALF:
-                        setDrawerState(DRAWER_STATES.OPEN);
-                        break;
-                }
-            }
-        } else {
-            // Swipe DOWN - collapse
-            if (isFastSwipe) {
-                setDrawerState(DRAWER_STATES.PEEK);
-            } else {
-                switch (currentState) {
-                    case DRAWER_STATES.OPEN:
-                        setDrawerState(DRAWER_STATES.HALF);
-                        break;
-                    case DRAWER_STATES.HALF:
-                        setDrawerState(DRAWER_STATES.PEEK);
-                        break;
-                }
-            }
-        }
-
-        isHeaderSwipe = false;
     });
 }
 
@@ -269,50 +183,52 @@ function fixDrawerStateForViewport() {
     const searchWrapper = document.querySelector('.search-wrapper');
     const icon = document.getElementById('chevron-icon');
     const btn = document.getElementById('drawer-btn');
-    const isDesktop = window.matchMedia('(min-width: 768px)').matches;
+    const backdrop = document.getElementById('drawer-backdrop');
+    const isDesktop = window.matchMedia('(min-width: 640px)').matches;
+
+    console.log('=== fixDrawerStateForViewport ===');
+    console.log('windowWidth:', window.innerWidth);
+    console.log('isDesktop:', isDesktop);
+    console.log('STATE.drawerState:', STATE.drawerState);
 
     // Remove all state classes first
-    drawer.classList.remove('drawer-closed', 'drawer-peek', 'drawer-half', 'drawer-open');
+    drawer.classList.remove('drawer-peek', 'drawer-open');
 
-    if (isDesktop) {
-        // Desktop: binary open/closed
-        if (STATE.isDrawerOpen) {
-            drawer.classList.add('drawer-open');
-            icon.style.transform = 'rotate(180deg)';
-            btn.classList.add('bg-white/10', 'text-white');
-            searchWrapper.classList.add('active');
-        } else {
-            drawer.classList.add('drawer-closed');
-            icon.style.transform = 'rotate(0deg)';
-            btn.classList.remove('bg-white/10', 'text-white');
-            searchWrapper.classList.remove('active');
-        }
-    } else {
-        // Mobile: restore to current state or default to peek
-        const state = STATE.drawerState || DRAWER_STATES.PEEK;
-        drawer.classList.add(`drawer-${state}`);
+    // Always use peek/open - drawer never fully hides
+    const state = STATE.drawerState || DRAWER_STATES.PEEK;
+    drawer.classList.add(`drawer-${state}`);
 
-        if (state !== DRAWER_STATES.PEEK) {
-            icon.style.transform = 'rotate(180deg)';
-            btn.classList.add('bg-white/10', 'text-white');
-            searchWrapper.classList.add('active');
-        } else {
-            icon.style.transform = 'rotate(0deg)';
-            btn.classList.remove('bg-white/10', 'text-white');
-            searchWrapper.classList.remove('active');
-        }
-    }
+    console.log('Applied state:', state);
+
+    const isOpen = state === DRAWER_STATES.OPEN;
+    if (backdrop) backdrop.classList.toggle('active', isOpen && !isDesktop);
+
+    icon.style.transform = isOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+    btn.classList.toggle('bg-white/10', isOpen);
+    btn.classList.toggle('text-white', isOpen);
+    searchWrapper.classList.toggle('active', isOpen);
 }
 
 // Initialize drawer state based on screen size
 function initDrawerState() {
     const drawer = document.getElementById('list-drawer');
-    const isDesktop = window.matchMedia('(min-width: 768px)').matches;
+    const isDesktop = window.matchMedia('(min-width: 640px)').matches;
+    const windowWidth = window.innerWidth;
 
-    // Initialize state tracking
-    STATE.drawerState = isDesktop ? null : DRAWER_STATES.PEEK;
+    console.log('=== initDrawerState ===');
+    console.log('windowWidth:', windowWidth);
+    console.log('isDesktop (>=640px):', isDesktop);
+    console.log('drawer element:', drawer);
 
-    drawer.classList.add(isDesktop ? 'drawer-closed' : 'drawer-peek');
+    // Always start in peek state - drawer never fully hides
+    STATE.drawerState = DRAWER_STATES.PEEK;
+    STATE.isDrawerOpen = false;
+
+    drawer.classList.add('drawer-peek');
+
+    console.log('drawer classes after init:', drawer?.className);
+    console.log('drawer computed style opacity:', window.getComputedStyle(drawer).opacity);
+    console.log('drawer computed style transform:', window.getComputedStyle(drawer).transform);
 }
 
 // Keyboard scroll support for list-content

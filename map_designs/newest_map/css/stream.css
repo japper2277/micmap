@@ -144,46 +144,52 @@
     cursor: pointer;
 }
 
-/* Kinetic Hover: Slide & Invert */
-.stream-item:hover {
-    background: #ffffff;
-    color: #000000;
-    padding-left: 2rem !important;
+/* Kinetic Hover: Slide & Invert (desktop only) */
+@media (hover: hover) and (pointer: fine) {
+    .stream-item:hover {
+        background: #ffffff;
+        color: #000000;
+        padding-left: 2rem !important;
+    }
 }
 
-/* Touch feedback for mobile */
+/* Touch feedback - instant scale */
 .stream-item:active {
-    background: rgba(255, 255, 255, 0.1);
+    transform: scale(0.985);
+    opacity: 0.9;
+    transition: transform 0.05s ease-out, opacity 0.05s ease-out;
 }
 
-/* Text Color Inversion on Hover */
-.stream-item:hover .start-time,
-.stream-item:hover .stage-time,
-.stream-item:hover .venue-name,
-.stream-item:hover .venue-row,
-.stream-item:hover .meta-row,
-.stream-item:hover .status-row,
-.stream-item:hover .commute-live,
-.stream-item:hover .neighborhood {
-    color: #000 !important;
-}
-.stream-item:hover .commute-live svg {
-    fill: #000;
-}
-.stream-item:hover .tag-pill {
-    color: #000 !important;
-    border-color: #000 !important;
-}
-.stream-item:hover .stage-time {
-    background: #1C1C1E !important;
-    color: #fff !important;
-}
-.stream-item:hover .icon-btn {
-    background: rgba(0, 0, 0, 0.15) !important;
-    color: #000 !important;
-}
-.stream-item:hover .icon-btn svg {
-    stroke: #000 !important;
+/* Text Color Inversion on Hover (desktop only) */
+@media (hover: hover) and (pointer: fine) {
+    .stream-item:hover .start-time,
+    .stream-item:hover .stage-time,
+    .stream-item:hover .venue-name,
+    .stream-item:hover .venue-row,
+    .stream-item:hover .meta-row,
+    .stream-item:hover .status-row,
+    .stream-item:hover .commute-live,
+    .stream-item:hover .neighborhood {
+        color: #000 !important;
+    }
+    .stream-item:hover .commute-live svg {
+        fill: #000;
+    }
+    .stream-item:hover .tag-pill {
+        color: #000 !important;
+        border-color: #000 !important;
+    }
+    .stream-item:hover .stage-time {
+        background: #1C1C1E !important;
+        color: #fff !important;
+    }
+    .stream-item:hover .icon-btn {
+        background: rgba(0, 0, 0, 0.15) !important;
+        color: #000 !important;
+    }
+    .stream-item:hover .icon-btn svg {
+        stroke: #000 !important;
+    }
 }
 
 /* --- LEFT COLUMN: SPECS --- */
@@ -382,12 +388,14 @@
     font-variant-numeric: tabular-nums;
 }
 
-/* Hover state for departures */
-.stream-item:hover .dep-times-card {
-    color: #0066cc !important;
-}
-.stream-item:hover .dep-badge {
-    opacity: 0.9;
+/* Hover state for departures (desktop only) */
+@media (hover: hover) and (pointer: fine) {
+    .stream-item:hover .dep-times-card {
+        color: #0066cc !important;
+    }
+    .stream-item:hover .dep-badge {
+        opacity: 0.9;
+    }
 }
 
 /* Line badge colors (same as MTA) */

@@ -28,6 +28,64 @@ body {
     color: white;
 }
 
+/* =================================================================
+   TOUCH SYSTEM - Instant feedback, no 300ms delay
+   ================================================================= */
+
+/* Kill iOS 300ms tap delay */
+button, a, [role="button"], .touchable {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Universal press state - instant scale + dim */
+button:active,
+a:active,
+[role="button"]:active,
+.touchable:active {
+    transform: scale(0.97);
+    opacity: 0.8;
+    transition: transform 0.05s ease-out, opacity 0.05s ease-out;
+}
+
+/* Hover only for devices that support it (not touch) */
+@media (hover: hover) and (pointer: fine) {
+    button:hover,
+    a:hover,
+    [role="button"]:hover,
+    .touchable:hover {
+        opacity: 0.9;
+    }
+}
+
+/* Cards/list items - subtler press */
+.stream-item:active,
+.mic-card:active {
+    transform: scale(0.99);
+    opacity: 0.9;
+    transition: transform 0.05s ease-out, opacity 0.05s ease-out;
+}
+
+/* Prevent text selection on interactive elements */
+button, [role="button"], .touchable {
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+/* Touch-action zones - prevent gesture conflicts */
+#list-content {
+    touch-action: pan-y; /* Only vertical scroll, no zoom/pan */
+}
+
+#map {
+    touch-action: manipulation; /* Allow pan/zoom but kill double-tap delay */
+}
+
+/* Markers need bigger hit areas */
+.leaflet-marker-icon {
+    touch-action: manipulation;
+}
+
 /* Font utilities */
 .font-mono { font-family: 'Space Mono', monospace; }
 .font-display { font-family: 'Space Grotesk', sans-serif; }

@@ -12,25 +12,28 @@
     box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.9);
 }
 
-/* Drawer Transition - GPU accelerated with transform */
+/* Drawer Transition - iOS spring curve, GPU accelerated */
 #list-drawer {
-    transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1),
+    transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1),
+                height 0.3s cubic-bezier(0.32, 0.72, 0, 1),
                 opacity 0.25s ease-out;
-    will-change: transform, opacity;
-    opacity: 0; /* Hidden by default until JS initializes */
+    will-change: transform, height, opacity;
 }
 
-/* Desktop drawer states */
-@media (min-width: 768px) {
+/* Desktop drawer states - fully hide/show via search bar toggle */
+@media (min-width: 640px) {
     #list-drawer {
         height: calc(100 * var(--vh) - 100px);
         max-height: none;
     }
+    /* Closed: fully hidden */
+    #list-drawer.drawer-peek,
     #list-drawer.drawer-closed {
         opacity: 0;
         transform: translateY(-20px);
         pointer-events: none;
     }
+    /* Open: fully visible */
     #list-drawer.drawer-open {
         opacity: 1;
         transform: translateY(0);
@@ -38,30 +41,44 @@
     }
 }
 
-/* Mobile drawer states - 3 snap points: peek, half, open */
-@media (max-width: 767px) {
+/* Mobile drawer states - 2 snap points only: peek and open */
+@media (max-width: 639px) {
     #list-drawer {
-        height: calc(85 * var(--vh));
-        max-height: none;
+        height: calc(88 * var(--vh)) !important;
+        max-height: none !important;
+        opacity: 1 !important;
+        /* Position at bottom of screen */
+        position: fixed !important;
+        bottom: 16px !important;
+        left: 12px !important;
+        right: 12px !important;
+        top: auto !important;
     }
-    /* Peek state: shows drag handle + preview (~120px visible) */
+    /* Peek state: shows drag handle + 2 cards (~140px visible) */
     #list-drawer.drawer-peek {
-        transform: translateY(calc(100% - 120px));
-        opacity: 1;
-        pointer-events: auto;
+        transform: translateY(calc(100% - 140px)) !important;
+        pointer-events: auto !important;
     }
-    /* Half state: ~45% of screen for quick scanning */
-    #list-drawer.drawer-half {
-        transform: translateY(55%);
-        opacity: 1;
-        pointer-events: auto;
-    }
-    /* Open state: full drawer */
+    /* Open state: full drawer (85% screen) */
     #list-drawer.drawer-open {
-        transform: translateY(0);
-        opacity: 1;
-        pointer-events: auto;
+        transform: translateY(0) !important;
+        pointer-events: auto !important;
     }
+}
+
+/* Backdrop overlay when drawer is fully open */
+#drawer-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+    z-index: 899;
+}
+#drawer-backdrop.active {
+    opacity: 1;
+    pointer-events: auto;
 }
 
 /* iOS rubber-banding fix + dynamic viewport height */
@@ -69,7 +86,7 @@
     overscroll-behavior: contain;
     max-height: calc(65 * var(--vh));
 }
-@media (min-width: 768px) {
+@media (min-width: 640px) {
     #list-content { max-height: calc(100 * var(--vh) - 200px); }
 }
 

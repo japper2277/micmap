@@ -10,7 +10,7 @@
     display: none; /* Hidden by default (desktop) */
 }
 
-@media (max-width: 767px) {
+@media (max-width: 639px) {
     /* Smaller map markers on mobile */
     .cluster-pill {
         padding: 6px 10px;
@@ -159,9 +159,9 @@
     }
 
     #date-carousel .glass-panel {
-        background: rgba(20, 20, 20, 0.85);
-        backdrop-filter: blur(20px) saturate(180%);
-        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        background: rgba(20, 20, 20, 0.92);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
         border: 1px solid rgba(255, 255, 255, 0.15);
         border-radius: 100px;
     }
@@ -201,7 +201,7 @@
 /* =================================================================
    DESKTOP STYLES
    ================================================================= */
-@media (min-width: 768px) {
+@media (min-width: 640px) {
     .locate-btn {
         bottom: 24px;
         left: 24px;
