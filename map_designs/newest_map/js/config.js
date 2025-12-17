@@ -12,7 +12,8 @@ const CONFIG = {
     apiBase: API_BASE,
     apiPath: `${API_BASE}/api/v1/mics`,
     mapCenter: [40.735, -73.99],
-    mapZoom: 13,
+    mapZoom: 15,
+    mobileMapZoom: 17,
     filterCycles: {
         price: ['All', 'Free', 'Paid'],
         time: ['All', 'morning', 'afternoon', 'evening', 'latenight'],
