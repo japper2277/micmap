@@ -42,7 +42,7 @@ function toggleDrawer(forceOpen) {
     setDrawerState(targetState);
 }
 
-// Drawer state constants - TWO STATES ONLY for snappy feel
+// Drawer state constants - TWO STATES ONLY
 const DRAWER_STATES = {
     PEEK: 'peek',
     OPEN: 'open'
@@ -74,9 +74,7 @@ function setDrawerState(newState) {
 
     const isOpen = newState === DRAWER_STATES.OPEN;
 
-    // Both desktop and mobile use peek/open states
-    // On desktop: peek = hidden, open = visible
-    // On mobile: peek = collapsed, open = expanded
+    // Apply appropriate class
     drawer.classList.add(isOpen ? 'drawer-open' : 'drawer-peek');
     STATE.drawerState = newState;
     STATE.isDrawerOpen = isOpen;
@@ -135,6 +133,14 @@ function setupMobileSwipe() {
         isSwiping = true;
     }
 
+    // Auto-expand drawer when user interacts with list content in peek mode
+    listContent.addEventListener('touchstart', () => {
+        if (!isMobile()) return;
+        if (getDrawerState() === DRAWER_STATES.PEEK) {
+            setDrawerState(DRAWER_STATES.OPEN);
+        }
+    }, { passive: true });
+
     // Header/handle swipes - always work
     header.addEventListener('touchstart', startSwipe, { passive: true });
 
@@ -186,19 +192,12 @@ function fixDrawerStateForViewport() {
     const backdrop = document.getElementById('drawer-backdrop');
     const isDesktop = window.matchMedia('(min-width: 640px)').matches;
 
-    console.log('=== fixDrawerStateForViewport ===');
-    console.log('windowWidth:', window.innerWidth);
-    console.log('isDesktop:', isDesktop);
-    console.log('STATE.drawerState:', STATE.drawerState);
-
     // Remove all state classes first
     drawer.classList.remove('drawer-peek', 'drawer-open');
 
     // Always use peek/open - drawer never fully hides
     const state = STATE.drawerState || DRAWER_STATES.PEEK;
     drawer.classList.add(`drawer-${state}`);
-
-    console.log('Applied state:', state);
 
     const isOpen = state === DRAWER_STATES.OPEN;
     if (backdrop) backdrop.classList.toggle('active', isOpen && !isDesktop);
@@ -212,23 +211,11 @@ function fixDrawerStateForViewport() {
 // Initialize drawer state based on screen size
 function initDrawerState() {
     const drawer = document.getElementById('list-drawer');
-    const isDesktop = window.matchMedia('(min-width: 640px)').matches;
-    const windowWidth = window.innerWidth;
-
-    console.log('=== initDrawerState ===');
-    console.log('windowWidth:', windowWidth);
-    console.log('isDesktop (>=640px):', isDesktop);
-    console.log('drawer element:', drawer);
 
     // Always start in peek state - drawer never fully hides
     STATE.drawerState = DRAWER_STATES.PEEK;
     STATE.isDrawerOpen = false;
-
     drawer.classList.add('drawer-peek');
-
-    console.log('drawer classes after init:', drawer?.className);
-    console.log('drawer computed style opacity:', window.getComputedStyle(drawer).opacity);
-    console.log('drawer computed style transform:', window.getComputedStyle(drawer).transform);
 }
 
 // Keyboard scroll support for list-content

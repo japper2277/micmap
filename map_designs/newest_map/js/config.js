@@ -3,9 +3,8 @@
    Application constants and configuration
    ================================================================= */
 
-// Detect environment - use Railway API in production, localhost in development
-const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-const API_BASE = isLocalDev ? 'http://localhost:3001' : 'https://micmap-production.up.railway.app';
+// Always use production API (Railway)
+const API_BASE = 'https://micmap-production.up.railway.app';
 
 const CONFIG = {
     dayNames: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],

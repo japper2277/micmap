@@ -37,3 +37,6 @@ npm-debug.log*
 *.osrm.*
 
 gtfs_supplemented/stop_times.txt
+
+# Local Netlify folder
+.netlify

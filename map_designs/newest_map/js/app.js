@@ -31,8 +31,6 @@ async function loadData() {
         } else {
             render('today');
         }
-
-        setTimeout(() => toggleDrawer(true), 500);
     } catch (err) {
         // Failed to load mics - user will see empty list
         if (typeof toastService !== 'undefined') {

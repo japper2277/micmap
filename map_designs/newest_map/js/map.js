@@ -14,7 +14,7 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r
     subdomains: 'abcd'
 }).addTo(map);
 
-const markersGroup = L.layerGroup().addTo(map);
+const markersGroup = L.featureGroup().addTo(map);
 
 // Zoom threshold for switching between pill and ticket styles
 const ZOOM_TICKET_THRESHOLD = 16;

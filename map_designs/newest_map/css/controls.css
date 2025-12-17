@@ -477,6 +477,20 @@
 .item-sub { font-size: 12px; color: rgba(255, 255, 255, 0.6); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .dropdown-empty { padding: 24px; text-align: center; color: rgba(255, 255, 255, 0.6); font-size: 13px; }
 
+/* Search icon back arrow state */
+.search-icon {
+    transition: transform 0.2s ease;
+}
+.search-icon.is-back {
+    color: #ffffff;
+}
+.search-icon.is-back:hover {
+    transform: scale(1.1);
+}
+.search-icon.is-back:active {
+    transform: scale(0.9);
+}
+
 /* New categorized dropdown styles */
 .dropdown-item.venue-type .item-icon { background: rgba(244, 63, 94, 0.15); color: #f43f5e; border-radius: 50%; }
 .dropdown-item.venue-type .item-name { font-weight: 600; }

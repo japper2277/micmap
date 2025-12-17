@@ -16,12 +16,29 @@ const searchService = {
 
     init() {
         this.input = document.getElementById('search-input');
+        this.searchIcon = document.querySelector('.search-icon');
         if (!this.input) {
             console.warn('Search input not found');
             return;
         }
         this.createDropdown();
         this.bindEvents();
+        this.setupBackButton();
+    },
+
+    setupBackButton() {
+        if (!this.searchIcon) return;
+
+        // Make search icon clickable
+        this.searchIcon.style.cursor = 'pointer';
+        this.searchIcon.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (this.dropdown?.classList.contains('active')) {
+                this.hideDropdown();
+                this.input.blur();
+            }
+        });
     },
 
     createDropdown() {
@@ -113,7 +130,8 @@ const searchService = {
     icons: {
         nav: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>`,
         mic: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line></svg>`,
-        pin: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>`
+        pin: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>`,
+        subway: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="14" rx="2"></rect><path d="M4 11h16"></path><path d="M12 3v8"></path><circle cx="8" cy="19" r="2"></circle><circle cx="16" cy="19" r="2"></circle><path d="M8 17v-2"></path><path d="M16 17v-2"></path></svg>`
     },
 
     // Popular neighborhoods for empty state (with coordinates to avoid geocoding)
@@ -155,7 +173,7 @@ const searchService = {
         this.selectedIndex = -1;
         const results = { venues: [], locations: [] };
 
-        // 1. Local venue search (FREE)
+        // 1. Local venue search (your mic data)
         const q = query.toLowerCase();
         results.venues = STATE.mics
             .filter(m => {
@@ -166,24 +184,17 @@ const searchService = {
             .slice(0, 3)
             .map(m => ({ ...m, type: 'venue' }));
 
-        // 2. HERE geocoding via backend proxy (250k free/month, great for business names)
-        if (query.length > 2) {
-            try {
-                // Try HERE first (better for POIs like "Trader Joe's")
-                let res = await fetch(`${CONFIG.apiBase}/api/proxy/here/geocode?query=${encodeURIComponent(query)}`);
-
-                // Fallback to Mapbox if HERE fails
-                if (!res.ok) {
-                    console.warn('HERE geocode failed, trying Mapbox...');
-                    res = await fetch(`${CONFIG.apiBase}/api/proxy/geocode?query=${encodeURIComponent(query)}`);
-                }
-
-                if (!res.ok) throw new Error(`Proxy error: ${res.status}`);
-                const data = await res.json();
-                results.locations = (data.results || []).map(r => ({ ...r, type: 'location' }));
-            } catch (e) {
-                console.warn('Geocode failed:', e.message);
-            }
+        // 2. Local NYC geocoder (neighborhoods + subway stations) - ZERO API CALLS
+        if (query.length >= 2 && typeof nycGeocoder !== 'undefined') {
+            const localResults = nycGeocoder.search(query);
+            results.locations = localResults.map(r => ({
+                name: r.name,
+                address: r.sub,
+                lat: r.lat,
+                lng: r.lng,
+                type: 'location',
+                locationType: r.type // 'neighborhood' or 'subway'
+            }));
         }
 
         this.renderDropdown(results);
@@ -220,22 +231,17 @@ const searchService = {
             });
         }
 
-        // Locations section
+        // Locations section (neighborhoods + subway stations)
         if (results.locations.length > 0) {
             html += `<div class="section-header" role="presentation">Locations</div>`;
             results.locations.forEach(l => {
-                // Clean up address - remove "Community Board" references and simplify
-                const addressParts = (l.address || '').split(',').map(p => p.trim());
-                // Filter out community board, keep useful parts like borough/city
-                const cleanParts = addressParts
-                    .slice(1) // skip the name (already shown)
-                    .filter(p => !p.toLowerCase().includes('community board'))
-                    .filter(p => !p.match(/^\d{5}$/)) // skip zip codes
-                    .slice(0, 2); // take first 2 useful parts
-                const subtext = cleanParts.join(', ');
+                const isSubway = l.locationType === 'subway';
+                const icon = isSubway ? this.icons.subway : this.icons.pin;
+                const subtext = l.address || '';
+                const itemClass = isSubway ? 'location-type subway-type' : 'location-type';
                 html += `
-                    <div class="dropdown-item location-type" id="search-option-${optionIndex++}" role="option" aria-selected="false" data-action="geo" data-lat="${l.lat}" data-lng="${l.lng}" data-name="${this.escapeHtml(l.name)}">
-                        <div class="item-icon" aria-hidden="true">${this.icons.pin}</div>
+                    <div class="dropdown-item ${itemClass}" id="search-option-${optionIndex++}" role="option" aria-selected="false" data-action="geo" data-lat="${l.lat}" data-lng="${l.lng}" data-name="${this.escapeHtml(l.name)}">
+                        <div class="item-icon" aria-hidden="true">${icon}</div>
                         <div class="item-text">
                             <span class="item-name">${this.escapeHtml(l.name)}</span>
                         </div>
@@ -299,6 +305,25 @@ const searchService = {
     selectLocation(lat, lng, name) {
         this.hideDropdown();
         this.input.value = name;
+
+        // Find mics in this neighborhood and zoom to fit them
+        const nameLower = name.toLowerCase();
+        const neighborhoodMics = STATE.mics.filter(m => {
+            const hood = (m.hood || m.neighborhood || '').toLowerCase();
+            return hood.includes(nameLower) || nameLower.includes(hood);
+        });
+
+        if (neighborhoodMics.length > 0 && typeof map !== 'undefined' && typeof L !== 'undefined') {
+            // Create bounds from all mics in the neighborhood
+            const bounds = L.latLngBounds(neighborhoodMics.map(m => [m.lat, m.lng]));
+            if (bounds.isValid()) {
+                map.flyToBounds(bounds, { padding: [50, 50], duration: 1.5 });
+            }
+        } else if (typeof map !== 'undefined') {
+            // Fallback: fly to the neighborhood center
+            map.flyTo([lat, lng], 15, { duration: 1.5 });
+        }
+
         // Auto-fire transit calculation (no button needed)
         if (typeof transitService !== 'undefined' && transitService.calculateFromOrigin) {
             transitService.calculateFromOrigin(lat, lng, name, null);
@@ -348,6 +373,11 @@ const searchService = {
         if (this.dropdown) {
             this.dropdown.classList.add('active');
             this.input.setAttribute('aria-expanded', 'true');
+            // Swap to back arrow
+            if (this.searchIcon) {
+                this.searchIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 12H5M12 19l-7-7 7-7"/>`;
+                this.searchIcon.classList.add('is-back');
+            }
         }
     },
 
@@ -356,6 +386,11 @@ const searchService = {
             this.dropdown.classList.remove('active');
             this.input.setAttribute('aria-expanded', 'false');
             this.input.removeAttribute('aria-activedescendant');
+            // Swap back to magnifying glass
+            if (this.searchIcon) {
+                this.searchIcon.innerHTML = `<circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>`;
+                this.searchIcon.classList.remove('is-back');
+            }
         }
         this.selectedIndex = -1;
     },

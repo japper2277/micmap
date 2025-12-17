@@ -5,11 +5,13 @@
 
 /* --- GLASS PANEL --- */
 .glass-panel {
-    background: rgba(0, 0, 0, 0.95);
+    background: #000;
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-top: 2px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.8),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 /* Drawer Transition - iOS spring curve, GPU accelerated */
@@ -59,6 +61,24 @@
     #list-drawer.drawer-peek {
         transform: translateY(calc(100% - 180px)) !important;
         pointer-events: auto !important;
+    }
+    /* Hide first time header in peek mode so mic card is visible */
+    #list-drawer.drawer-peek #list-content > .time-header:first-of-type {
+        display: none;
+    }
+    /* Tighten spacing in peek mode for better card visibility */
+    #list-drawer.drawer-peek .mics-header-row {
+        padding: 8px 16px;
+    }
+    #list-drawer.drawer-peek #list-content {
+        padding-top: 0;
+    }
+    #list-drawer.drawer-peek #list-content > .stream-item:first-of-type {
+        padding-top: 8px;
+    }
+    /* Hide safe area padding in peek mode */
+    #list-drawer.drawer-peek {
+        padding-bottom: 0 !important;
     }
     /* Open state: full drawer */
     #list-drawer.drawer-open {

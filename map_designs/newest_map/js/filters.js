@@ -93,14 +93,29 @@ function setupFilterScrollIndicators() {
     window.addEventListener('resize', updateScrollIndicators, { passive: true });
 }
 
-// Cycle through filter states (for Price toggle)
+// Cycle through filter states (for Price toggle and mobile borough)
 function cycleFilter(type) {
     const cycle = CONFIG.filterCycles[type];
     const currentIndex = cycle.indexOf(STATE.activeFilters[type]);
     const nextIndex = (currentIndex + 1) % cycle.length;
-    STATE.activeFilters[type] = cycle[nextIndex];
-    updateFilterPillUI(type, STATE.activeFilters[type]);
+    const newValue = cycle[nextIndex];
+    STATE.activeFilters[type] = newValue;
+    updateFilterPillUI(type, newValue);
     render(STATE.currentMode);
+
+    // Zoom map when borough filter changes (defer to ensure markers are registered)
+    if (type === 'borough') {
+        setTimeout(() => {
+            if (newValue !== 'All') {
+                const bounds = markersGroup.getBounds();
+                if (bounds.isValid()) {
+                    map.flyToBounds(bounds, { padding: [50, 50], duration: 1.5 });
+                }
+            } else {
+                map.flyTo(CONFIG.mapCenter, CONFIG.mapZoom, { duration: 1.5 });
+            }
+        }, 0);
+    }
 }
 
 // Toggle time filter popover
@@ -353,17 +368,17 @@ function selectBoroughFilter(value) {
     closeBoroughPopover();
     render(STATE.currentMode);
 
-    // Zoom map to fit visible markers (or reset to default view for "All")
-    if (value !== 'All') {
-        // Use the markers that were just rendered - they already have all filters applied
-        const bounds = markersGroup.getBounds();
-        if (bounds.isValid()) {
-            map.fitBounds(bounds, { padding: [50, 50], animate: true });
+    // Zoom map to fit visible markers (defer to ensure markers are registered)
+    setTimeout(() => {
+        if (value !== 'All') {
+            const bounds = markersGroup.getBounds();
+            if (bounds.isValid()) {
+                map.flyToBounds(bounds, { padding: [50, 50], duration: 1.5 });
+            }
+        } else {
+            map.flyTo(CONFIG.mapCenter, CONFIG.mapZoom, { duration: 1.5 });
         }
-    } else {
-        // Reset to default NYC view
-        map.setView(CONFIG.mapCenter, CONFIG.mapZoom, { animate: true });
-    }
+    }, 0);
 }
 
 // Select time filter from popover
