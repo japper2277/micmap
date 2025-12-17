@@ -41,25 +41,26 @@
     }
 }
 
-/* Mobile drawer states - 2 snap points only: peek and open */
+/* Mobile drawer states - 2 snap points: peek (1 card visible) and open */
 @media (max-width: 639px) {
     #list-drawer {
-        height: calc(88 * var(--vh)) !important;
+        height: calc(68 * var(--vh)) !important;
         max-height: none !important;
-        opacity: 1 !important;
         /* Position at bottom of screen */
         position: fixed !important;
-        bottom: 16px !important;
-        left: 12px !important;
-        right: 12px !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
         top: auto !important;
+        border-radius: 24px 24px 0 0 !important;
+        transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
     }
-    /* Peek state: shows drag handle + 2 cards (~140px visible) */
+    /* Peek state: shows header + 1 mic card (~180px visible) */
     #list-drawer.drawer-peek {
-        transform: translateY(calc(100% - 140px)) !important;
+        transform: translateY(calc(100% - 180px)) !important;
         pointer-events: auto !important;
     }
-    /* Open state: full drawer (85% screen) */
+    /* Open state: full drawer */
     #list-drawer.drawer-open {
         transform: translateY(0) !important;
         pointer-events: auto !important;
@@ -84,7 +85,13 @@
 /* iOS rubber-banding fix + dynamic viewport height */
 #list-content {
     overscroll-behavior: contain;
-    max-height: calc(65 * var(--vh));
+    max-height: calc(52 * var(--vh));
+    overflow-x: hidden; /* Prevent horizontal scroll/drag */
+}
+
+/* Lock drawer to vertical only - no horizontal movement */
+#list-drawer {
+    overflow-x: hidden;
 }
 @media (min-width: 640px) {
     #list-content { max-height: calc(100 * var(--vh) - 200px); }

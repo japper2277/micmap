@@ -8,7 +8,7 @@
     position: sticky;
     top: 0;
     z-index: 50;
-    background: rgba(5, 5, 5, 0.95);
+    background: rgba(0, 0, 0, 0.98);
     backdrop-filter: blur(10px);
     padding: 8px 20px;
     font-family: 'Space Grotesk', sans-serif;
@@ -16,6 +16,7 @@
     display: flex;
     align-items: center;
     gap: 12px;
+    touch-action: pan-y;
 }
 
 /* --- HAPPENING NOW CARD (Collapsed) --- */
@@ -137,11 +138,14 @@
     display: flex;
     align-items: center;
     padding: 16px 20px;
-    border-bottom: 1px solid #222;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     scroll-margin-top: 50px;
     transition: all 0.2s ease;
     position: relative;
     cursor: pointer;
+    touch-action: pan-y; /* Lock to vertical scroll only */
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 /* Kinetic Hover: Slide & Invert (desktop only) */

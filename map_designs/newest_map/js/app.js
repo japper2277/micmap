@@ -68,12 +68,30 @@ window.addEventListener('orientationchange', () => {
     }, 100);
 });
 
+// Track viewport for breakpoint detection
+let lastViewportWidth = window.innerWidth;
+const BREAKPOINT = 640;
+
 // Handle window resize
 window.addEventListener('resize', () => {
+    const currentWidth = window.innerWidth;
+    const crossedBreakpoint = (lastViewportWidth >= BREAKPOINT && currentWidth < BREAKPOINT) ||
+                              (lastViewportWidth < BREAKPOINT && currentWidth >= BREAKPOINT);
+
+    // If crossed breakpoint, update drawer state immediately (no delay)
+    if (crossedBreakpoint) {
+        fixDrawerStateForViewport();
+    }
+
+    lastViewportWidth = currentWidth;
+
+    // Debounce map resize and non-breakpoint drawer updates
     clearTimeout(STATE.resizeTimeout);
     STATE.resizeTimeout = setTimeout(() => {
         map.invalidateSize();
-        fixDrawerStateForViewport();
+        if (!crossedBreakpoint) {
+            fixDrawerStateForViewport();
+        }
     }, 150);
 });
 
