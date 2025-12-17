@@ -349,17 +349,60 @@ function selectBoroughFilter(value) {
     // Update button UI
     updateFilterPillUI('borough', value);
 
-    // Zoom map to fit all mics in borough (or reset to default view for "All")
-    if (value !== 'All') {
-        // Get all mics in this borough
-        const boroughMics = STATE.mics.filter(m =>
-            (m.borough || '').toLowerCase() === value.toLowerCase()
-        );
+    // Close popover and re-render first (so we have filtered markers)
+    closeBoroughPopover();
+    render(STATE.currentMode);
 
-        if (boroughMics.length > 0) {
-            // Calculate bounds from mic locations
-            const lats = boroughMics.map(m => m.lat);
-            const lngs = boroughMics.map(m => m.lng);
+    // Zoom map to fit visible mics in borough (or reset to default view for "All")
+    if (value !== 'All') {
+        // Get mics that are actually visible after all filters (same logic as render)
+        const currentTime = new Date();
+        const todayName = CONFIG.dayNames[currentTime.getDay()];
+        const tomorrowName = CONFIG.dayNames[(currentTime.getDay() + 1) % 7];
+        const mode = STATE.currentMode;
+
+        const visibleMics = STATE.mics.filter(m => {
+            const diffMins = m.start ? (m.start - currentTime) / 60000 : 999;
+
+            // Hide mics started >30 min ago
+            if (mode === 'today' && diffMins < -30) return false;
+
+            // Filter by day of week
+            if (mode === 'today' && m.day !== todayName) return false;
+            if (mode === 'tomorrow' && m.day !== tomorrowName) return false;
+            if (mode === 'calendar') {
+                const selectedDate = new Date(STATE.selectedCalendarDate);
+                const selectedDayName = CONFIG.dayNames[selectedDate.getDay()];
+                if (m.day !== selectedDayName) return false;
+            }
+
+            // Filter by price
+            if (STATE.activeFilters.price !== 'All') {
+                const priceStr = (m.price || 'Free').toLowerCase();
+                const isFree = priceStr.includes('free');
+                if (STATE.activeFilters.price === 'Free' && !isFree) return false;
+                if (STATE.activeFilters.price === 'Paid' && isFree) return false;
+            }
+
+            // Filter by time
+            if (STATE.activeFilters.time !== 'All' && m.start) {
+                const hour = m.start.getHours();
+                const range = CONFIG.timeRanges[STATE.activeFilters.time];
+                if (range && (hour < range.start || hour >= range.end)) return false;
+            }
+
+            // Filter by borough
+            const micBorough = (m.borough || '').toLowerCase();
+            const filterBorough = value.toLowerCase();
+            if (micBorough !== filterBorough) return false;
+
+            return true;
+        });
+
+        if (visibleMics.length > 0) {
+            // Calculate bounds from visible mic locations
+            const lats = visibleMics.map(m => m.lat);
+            const lngs = visibleMics.map(m => m.lng);
             const bounds = L.latLngBounds(
                 [Math.min(...lats), Math.min(...lngs)],
                 [Math.max(...lats), Math.max(...lngs)]
@@ -370,10 +413,6 @@ function selectBoroughFilter(value) {
         // Reset to default NYC view
         map.setView(CONFIG.mapCenter, CONFIG.mapZoom, { animate: true });
     }
-
-    // Close popover and re-render
-    closeBoroughPopover();
-    render(STATE.currentMode);
 }
 
 // Select time filter from popover
