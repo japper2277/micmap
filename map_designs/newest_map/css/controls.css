@@ -388,126 +388,142 @@
     color: #F42B4E;
 }
 
-/* --- NEW SEARCH BAR DESIGN - Glass Style --- */
+/* --- SEARCH BAR - Premium Dark Style --- */
 .search-wrapper {
-    position: relative;
+    background-color: #151516;
     width: 100%;
-    height: 50px;
-    background: rgba(20, 20, 20, 0.85);
-    backdrop-filter: blur(25px) saturate(180%);
-    -webkit-backdrop-filter: blur(25px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 100px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+    height: 56px;
+    border-radius: 16px;
     display: flex;
     align-items: center;
-    padding: 0 20px;
-    transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+    padding: 0 8px 0 16px;
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow: 0 12px 40px -8px rgba(0,0,0,0.6);
+    transition: border-color 0.2s;
 }
 
-.search-wrapper:focus-within,
-.search-wrapper.active {
-    background: rgba(25, 25, 25, 0.92);
-    border-color: rgba(255, 255, 255, 0.25);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+.search-wrapper:focus-within {
+    border-color: #444;
+}
+
+/* INPUT SECTION */
+.input-wrapper {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+    gap: 12px;
 }
 
 .search-wrapper .search-icon {
-    color: #9ca3af;
-    transition: color 0.2s;
+    width: 17px;
+    height: 17px;
+    fill: #8E8E93;
     flex-shrink: 0;
-}
-
-.search-wrapper:focus-within .search-icon,
-.search-wrapper.active .search-icon {
-    color: #ffffff;
 }
 
 .search-wrapper .search-input {
-    width: 100%;
     background: transparent;
     border: none;
-    color: #ffffff;
+    color: #FFFFFF;
     font-size: 16px;
-    margin-left: 10px;
-    font-weight: 500;
-    caret-color: #0a84ff;
+    width: 100%;
     outline: none;
+    font-weight: 400;
+    margin-top: -1px;
 }
 
 .search-wrapper .search-input::placeholder {
-    color: #8e8e93;
-    opacity: 1;
+    color: #555;
 }
 
-/* Clear button inside search */
-.search-clear-btn {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background: #3a3a3c;
-    border: none;
-    color: #8e8e93;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    flex-shrink: 0;
-    margin-left: 4px;
-    transition: all 0.15s ease;
-}
-.search-clear-btn:hover {
-    background: #4a4a4c;
-    color: #ffffff;
-}
-.search-clear-btn:active {
-    transform: scale(0.9);
-}
-.search-clear-btn.visible {
-    display: flex;
-}
-
-/* Divider in search bar */
-.search-divider {
-    width: 1px;
-    height: 20px;
-    background: rgba(255, 255, 255, 0.1);
-    margin: 0 8px;
-    flex-shrink: 0;
-}
-
-/* Quick location button inside search bar */
-.search-location-btn {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background: rgba(10, 132, 255, 0.25);
-    border: none;
-    color: #0A84FF;
+/* CURRENT LOCATION BUTTON (Crosshairs) */
+.loc-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    flex-shrink: 0;
+    color: #8E8E93;
     transition: all 0.2s ease;
+    flex-shrink: 0;
 }
 
-.search-location-btn:hover {
-    background: rgba(10, 132, 255, 0.35);
-    transform: scale(1.05);
+.loc-btn:hover {
+    background-color: rgba(255,255,255,0.08);
+    color: #fff;
 }
 
-.search-location-btn:active {
-    transform: scale(0.95);
+.loc-btn svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
 }
 
-.search-location-btn.loading {
-    animation: pulse-location 1.5s infinite;
+/* Pulse animation when finding location */
+.loc-btn.finding {
+    color: #0A84FF;
+    animation: pulse 1.5s infinite;
 }
 
-@keyframes pulse-location {
-    0%, 100% { background: rgba(59, 130, 246, 0.15); }
-    50% { background: rgba(59, 130, 246, 0.35); }
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.7; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* VERTICAL DIVIDER */
+.divider {
+    width: 1px;
+    height: 24px;
+    background-color: #38383A;
+    margin: 0 6px;
+    flex-shrink: 0;
+}
+
+/* PIN DROP BUTTON (Set Location) */
+.pin-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: transparent;
+    flex-shrink: 0;
+    user-select: none;
+}
+
+.pin-btn:hover {
+    background-color: rgba(255,255,255,0.08);
+}
+
+.pin-btn.active {
+    background-color: rgba(10, 132, 255, 0.15);
+}
+
+.pin-btn svg {
+    width: 16px;
+    height: 16px;
+    fill: #8E8E93;
+    transition: fill 0.2s;
+}
+
+.pin-btn.active svg {
+    fill: #0A84FF;
+}
+
+.pin-text {
+    font-size: 13px;
+    font-weight: 600;
+    color: #8E8E93;
+    transition: color 0.2s;
+}
+
+.pin-btn.active .pin-text {
+    color: #0A84FF;
 }
 
 /* =================================================================

@@ -286,6 +286,7 @@ const searchService = {
         if (mic) {
             this.hideDropdown();
             this.input.value = mic.title || mic.venue;
+            this.input.blur(); // Unfocus to fully close dropdown
 
             // Fly to venue on map
             if (typeof map !== 'undefined') {
@@ -305,31 +306,18 @@ const searchService = {
     selectLocation(lat, lng, name) {
         this.hideDropdown();
         this.input.value = name;
+        this.input.blur(); // Unfocus to fully close dropdown
 
-        // Find mics in this neighborhood and zoom to fit them
-        const nameLower = name.toLowerCase();
-        const neighborhoodMics = STATE.mics.filter(m => {
-            const hood = (m.hood || m.neighborhood || '').toLowerCase();
-            return hood.includes(nameLower) || nameLower.includes(hood);
-        });
-
-        if (neighborhoodMics.length > 0 && typeof map !== 'undefined' && typeof L !== 'undefined') {
-            // Create bounds from all mics in the neighborhood
-            const bounds = L.latLngBounds(neighborhoodMics.map(m => [m.lat, m.lng]));
-            if (bounds.isValid()) {
-                map.flyToBounds(bounds, { padding: [50, 50], duration: 1.5 });
-            }
-        } else if (typeof map !== 'undefined') {
-            // Fallback: fly to the neighborhood center
-            map.flyTo([lat, lng], 15, { duration: 1.5 });
+        // Fly to location at zoom 15 to show ticket markers
+        if (typeof map !== 'undefined') {
+            map.flyTo([lat, lng], 15, { duration: 1 });
         }
-
-        // Don't auto-fire transit - just zoom to the area
-        // User can use "My Location" or tap map if they want commute times
     },
 
     // Handle "Use My Location" with geolocation API
     useMyLocation() {
+        const geoBtn = document.getElementById('geoBtn');
+
         if (!navigator.geolocation) {
             if (typeof toastService !== 'undefined') {
                 toastService.show('Geolocation not supported by your browser', 'error');
@@ -337,18 +325,38 @@ const searchService = {
             return;
         }
 
-        this.input.value = 'Locating...';
+        // Visual feedback - pulse animation
+        if (geoBtn) geoBtn.classList.add('finding');
+        this.input.value = '';
+        this.input.placeholder = 'Locating you...';
         this.hideDropdown();
+
+        // Reset pin button if it was active
+        document.getElementById('pinBtn')?.classList.remove('active');
 
         navigator.geolocation.getCurrentPosition(
             (position) => {
                 const { latitude, longitude } = position.coords;
                 STATE.userLocation = { lat: latitude, lng: longitude };
-                this.input.value = 'My Location';
+
+                // Success - stop animation, show result
+                if (geoBtn) geoBtn.classList.remove('finding');
+                this.input.value = 'Current Location';
+                this.input.placeholder = 'Search address...';
+
+                // Zoom to level 15 to show ticket markers
+                if (typeof map !== 'undefined') {
+                    map.flyTo([latitude, longitude], 15, { duration: 1 });
+                }
+
                 transitService.calculateFromOrigin(latitude, longitude, 'My Location', null);
             },
             (error) => {
+                // Error - stop animation
+                if (geoBtn) geoBtn.classList.remove('finding');
                 this.input.value = '';
+                this.input.placeholder = 'Search address...';
+
                 if (error.code === error.PERMISSION_DENIED) {
                     if (typeof toastService !== 'undefined') {
                         toastService.show('Location access denied. Tap map to set location.', 'warning');
@@ -358,9 +366,9 @@ const searchService = {
                         toastService.show('Could not get location. Tap map to set location.', 'error');
                     }
                 }
-                // FALLBACK: Enable map click mode
-                if (typeof enableMapClickMode === 'function') {
-                    enableMapClickMode();
+                // FALLBACK: Enable pin drop mode
+                if (typeof togglePinDropMode === 'function') {
+                    togglePinDropMode();
                 }
             },
             { enableHighAccuracy: true, timeout: 8000 }
@@ -371,9 +379,9 @@ const searchService = {
         if (this.dropdown) {
             this.dropdown.classList.add('active');
             this.input.setAttribute('aria-expanded', 'true');
-            // Swap to back arrow
+            // Swap to back arrow (filled style)
             if (this.searchIcon) {
-                this.searchIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 12H5M12 19l-7-7 7-7"/>`;
+                this.searchIcon.innerHTML = `<path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>`;
                 this.searchIcon.classList.add('is-back');
             }
         }
@@ -384,9 +392,9 @@ const searchService = {
             this.dropdown.classList.remove('active');
             this.input.setAttribute('aria-expanded', 'false');
             this.input.removeAttribute('aria-activedescendant');
-            // Swap back to magnifying glass
+            // Swap back to magnifying glass (filled style)
             if (this.searchIcon) {
-                this.searchIcon.innerHTML = `<circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>`;
+                this.searchIcon.innerHTML = `<path d="M10.5 4C6.9 4 4 6.9 4 10.5C4 14.1 6.9 17 10.5 17C12 17 13.4 16.5 14.5 15.6L18.4 19.5C18.8 19.9 19.4 19.9 19.8 19.5C20.2 19.1 20.2 18.5 19.8 18.1L15.9 14.2C16.6 13.1 17 11.9 17 10.5C17 6.9 14.1 4 10.5 4ZM6 10.5C6 8 8 6 10.5 6C13 6 15 8 15 10.5C15 13 13 15 10.5 15C8 15 6 13 6 10.5Z"/>`;
                 this.searchIcon.classList.remove('is-back');
             }
         }

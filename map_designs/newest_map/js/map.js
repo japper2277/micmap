@@ -17,7 +17,7 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r
 const markersGroup = L.featureGroup().addTo(map);
 
 // Zoom threshold for switching between pill and ticket styles
-const ZOOM_TICKET_THRESHOLD = 16;
+const ZOOM_TICKET_THRESHOLD = 15;
 
 // Shorten venue names for ticket display
 function shortenVenueName(name) {
@@ -287,3 +287,58 @@ map.on('zoomend', () => {
         }
     }
 });
+
+/* =================================================================
+   PIN DROP MODE
+   Toggle map click to set custom origin location
+   ================================================================= */
+
+function togglePinDropMode() {
+    const btn = document.getElementById('pinBtn');
+    const input = document.getElementById('search-input');
+
+    btn.classList.toggle('active');
+    STATE.isWaitingForMapClick = btn.classList.contains('active');
+
+    if (STATE.isWaitingForMapClick) {
+        // Entering pin drop mode
+        input.value = '';
+        input.placeholder = 'Tap map to place pin...';
+
+        // Add one-time map click listener
+        map.once('click', handleMapClick);
+
+        // Show toast feedback
+        if (typeof toastService !== 'undefined') {
+            toastService.show('Tap anywhere on the map to set your location', 'info');
+        }
+    } else {
+        // Exiting pin drop mode
+        input.placeholder = 'Search address...';
+        map.off('click', handleMapClick);
+    }
+}
+
+function handleMapClick(e) {
+    const { lat, lng } = e.latlng;
+
+    // Deactivate pin mode
+    const btn = document.getElementById('pinBtn');
+    const input = document.getElementById('search-input');
+
+    btn.classList.remove('active');
+    STATE.isWaitingForMapClick = false;
+    input.placeholder = 'Search address...';
+    input.value = 'Dropped Pin';
+
+    // Zoom to level 15 to show ticket markers
+    map.flyTo([lat, lng], 15, { duration: 1 });
+
+    // Calculate transit from this location
+    if (typeof transitService !== 'undefined' && transitService.calculateFromOrigin) {
+        transitService.calculateFromOrigin(lat, lng, 'Dropped Pin', null);
+    }
+
+    // Reset pin button if geo button was active
+    document.getElementById('geoBtn')?.classList.remove('finding');
+}
