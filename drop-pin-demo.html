@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drop Pin Demo</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: #1a1a1a;
+            min-height: 100vh;
+            padding: 40px 20px;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        h2 {
+            color: #666;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 16px;
+            max-width: 420px;
+        }
+        .demo { margin-bottom: 48px; max-width: 420px; }
+
+        .search-wrapper {
+            height: 50px;
+            background: rgba(20, 20, 20, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 100px;
+            display: flex;
+            align-items: center;
+            padding: 0 8px 0 20px;
+        }
+        .search-icon { color: #9ca3af; flex-shrink: 0; }
+        .search-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 16px;
+            margin-left: 10px;
+            outline: none;
+        }
+        .search-input::placeholder { color: #8e8e93; }
+        .divider {
+            width: 1px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            margin: 0 4px;
+        }
+
+        /* GPS button */
+        .gps-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(10, 132, 255, 0.25);
+            border: none;
+            color: #0A84FF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        /* Drop pin - Orange */
+        .pin-btn-orange {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255, 149, 0, 0.2);
+            border: none;
+            color: #FF9500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            margin-left: 4px;
+        }
+        .pin-btn-orange.active {
+            background: #FF9500;
+            color: #fff;
+        }
+
+        /* Drop pin - Ghost */
+        .pin-btn-ghost {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            margin-left: 4px;
+        }
+        .pin-btn-ghost:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        .pin-btn-ghost.active { background: rgba(255, 149, 0, 0.2); color: #FF9500; }
+
+        /* Drop pin - Rose */
+        .pin-btn-rose {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(244, 43, 78, 0.15);
+            border: none;
+            color: #F42B4E;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            margin-left: 4px;
+        }
+        .pin-btn-rose.active { background: #F42B4E; color: #fff; }
+
+        .drawer-btn {
+            width: 44px;
+            height: 44px;
+            background: transparent;
+            border: none;
+            color: #9ca3af;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .status {
+            margin-top: 12px;
+            padding: 10px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            color: #888;
+            font-size: 13px;
+            text-align: center;
+        }
+        .status.active { background: rgba(255, 149, 0, 0.1); color: #FF9500; }
+    </style>
+</head>
+<body>
+
+<!-- Option A: Orange -->
+<div class="demo">
+    <h2>Option A: Orange</h2>
+    <div class="search-wrapper">
+        <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input class="search-input" placeholder="Search mics or location...">
+        <button class="gps-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+            </svg>
+        </button>
+        <button class="pin-btn-orange" id="pinA" onclick="toggle('A')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/>
+            </svg>
+        </button>
+        <div class="divider"></div>
+        <button class="drawer-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 9l-7 7-7-7"/>
+            </svg>
+        </button>
+    </div>
+    <div class="status" id="statusA">Tap pin, then tap map</div>
+</div>
+
+<!-- Option B: Ghost -->
+<div class="demo">
+    <h2>Option B: Ghost/Subtle</h2>
+    <div class="search-wrapper">
+        <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input class="search-input" placeholder="Search mics or location...">
+        <button class="gps-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+            </svg>
+        </button>
+        <button class="pin-btn-ghost" id="pinB" onclick="toggle('B')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/>
+            </svg>
+        </button>
+        <div class="divider"></div>
+        <button class="drawer-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 9l-7 7-7-7"/>
+            </svg>
+        </button>
+    </div>
+    <div class="status" id="statusB">Tap pin, then tap map</div>
+</div>
+
+<!-- Option C: Rose -->
+<div class="demo">
+    <h2>Option C: Rose</h2>
+    <div class="search-wrapper">
+        <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input class="search-input" placeholder="Search mics or location...">
+        <button class="gps-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+            </svg>
+        </button>
+        <button class="pin-btn-rose" id="pinC" onclick="toggle('C')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/>
+            </svg>
+        </button>
+        <div class="divider"></div>
+        <button class="drawer-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 9l-7 7-7-7"/>
+            </svg>
+        </button>
+    </div>
+    <div class="status" id="statusC">Tap pin, then tap map</div>
+</div>
+
+<script>
+function toggle(id) {
+    const btn = document.getElementById('pin' + id);
+    const status = document.getElementById('status' + id);
+    btn.classList.toggle('active');
+    if (btn.classList.contains('active')) {
+        status.textContent = 'DROP PIN MODE ON';
+        status.classList.add('active');
+    } else {
+        status.textContent = 'Tap pin, then tap map';
+        status.classList.remove('active');
+    }
+}
+</script>
+</body>
+</html>
