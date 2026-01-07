@@ -286,7 +286,12 @@ const searchService = {
         if (mic) {
             this.hideDropdown();
             this.input.value = mic.title || mic.venue;
-            this.input.blur(); // Unfocus to fully close dropdown
+            this.input.blur();
+
+            // Collapse drawer so user can see the map
+            if (typeof toggleDrawer === 'function' && STATE.isDrawerOpen) {
+                toggleDrawer(false);
+            }
 
             // Fly to venue on map
             if (typeof map !== 'undefined') {
@@ -306,7 +311,12 @@ const searchService = {
     selectLocation(lat, lng, name) {
         this.hideDropdown();
         this.input.value = name;
-        this.input.blur(); // Unfocus to fully close dropdown
+        this.input.blur();
+
+        // Collapse drawer so user can see the map
+        if (typeof toggleDrawer === 'function' && STATE.isDrawerOpen) {
+            toggleDrawer(false);
+        }
 
         // Fly to location at zoom 15 to show ticket markers
         if (typeof map !== 'undefined') {
@@ -343,6 +353,11 @@ const searchService = {
                 if (geoBtn) geoBtn.classList.remove('finding');
                 this.input.value = 'Current Location';
                 this.input.placeholder = 'Search address...';
+
+                // Collapse drawer so user can see the map
+                if (typeof toggleDrawer === 'function' && STATE.isDrawerOpen) {
+                    toggleDrawer(false);
+                }
 
                 // Zoom to level 15 to show ticket markers
                 if (typeof map !== 'undefined') {

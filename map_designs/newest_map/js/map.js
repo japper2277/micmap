@@ -189,7 +189,7 @@ function centerOnUser() {
     if (STATE.userLocation) {
         // We have location - fly to it
         STATE.isProgrammaticMove = true;
-        map.flyTo([STATE.userLocation.lat, STATE.userLocation.lng], 14, { duration: 1 });
+        map.flyTo([STATE.userLocation.lat, STATE.userLocation.lng], 15, { duration: 1 });
         btn.classList.add('active');
 
         // Add/update user marker
@@ -330,6 +330,11 @@ function handleMapClick(e) {
     STATE.isWaitingForMapClick = false;
     input.placeholder = 'Search address...';
     input.value = 'Dropped Pin';
+
+    // Collapse drawer so user can see the map
+    if (typeof toggleDrawer === 'function' && STATE.isDrawerOpen) {
+        toggleDrawer(false);
+    }
 
     // Zoom to level 15 to show ticket markers
     map.flyTo([lat, lng], 15, { duration: 1 });
