@@ -1,0 +1,412 @@
+================================================================================
+TRANSITER API - HOW TO CALL AND USE IT
+================================================================================
+
+OVERVIEW:
+Transiter is a real-time GTFS transit data aggregation service. It provides
+HTTP REST API access to transit information from multiple agencies.
+
+Official Demo: https://demo.transiter.dev
+GitHub: https://github.com/jamespfennell/transiter
+
+================================================================================
+1. BASIC ENDPOINT STRUCTURE
+================================================================================
+
+The Transiter API uses a hierarchical URL structure:
+
+  /systems/{system_id}/routes/{route_id}
+  /systems/{system_id}/stops/{stop_id}
+  /systems/{system_id}/stops/{stop_id}/routes/{route_id}
+
+Common System IDs:
+  - us-ny-subway    (NYC Subway)
+  - us-ca-bart      (San Francisco BART)
+  - gb-london-tube  (London Underground)
+
+================================================================================
+2. GETTING STOP INFORMATION
+================================================================================
+
+Request the data for a specific subway stop:
+
+  GET /systems/us-ny-subway/stops/{stop_id}
+
+Example - Get info for 14 St-Union Sq stop:
+
+  curl "https://demo.transiter.dev/systems/us-ny-subway/stops/D15"
+
+Response Structure:
+{
+  "id": "D15",
+  "code": "D15",
+  "name": "47-50 Sts-Rockefeller Ctr",
+  "description": "",
+  "latitude": 40.758663,
+  "longitude": -73.981329,
+  "routes": [
+    { "id": "4", "color": "004687", "shortName": "4" },
+    { "id": "5", "color": "004687", "shortName": "5" },
+    { "id": "6", "color": "B933AD", "shortName": "6" },
+    ...
+  ],
+  "stopTimes": [
+    {
+      "trip": {
+        "id": "602500_5..S",
+        "routeId": "5",
+        "destination": { "name": "Flatbush Av-Brooklyn College" },
+        "direction": "southbound"
+      },
+      "arrivalTime": 1702509900,
+      "departureTime": 1702509900
+    },
+    ...
+  ]
+}
+
+Key Fields:
+  - latitude, longitude: GPS coordinates of the stop
+  - routes: List of routes serving this stop
+  - stopTimes: Next arriving vehicles with trip info
+  - arrivalTime: Unix timestamp of arrival
+
+================================================================================
+3. REAL-TIME ARRIVAL INFORMATION
+================================================================================
+
+The stopTimes array in the stop response includes real-time data:
+
+Each stop time has:
+  - trip: Information about the trip (route, destination, direction)
+  - arrivalTime: When the vehicle arrives (Unix timestamp)
+  - departureTime: When the vehicle departs
+
+Trip object contains:
+  - id: Unique trip identifier
+  - routeId: Which route this vehicle is on (e.g., "4", "N", "L")
+  - destination: { name: "Final destination" }
+  - direction: "northbound" or "southbound" (or equivalent)
+
+Example: Parse arrival times in your code:
+
+  const stop = response;
+  const nextArrivals = stop.stopTimes.slice(0, 5); // Next 5 trains
+
+  nextArrivals.forEach(arrival => {
+    const line = arrival.trip.routeId;
+    const destination = arrival.trip.destination.name;
+    const arrivalSeconds = arrival.arrivalTime;
+    const arrivalDate = new Date(arrivalSeconds * 1000);
+
+    console.log(`${line} train to ${destination} at ${arrivalDate}`);
+  });
+
+================================================================================
+4. GETTING ROUTE INFORMATION
+================================================================================
+
+Request information about a specific route:
+
+  GET /systems/us-ny-subway/routes/{route_id}
+
+Example - Get info for the 4 train:
+
+  curl "https://demo.transiter.dev/systems/us-ny-subway/routes/4"
+
+Response includes:
+{
+  "id": "4",
+  "shortName": "4",
+  "longName": "Lexington Avenue Line",
+  "color": "004687",
+  "textColor": "FFFFFF",
+  "description": "Lexington Avenue Line",
+  "stops": [
+    {
+      "id": "101",
+      "name": "Bowling Green",
+      "latitude": 40.703216,
+      "longitude": -74.012024,
+      "sequence": 0
+    },
+    ...
+  ]
+}
+
+================================================================================
+5. QUERYING MULTIPLE STOPS
+================================================================================
+
+To get data for multiple stops, make separate requests (no batch endpoint):
+
+  const stops = ["D15", "R20", "R24"];
+
+  Promise.all(
+    stops.map(stopId =>
+      fetch(`https://demo.transiter.dev/systems/us-ny-subway/stops/${stopId}`)
+        .then(r => r.json())
+    )
+  ).then(results => {
+    // Process all stop data
+  });
+
+================================================================================
+6. FILTERING AND PARAMETERS
+================================================================================
+
+The API supports query parameters for filtering:
+
+  GET /systems/us-ny-subway/stops/{stop_id}?routes=4,5,6
+
+Returns only the specified routes for that stop.
+
+Common Parameters:
+  - routes: Comma-separated route IDs to include
+  - skip_stop_times: Boolean to exclude real-time arrival data (faster)
+  - max_stop_times: Limit number of arrivals returned (default: 10)
+
+Example:
+
+  curl "https://demo.transiter.dev/systems/us-ny-subway/stops/D15?max_stop_times=3&routes=4"
+
+================================================================================
+7. HANDLING TIMESTAMPS
+================================================================================
+
+Transiter returns times as Unix timestamps (seconds since epoch).
+
+Convert to readable format:
+
+  JavaScript:
+    const date = new Date(timestamp * 1000);
+    console.log(date.toLocaleString());
+
+  Python:
+    from datetime import datetime
+    dt = datetime.fromtimestamp(timestamp)
+    print(dt)
+
+  cURL (macOS):
+    date -r 1702509900
+
+================================================================================
+8. ERROR HANDLING
+================================================================================
+
+The API returns HTTP status codes:
+
+  200 OK: Request successful
+  400 Bad Request: Invalid stop_id or parameters
+  404 Not Found: Stop doesn't exist
+  500 Internal Server Error: Server issue
+  503 Service Unavailable: GTFS feed unavailable
+
+Error response example:
+{
+  "error": "invalid stop_id 'INVALID'",
+  "message": "Stop not found"
+}
+
+Always check the status code in your client:
+
+  fetch(url)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      return response.json();
+    })
+    .catch(error => console.error(error));
+
+================================================================================
+9. RATE LIMITING
+================================================================================
+
+Demo Instance (https://demo.transiter.dev):
+  - No authentication required
+  - Rate limiting: Typically 10-100 requests/second
+  - Free to use for development
+
+Self-hosted:
+  - Deploy your own Transiter instance
+  - See: https://docs.transiter.dev/
+
+================================================================================
+10. COMMON NYC SUBWAY STOP IDs
+================================================================================
+
+  D15  - 47-50 Sts-Rockefeller Ctr
+  R24  - City Hall / Brooklyn Bridge
+  R20  - 14 St (local)
+  R15  - 49 St
+  640  - Brooklyn Bridge-City Hall
+  635  - 14 St-Union Sq
+  N313 - Times Sq-42 St
+  N410 - Herald Sq-34 St
+
+To find a stop ID, search the full list:
+  GET /systems/us-ny-subway/stops
+
+================================================================================
+11. FULL EXAMPLE - NODE.JS
+================================================================================
+
+const fetch = require('node-fetch');
+
+async function getNextTrains(stopId, maxTrains = 5) {
+  try {
+    const url = `https://demo.transiter.dev/systems/us-ny-subway/stops/${stopId}`;
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error(`API returned ${response.status}`);
+    }
+
+    const stop = await response.json();
+
+    console.log(`Stop: ${stop.name}`);
+    console.log(`Coords: ${stop.latitude}, ${stop.longitude}\n`);
+
+    const nextTrains = stop.stopTimes.slice(0, maxTrains);
+
+    nextTrains.forEach(arrival => {
+      const line = arrival.trip.routeId;
+      const dest = arrival.trip.destination.name;
+      const time = new Date(arrival.arrivalTime * 1000);
+      const minutes = Math.round((arrival.arrivalTime - Date.now()/1000) / 60);
+
+      console.log(`[${line}] to ${dest} - ${minutes}m (${time.toLocaleTimeString()})`);
+    });
+
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+// Usage:
+getNextTrains('D15', 5);
+
+================================================================================
+12. FULL EXAMPLE - PYTHON
+================================================================================
+
+import requests
+from datetime import datetime
+
+def get_next_trains(stop_id, max_trains=5):
+    try:
+        url = f"https://demo.transiter.dev/systems/us-ny-subway/stops/{stop_id}"
+        response = requests.get(url, timeout=5)
+        response.raise_for_status()
+
+        stop = response.json()
+
+        print(f"Stop: {stop['name']}")
+        print(f"Coords: {stop['latitude']}, {stop['longitude']}\n")
+
+        for arrival in stop['stopTimes'][:max_trains]:
+            line = arrival['trip']['routeId']
+            dest = arrival['trip']['destination']['name']
+            timestamp = arrival['arrivalTime']
+            arrival_time = datetime.fromtimestamp(timestamp)
+
+            # Calculate minutes until arrival
+            now = datetime.now()
+            delta = (arrival_time - now).total_seconds() / 60
+
+            print(f"[{line}] to {dest} - {int(delta)}m ({arrival_time.strftime('%H:%M')})")
+
+    except requests.RequestException as e:
+        print(f"Error: {e}")
+
+# Usage:
+get_next_trains('D15', 5)
+
+================================================================================
+13. INTEGRATION WITH YOUR MICMAP API
+================================================================================
+
+Your MicMap API currently:
+  - Calls MTA GTFS Realtime directly
+  - Parses protobuf messages
+  - Returns formatted arrival data
+
+You could integrate Transiter by:
+
+  1. Replace your MTA feed parsing:
+     // OLD: Parse protobuf from MTA
+     // NEW: Call Transiter API
+
+  2. Example refactor:
+     OLD: GET /api/mta/arrivals/4/640
+     NEW: GET https://demo.transiter.dev/systems/us-ny-subway/stops/640
+          (then filter for route "4")
+
+  3. Benefits:
+     - No protobuf parsing needed
+     - Cleaner JSON responses
+     - Fallback to multiple Transiter instances
+     - Easier to test and debug
+
+================================================================================
+14. COMPARING YOUR MTA ENDPOINT vs TRANSITER
+================================================================================
+
+Your Current Endpoint:
+  GET /api/mta/arrivals/:line/:stopId
+
+  Example: GET /api/mta/arrivals/4/640
+
+  Returns:
+  {
+    "id": "line-4-stops-640",
+    "times": [
+      { "time": 234, "direction": "Downtown", "terminal": "..." },
+      { "time": 564, "direction": "Downtown", "terminal": "..." }
+    ]
+  }
+
+Transiter Equivalent:
+  GET https://demo.transiter.dev/systems/us-ny-subway/stops/{stopId}?routes={line}
+
+  Example: GET https://demo.transiter.dev/systems/us-ny-subway/stops/D15N?routes=4
+
+  Returns:
+  {
+    "id": "D15N",
+    "stopTimes": [
+      {
+        "trip": {
+          "route": { "id": "4" },
+          "destination": { "name": "Downtown" }
+        },
+        "arrivalTime": 1702509900
+      }
+    ]
+  }
+
+Key Differences:
+  1. Transiter returns all data; you must parse for specific route
+  2. Transiter uses Unix timestamps; you format them
+  3. Transiter includes more metadata (resources, links, etc.)
+  4. Your endpoint is simpler, optimized for venue use case
+  5. Transiter is more generic, works for any stop/route
+
+================================================================================
+15. USEFUL LINKS
+================================================================================
+
+Documentation: https://docs.transiter.dev/
+Demo Instance: https://demo.transiter.dev
+GitHub: https://github.com/jamespfennell/transiter
+Issue Tracker: https://github.com/jamespfennell/transiter/issues
+Discussion Forum: https://github.com/jamespfennell/transiter/discussions
+
+NYC Subway Map (Stop IDs):
+https://en.wikipedia.org/wiki/New_York_City_Subway_stations
+
+GTFS Standard:
+https://developers.google.com/transit/gtfs
+
+================================================================================

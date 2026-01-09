@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Search Bar Demo</title>
+<style>
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 60px;
+        padding: 40px;
+    }
+
+    h2 {
+        color: #fff;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        opacity: 0.5;
+        margin-bottom: -40px;
+    }
+
+    /* =========================================
+       CURRENT (What you have now)
+       ========================================= */
+    .current .search-bar {
+        background-color: #1C1C1E;
+        width: 420px;
+        height: 60px;
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        padding: 0 16px;
+        border: 1px solid rgba(255,255,255,0.1);
+        box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+    }
+
+    /* =========================================
+       IMPROVED (Cleaner, more polished)
+       ========================================= */
+    .improved .search-bar {
+        background-color: #1C1C1E;
+        width: 440px;
+        height: 56px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        padding: 0 8px 0 16px;
+        border: 1px solid rgba(255,255,255,0.08);
+        box-shadow:
+            0 4px 24px rgba(0,0,0,0.3),
+            0 1px 2px rgba(0,0,0,0.2),
+            inset 0 1px 0 rgba(255,255,255,0.05);
+    }
+
+    /* INPUT SECTION */
+    .input-wrapper {
+        display: flex;
+        align-items: center;
+        flex: 1;
+        gap: 10px;
+        min-width: 0;
+    }
+
+    .search-icon {
+        width: 18px;
+        height: 18px;
+        fill: #636366;
+        flex-shrink: 0;
+    }
+
+    .search-bar input {
+        background: transparent;
+        border: none;
+        color: #fff;
+        font-size: 15px;
+        width: 100%;
+        outline: none;
+        font-weight: 400;
+    }
+
+    .search-bar input::placeholder {
+        color: #636366;
+    }
+
+    /* LOCATION BUTTON (Crosshairs) */
+    .loc-btn {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        flex-shrink: 0;
+    }
+
+    .loc-btn:hover {
+        background: rgba(255,255,255,0.08);
+    }
+
+    .loc-btn svg {
+        width: 20px;
+        height: 20px;
+        fill: #8E8E93;
+        transition: fill 0.15s;
+    }
+
+    .loc-btn:hover svg {
+        fill: #fff;
+    }
+
+    /* DIVIDER */
+    .divider {
+        width: 1px;
+        height: 28px;
+        background: #38383A;
+        margin: 0 4px;
+        flex-shrink: 0;
+    }
+
+    /* PIN BUTTON */
+    .pin-btn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 12px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        flex-shrink: 0;
+    }
+
+    .pin-btn:hover {
+        background: rgba(255,255,255,0.06);
+    }
+
+    .pin-btn.active {
+        background: rgba(10, 132, 255, 0.15);
+    }
+
+    .pin-btn svg {
+        width: 16px;
+        height: 16px;
+        fill: #8E8E93;
+        transition: fill 0.15s;
+    }
+
+    .pin-btn:hover svg,
+    .pin-btn.active svg {
+        fill: #0A84FF;
+    }
+
+    .pin-btn span {
+        font-size: 13px;
+        font-weight: 500;
+        color: #8E8E93;
+        transition: color 0.15s;
+    }
+
+    .pin-btn:hover span,
+    .pin-btn.active span {
+        color: #0A84FF;
+    }
+
+    /* CHEVRON BUTTON */
+    .chevron-btn {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        flex-shrink: 0;
+        margin-left: 2px;
+    }
+
+    .chevron-btn:hover {
+        background: rgba(255,255,255,0.08);
+    }
+
+    .chevron-btn svg {
+        width: 18px;
+        height: 18px;
+        stroke: #8E8E93;
+        fill: none;
+        transition: stroke 0.15s;
+    }
+
+    .chevron-btn:hover svg {
+        stroke: #fff;
+    }
+
+    /* =========================================
+       MINIMAL VARIANT
+       ========================================= */
+    .minimal .search-bar {
+        background-color: rgba(28, 28, 30, 0.95);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        width: 400px;
+        height: 52px;
+        border-radius: 26px;
+        display: flex;
+        align-items: center;
+        padding: 0 6px 0 18px;
+        border: 1px solid rgba(255,255,255,0.06);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    }
+
+    .minimal .loc-btn,
+    .minimal .chevron-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+    }
+
+    .minimal .pin-btn {
+        padding: 6px 10px;
+        border-radius: 18px;
+    }
+
+    .minimal .divider {
+        height: 24px;
+        background: rgba(255,255,255,0.1);
+    }
+
+    /* Label */
+    .label {
+        position: absolute;
+        top: -30px;
+        left: 0;
+        font-size: 11px;
+        color: rgba(255,255,255,0.4);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .demo-wrapper {
+        position: relative;
+    }
+</style>
+</head>
+<body>
+
+<h2>Current</h2>
+<div class="demo-wrapper current">
+    <div class="search-bar">
+        <div class="input-wrapper">
+            <svg class="search-icon" viewBox="0 0 24 24">
+                <path d="M10.5 4C6.9 4 4 6.9 4 10.5C4 14.1 6.9 17 10.5 17C12 17 13.4 16.5 14.5 15.6L18.4 19.5C18.8 19.9 19.4 19.9 19.8 19.5C20.2 19.1 20.2 18.5 19.8 18.1L15.9 14.2C16.6 13.1 17 11.9 17 10.5C17 6.9 14.1 4 10.5 4ZM6 10.5C6 8 8 6 10.5 6C13 6 15 8 15 10.5C15 13 13 15 10.5 15C8 15 6 13 6 10.5Z"/>
+            </svg>
+            <input type="text" placeholder="Search address...">
+        </div>
+        <div class="loc-btn">
+            <svg viewBox="0 0 24 24">
+                <path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0 0 13 3.06V1h-2v2.06A8.994 8.994 0 0 0 3.06 11H1v2h2.06A8.994 8.994 0 0 0 11 20.94V23h2v-2.06A8.994 8.994 0 0 0 20.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/>
+            </svg>
+        </div>
+        <div class="divider"></div>
+        <div class="pin-btn">
+            <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+            <span>Set Location</span>
+        </div>
+        <div class="divider"></div>
+        <div class="chevron-btn">
+            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 9l-7 7-7-7"/>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<h2>Improved (tighter, cleaner)</h2>
+<div class="demo-wrapper improved">
+    <div class="search-bar">
+        <div class="input-wrapper">
+            <svg class="search-icon" viewBox="0 0 24 24">
+                <path d="M10.5 4C6.9 4 4 6.9 4 10.5C4 14.1 6.9 17 10.5 17C12 17 13.4 16.5 14.5 15.6L18.4 19.5C18.8 19.9 19.4 19.9 19.8 19.5C20.2 19.1 20.2 18.5 19.8 18.1L15.9 14.2C16.6 13.1 17 11.9 17 10.5C17 6.9 14.1 4 10.5 4ZM6 10.5C6 8 8 6 10.5 6C13 6 15 8 15 10.5C15 13 13 15 10.5 15C8 15 6 13 6 10.5Z"/>
+            </svg>
+            <input type="text" placeholder="Search address...">
+        </div>
+        <div class="loc-btn">
+            <svg viewBox="0 0 24 24">
+                <path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0 0 13 3.06V1h-2v2.06A8.994 8.994 0 0 0 3.06 11H1v2h2.06A8.994 8.994 0 0 0 11 20.94V23h2v-2.06A8.994 8.994 0 0 0 20.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/>
+            </svg>
+        </div>
+        <div class="divider"></div>
+        <div class="pin-btn">
+            <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+            <span>Set Location</span>
+        </div>
+        <div class="divider"></div>
+        <div class="chevron-btn">
+            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 9l-7 7-7-7"/>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<h2>Minimal (pill style, glassmorphism)</h2>
+<div class="demo-wrapper minimal">
+    <div class="search-bar">
+        <div class="input-wrapper">
+            <svg class="search-icon" viewBox="0 0 24 24">
+                <path d="M10.5 4C6.9 4 4 6.9 4 10.5C4 14.1 6.9 17 10.5 17C12 17 13.4 16.5 14.5 15.6L18.4 19.5C18.8 19.9 19.4 19.9 19.8 19.5C20.2 19.1 20.2 18.5 19.8 18.1L15.9 14.2C16.6 13.1 17 11.9 17 10.5C17 6.9 14.1 4 10.5 4ZM6 10.5C6 8 8 6 10.5 6C13 6 15 8 15 10.5C15 13 13 15 10.5 15C8 15 6 13 6 10.5Z"/>
+            </svg>
+            <input type="text" placeholder="Search address...">
+        </div>
+        <div class="loc-btn">
+            <svg viewBox="0 0 24 24">
+                <path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0 0 13 3.06V1h-2v2.06A8.994 8.994 0 0 0 3.06 11H1v2h2.06A8.994 8.994 0 0 0 11 20.94V23h2v-2.06A8.994 8.994 0 0 0 20.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/>
+            </svg>
+        </div>
+        <div class="divider"></div>
+        <div class="pin-btn">
+            <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+            <span>Set Location</span>
+        </div>
+        <div class="divider"></div>
+        <div class="chevron-btn">
+            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 9l-7 7-7-7"/>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Toggle active state on pin buttons
+    document.querySelectorAll('.pin-btn').forEach(btn => {
+        btn.addEventListener('click', () => btn.classList.toggle('active'));
+    });
+</script>
+
+</body>
+</html>

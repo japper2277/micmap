@@ -1,0 +1,174 @@
+╔══════════════════════════════════════════════════════════════════════╗
+║                    MTA API BUG REPORT                                ║
+║                    Generated: 2025-12-12                             ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+SUMMARY
+═══════════════════════════════════════════════════════════════════════
+Total bugs found: 423
+Venues tested: 41
+Lines tested: All (1-7, A-G, J, L, M, N, Q, R, W, Z)
+Directions: Both (Uptown/Manhattan and Downtown/Brooklyn)
+
+BUG BREAKDOWN
+═══════════════════════════════════════════════════════════════════════
+
+1. NO_DESTINATION - 168 occurrences (40%)
+   ─────────────────────────────────────────────────────────────────────
+   Problem: API returns "F Uptown" instead of "F → Jamaica-179 St"
+
+   Root cause (server.js line 476-480):
+   - Only returning { line, direction, minsAway }
+   - Not extracting destination from GTFS-RT trip data
+
+   Fix: Extract headsign/destination from trip.tripHeadsign or parse tripId
+
+2. WRONG_LINE - 125 occurrences (30%)
+   ─────────────────────────────────────────────────────────────────────
+   Problem: Ask for /F/D20, get B, D, F, M trains back
+
+   Root cause (server.js line 463):
+   - if (stu.stopId?.startsWith(stopId))  ← matches stop, IGNORES line
+   - BDFM share a feed, so all 4 lines returned when asking for 1
+
+   Fix: Add line filter:
+   if (stu.stopId?.startsWith(stopId) && trip.routeId === lineUpper)
+
+3. INCOMPLETE - 71 occurrences (17%)
+   ─────────────────────────────────────────────────────────────────────
+   Problem: Transiter shows 6 trains, your API shows 2
+
+   Root cause:
+   - extractArrivals limits to 6 total (line 490)
+   - But 6 includes ALL lines, not just the requested one
+   - After filtering to requested line, often left with 1-2
+
+   Fix: Filter by line FIRST, then limit to 6
+
+4. MISSING_DATA - 48 occurrences (11%)
+   ─────────────────────────────────────────────────────────────────────
+   Problem: L/N/Q/R/W lines return empty at Union Square
+
+   Root cause:
+   - Stop ID 635 is the 4/5/6 platform at Union Sq
+   - L train uses stop ID L03, not 635
+   - N/Q/R/W use stop ID R20, not 635
+
+   Affected venues:
+   - UCB (Union Square) - L/N/Q/R/W missing
+   - Broadway Comedy Club - 1/2/3 missing (need stop 127, not R16)
+   - West Side Comedy Club - wrong stop entirely
+
+   Fix: Use correct MTA stop IDs per line:
+   - Union Sq 4/5/6: 635
+   - Union Sq L: L03
+   - Union Sq N/Q/R/W: R20
+
+5. DUPLICATES - 10 occurrences (2%)
+   ─────────────────────────────────────────────────────────────────────
+   Problem: Same train showing multiple times
+
+   Root cause (server.js line 461-484):
+   - Same tripId appears multiple times in feed
+   - No deduplication by tripId
+
+   Fix: Track seen tripIds:
+   const seen = new Set();
+   if (seen.has(trip.tripId)) continue;
+   seen.add(trip.tripId);
+
+6. TIME_MISMATCH - 1 occurrence (<1%)
+   ─────────────────────────────────────────────────────────────────────
+   Minor - likely just timing difference between API calls
+
+
+CRITICAL FIXES NEEDED
+═══════════════════════════════════════════════════════════════════════
+
+FIX 1: Filter by requested line (server.js ~line 463)
+───────────────────────────────────────────────────────────────────────
+BEFORE:
+  if (stu.stopId?.startsWith(stopId)) {
+
+AFTER:
+  if (stu.stopId?.startsWith(stopId) && trip.routeId === lineUpper) {
+
+
+FIX 2: Add destination (server.js ~line 476)
+───────────────────────────────────────────────────────────────────────
+BEFORE:
+  arrivals.push({
+    line: trip.routeId,
+    direction,
+    minsAway: Math.max(0, minsAway)
+  });
+
+AFTER:
+  // Extract destination from tripId (format: "054500_F..N03R")
+  // or use trip.tripHeadsign if available
+  const destination = trip.tripHeadsign ||
+    trip.tripId?.split('_')[0] || '';
+
+  arrivals.push({
+    line: trip.routeId,
+    direction,
+    destination,
+    minsAway: Math.max(0, minsAway)
+  });
+
+
+FIX 3: Deduplicate by tripId (server.js ~line 457)
+───────────────────────────────────────────────────────────────────────
+ADD at start of function:
+  const seen = new Set();
+
+ADD inside loop before pushing:
+  const tripKey = `${trip.tripId}-${stu.stopId}`;
+  if (seen.has(tripKey)) continue;
+  seen.add(tripKey);
+
+
+FIX 4: Stop ID mapping needs work
+───────────────────────────────────────────────────────────────────────
+Union Square complex has DIFFERENT stop IDs per line:
+  - 4/5/6: 635
+  - L: L03
+  - N/Q/R/W: R20
+
+Times Square complex:
+  - 1/2/3/7/N/Q/R/W/S: Multiple different IDs
+
+Your subway-router likely handles this, but the arrivals endpoint
+needs the caller to know the right stop ID for each line.
+
+Consider: New endpoint that takes lat/lng + line and finds correct stop
+
+
+STOP ID CORRECTIONS NEEDED
+═══════════════════════════════════════════════════════════════════════
+West Side Comedy Club:
+  - Current: A19 (that's A/B/C at 96 St)
+  - Should be: 120 (1/2/3 at 96 St)
+
+Broadway Comedy Club:
+  - Current: R16 (N/Q/R/W at Times Sq)
+  - For 1/2/3: needs 127 (Times Sq 1/2/3 platform)
+
+UCB (Union Square):
+  - For 4/5/6: 635 ✓
+  - For L: L03
+  - For N/Q/R/W: R20
+
+
+FILES TO UPDATE
+═══════════════════════════════════════════════════════════════════════
+1. api/server.js - extractArrivals function (lines 443-491)
+2. Venue stop ID mappings (if hardcoded anywhere)
+
+
+TEST AFTER FIX
+═══════════════════════════════════════════════════════════════════════
+Run: node test-full-compare.js
+
+Expected result: Bug count should drop from 423 to ~50
+(Remaining will be stop ID mapping issues)

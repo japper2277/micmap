@@ -1,0 +1,373 @@
+MOBILE ACCESSIBILITY AUDIT V2: map_designs/newest_map/
+=========================================================
+Post-Fix Analysis - Section-by-Section Grades
+
+OVERALL GRADE: 68/100 (up from 41/100)
+
+===========================================================
+SECTION GRADES
+===========================================================
+
+1. MAP LAYER & LEGEND                                  55/100
+-----------------------------------------------------------
+Current State:
++ Map uses Leaflet which has some built-in a11y
++ Legend has semantic structure
+
+Missing:
+- Map not keyboard navigable (Leaflet limitation)
+- Legend items not interactive buttons
+- No aria-live region for map state changes
+- Map markers not keyboard accessible
+- No screen reader announcements for marker interactions
+
+To Fix:
+- Add role="img" and aria-label to map container describing current view
+- Add aria-live region for map interaction feedback
+- Consider adding a "Skip to list" link
+
+Files: index.html:29, css/map.css
+
+
+2. LOCATE ME BUTTON                                    95/100
+-----------------------------------------------------------
+Current State:
++ aria-label="Center map on my location" ✓
++ 44x44px touch target ✓
++ Visible focus state (from base.css) ✓
++ Proper <button> element ✓
+
+Missing:
+- No aria-pressed or aria-live for location tracking state
+- No announcement when location is found/error
+
+To Fix:
+- Add aria-pressed="false" when not tracking, "true" when active
+- Add aria-live="polite" announcement region for status
+
+Files: index.html:39-43, controls.css:81-112
+
+
+3. SEARCH BAR                                          85/100
+-----------------------------------------------------------
+Current State:
++ role="search" on container ✓
++ aria-label on input ✓
++ aria-label on clear button ✓
++ aria-label on location button ✓
++ aria-hidden on decorative icon ✓
++ 44px touch targets ✓
++ Focus-visible styles ✓
+
+Missing:
+- Dropdown lacks role="listbox"
+- Dropdown items lack role="option"
+- No aria-activedescendant for keyboard navigation
+- No aria-live for "X results found" announcements
+- Clear button should have aria-hidden when not visible
+
+To Fix:
+- Add role="listbox" to search-dropdown
+- Add role="option" to dropdown-item elements
+- Add aria-live region for result count
+- Implement arrow key navigation with aria-activedescendant
+
+Files: index.html:46-74, controls.css:439-537, js/search.js
+
+
+4. DRAWER TOGGLE (Desktop & Mobile)                    90/100
+-----------------------------------------------------------
+Current State:
++ Proper <button> elements ✓
++ aria-label="Toggle mic list" ✓
++ aria-expanded="true" ✓
++ aria-controls="list-drawer" ✓
++ aria-hidden on decorative chevron icon ✓
++ 44px+ touch targets (w-11/h-11 = 44px, w-12/h-6 = 48x24) ✓
++ Mobile drag handle is now a button ✓
+
+Missing:
+- aria-expanded not dynamically updated in JS
+- No screen reader announcement when drawer opens/closes
+
+To Fix:
+- Update aria-expanded in toggleDrawer() function
+- Add aria-live region or announce state change
+
+Files: index.html:71-73, 85-87, js/drawer.js:6-42
+
+
+5. DRAWER HEADER CONTROLS                              88/100
+-----------------------------------------------------------
+Current State:
++ Today/Tmrw buttons have aria-labels ✓
++ Calendar button has aria-label ✓
++ Settings button has aria-label ✓
++ 44px touch targets ✓
+
+Missing:
+- Toggle buttons don't announce active state to screen readers
+- Should use aria-pressed or proper toggle pattern
+- Toggle container could use role="group" with aria-label
+
+To Fix:
+- Add aria-pressed to Today/Tmrw buttons, update dynamically
+- Add role="group" aria-label="Day selector" to toggle-container
+
+Files: index.html:98-122, controls.css:149-212
+
+
+6. FILTER BUTTONS                                      80/100
+-----------------------------------------------------------
+Current State:
++ All buttons have aria-labels ✓
++ Time filter has aria-expanded and aria-controls ✓
++ 44px touch targets ✓
++ Proper <button> elements ✓
++ aria-hidden on chevron icon ✓
+
+Missing:
+- aria-expanded not dynamically updated in JS
+- Price/Commute filters cycle through states - not announced
+- Active filter state not announced to screen readers
+- Filter row lacks role="toolbar" or group label
+
+To Fix:
+- Add role="toolbar" aria-label="Filter options" to filter row
+- Update aria-expanded on popover open/close
+- Add aria-live announcement for filter changes
+- Consider aria-pressed for cycling filters
+
+Files: index.html:127-151, controls.css:214-241, js/filters.js
+
+
+7. STREAM ITEMS (Mic Cards)                            35/100
+-----------------------------------------------------------
+Current State:
++ XSS protection (escapeHtml) ✓
++ Scroll margin for headers ✓
+
+CRITICAL ISSUES:
+- Cards are <div> with onclick - NOT keyboard accessible
+- No role, no tabindex - invisible to screen readers
+- Icon buttons lack aria-labels
+- Card flip animation has no screen reader support
+- Action icons (info, IG, external link) need labels
+
+To Fix:
+- Add tabindex="0" and role="article" to stream-item
+- Add keyboard handler (Enter/Space) to trigger click
+- Add aria-labels to all icon-btn elements in card
+- Add aria-live region for flip state
+- Or: Convert cards to <button> wrapping a <article>
+
+Files: js/render.js:219-305, css/stream.css
+
+
+8. TIME HEADER (Sticky)                                70/100
+-----------------------------------------------------------
+Current State:
++ Semantic structure with time display
++ Sticky positioning works
+
+Missing:
+- No role="heading" or aria-level
+- Not announced as section header
+
+To Fix:
+- Add role="heading" aria-level="2" to time headers
+- Or use actual <h2> element
+
+Files: js/render.js:209-216
+
+
+9. DATE CAROUSEL                                       40/100
+-----------------------------------------------------------
+Current State:
++ Glass panel styling
++ Dynamically generated
+
+ISSUES:
+- Date capsules are <div> with onclick - not accessible
+- No aria-labels on date buttons
+- No keyboard navigation
+- No indication of selected date to screen readers
+- No role on carousel container
+
+To Fix:
+- Convert capsules to <button> elements
+- Add aria-label="Monday December 16" format
+- Add aria-pressed="true" for selected date
+- Add role="listbox" to container, role="option" to capsules
+- Implement arrow key navigation
+
+Files: index.html:163-170, js/calendar.js
+
+
+10. VENUE MODAL                                        75/100
+-----------------------------------------------------------
+Current State:
++ role="dialog" ✓
++ aria-modal="true" ✓
++ aria-labelledby="modal-venue-name" ✓
++ Escape key closes modal ✓
++ Click outside closes modal ✓
+
+Missing:
+- NO FOCUS TRAP - Tab can escape modal
+- Focus doesn't move to modal on open
+- Focus doesn't return to trigger on close
+- Action buttons (Sign Up, IG) lack descriptive aria-labels
+- Transit cards in modal have same issues as stream cards
+
+To Fix:
+- Implement focus trap (trap Tab within modal)
+- Move focus to modal on open (first focusable element)
+- Store and restore focus on close
+- Add aria-label="Sign up for [venue name]" to buttons
+
+Files: index.html:172-200, js/modal.js:49-126, 552-554
+
+
+11. TIME FILTER POPOVER                                65/100
+-----------------------------------------------------------
+Current State:
++ Uses <button> elements ✓
++ Has option labels and details ✓
+
+Missing:
+- No role="listbox" on container
+- No role="option" on options
+- No aria-selected for active option
+- Not announced when opened/closed
+- No keyboard navigation (arrow keys)
+
+To Fix:
+- Add role="listbox" id="time-popover" to container
+- Add role="option" aria-selected to options
+- Implement arrow key navigation
+- Update aria-expanded on trigger button
+
+Files: index.html:203-223, controls.css:257-315
+
+
+12. ALERT MODAL                                        80/100
+-----------------------------------------------------------
+Current State:
++ role="alertdialog" ✓
++ aria-modal="true" ✓
++ aria-labelledby="alert-title" ✓
++ Dismiss button has aria-label ✓
++ Click outside closes ✓
+
+Missing:
+- No focus trap
+- Focus doesn't move to modal
+- Focus doesn't return on close
+
+To Fix:
+- Same focus management as venue modal
+
+Files: index.html:225-239
+
+
+13. SETTINGS MODAL (dynamically created)               60/100
+-----------------------------------------------------------
+Current State:
++ 44px close button ✓
++ Uses native radio inputs ✓
+
+Missing:
+- Likely missing role="dialog"
+- Likely missing focus management
+- Close button needs aria-label
+
+To Fix:
+- Add role="dialog" aria-modal="true" aria-labelledby
+- Implement focus trap
+- Add aria-label="Close settings" to close button
+
+Files: js/settings.js (not read, inferred from controls.css:561-670)
+
+
+===========================================================
+PRIORITY IMPROVEMENTS BY IMPACT
+===========================================================
+
+HIGH IMPACT (Do These First):
+1. Make stream items keyboard accessible (tabindex, role, handlers)
+2. Implement focus trapping in modals
+3. Update aria-expanded dynamically in JS
+4. Make date carousel accessible
+
+MEDIUM IMPACT:
+5. Add aria-live regions for dynamic content
+6. Add role="listbox" to dropdowns/popovers
+7. Add aria-pressed to toggle buttons
+8. Add aria-labels to dynamically generated buttons
+
+LOW IMPACT (Polish):
+9. Add skip link
+10. Add landmark roles
+11. Improve heading hierarchy
+
+
+===========================================================
+SPECIFIC CODE FIXES NEEDED
+===========================================================
+
+1. js/drawer.js - Update aria-expanded:
+   Add after line 31/39:
+   document.querySelectorAll('[aria-controls="list-drawer"], [aria-controls="list-content"]')
+       .forEach(btn => btn.setAttribute('aria-expanded', STATE.isDrawerOpen));
+
+2. js/render.js - Make cards accessible:
+   Change line 219-222:
+   card.className = `stream-item group ${isRecentPast ? 'is-past' : ''}`;
+   card.setAttribute('tabindex', '0');
+   card.setAttribute('role', 'article');
+   card.setAttribute('aria-label', `${safeTitle} at ${mic.timeStr}, ${safeHood}`);
+   card.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); locateMic(mic.lat, mic.lng, mic.id); }};
+
+3. js/render.js - Add aria-labels to icon buttons:
+   Line 276-289: Add aria-label to each <a> and <button>
+   Example: aria-label="Visit website for ${safeTitle}"
+            aria-label="Email ${safeSignupEmail}"
+            aria-label="View signup instructions"
+            aria-label="View ${safeContact} on Instagram"
+
+4. js/modal.js - Add focus trap:
+   Add to openVenueModal() after line 122:
+   const focusableElements = venueModal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+   const firstFocusable = focusableElements[0];
+   const lastFocusable = focusableElements[focusableElements.length - 1];
+   firstFocusable?.focus();
+   // Add keydown listener for Tab trap
+
+5. js/filters.js - Update aria-expanded on popover:
+   When opening: document.getElementById('filter-time').setAttribute('aria-expanded', 'true');
+   When closing: document.getElementById('filter-time').setAttribute('aria-expanded', 'false');
+
+
+===========================================================
+ESTIMATED SCORES AFTER FULL FIX
+===========================================================
+
+If all above fixes implemented:
+
+Section                        Current → Target
+Map Layer & Legend             55 → 70
+Locate Me Button               95 → 98
+Search Bar                     85 → 95
+Drawer Toggle                  90 → 98
+Drawer Header Controls         88 → 95
+Filter Buttons                 80 → 95
+Stream Items                   35 → 85
+Time Header                    70 → 90
+Date Carousel                  40 → 90
+Venue Modal                    75 → 95
+Time Filter Popover            65 → 90
+Alert Modal                    80 → 95
+Settings Modal                 60 → 90
+
+OVERALL: 68/100 → 88/100

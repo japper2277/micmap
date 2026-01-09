@@ -1,0 +1,6547 @@
+[
+  {
+    "from": "UCB",
+    "to": "The Tiny Cupboard",
+    "micmap": {
+      "totalTime": 37,
+      "lines": [
+        "L"
+      ],
+      "walkToStation": 1,
+      "subwayTime": 24,
+      "walkToVenue": 12,
+      "originStation": "3 Av",
+      "exitStation": "Wilson Av"
+    },
+    "walkTime": 124,
+    "savings": 87
+  },
+  {
+    "from": "UCB",
+    "to": "Comedy Shop",
+    "micmap": {
+      "totalTime": 16,
+      "lines": [
+        "L",
+        "N"
+      ],
+      "walkToStation": 1,
+      "subwayTime": 6,
+      "walkToVenue": 10,
+      "originStation": "3 Av",
+      "exitStation": "8 St-NYU"
+    },
+    "walkTime": 20,
+    "savings": 4
+  },
+  {
+    "from": "UCB",
+    "to": "Greenwich Village Comedy Club",
+    "micmap": {
+      "totalTime": 20,
+      "lines": [
+        "L"
+      ],
+      "walkToStation": 1,
+      "subwayTime": 6,
+      "walkToVenue": 14,
+      "originStation": "3 Av",
+      "exitStation": "6 Av"
+    },
+    "walkTime": 20,
+    "savings": 0
+  },
+  {
+    "from": "UCB",
+    "to": "Pinebox",
+    "micmap": {
+      "totalTime": 22,
+      "lines": [
+        "L"
+      ],
+      "walkToStation": 1,
+      "subwayTime": 11,
+      "walkToVenue": 10,
+      "originStation": "3 Av",
+      "exitStation": "Montrose Av"
+    },
+    "walkTime": 81,
+    "savings": 59
+  },
+  {
+    "from": "UCB",
+    "to": "UWS NY Comedy Club",
+    "micmap": {
+      "totalTime": 18,
+      "lines": [
+        "L",
+        "N"
+      ],
+      "walkToStation": 1,
+      "subwayTime": 10,
+      "walkToVenue": 8,
+      "originStation": "3 Av",
+      "exitStation": "49 St"
+    },
+    "walkTime": 52,
+    "savings": 34
+  },
+  {
+    "from": "UCB",
+    "to": "Eastville Comedy Club",
+    "micmap": {
+      "totalTime": 25,
+      "lines": [
+        "L",
+        "Q"
+      ],
+      "walkToStation": 1,
+      "subwayTime": 16,
+      "walkToVenue": 8,
+      "originStation": "3 Av",
+      "exitStation": "DeKalb Av"
+    },
+    "walkTime": 78,
+    "savings": 53
+  },
+  {
+    "from": "UCB",
+    "to": "Phoenix Bar",
+    "micmap": {
+      "totalTime": 15,
+      "lines": [
+        "L"
+      ],
+      "walkToStation": 1,
+      "subwayTime": 1,
+      "walkToVenue": 13,
+      "originStation": "3 Av",
+      "exitStation": "1 Av"
+    },
+    "walkTime": 17,
+    "savings": 2
+  },
+  {
+    "from": "UCB",
+    "to": "St. Mark's Comedy Club",
+    "micmap": {
+      "error": "No route found"
+    },
+    "walkTime": 8,
+    "savings": null
+  },
+  {
+    "from": "UCB",
+    "to": "Producer's Club",
+    "micmap": {
+      "totalTime": 19,
+      "lines": [
+        "L",
+        "Q"
+      ],
+      "walkToStation": 1,
+      "subwayTime": 8,
+      "walkToVenue": 10,
+      "originStation": "3 Av",
+      "exitStation": "Times Sq-42 St"
+    },
+    "walkTime": 45,
+    "savings": 26
+  },
+  {
+    "from": "UCB",
+    "to": "Caffeine Underground",
+    "micmap": {
+      "totalTime": 32,
+      "lines": [
+        "L"
+      ],
+      "walkToStation": 1,
+      "subwayTime": 18,
+      "walkToVenue": 13,
+      "originStation": "3 Av",
+      "exitStation": "Myrtle-Wyckoff Avs"
+    },
+    "walkTime": 112,
+    "savings": 80
+  },
+  {
+    "from": "UCB",
+    "to": "Brooklyn Art Haus",
+    "micmap": {
+      "totalTime": 13,
+      "lines": [
+        "L"
+      ],
+      "walkToStation": 1,
+      "subwayTime": 5,
+      "walkToVenue": 7,
+      "originStation": "3 Av",
+      "exitStation": "Bedford Av"
+    },
+    "walkTime": 50,
+    "savings": 37
+  },
+  {
+    "from": "UCB",
+    "to": "The Comic Strip Live",
+    "micmap": {
+      "totalTime": 22,
+      "lines": [
+        "L",
+        "4"
+      ],
+      "walkToStation": 1,
+      "subwayTime": 13,
+      "walkToVenue": 8,
+      "originStation": "3 Av",
+      "exitStation": "86 St"
+    },
+    "walkTime": 80,
+    "savings": 58
+  },
+  {
+    "from": "UCB",
+    "to": "Fear City Comedy Club",
+    "micmap": {
+      "totalTime": 23,
+      "lines": [
+        "L",
+        "N"
+      ],
+      "walkToStation": 1,
+      "subwayTime": 8,
+      "walkToVenue": 14,
+      "originStation": "3 Av",
+      "exitStation": "Canal St"
+    },
+    "walkTime": 30,
+    "savings": 7
+  },
+  {
+    "from": "UCB",
+    "to": "Easy Lover BK",
+    "micmap": {
+      "totalTime": 17,
+      "lines": [
+        "L"
+      ],
+      "walkToStation": 1,
+      "subwayTime": 7,
+      "walkToVenue": 10,
+      "originStation": "3 Av",
+      "exitStation": "Lorimer St"
+    },
+    "walkTime": 62,
+    "savings": 45
+  },
+  {
+    "from": "UCB",
+    "to": "Bushwick Comedy Club",
+    "micmap": {
+      "totalTime": 22,
+      "lines": [
+        "L"
+      ],
+      "walkToStation": 1,
+      "subwayTime": 13,
+      "walkToVenue": 8,
+      "originStation": "3 Av",
+      "exitStation": "Morgan Av"
+    },
+    "walkTime": 87,
+    "savings": 65
+  },
+  {
+    "from": "UCB",
+    "to": "Idaho Bar",
+    "micmap": {
+      "error": "No route found"
+    },
+    "walkTime": 4,
+    "savings": null
+  },
+  {
+    "from": "UCB",
+    "to": "O'Keefe's Bar",
+    "micmap": {
+      "totalTime": 24,
+      "lines": [
+        "L",
+        "6",
+        "F"
+      ],
+      "walkToStation": 1,
+      "subwayTime": 19,
+      "walkToVenue": 5,
+      "originStation": "3 Av",
+      "exitStation": "Jay St-MetroTech"
+    },
+    "walkTime": 68,
+    "savings": 44
+  },
+  {
+    "from": "UCB",
+    "to": "QED Astoria",
+    "micmap": {
+      "totalTime": 36,
+      "lines": [
+        "L",
+        "4",
+        "N"
+      ],
+      "walkToStation": 1,
+      "subwayTime": 26,
+      "walkToVenue": 9,
+      "originStation": "3 Av",
+      "exitStation": "Astoria Blvd"
+    },
+    "walkTime": 113,
+    "savings": 77
+  },
+  {
+    "from": "UCB",
+    "to": "The Pit Midtown",
+    "micmap": {
+      "totalTime": 17,
+      "lines": [
+        "L",
+        "N"
+      ],
+      "walkToStation": 1,
+      "subwayTime": 6,
+      "walkToVenue": 11,
+      "originStation": "3 Av",
+      "exitStation": "23 St"
+    },
+    "walkTime": 25,
+    "savings": 8
+  },
+  {
+    "from": "The Tiny Cupboard",
+    "to": "UCB",
+    "micmap": {
+      "totalTime": 42,
+      "lines": [
+        "J",
+        "M",
+        "L"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 34,
+      "walkToVenue": 6,
+      "originStation": "Chauncey St",
+      "exitStation": "1 Av"
+    },
+    "walkTime": 124,
+    "savings": 82
+  },
+  {
+    "from": "The Tiny Cupboard",
+    "to": "Comedy Shop",
+    "micmap": {
+      "totalTime": 31,
+      "lines": [
+        "Z",
+        "M"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 22,
+      "walkToVenue": 8,
+      "originStation": "Chauncey St",
+      "exitStation": "Broadway-Lafayette St"
+    },
+    "walkTime": 135,
+    "savings": 104
+  },
+  {
+    "from": "The Tiny Cupboard",
+    "to": "Greenwich Village Comedy Club",
+    "micmap": {
+      "totalTime": 33,
+      "lines": [
+        "Z",
+        "M"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 22,
+      "walkToVenue": 9,
+      "originStation": "Chauncey St",
+      "exitStation": "Broadway-Lafayette St"
+    },
+    "walkTime": 136,
+    "savings": 103
+  },
+  {
+    "from": "The Tiny Cupboard",
+    "to": "Pinebox",
+    "micmap": {
+      "totalTime": 21,
+      "lines": [
+        "J"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 6,
+      "walkToVenue": 14,
+      "originStation": "Chauncey St",
+      "exitStation": "Myrtle Av"
+    },
+    "walkTime": 45,
+    "savings": 24
+  },
+  {
+    "from": "The Tiny Cupboard",
+    "to": "UWS NY Comedy Club",
+    "micmap": {
+      "totalTime": 42,
+      "lines": [
+        "Z",
+        "Q"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 33,
+      "walkToVenue": 8,
+      "originStation": "Chauncey St",
+      "exitStation": "49 St"
+    },
+    "walkTime": 162,
+    "savings": 120
+  },
+  {
+    "from": "The Tiny Cupboard",
+    "to": "Eastville Comedy Club",
+    "micmap": {
+      "totalTime": 26,
+      "lines": [
+        "Z",
+        "A"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 15,
+      "walkToVenue": 10,
+      "originStation": "Chauncey St",
+      "exitStation": "Lafayette Av"
+    },
+    "walkTime": 89,
+    "savings": 63
+  },
+  {
+    "from": "The Tiny Cupboard",
+    "to": "Phoenix Bar",
+    "micmap": {
+      "totalTime": 29,
+      "lines": [
+        "Z"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 17,
+      "walkToVenue": 10,
+      "originStation": "Chauncey St",
+      "exitStation": "Delancey St-Essex St"
+    },
+    "walkTime": 111,
+    "savings": 82
+  },
+  {
+    "from": "The Tiny Cupboard",
+    "to": "St. Mark's Comedy Club",
+    "micmap": {
+      "totalTime": 46,
+      "lines": [
+        "J",
+        "M",
+        "L"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 34,
+      "walkToVenue": 10,
+      "originStation": "Chauncey St",
+      "exitStation": "1 Av"
+    },
+    "walkTime": 124,
+    "savings": 78
+  },
+  {
+    "from": "The Tiny Cupboard",
+    "to": "Producer's Club",
+    "micmap": {
+      "totalTime": 43,
+      "lines": [
+        "Z",
+        "Q"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 31,
+      "walkToVenue": 10,
+      "originStation": "Chauncey St",
+      "exitStation": "Times Sq-42 St"
+    },
+    "walkTime": 161,
+    "savings": 118
+  },
+  {
+    "from": "The Tiny Cupboard",
+    "to": "Caffeine Underground",
+    "micmap": {
+      "totalTime": 13,
+      "lines": [
+        "J"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 2,
+      "walkToVenue": 10,
+      "originStation": "Chauncey St",
+      "exitStation": "Halsey St"
+    },
+    "walkTime": 15,
+    "savings": 2
+  },
+  {
+    "from": "The Tiny Cupboard",
+    "to": "Brooklyn Art Haus",
+    "micmap": {
+      "totalTime": 20,
+      "lines": [
+        "Z"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 10,
+      "walkToVenue": 9,
+      "originStation": "Chauncey St",
+      "exitStation": "Marcy Av"
+    },
+    "walkTime": 74,
+    "savings": 54
+  },
+  {
+    "from": "The Tiny Cupboard",
+    "to": "The Comic Strip Live",
+    "micmap": {
+      "totalTime": 58,
+      "lines": [
+        "J",
+        "M",
+        "L",
+        "4"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 48,
+      "walkToVenue": 8,
+      "originStation": "Chauncey St",
+      "exitStation": "86 St"
+    },
+    "walkTime": 160,
+    "savings": 102
+  },
+  {
+    "from": "The Tiny Cupboard",
+    "to": "Fear City Comedy Club",
+    "micmap": {
+      "totalTime": 25,
+      "lines": [
+        "Z"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 17,
+      "walkToVenue": 6,
+      "originStation": "Chauncey St",
+      "exitStation": "Delancey St-Essex St"
+    },
+    "walkTime": 112,
+    "savings": 87
+  },
+  {
+    "from": "The Tiny Cupboard",
+    "to": "Easy Lover BK",
+    "micmap": {
+      "totalTime": 37,
+      "lines": [
+        "J",
+        "M",
+        "L"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 24,
+      "walkToVenue": 12,
+      "originStation": "Chauncey St",
+      "exitStation": "Montrose Av"
+    },
+    "walkTime": 65,
+    "savings": 28
+  },
+  {
+    "from": "The Tiny Cupboard",
+    "to": "Bushwick Comedy Club",
+    "micmap": {
+      "totalTime": 18,
+      "lines": [
+        "J"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 6,
+      "walkToVenue": 11,
+      "originStation": "Chauncey St",
+      "exitStation": "Myrtle Av"
+    },
+    "walkTime": 38,
+    "savings": 20
+  },
+  {
+    "from": "The Tiny Cupboard",
+    "to": "Idaho Bar",
+    "micmap": {
+      "totalTime": 38,
+      "lines": [
+        "J",
+        "M",
+        "L"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 34,
+      "walkToVenue": 2,
+      "originStation": "Chauncey St",
+      "exitStation": "1 Av"
+    },
+    "walkTime": 120,
+    "savings": 82
+  },
+  {
+    "from": "The Tiny Cupboard",
+    "to": "O'Keefe's Bar",
+    "micmap": {
+      "totalTime": 27,
+      "lines": [
+        "Z",
+        "A"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 16,
+      "walkToVenue": 10,
+      "originStation": "Chauncey St",
+      "exitStation": "Hoyt-Schermerhorn Sts"
+    },
+    "walkTime": 102,
+    "savings": 75
+  },
+  {
+    "from": "The Tiny Cupboard",
+    "to": "QED Astoria",
+    "micmap": {
+      "totalTime": 60,
+      "lines": [
+        "Z",
+        "L",
+        "G",
+        "7",
+        "W"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 49,
+      "walkToVenue": 9,
+      "originStation": "Chauncey St",
+      "exitStation": "Astoria Blvd"
+    },
+    "walkTime": 152,
+    "savings": 92
+  },
+  {
+    "from": "The Tiny Cupboard",
+    "to": "The Pit Midtown",
+    "micmap": {
+      "totalTime": 37,
+      "lines": [
+        "Z",
+        "M"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 28,
+      "walkToVenue": 8,
+      "originStation": "Chauncey St",
+      "exitStation": "23 St"
+    },
+    "walkTime": 147,
+    "savings": 110
+  },
+  {
+    "from": "Comedy Shop",
+    "to": "UCB",
+    "micmap": {
+      "totalTime": 17,
+      "lines": [
+        "N"
+      ],
+      "walkToStation": 6,
+      "subwayTime": 2,
+      "walkToVenue": 10,
+      "originStation": "W 4 St-Wash Sq",
+      "exitStation": "8 St-NYU"
+    },
+    "walkTime": 20,
+    "savings": 3
+  },
+  {
+    "from": "Comedy Shop",
+    "to": "The Tiny Cupboard",
+    "micmap": {
+      "totalTime": 40,
+      "lines": [
+        "C"
+      ],
+      "walkToStation": 6,
+      "subwayTime": 23,
+      "walkToVenue": 12,
+      "originStation": "W 4 St-Wash Sq",
+      "exitStation": "Broadway Junction"
+    },
+    "walkTime": 135,
+    "savings": 95
+  },
+  {
+    "from": "Comedy Shop",
+    "to": "Greenwich Village Comedy Club",
+    "micmap": {
+      "error": "No route found"
+    },
+    "walkTime": 2,
+    "savings": null
+  },
+  {
+    "from": "Comedy Shop",
+    "to": "Pinebox",
+    "micmap": {
+      "totalTime": 33,
+      "lines": [
+        "N",
+        "L"
+      ],
+      "walkToStation": 6,
+      "subwayTime": 18,
+      "walkToVenue": 10,
+      "originStation": "W 4 St-Wash Sq",
+      "exitStation": "Montrose Av"
+    },
+    "walkTime": 93,
+    "savings": 60
+  },
+  {
+    "from": "Comedy Shop",
+    "to": "UWS NY Comedy Club",
+    "micmap": {
+      "totalTime": 22,
+      "lines": [
+        "D"
+      ],
+      "walkToStation": 6,
+      "subwayTime": 6,
+      "walkToVenue": 10,
+      "originStation": "W 4 St-Wash Sq",
+      "exitStation": "47-50 Sts-Rockefeller Ctr"
+    },
+    "walkTime": 63,
+    "savings": 41
+  },
+  {
+    "from": "Comedy Shop",
+    "to": "Eastville Comedy Club",
+    "micmap": {
+      "totalTime": 27,
+      "lines": [
+        "F"
+      ],
+      "walkToStation": 6,
+      "subwayTime": 9,
+      "walkToVenue": 13,
+      "originStation": "W 4 St-Wash Sq",
+      "exitStation": "Jay St-MetroTech"
+    },
+    "walkTime": 75,
+    "savings": 48
+  },
+  {
+    "from": "Comedy Shop",
+    "to": "Phoenix Bar",
+    "micmap": {
+      "totalTime": 16,
+      "lines": [
+        "F"
+      ],
+      "walkToStation": 6,
+      "subwayTime": 2,
+      "walkToVenue": 9,
+      "originStation": "W 4 St-Wash Sq",
+      "exitStation": "2 Av"
+    },
+    "walkTime": 24,
+    "savings": 8
+  },
+  {
+    "from": "Comedy Shop",
+    "to": "St. Mark's Comedy Club",
+    "micmap": {
+      "error": "No route found"
+    },
+    "walkTime": 14,
+    "savings": null
+  },
+  {
+    "from": "Comedy Shop",
+    "to": "Producer's Club",
+    "micmap": {
+      "totalTime": 23,
+      "lines": [
+        "D"
+      ],
+      "walkToStation": 6,
+      "subwayTime": 5,
+      "walkToVenue": 12,
+      "originStation": "W 4 St-Wash Sq",
+      "exitStation": "42 St-Bryant Pk"
+    },
+    "walkTime": 52,
+    "savings": 29
+  },
+  {
+    "from": "Comedy Shop",
+    "to": "Caffeine Underground",
+    "micmap": {
+      "totalTime": 43,
+      "lines": [
+        "N",
+        "L"
+      ],
+      "walkToStation": 6,
+      "subwayTime": 25,
+      "walkToVenue": 13,
+      "originStation": "W 4 St-Wash Sq",
+      "exitStation": "Myrtle-Wyckoff Avs"
+    },
+    "walkTime": 124,
+    "savings": 81
+  },
+  {
+    "from": "Comedy Shop",
+    "to": "Brooklyn Art Haus",
+    "micmap": {
+      "totalTime": 24,
+      "lines": [
+        "N",
+        "L"
+      ],
+      "walkToStation": 6,
+      "subwayTime": 12,
+      "walkToVenue": 7,
+      "originStation": "W 4 St-Wash Sq",
+      "exitStation": "Bedford Av"
+    },
+    "walkTime": 62,
+    "savings": 38
+  },
+  {
+    "from": "Comedy Shop",
+    "to": "The Comic Strip Live",
+    "micmap": {
+      "totalTime": 29,
+      "lines": [
+        "N",
+        "4"
+      ],
+      "walkToStation": 6,
+      "subwayTime": 15,
+      "walkToVenue": 8,
+      "originStation": "W 4 St-Wash Sq",
+      "exitStation": "86 St"
+    },
+    "walkTime": 96,
+    "savings": 67
+  },
+  {
+    "from": "Comedy Shop",
+    "to": "Fear City Comedy Club",
+    "micmap": {
+      "totalTime": 21,
+      "lines": [
+        "F"
+      ],
+      "walkToStation": 6,
+      "subwayTime": 2,
+      "walkToVenue": 13,
+      "originStation": "W 4 St-Wash Sq",
+      "exitStation": "2 Av"
+    },
+    "walkTime": 26,
+    "savings": 5
+  },
+  {
+    "from": "Comedy Shop",
+    "to": "Easy Lover BK",
+    "micmap": {
+      "totalTime": 29,
+      "lines": [
+        "N",
+        "L"
+      ],
+      "walkToStation": 6,
+      "subwayTime": 13,
+      "walkToVenue": 10,
+      "originStation": "W 4 St-Wash Sq",
+      "exitStation": "Lorimer St"
+    },
+    "walkTime": 76,
+    "savings": 47
+  },
+  {
+    "from": "Comedy Shop",
+    "to": "Bushwick Comedy Club",
+    "micmap": {
+      "totalTime": 33,
+      "lines": [
+        "N",
+        "L"
+      ],
+      "walkToStation": 6,
+      "subwayTime": 20,
+      "walkToVenue": 8,
+      "originStation": "W 4 St-Wash Sq",
+      "exitStation": "Morgan Av"
+    },
+    "walkTime": 99,
+    "savings": 66
+  },
+  {
+    "from": "Comedy Shop",
+    "to": "Idaho Bar",
+    "micmap": {
+      "totalTime": 19,
+      "lines": [
+        "N"
+      ],
+      "walkToStation": 6,
+      "subwayTime": 2,
+      "walkToVenue": 12,
+      "originStation": "W 4 St-Wash Sq",
+      "exitStation": "8 St-NYU"
+    },
+    "walkTime": 21,
+    "savings": 2
+  },
+  {
+    "from": "Comedy Shop",
+    "to": "O'Keefe's Bar",
+    "micmap": {
+      "totalTime": 27,
+      "lines": [
+        "C"
+      ],
+      "walkToStation": 6,
+      "subwayTime": 9,
+      "walkToVenue": 12,
+      "originStation": "W 4 St-Wash Sq",
+      "exitStation": "High St"
+    },
+    "walkTime": 62,
+    "savings": 35
+  },
+  {
+    "from": "Comedy Shop",
+    "to": "QED Astoria",
+    "micmap": {
+      "totalTime": 43,
+      "lines": [
+        "N",
+        "4",
+        "N"
+      ],
+      "walkToStation": 6,
+      "subwayTime": 28,
+      "walkToVenue": 9,
+      "originStation": "W 4 St-Wash Sq",
+      "exitStation": "Astoria Blvd"
+    },
+    "walkTime": 132,
+    "savings": 89
+  },
+  {
+    "from": "Comedy Shop",
+    "to": "The Pit Midtown",
+    "micmap": {
+      "totalTime": 16,
+      "lines": [
+        "D"
+      ],
+      "walkToStation": 6,
+      "subwayTime": 3,
+      "walkToVenue": 7,
+      "originStation": "W 4 St-Wash Sq",
+      "exitStation": "34 St-Herald Sq"
+    },
+    "walkTime": 32,
+    "savings": 16
+  },
+  {
+    "from": "Greenwich Village Comedy Club",
+    "to": "UCB",
+    "micmap": {
+      "totalTime": 18,
+      "lines": [
+        "F",
+        "L"
+      ],
+      "walkToStation": 5,
+      "subwayTime": 7,
+      "walkToVenue": 7,
+      "originStation": "W 4 St-Wash Sq",
+      "exitStation": "14 St-Union Sq"
+    },
+    "walkTime": 20,
+    "savings": 2
+  },
+  {
+    "from": "Greenwich Village Comedy Club",
+    "to": "The Tiny Cupboard",
+    "micmap": {
+      "totalTime": 38,
+      "lines": [
+        "C"
+      ],
+      "walkToStation": 5,
+      "subwayTime": 25,
+      "walkToVenue": 9,
+      "originStation": "W 4 St-Wash Sq",
+      "exitStation": "Rockaway Av"
+    },
+    "walkTime": 136,
+    "savings": 98
+  },
+  {
+    "from": "Greenwich Village Comedy Club",
+    "to": "Comedy Shop",
+    "micmap": {
+      "error": "No route found"
+    },
+    "walkTime": 2,
+    "savings": null
+  },
+  {
+    "from": "Greenwich Village Comedy Club",
+    "to": "Pinebox",
+    "micmap": {
+      "totalTime": 32,
+      "lines": [
+        "F",
+        "L"
+      ],
+      "walkToStation": 5,
+      "subwayTime": 18,
+      "walkToVenue": 10,
+      "originStation": "W 4 St-Wash Sq",
+      "exitStation": "Montrose Av"
+    },
+    "walkTime": 95,
+    "savings": 63
+  },
+  {
+    "from": "Greenwich Village Comedy Club",
+    "to": "UWS NY Comedy Club",
+    "micmap": {
+      "totalTime": 21,
+      "lines": [
+        "D"
+      ],
+      "walkToStation": 5,
+      "subwayTime": 6,
+      "walkToVenue": 10,
+      "originStation": "W 4 St-Wash Sq",
+      "exitStation": "47-50 Sts-Rockefeller Ctr"
+    },
+    "walkTime": 62,
+    "savings": 41
+  },
+  {
+    "from": "Greenwich Village Comedy Club",
+    "to": "Eastville Comedy Club",
+    "micmap": {
+      "totalTime": 28,
+      "lines": [
+        "C"
+      ],
+      "walkToStation": 5,
+      "subwayTime": 11,
+      "walkToVenue": 13,
+      "originStation": "W 4 St-Wash Sq",
+      "exitStation": "Jay St-MetroTech"
+    },
+    "walkTime": 77,
+    "savings": 49
+  },
+  {
+    "from": "Greenwich Village Comedy Club",
+    "to": "Phoenix Bar",
+    "micmap": {
+      "totalTime": 18,
+      "lines": [
+        "F"
+      ],
+      "walkToStation": 5,
+      "subwayTime": 4,
+      "walkToVenue": 9,
+      "originStation": "W 4 St-Wash Sq",
+      "exitStation": "2 Av"
+    },
+    "walkTime": 25,
+    "savings": 7
+  },
+  {
+    "from": "Greenwich Village Comedy Club",
+    "to": "St. Mark's Comedy Club",
+    "micmap": {
+      "totalTime": 17,
+      "lines": [
+        "D"
+      ],
+      "walkToStation": 5,
+      "subwayTime": 2,
+      "walkToVenue": 11,
+      "originStation": "W 4 St-Wash Sq",
+      "exitStation": "Broadway-Lafayette St"
+    },
+    "walkTime": 15,
+    "savings": -2
+  },
+  {
+    "from": "Greenwich Village Comedy Club",
+    "to": "Producer's Club",
+    "micmap": {
+      "totalTime": 21,
+      "lines": [
+        "D"
+      ],
+      "walkToStation": 5,
+      "subwayTime": 5,
+      "walkToVenue": 12,
+      "originStation": "W 4 St-Wash Sq",
+      "exitStation": "42 St-Bryant Pk"
+    },
+    "walkTime": 51,
+    "savings": 30
+  },
+  {
+    "from": "Greenwich Village Comedy Club",
+    "to": "Caffeine Underground",
+    "micmap": {
+      "totalTime": 43,
+      "lines": [
+        "F",
+        "L"
+      ],
+      "walkToStation": 5,
+      "subwayTime": 25,
+      "walkToVenue": 13,
+      "originStation": "W 4 St-Wash Sq",
+      "exitStation": "Myrtle-Wyckoff Avs"
+    },
+    "walkTime": 125,
+    "savings": 82
+  },
+  {
+    "from": "Greenwich Village Comedy Club",
+    "to": "Brooklyn Art Haus",
+    "micmap": {
+      "totalTime": 23,
+      "lines": [
+        "F",
+        "L"
+      ],
+      "walkToStation": 5,
+      "subwayTime": 12,
+      "walkToVenue": 7,
+      "originStation": "W 4 St-Wash Sq",
+      "exitStation": "Bedford Av"
+    },
+    "walkTime": 64,
+    "savings": 41
+  },
+  {
+    "from": "Greenwich Village Comedy Club",
+    "to": "The Comic Strip Live",
+    "micmap": {
+      "totalTime": 30,
+      "lines": [
+        "D",
+        "6"
+      ],
+      "walkToStation": 5,
+      "subwayTime": 17,
+      "walkToVenue": 8,
+      "originStation": "W 4 St-Wash Sq",
+      "exitStation": "86 St"
+    },
+    "walkTime": 96,
+    "savings": 66
+  },
+  {
+    "from": "Greenwich Village Comedy Club",
+    "to": "Fear City Comedy Club",
+    "micmap": {
+      "totalTime": 15,
+      "lines": [
+        "D"
+      ],
+      "walkToStation": 5,
+      "subwayTime": 4,
+      "walkToVenue": 7,
+      "originStation": "W 4 St-Wash Sq",
+      "exitStation": "Grand St"
+    },
+    "walkTime": 28,
+    "savings": 13
+  },
+  {
+    "from": "Greenwich Village Comedy Club",
+    "to": "Easy Lover BK",
+    "micmap": {
+      "totalTime": 28,
+      "lines": [
+        "F",
+        "L"
+      ],
+      "walkToStation": 5,
+      "subwayTime": 14,
+      "walkToVenue": 10,
+      "originStation": "W 4 St-Wash Sq",
+      "exitStation": "Lorimer St"
+    },
+    "walkTime": 78,
+    "savings": 50
+  },
+  {
+    "from": "Greenwich Village Comedy Club",
+    "to": "Bushwick Comedy Club",
+    "micmap": {
+      "totalTime": 32,
+      "lines": [
+        "F",
+        "L"
+      ],
+      "walkToStation": 5,
+      "subwayTime": 20,
+      "walkToVenue": 8,
+      "originStation": "W 4 St-Wash Sq",
+      "exitStation": "Morgan Av"
+    },
+    "walkTime": 100,
+    "savings": 68
+  },
+  {
+    "from": "Greenwich Village Comedy Club",
+    "to": "Idaho Bar",
+    "micmap": {
+      "totalTime": 21,
+      "lines": [
+        "D",
+        "6"
+      ],
+      "walkToStation": 5,
+      "subwayTime": 7,
+      "walkToVenue": 10,
+      "originStation": "W 4 St-Wash Sq",
+      "exitStation": "Astor Pl"
+    },
+    "walkTime": 22,
+    "savings": 1
+  },
+  {
+    "from": "Greenwich Village Comedy Club",
+    "to": "O'Keefe's Bar",
+    "micmap": {
+      "totalTime": 25,
+      "lines": [
+        "C"
+      ],
+      "walkToStation": 5,
+      "subwayTime": 9,
+      "walkToVenue": 12,
+      "originStation": "W 4 St-Wash Sq",
+      "exitStation": "High St"
+    },
+    "walkTime": 64,
+    "savings": 39
+  },
+  {
+    "from": "Greenwich Village Comedy Club",
+    "to": "QED Astoria",
+    "micmap": {
+      "totalTime": 44,
+      "lines": [
+        "D",
+        "Q",
+        "N"
+      ],
+      "walkToStation": 5,
+      "subwayTime": 30,
+      "walkToVenue": 9,
+      "originStation": "W 4 St-Wash Sq",
+      "exitStation": "Astoria Blvd"
+    },
+    "walkTime": 132,
+    "savings": 88
+  },
+  {
+    "from": "Greenwich Village Comedy Club",
+    "to": "The Pit Midtown",
+    "micmap": {
+      "totalTime": 20,
+      "lines": [
+        "1"
+      ],
+      "walkToStation": 5,
+      "subwayTime": 3,
+      "walkToVenue": 13,
+      "originStation": "W 4 St-Wash Sq",
+      "exitStation": "18 St"
+    },
+    "walkTime": 32,
+    "savings": 12
+  },
+  {
+    "from": "Pinebox",
+    "to": "UCB",
+    "micmap": {
+      "totalTime": 19,
+      "lines": [
+        "L"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 12,
+      "walkToVenue": 6,
+      "originStation": "Morgan Av",
+      "exitStation": "1 Av"
+    },
+    "walkTime": 81,
+    "savings": 62
+  },
+  {
+    "from": "Pinebox",
+    "to": "The Tiny Cupboard",
+    "micmap": {
+      "totalTime": 24,
+      "lines": [
+        "L"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 11,
+      "walkToVenue": 12,
+      "originStation": "Morgan Av",
+      "exitStation": "Wilson Av"
+    },
+    "walkTime": 45,
+    "savings": 21
+  },
+  {
+    "from": "Pinebox",
+    "to": "Comedy Shop",
+    "micmap": {
+      "totalTime": 29,
+      "lines": [
+        "L",
+        "N"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 18,
+      "walkToVenue": 10,
+      "originStation": "Morgan Av",
+      "exitStation": "8 St-NYU"
+    },
+    "walkTime": 93,
+    "savings": 64
+  },
+  {
+    "from": "Pinebox",
+    "to": "Greenwich Village Comedy Club",
+    "micmap": {
+      "totalTime": 33,
+      "lines": [
+        "L"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 18,
+      "walkToVenue": 14,
+      "originStation": "Morgan Av",
+      "exitStation": "6 Av"
+    },
+    "walkTime": 95,
+    "savings": 62
+  },
+  {
+    "from": "Pinebox",
+    "to": "UWS NY Comedy Club",
+    "micmap": {
+      "totalTime": 31,
+      "lines": [
+        "L",
+        "N"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 22,
+      "walkToVenue": 8,
+      "originStation": "Morgan Av",
+      "exitStation": "49 St"
+    },
+    "walkTime": 117,
+    "savings": 86
+  },
+  {
+    "from": "Pinebox",
+    "to": "Eastville Comedy Club",
+    "micmap": {
+      "totalTime": 38,
+      "lines": [
+        "L",
+        "C"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 27,
+      "walkToVenue": 10,
+      "originStation": "Morgan Av",
+      "exitStation": "Lafayette Av"
+    },
+    "walkTime": 69,
+    "savings": 31
+  },
+  {
+    "from": "Pinebox",
+    "to": "Phoenix Bar",
+    "micmap": {
+      "totalTime": 26,
+      "lines": [
+        "L"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 12,
+      "walkToVenue": 13,
+      "originStation": "Morgan Av",
+      "exitStation": "1 Av"
+    },
+    "walkTime": 70,
+    "savings": 44
+  },
+  {
+    "from": "Pinebox",
+    "to": "St. Mark's Comedy Club",
+    "micmap": {
+      "totalTime": 23,
+      "lines": [
+        "L"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 12,
+      "walkToVenue": 10,
+      "originStation": "Morgan Av",
+      "exitStation": "1 Av"
+    },
+    "walkTime": 81,
+    "savings": 58
+  },
+  {
+    "from": "Pinebox",
+    "to": "Producer's Club",
+    "micmap": {
+      "totalTime": 32,
+      "lines": [
+        "L",
+        "Q"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 21,
+      "walkToVenue": 10,
+      "originStation": "Morgan Av",
+      "exitStation": "Times Sq-42 St"
+    },
+    "walkTime": 116,
+    "savings": 84
+  },
+  {
+    "from": "Pinebox",
+    "to": "Caffeine Underground",
+    "micmap": {
+      "totalTime": 20,
+      "lines": [
+        "L"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 5,
+      "walkToVenue": 13,
+      "originStation": "Morgan Av",
+      "exitStation": "Myrtle-Wyckoff Avs"
+    },
+    "walkTime": 31,
+    "savings": 11
+  },
+  {
+    "from": "Pinebox",
+    "to": "Brooklyn Art Haus",
+    "micmap": {
+      "totalTime": 19,
+      "lines": [
+        "L"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 4,
+      "walkToVenue": 14,
+      "originStation": "Morgan Av",
+      "exitStation": "Graham Av"
+    },
+    "walkTime": 31,
+    "savings": 12
+  },
+  {
+    "from": "Pinebox",
+    "to": "The Comic Strip Live",
+    "micmap": {
+      "totalTime": 35,
+      "lines": [
+        "L",
+        "4"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 26,
+      "walkToVenue": 8,
+      "originStation": "Morgan Av",
+      "exitStation": "86 St"
+    },
+    "walkTime": 118,
+    "savings": 83
+  },
+  {
+    "from": "Pinebox",
+    "to": "Fear City Comedy Club",
+    "micmap": {
+      "totalTime": 36,
+      "lines": [
+        "L",
+        "N"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 21,
+      "walkToVenue": 14,
+      "originStation": "Morgan Av",
+      "exitStation": "Canal St"
+    },
+    "walkTime": 74,
+    "savings": 38
+  },
+  {
+    "from": "Pinebox",
+    "to": "Easy Lover BK",
+    "micmap": {
+      "totalTime": 15,
+      "lines": [
+        "L"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 2,
+      "walkToVenue": 12,
+      "originStation": "Morgan Av",
+      "exitStation": "Montrose Av"
+    },
+    "walkTime": 20,
+    "savings": 5
+  },
+  {
+    "from": "Pinebox",
+    "to": "Bushwick Comedy Club",
+    "micmap": {
+      "error": "No route found"
+    },
+    "walkTime": 6,
+    "savings": null
+  },
+  {
+    "from": "Pinebox",
+    "to": "Idaho Bar",
+    "micmap": {
+      "totalTime": 15,
+      "lines": [
+        "L"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 12,
+      "walkToVenue": 2,
+      "originStation": "Morgan Av",
+      "exitStation": "1 Av"
+    },
+    "walkTime": 77,
+    "savings": 62
+  },
+  {
+    "from": "Pinebox",
+    "to": "O'Keefe's Bar",
+    "micmap": {
+      "totalTime": 38,
+      "lines": [
+        "L",
+        "6",
+        "F"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 31,
+      "walkToVenue": 5,
+      "originStation": "Morgan Av",
+      "exitStation": "Jay St-MetroTech"
+    },
+    "walkTime": 77,
+    "savings": 39
+  },
+  {
+    "from": "Pinebox",
+    "to": "QED Astoria",
+    "micmap": {
+      "totalTime": 50,
+      "lines": [
+        "L",
+        "4",
+        "N"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 39,
+      "walkToVenue": 9,
+      "originStation": "Morgan Av",
+      "exitStation": "Astoria Blvd"
+    },
+    "walkTime": 119,
+    "savings": 69
+  },
+  {
+    "from": "Pinebox",
+    "to": "The Pit Midtown",
+    "micmap": {
+      "totalTime": 30,
+      "lines": [
+        "L",
+        "N"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 18,
+      "walkToVenue": 11,
+      "originStation": "Morgan Av",
+      "exitStation": "23 St"
+    },
+    "walkTime": 102,
+    "savings": 72
+  },
+  {
+    "from": "UWS NY Comedy Club",
+    "to": "UCB",
+    "micmap": {
+      "totalTime": 18,
+      "lines": [
+        "Q"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 7,
+      "walkToVenue": 8,
+      "originStation": "57 St-7 Av",
+      "exitStation": "14 St-Union Sq"
+    },
+    "walkTime": 52,
+    "savings": 34
+  },
+  {
+    "from": "UWS NY Comedy Club",
+    "to": "The Tiny Cupboard",
+    "micmap": {
+      "totalTime": 46,
+      "lines": [
+        "A"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 32,
+      "walkToVenue": 12,
+      "originStation": "57 St-7 Av",
+      "exitStation": "Broadway Junction"
+    },
+    "walkTime": 162,
+    "savings": 116
+  },
+  {
+    "from": "UWS NY Comedy Club",
+    "to": "Comedy Shop",
+    "micmap": {
+      "totalTime": 17,
+      "lines": [
+        "D"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 8,
+      "walkToVenue": 6,
+      "originStation": "57 St-7 Av",
+      "exitStation": "W 4 St-Wash Sq"
+    },
+    "walkTime": 63,
+    "savings": 46
+  },
+  {
+    "from": "UWS NY Comedy Club",
+    "to": "Greenwich Village Comedy Club",
+    "micmap": {
+      "totalTime": 15,
+      "lines": [
+        "D"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 8,
+      "walkToVenue": 5,
+      "originStation": "57 St-7 Av",
+      "exitStation": "W 4 St-Wash Sq"
+    },
+    "walkTime": 62,
+    "savings": 47
+  },
+  {
+    "from": "UWS NY Comedy Club",
+    "to": "Pinebox",
+    "micmap": {
+      "totalTime": 34,
+      "lines": [
+        "Q",
+        "L"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 21,
+      "walkToVenue": 10,
+      "originStation": "57 St-7 Av",
+      "exitStation": "Montrose Av"
+    },
+    "walkTime": 117,
+    "savings": 83
+  },
+  {
+    "from": "UWS NY Comedy Club",
+    "to": "Eastville Comedy Club",
+    "micmap": {
+      "totalTime": 30,
+      "lines": [
+        "Q"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 19,
+      "walkToVenue": 8,
+      "originStation": "57 St-7 Av",
+      "exitStation": "DeKalb Av"
+    },
+    "walkTime": 130,
+    "savings": 100
+  },
+  {
+    "from": "UWS NY Comedy Club",
+    "to": "Phoenix Bar",
+    "micmap": {
+      "totalTime": 25,
+      "lines": [
+        "D",
+        "F"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 13,
+      "walkToVenue": 9,
+      "originStation": "57 St-7 Av",
+      "exitStation": "2 Av"
+    },
+    "walkTime": 69,
+    "savings": 44
+  },
+  {
+    "from": "UWS NY Comedy Club",
+    "to": "St. Mark's Comedy Club",
+    "micmap": {
+      "totalTime": 21,
+      "lines": [
+        "Q"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 7,
+      "walkToVenue": 11,
+      "originStation": "57 St-7 Av",
+      "exitStation": "14 St-Union Sq"
+    },
+    "walkTime": 59,
+    "savings": 38
+  },
+  {
+    "from": "UWS NY Comedy Club",
+    "to": "Producer's Club",
+    "micmap": {
+      "error": "No route found"
+    },
+    "walkTime": 13,
+    "savings": null
+  },
+  {
+    "from": "UWS NY Comedy Club",
+    "to": "Caffeine Underground",
+    "micmap": {
+      "totalTime": 44,
+      "lines": [
+        "Q",
+        "L"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 28,
+      "walkToVenue": 13,
+      "originStation": "57 St-7 Av",
+      "exitStation": "Myrtle-Wyckoff Avs"
+    },
+    "walkTime": 148,
+    "savings": 104
+  },
+  {
+    "from": "UWS NY Comedy Club",
+    "to": "Brooklyn Art Haus",
+    "micmap": {
+      "totalTime": 25,
+      "lines": [
+        "Q",
+        "L"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 15,
+      "walkToVenue": 7,
+      "originStation": "57 St-7 Av",
+      "exitStation": "Bedford Av"
+    },
+    "walkTime": 92,
+    "savings": 67
+  },
+  {
+    "from": "UWS NY Comedy Club",
+    "to": "The Comic Strip Live",
+    "micmap": {
+      "totalTime": 20,
+      "lines": [
+        "Q"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 5,
+      "walkToVenue": 12,
+      "originStation": "57 St-7 Av",
+      "exitStation": "72 St"
+    },
+    "walkTime": 41,
+    "savings": 21
+  },
+  {
+    "from": "UWS NY Comedy Club",
+    "to": "Fear City Comedy Club",
+    "micmap": {
+      "totalTime": 28,
+      "lines": [
+        "Q"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 11,
+      "walkToVenue": 14,
+      "originStation": "57 St-7 Av",
+      "exitStation": "Canal St"
+    },
+    "walkTime": 82,
+    "savings": 54
+  },
+  {
+    "from": "UWS NY Comedy Club",
+    "to": "Easy Lover BK",
+    "micmap": {
+      "totalTime": 30,
+      "lines": [
+        "Q",
+        "L"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 17,
+      "walkToVenue": 10,
+      "originStation": "57 St-7 Av",
+      "exitStation": "Lorimer St"
+    },
+    "walkTime": 97,
+    "savings": 67
+  },
+  {
+    "from": "UWS NY Comedy Club",
+    "to": "Bushwick Comedy Club",
+    "micmap": {
+      "totalTime": 34,
+      "lines": [
+        "Q",
+        "L"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 23,
+      "walkToVenue": 8,
+      "originStation": "57 St-7 Av",
+      "exitStation": "Morgan Av"
+    },
+    "walkTime": 124,
+    "savings": 90
+  },
+  {
+    "from": "UWS NY Comedy Club",
+    "to": "Idaho Bar",
+    "micmap": {
+      "totalTime": 22,
+      "lines": [
+        "Q"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 7,
+      "walkToVenue": 12,
+      "originStation": "57 St-7 Av",
+      "exitStation": "14 St-Union Sq"
+    },
+    "walkTime": 56,
+    "savings": 34
+  },
+  {
+    "from": "UWS NY Comedy Club",
+    "to": "O'Keefe's Bar",
+    "micmap": {
+      "totalTime": 33,
+      "lines": [
+        "A"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 17,
+      "walkToVenue": 12,
+      "originStation": "57 St-7 Av",
+      "exitStation": "High St"
+    },
+    "walkTime": 121,
+    "savings": 88
+  },
+  {
+    "from": "UWS NY Comedy Club",
+    "to": "QED Astoria",
+    "micmap": {
+      "totalTime": 30,
+      "lines": [
+        "N"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 18,
+      "walkToVenue": 9,
+      "originStation": "57 St-7 Av",
+      "exitStation": "Astoria Blvd"
+    },
+    "walkTime": 88,
+    "savings": 58
+  },
+  {
+    "from": "UWS NY Comedy Club",
+    "to": "The Pit Midtown",
+    "micmap": {
+      "totalTime": 19,
+      "lines": [
+        "1"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 2,
+      "walkToVenue": 14,
+      "originStation": "57 St-7 Av",
+      "exitStation": "Times Sq-42 St"
+    },
+    "walkTime": 30,
+    "savings": 11
+  },
+  {
+    "from": "Eastville Comedy Club",
+    "to": "UCB",
+    "micmap": {
+      "totalTime": 25,
+      "lines": [
+        "4"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 15,
+      "walkToVenue": 6,
+      "originStation": "Nevins St",
+      "exitStation": "14 St-Union Sq"
+    },
+    "walkTime": 78,
+    "savings": 53
+  },
+  {
+    "from": "Eastville Comedy Club",
+    "to": "The Tiny Cupboard",
+    "micmap": {
+      "totalTime": 26,
+      "lines": [
+        "C"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 13,
+      "walkToVenue": 9,
+      "originStation": "Nevins St",
+      "exitStation": "Rockaway Av"
+    },
+    "walkTime": 89,
+    "savings": 63
+  },
+  {
+    "from": "Eastville Comedy Club",
+    "to": "Comedy Shop",
+    "micmap": {
+      "totalTime": 22,
+      "lines": [
+        "C"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 12,
+      "walkToVenue": 6,
+      "originStation": "Nevins St",
+      "exitStation": "Spring St"
+    },
+    "walkTime": 75,
+    "savings": 53
+  },
+  {
+    "from": "Eastville Comedy Club",
+    "to": "Greenwich Village Comedy Club",
+    "micmap": {
+      "totalTime": 22,
+      "lines": [
+        "C"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 12,
+      "walkToVenue": 7,
+      "originStation": "Nevins St",
+      "exitStation": "Spring St"
+    },
+    "walkTime": 77,
+    "savings": 55
+  },
+  {
+    "from": "Eastville Comedy Club",
+    "to": "Pinebox",
+    "micmap": {
+      "totalTime": 38,
+      "lines": [
+        "A",
+        "J"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 21,
+      "walkToVenue": 14,
+      "originStation": "Nevins St",
+      "exitStation": "Myrtle Av"
+    },
+    "walkTime": 69,
+    "savings": 31
+  },
+  {
+    "from": "Eastville Comedy Club",
+    "to": "UWS NY Comedy Club",
+    "micmap": {
+      "totalTime": 29,
+      "lines": [
+        "A"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 20,
+      "walkToVenue": 5,
+      "originStation": "Nevins St",
+      "exitStation": "50 St"
+    },
+    "walkTime": 130,
+    "savings": 101
+  },
+  {
+    "from": "Eastville Comedy Club",
+    "to": "Phoenix Bar",
+    "micmap": {
+      "totalTime": 23,
+      "lines": [
+        "A",
+        "F"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 9,
+      "walkToVenue": 10,
+      "originStation": "Nevins St",
+      "exitStation": "Delancey St-Essex St"
+    },
+    "walkTime": 62,
+    "savings": 39
+  },
+  {
+    "from": "Eastville Comedy Club",
+    "to": "St. Mark's Comedy Club",
+    "micmap": {
+      "totalTime": 23,
+      "lines": [
+        "A",
+        "F"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 10,
+      "walkToVenue": 9,
+      "originStation": "Nevins St",
+      "exitStation": "2 Av"
+    },
+    "walkTime": 72,
+    "savings": 49
+  },
+  {
+    "from": "Eastville Comedy Club",
+    "to": "Producer's Club",
+    "micmap": {
+      "totalTime": 32,
+      "lines": [
+        "Q"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 18,
+      "walkToVenue": 10,
+      "originStation": "Nevins St",
+      "exitStation": "Times Sq-42 St"
+    },
+    "walkTime": 123,
+    "savings": 91
+  },
+  {
+    "from": "Eastville Comedy Club",
+    "to": "Caffeine Underground",
+    "micmap": {
+      "totalTime": 31,
+      "lines": [
+        "A",
+        "J"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 17,
+      "walkToVenue": 10,
+      "originStation": "Nevins St",
+      "exitStation": "Halsey St"
+    },
+    "walkTime": 85,
+    "savings": 54
+  },
+  {
+    "from": "Eastville Comedy Club",
+    "to": "Brooklyn Art Haus",
+    "micmap": {
+      "totalTime": 33,
+      "lines": [
+        "Q",
+        "L"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 22,
+      "walkToVenue": 7,
+      "originStation": "Nevins St",
+      "exitStation": "Bedford Av"
+    },
+    "walkTime": 57,
+    "savings": 24
+  },
+  {
+    "from": "Eastville Comedy Club",
+    "to": "The Comic Strip Live",
+    "micmap": {
+      "totalTime": 36,
+      "lines": [
+        "4"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 24,
+      "walkToVenue": 8,
+      "originStation": "Nevins St",
+      "exitStation": "86 St"
+    },
+    "walkTime": 152,
+    "savings": 116
+  },
+  {
+    "from": "Eastville Comedy Club",
+    "to": "Fear City Comedy Club",
+    "micmap": {
+      "totalTime": 14,
+      "lines": [
+        "A",
+        "F"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 8,
+      "walkToVenue": 3,
+      "originStation": "Nevins St",
+      "exitStation": "East Broadway"
+    },
+    "walkTime": 50,
+    "savings": 36
+  },
+  {
+    "from": "Eastville Comedy Club",
+    "to": "Easy Lover BK",
+    "micmap": {
+      "totalTime": 37,
+      "lines": [
+        "Q",
+        "L"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 24,
+      "walkToVenue": 10,
+      "originStation": "Nevins St",
+      "exitStation": "Lorimer St"
+    },
+    "walkTime": 68,
+    "savings": 31
+  },
+  {
+    "from": "Eastville Comedy Club",
+    "to": "Bushwick Comedy Club",
+    "micmap": {
+      "totalTime": 35,
+      "lines": [
+        "A",
+        "J"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 21,
+      "walkToVenue": 11,
+      "originStation": "Nevins St",
+      "exitStation": "Myrtle Av"
+    },
+    "walkTime": 70,
+    "savings": 35
+  },
+  {
+    "from": "Eastville Comedy Club",
+    "to": "Idaho Bar",
+    "micmap": {
+      "totalTime": 29,
+      "lines": [
+        "4"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 15,
+      "walkToVenue": 10,
+      "originStation": "Nevins St",
+      "exitStation": "14 St-Union Sq"
+    },
+    "walkTime": 75,
+    "savings": 46
+  },
+  {
+    "from": "Eastville Comedy Club",
+    "to": "O'Keefe's Bar",
+    "micmap": {
+      "error": "No route found"
+    },
+    "walkTime": 16,
+    "savings": null
+  },
+  {
+    "from": "Eastville Comedy Club",
+    "to": "QED Astoria",
+    "micmap": {
+      "totalTime": 51,
+      "lines": [
+        "4",
+        "N"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 37,
+      "walkToVenue": 9,
+      "originStation": "Nevins St",
+      "exitStation": "Astoria Blvd"
+    },
+    "walkTime": 171,
+    "savings": 120
+  },
+  {
+    "from": "Eastville Comedy Club",
+    "to": "The Pit Midtown",
+    "micmap": {
+      "totalTime": 27,
+      "lines": [
+        "3"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 18,
+      "walkToVenue": 5,
+      "originStation": "Nevins St",
+      "exitStation": "34 St-Penn Station"
+    },
+    "walkTime": 103,
+    "savings": 76
+  },
+  {
+    "from": "Phoenix Bar",
+    "to": "UCB",
+    "micmap": {
+      "totalTime": 24,
+      "lines": [
+        "F",
+        "6"
+      ],
+      "walkToStation": 9,
+      "subwayTime": 6,
+      "walkToVenue": 9,
+      "originStation": "2 Av",
+      "exitStation": "Astor Pl"
+    },
+    "walkTime": 17,
+    "savings": -7
+  },
+  {
+    "from": "Phoenix Bar",
+    "to": "The Tiny Cupboard",
+    "micmap": {
+      "totalTime": 41,
+      "lines": [
+        "F",
+        "A"
+      ],
+      "walkToStation": 9,
+      "subwayTime": 20,
+      "walkToVenue": 12,
+      "originStation": "2 Av",
+      "exitStation": "Broadway Junction"
+    },
+    "walkTime": 111,
+    "savings": 70
+  },
+  {
+    "from": "Phoenix Bar",
+    "to": "Comedy Shop",
+    "micmap": {
+      "totalTime": 18,
+      "lines": [
+        "F"
+      ],
+      "walkToStation": 9,
+      "subwayTime": 2,
+      "walkToVenue": 8,
+      "originStation": "2 Av",
+      "exitStation": "Broadway-Lafayette St"
+    },
+    "walkTime": 24,
+    "savings": 6
+  },
+  {
+    "from": "Phoenix Bar",
+    "to": "Greenwich Village Comedy Club",
+    "micmap": {
+      "totalTime": 20,
+      "lines": [
+        "F"
+      ],
+      "walkToStation": 9,
+      "subwayTime": 2,
+      "walkToVenue": 9,
+      "originStation": "2 Av",
+      "exitStation": "Broadway-Lafayette St"
+    },
+    "walkTime": 25,
+    "savings": 5
+  },
+  {
+    "from": "Phoenix Bar",
+    "to": "Pinebox",
+    "micmap": {
+      "totalTime": 34,
+      "lines": [
+        "J"
+      ],
+      "walkToStation": 9,
+      "subwayTime": 12,
+      "walkToVenue": 14,
+      "originStation": "2 Av",
+      "exitStation": "Myrtle Av"
+    },
+    "walkTime": 70,
+    "savings": 36
+  },
+  {
+    "from": "Phoenix Bar",
+    "to": "UWS NY Comedy Club",
+    "micmap": {
+      "totalTime": 31,
+      "lines": [
+        "F",
+        "D"
+      ],
+      "walkToStation": 9,
+      "subwayTime": 12,
+      "walkToVenue": 10,
+      "originStation": "2 Av",
+      "exitStation": "47-50 Sts-Rockefeller Ctr"
+    },
+    "walkTime": 69,
+    "savings": 38
+  },
+  {
+    "from": "Phoenix Bar",
+    "to": "Eastville Comedy Club",
+    "micmap": {
+      "totalTime": 27,
+      "lines": [
+        "F"
+      ],
+      "walkToStation": 9,
+      "subwayTime": 6,
+      "walkToVenue": 13,
+      "originStation": "2 Av",
+      "exitStation": "Jay St-MetroTech"
+    },
+    "walkTime": 62,
+    "savings": 35
+  },
+  {
+    "from": "Phoenix Bar",
+    "to": "St. Mark's Comedy Club",
+    "micmap": {
+      "error": "No route found"
+    },
+    "walkTime": 13,
+    "savings": null
+  },
+  {
+    "from": "Phoenix Bar",
+    "to": "Producer's Club",
+    "micmap": {
+      "totalTime": 31,
+      "lines": [
+        "F",
+        "D"
+      ],
+      "walkToStation": 9,
+      "subwayTime": 10,
+      "walkToVenue": 12,
+      "originStation": "2 Av",
+      "exitStation": "42 St-Bryant Pk"
+    },
+    "walkTime": 61,
+    "savings": 30
+  },
+  {
+    "from": "Phoenix Bar",
+    "to": "Caffeine Underground",
+    "micmap": {
+      "totalTime": 45,
+      "lines": [
+        "F",
+        "A",
+        "J"
+      ],
+      "walkToStation": 9,
+      "subwayTime": 26,
+      "walkToVenue": 10,
+      "originStation": "2 Av",
+      "exitStation": "Halsey St"
+    },
+    "walkTime": 100,
+    "savings": 55
+  },
+  {
+    "from": "Phoenix Bar",
+    "to": "Brooklyn Art Haus",
+    "micmap": {
+      "totalTime": 26,
+      "lines": [
+        "J"
+      ],
+      "walkToStation": 9,
+      "subwayTime": 8,
+      "walkToVenue": 9,
+      "originStation": "2 Av",
+      "exitStation": "Marcy Av"
+    },
+    "walkTime": 38,
+    "savings": 12
+  },
+  {
+    "from": "Phoenix Bar",
+    "to": "The Comic Strip Live",
+    "micmap": {
+      "totalTime": 34,
+      "lines": [
+        "F",
+        "6"
+      ],
+      "walkToStation": 9,
+      "subwayTime": 17,
+      "walkToVenue": 8,
+      "originStation": "2 Av",
+      "exitStation": "86 St"
+    },
+    "walkTime": 93,
+    "savings": 59
+  },
+  {
+    "from": "Phoenix Bar",
+    "to": "Fear City Comedy Club",
+    "micmap": {
+      "error": "No route found"
+    },
+    "walkTime": 16,
+    "savings": null
+  },
+  {
+    "from": "Phoenix Bar",
+    "to": "Easy Lover BK",
+    "micmap": {
+      "totalTime": 36,
+      "lines": [
+        "F",
+        "6",
+        "L"
+      ],
+      "walkToStation": 9,
+      "subwayTime": 18,
+      "walkToVenue": 10,
+      "originStation": "2 Av",
+      "exitStation": "Lorimer St"
+    },
+    "walkTime": 52,
+    "savings": 16
+  },
+  {
+    "from": "Phoenix Bar",
+    "to": "Bushwick Comedy Club",
+    "micmap": {
+      "totalTime": 31,
+      "lines": [
+        "J"
+      ],
+      "walkToStation": 9,
+      "subwayTime": 12,
+      "walkToVenue": 11,
+      "originStation": "2 Av",
+      "exitStation": "Myrtle Av"
+    },
+    "walkTime": 75,
+    "savings": 44
+  },
+  {
+    "from": "Phoenix Bar",
+    "to": "Idaho Bar",
+    "micmap": {
+      "totalTime": 25,
+      "lines": [
+        "F",
+        "6"
+      ],
+      "walkToStation": 9,
+      "subwayTime": 6,
+      "walkToVenue": 10,
+      "originStation": "2 Av",
+      "exitStation": "Astor Pl"
+    },
+    "walkTime": 13,
+    "savings": -12
+  },
+  {
+    "from": "Phoenix Bar",
+    "to": "O'Keefe's Bar",
+    "micmap": {
+      "totalTime": 20,
+      "lines": [
+        "F"
+      ],
+      "walkToStation": 9,
+      "subwayTime": 6,
+      "walkToVenue": 5,
+      "originStation": "2 Av",
+      "exitStation": "Jay St-MetroTech"
+    },
+    "walkTime": 53,
+    "savings": 33
+  },
+  {
+    "from": "Phoenix Bar",
+    "to": "QED Astoria",
+    "micmap": {
+      "totalTime": 48,
+      "lines": [
+        "F",
+        "6",
+        "N"
+      ],
+      "walkToStation": 9,
+      "subwayTime": 30,
+      "walkToVenue": 9,
+      "originStation": "2 Av",
+      "exitStation": "Astoria Blvd"
+    },
+    "walkTime": 122,
+    "savings": 74
+  },
+  {
+    "from": "Phoenix Bar",
+    "to": "The Pit Midtown",
+    "micmap": {
+      "totalTime": 24,
+      "lines": [
+        "F"
+      ],
+      "walkToStation": 9,
+      "subwayTime": 7,
+      "walkToVenue": 8,
+      "originStation": "2 Av",
+      "exitStation": "23 St"
+    },
+    "walkTime": 42,
+    "savings": 18
+  },
+  {
+    "from": "St. Mark's Comedy Club",
+    "to": "UCB",
+    "micmap": {
+      "error": "No route found"
+    },
+    "walkTime": 8,
+    "savings": null
+  },
+  {
+    "from": "St. Mark's Comedy Club",
+    "to": "The Tiny Cupboard",
+    "micmap": {
+      "totalTime": 43,
+      "lines": [
+        "R",
+        "R",
+        "A"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 29,
+      "walkToVenue": 12,
+      "originStation": "Astor Pl",
+      "exitStation": "Broadway Junction"
+    },
+    "walkTime": 124,
+    "savings": 81
+  },
+  {
+    "from": "St. Mark's Comedy Club",
+    "to": "Comedy Shop",
+    "micmap": {
+      "error": "No route found"
+    },
+    "walkTime": 14,
+    "savings": null
+  },
+  {
+    "from": "St. Mark's Comedy Club",
+    "to": "Greenwich Village Comedy Club",
+    "micmap": {
+      "error": "No route found"
+    },
+    "walkTime": 15,
+    "savings": null
+  },
+  {
+    "from": "St. Mark's Comedy Club",
+    "to": "Pinebox",
+    "micmap": {
+      "totalTime": 29,
+      "lines": [
+        "6",
+        "L"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 16,
+      "walkToVenue": 10,
+      "originStation": "Astor Pl",
+      "exitStation": "Montrose Av"
+    },
+    "walkTime": 81,
+    "savings": 52
+  },
+  {
+    "from": "St. Mark's Comedy Club",
+    "to": "UWS NY Comedy Club",
+    "micmap": {
+      "totalTime": 18,
+      "lines": [
+        "N"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 7,
+      "walkToVenue": 8,
+      "originStation": "Astor Pl",
+      "exitStation": "49 St"
+    },
+    "walkTime": 59,
+    "savings": 41
+  },
+  {
+    "from": "St. Mark's Comedy Club",
+    "to": "Eastville Comedy Club",
+    "micmap": {
+      "totalTime": 22,
+      "lines": [
+        "R"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 12,
+      "walkToVenue": 8,
+      "originStation": "Astor Pl",
+      "exitStation": "DeKalb Av"
+    },
+    "walkTime": 72,
+    "savings": 50
+  },
+  {
+    "from": "St. Mark's Comedy Club",
+    "to": "Phoenix Bar",
+    "micmap": {
+      "totalTime": 18,
+      "lines": [
+        "6",
+        "F"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 6,
+      "walkToVenue": 9,
+      "originStation": "Astor Pl",
+      "exitStation": "2 Av"
+    },
+    "walkTime": 13,
+    "savings": -5
+  },
+  {
+    "from": "St. Mark's Comedy Club",
+    "to": "Producer's Club",
+    "micmap": {
+      "totalTime": 18,
+      "lines": [
+        "N"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 6,
+      "walkToVenue": 10,
+      "originStation": "Astor Pl",
+      "exitStation": "Times Sq-42 St"
+    },
+    "walkTime": 51,
+    "savings": 33
+  },
+  {
+    "from": "St. Mark's Comedy Club",
+    "to": "Caffeine Underground",
+    "micmap": {
+      "totalTime": 39,
+      "lines": [
+        "6",
+        "L"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 23,
+      "walkToVenue": 13,
+      "originStation": "Astor Pl",
+      "exitStation": "Myrtle-Wyckoff Avs"
+    },
+    "walkTime": 112,
+    "savings": 73
+  },
+  {
+    "from": "St. Mark's Comedy Club",
+    "to": "Brooklyn Art Haus",
+    "micmap": {
+      "totalTime": 20,
+      "lines": [
+        "6",
+        "L"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 10,
+      "walkToVenue": 7,
+      "originStation": "Astor Pl",
+      "exitStation": "Bedford Av"
+    },
+    "walkTime": 50,
+    "savings": 30
+  },
+  {
+    "from": "St. Mark's Comedy Club",
+    "to": "The Comic Strip Live",
+    "micmap": {
+      "totalTime": 21,
+      "lines": [
+        "6"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 11,
+      "walkToVenue": 8,
+      "originStation": "Astor Pl",
+      "exitStation": "86 St"
+    },
+    "walkTime": 88,
+    "savings": 67
+  },
+  {
+    "from": "St. Mark's Comedy Club",
+    "to": "Fear City Comedy Club",
+    "micmap": {
+      "totalTime": 20,
+      "lines": [
+        "N"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 4,
+      "walkToVenue": 14,
+      "originStation": "Astor Pl",
+      "exitStation": "Canal St"
+    },
+    "walkTime": 23,
+    "savings": 3
+  },
+  {
+    "from": "St. Mark's Comedy Club",
+    "to": "Easy Lover BK",
+    "micmap": {
+      "totalTime": 24,
+      "lines": [
+        "6",
+        "L"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 12,
+      "walkToVenue": 10,
+      "originStation": "Astor Pl",
+      "exitStation": "Lorimer St"
+    },
+    "walkTime": 63,
+    "savings": 39
+  },
+  {
+    "from": "St. Mark's Comedy Club",
+    "to": "Bushwick Comedy Club",
+    "micmap": {
+      "totalTime": 29,
+      "lines": [
+        "6",
+        "L"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 18,
+      "walkToVenue": 8,
+      "originStation": "Astor Pl",
+      "exitStation": "Morgan Av"
+    },
+    "walkTime": 87,
+    "savings": 58
+  },
+  {
+    "from": "St. Mark's Comedy Club",
+    "to": "Idaho Bar",
+    "micmap": {
+      "error": "No route found"
+    },
+    "walkTime": 8,
+    "savings": null
+  },
+  {
+    "from": "St. Mark's Comedy Club",
+    "to": "O'Keefe's Bar",
+    "micmap": {
+      "totalTime": 27,
+      "lines": [
+        "R"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 12,
+      "walkToVenue": 12,
+      "originStation": "Astor Pl",
+      "exitStation": "DeKalb Av"
+    },
+    "walkTime": 61,
+    "savings": 34
+  },
+  {
+    "from": "St. Mark's Comedy Club",
+    "to": "QED Astoria",
+    "micmap": {
+      "totalTime": 36,
+      "lines": [
+        "6",
+        "N"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 24,
+      "walkToVenue": 9,
+      "originStation": "Astor Pl",
+      "exitStation": "Astoria Blvd"
+    },
+    "walkTime": 121,
+    "savings": 85
+  },
+  {
+    "from": "St. Mark's Comedy Club",
+    "to": "The Pit Midtown",
+    "micmap": {
+      "totalTime": 17,
+      "lines": [
+        "N"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 3,
+      "walkToVenue": 11,
+      "originStation": "Astor Pl",
+      "exitStation": "23 St"
+    },
+    "walkTime": 31,
+    "savings": 14
+  },
+  {
+    "from": "Producer's Club",
+    "to": "UCB",
+    "micmap": {
+      "totalTime": 20,
+      "lines": [
+        "A",
+        "L"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 9,
+      "walkToVenue": 7,
+      "originStation": "42 St-Port Authority Bus Terminal",
+      "exitStation": "14 St-Union Sq"
+    },
+    "walkTime": 45,
+    "savings": 25
+  },
+  {
+    "from": "Producer's Club",
+    "to": "The Tiny Cupboard",
+    "micmap": {
+      "totalTime": 45,
+      "lines": [
+        "A"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 30,
+      "walkToVenue": 12,
+      "originStation": "42 St-Port Authority Bus Terminal",
+      "exitStation": "Broadway Junction"
+    },
+    "walkTime": 161,
+    "savings": 116
+  },
+  {
+    "from": "Producer's Club",
+    "to": "Comedy Shop",
+    "micmap": {
+      "totalTime": 16,
+      "lines": [
+        "A"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 6,
+      "walkToVenue": 6,
+      "originStation": "42 St-Port Authority Bus Terminal",
+      "exitStation": "W 4 St-Wash Sq"
+    },
+    "walkTime": 52,
+    "savings": 36
+  },
+  {
+    "from": "Producer's Club",
+    "to": "Greenwich Village Comedy Club",
+    "micmap": {
+      "totalTime": 14,
+      "lines": [
+        "A"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 6,
+      "walkToVenue": 5,
+      "originStation": "42 St-Port Authority Bus Terminal",
+      "exitStation": "W 4 St-Wash Sq"
+    },
+    "walkTime": 51,
+    "savings": 37
+  },
+  {
+    "from": "Producer's Club",
+    "to": "Pinebox",
+    "micmap": {
+      "totalTime": 34,
+      "lines": [
+        "A",
+        "L"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 20,
+      "walkToVenue": 10,
+      "originStation": "42 St-Port Authority Bus Terminal",
+      "exitStation": "Montrose Av"
+    },
+    "walkTime": 116,
+    "savings": 82
+  },
+  {
+    "from": "Producer's Club",
+    "to": "UWS NY Comedy Club",
+    "micmap": {
+      "totalTime": 11,
+      "lines": [
+        "A"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 2,
+      "walkToVenue": 5,
+      "originStation": "42 St-Port Authority Bus Terminal",
+      "exitStation": "50 St"
+    },
+    "walkTime": 13,
+    "savings": 2
+  },
+  {
+    "from": "Producer's Club",
+    "to": "Eastville Comedy Club",
+    "micmap": {
+      "totalTime": 33,
+      "lines": [
+        "Q"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 21,
+      "walkToVenue": 8,
+      "originStation": "42 St-Port Authority Bus Terminal",
+      "exitStation": "DeKalb Av"
+    },
+    "walkTime": 123,
+    "savings": 90
+  },
+  {
+    "from": "Producer's Club",
+    "to": "Phoenix Bar",
+    "micmap": {
+      "totalTime": 26,
+      "lines": [
+        "A",
+        "F"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 13,
+      "walkToVenue": 9,
+      "originStation": "42 St-Port Authority Bus Terminal",
+      "exitStation": "2 Av"
+    },
+    "walkTime": 61,
+    "savings": 35
+  },
+  {
+    "from": "Producer's Club",
+    "to": "St. Mark's Comedy Club",
+    "micmap": {
+      "totalTime": 22,
+      "lines": [
+        "A",
+        "L"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 9,
+      "walkToVenue": 10,
+      "originStation": "42 St-Port Authority Bus Terminal",
+      "exitStation": "14 St-Union Sq"
+    },
+    "walkTime": 51,
+    "savings": 29
+  },
+  {
+    "from": "Producer's Club",
+    "to": "Caffeine Underground",
+    "micmap": {
+      "totalTime": 44,
+      "lines": [
+        "A",
+        "L"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 27,
+      "walkToVenue": 13,
+      "originStation": "42 St-Port Authority Bus Terminal",
+      "exitStation": "Myrtle-Wyckoff Avs"
+    },
+    "walkTime": 148,
+    "savings": 104
+  },
+  {
+    "from": "Producer's Club",
+    "to": "Brooklyn Art Haus",
+    "micmap": {
+      "totalTime": 25,
+      "lines": [
+        "A",
+        "L"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 14,
+      "walkToVenue": 7,
+      "originStation": "42 St-Port Authority Bus Terminal",
+      "exitStation": "Bedford Av"
+    },
+    "walkTime": 89,
+    "savings": 64
+  },
+  {
+    "from": "Producer's Club",
+    "to": "The Comic Strip Live",
+    "micmap": {
+      "totalTime": 26,
+      "lines": [
+        "E",
+        "6"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 14,
+      "walkToVenue": 8,
+      "originStation": "42 St-Port Authority Bus Terminal",
+      "exitStation": "86 St"
+    },
+    "walkTime": 54,
+    "savings": 28
+  },
+  {
+    "from": "Producer's Club",
+    "to": "Fear City Comedy Club",
+    "micmap": {
+      "totalTime": 23,
+      "lines": [
+        "A",
+        "D"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 13,
+      "walkToVenue": 7,
+      "originStation": "42 St-Port Authority Bus Terminal",
+      "exitStation": "Grand St"
+    },
+    "walkTime": 73,
+    "savings": 50
+  },
+  {
+    "from": "Producer's Club",
+    "to": "Easy Lover BK",
+    "micmap": {
+      "totalTime": 29,
+      "lines": [
+        "A",
+        "L"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 16,
+      "walkToVenue": 10,
+      "originStation": "42 St-Port Authority Bus Terminal",
+      "exitStation": "Lorimer St"
+    },
+    "walkTime": 97,
+    "savings": 68
+  },
+  {
+    "from": "Producer's Club",
+    "to": "Bushwick Comedy Club",
+    "micmap": {
+      "totalTime": 34,
+      "lines": [
+        "A",
+        "L"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 22,
+      "walkToVenue": 8,
+      "originStation": "42 St-Port Authority Bus Terminal",
+      "exitStation": "Morgan Av"
+    },
+    "walkTime": 123,
+    "savings": 89
+  },
+  {
+    "from": "Producer's Club",
+    "to": "Idaho Bar",
+    "micmap": {
+      "totalTime": 24,
+      "lines": [
+        "A",
+        "L"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 9,
+      "walkToVenue": 11,
+      "originStation": "42 St-Port Authority Bus Terminal",
+      "exitStation": "14 St-Union Sq"
+    },
+    "walkTime": 48,
+    "savings": 24
+  },
+  {
+    "from": "Producer's Club",
+    "to": "O'Keefe's Bar",
+    "micmap": {
+      "totalTime": 29,
+      "lines": [
+        "A",
+        "F"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 20,
+      "walkToVenue": 5,
+      "originStation": "42 St-Port Authority Bus Terminal",
+      "exitStation": "Jay St-MetroTech"
+    },
+    "walkTime": 112,
+    "savings": 83
+  },
+  {
+    "from": "Producer's Club",
+    "to": "QED Astoria",
+    "micmap": {
+      "totalTime": 40,
+      "lines": [
+        "E",
+        "6",
+        "N"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 27,
+      "walkToVenue": 9,
+      "originStation": "42 St-Port Authority Bus Terminal",
+      "exitStation": "Astoria Blvd"
+    },
+    "walkTime": 100,
+    "savings": 60
+  },
+  {
+    "from": "Producer's Club",
+    "to": "The Pit Midtown",
+    "micmap": {
+      "totalTime": 13,
+      "lines": [
+        "A"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 1,
+      "walkToVenue": 8,
+      "originStation": "42 St-Port Authority Bus Terminal",
+      "exitStation": "34 St-Penn Station"
+    },
+    "walkTime": 20,
+    "savings": 7
+  },
+  {
+    "from": "Caffeine Underground",
+    "to": "UCB",
+    "micmap": {
+      "totalTime": 45,
+      "lines": [
+        "J",
+        "L"
+      ],
+      "walkToStation": 10,
+      "subwayTime": 29,
+      "walkToVenue": 6,
+      "originStation": "Halsey St",
+      "exitStation": "1 Av"
+    },
+    "walkTime": 112,
+    "savings": 67
+  },
+  {
+    "from": "Caffeine Underground",
+    "to": "The Tiny Cupboard",
+    "micmap": {
+      "error": "No route found"
+    },
+    "walkTime": 15,
+    "savings": null
+  },
+  {
+    "from": "Caffeine Underground",
+    "to": "Comedy Shop",
+    "micmap": {
+      "totalTime": 45,
+      "lines": [
+        "J",
+        "C"
+      ],
+      "walkToStation": 10,
+      "subwayTime": 29,
+      "walkToVenue": 6,
+      "originStation": "Halsey St",
+      "exitStation": "Spring St"
+    },
+    "walkTime": 124,
+    "savings": 79
+  },
+  {
+    "from": "Caffeine Underground",
+    "to": "Greenwich Village Comedy Club",
+    "micmap": {
+      "totalTime": 45,
+      "lines": [
+        "J",
+        "C"
+      ],
+      "walkToStation": 10,
+      "subwayTime": 29,
+      "walkToVenue": 7,
+      "originStation": "Halsey St",
+      "exitStation": "Spring St"
+    },
+    "walkTime": 125,
+    "savings": 80
+  },
+  {
+    "from": "Caffeine Underground",
+    "to": "Pinebox",
+    "micmap": {
+      "totalTime": 27,
+      "lines": [
+        "J"
+      ],
+      "walkToStation": 10,
+      "subwayTime": 3,
+      "walkToVenue": 14,
+      "originStation": "Halsey St",
+      "exitStation": "Myrtle Av"
+    },
+    "walkTime": 31,
+    "savings": 4
+  },
+  {
+    "from": "Caffeine Underground",
+    "to": "UWS NY Comedy Club",
+    "micmap": {
+      "totalTime": 52,
+      "lines": [
+        "J",
+        "A"
+      ],
+      "walkToStation": 10,
+      "subwayTime": 37,
+      "walkToVenue": 5,
+      "originStation": "Halsey St",
+      "exitStation": "50 St"
+    },
+    "walkTime": 148,
+    "savings": 96
+  },
+  {
+    "from": "Caffeine Underground",
+    "to": "Eastville Comedy Club",
+    "micmap": {
+      "totalTime": 36,
+      "lines": [
+        "J",
+        "C"
+      ],
+      "walkToStation": 10,
+      "subwayTime": 16,
+      "walkToVenue": 10,
+      "originStation": "Halsey St",
+      "exitStation": "Lafayette Av"
+    },
+    "walkTime": 85,
+    "savings": 49
+  },
+  {
+    "from": "Caffeine Underground",
+    "to": "Phoenix Bar",
+    "micmap": {
+      "totalTime": 46,
+      "lines": [
+        "J",
+        "A",
+        "F"
+      ],
+      "walkToStation": 10,
+      "subwayTime": 26,
+      "walkToVenue": 10,
+      "originStation": "Halsey St",
+      "exitStation": "Delancey St-Essex St"
+    },
+    "walkTime": 100,
+    "savings": 54
+  },
+  {
+    "from": "Caffeine Underground",
+    "to": "St. Mark's Comedy Club",
+    "micmap": {
+      "totalTime": 49,
+      "lines": [
+        "J",
+        "L"
+      ],
+      "walkToStation": 10,
+      "subwayTime": 29,
+      "walkToVenue": 10,
+      "originStation": "Halsey St",
+      "exitStation": "1 Av"
+    },
+    "walkTime": 112,
+    "savings": 63
+  },
+  {
+    "from": "Caffeine Underground",
+    "to": "Producer's Club",
+    "micmap": {
+      "totalTime": 57,
+      "lines": [
+        "J",
+        "A"
+      ],
+      "walkToStation": 10,
+      "subwayTime": 35,
+      "walkToVenue": 12,
+      "originStation": "Halsey St",
+      "exitStation": "34 St-Penn Station"
+    },
+    "walkTime": 148,
+    "savings": 91
+  },
+  {
+    "from": "Caffeine Underground",
+    "to": "Brooklyn Art Haus",
+    "micmap": {
+      "totalTime": 26,
+      "lines": [
+        "Z"
+      ],
+      "walkToStation": 10,
+      "subwayTime": 7,
+      "walkToVenue": 9,
+      "originStation": "Halsey St",
+      "exitStation": "Marcy Av"
+    },
+    "walkTime": 62,
+    "savings": 36
+  },
+  {
+    "from": "Caffeine Underground",
+    "to": "The Comic Strip Live",
+    "micmap": {
+      "totalTime": 61,
+      "lines": [
+        "J",
+        "L",
+        "4"
+      ],
+      "walkToStation": 10,
+      "subwayTime": 43,
+      "walkToVenue": 8,
+      "originStation": "Halsey St",
+      "exitStation": "86 St"
+    },
+    "walkTime": 146,
+    "savings": 85
+  },
+  {
+    "from": "Caffeine Underground",
+    "to": "Fear City Comedy Club",
+    "micmap": {
+      "totalTime": 37,
+      "lines": [
+        "J",
+        "A",
+        "F"
+      ],
+      "walkToStation": 10,
+      "subwayTime": 25,
+      "walkToVenue": 3,
+      "originStation": "Halsey St",
+      "exitStation": "East Broadway"
+    },
+    "walkTime": 103,
+    "savings": 66
+  },
+  {
+    "from": "Caffeine Underground",
+    "to": "Easy Lover BK",
+    "micmap": {
+      "totalTime": 41,
+      "lines": [
+        "J",
+        "L"
+      ],
+      "walkToStation": 10,
+      "subwayTime": 19,
+      "walkToVenue": 12,
+      "originStation": "Halsey St",
+      "exitStation": "Montrose Av"
+    },
+    "walkTime": 51,
+    "savings": 10
+  },
+  {
+    "from": "Caffeine Underground",
+    "to": "Bushwick Comedy Club",
+    "micmap": {
+      "totalTime": 24,
+      "lines": [
+        "J"
+      ],
+      "walkToStation": 10,
+      "subwayTime": 3,
+      "walkToVenue": 11,
+      "originStation": "Halsey St",
+      "exitStation": "Myrtle Av"
+    },
+    "walkTime": 25,
+    "savings": 1
+  },
+  {
+    "from": "Caffeine Underground",
+    "to": "Idaho Bar",
+    "micmap": {
+      "totalTime": 41,
+      "lines": [
+        "J",
+        "L"
+      ],
+      "walkToStation": 10,
+      "subwayTime": 29,
+      "walkToVenue": 2,
+      "originStation": "Halsey St",
+      "exitStation": "1 Av"
+    },
+    "walkTime": 108,
+    "savings": 67
+  },
+  {
+    "from": "Caffeine Underground",
+    "to": "O'Keefe's Bar",
+    "micmap": {
+      "totalTime": 37,
+      "lines": [
+        "J",
+        "A"
+      ],
+      "walkToStation": 10,
+      "subwayTime": 17,
+      "walkToVenue": 10,
+      "originStation": "Halsey St",
+      "exitStation": "Hoyt-Schermerhorn Sts"
+    },
+    "walkTime": 97,
+    "savings": 60
+  },
+  {
+    "from": "Caffeine Underground",
+    "to": "QED Astoria",
+    "micmap": {
+      "totalTime": 67,
+      "lines": [
+        "Z",
+        "M",
+        "4",
+        "W"
+      ],
+      "walkToStation": 10,
+      "subwayTime": 48,
+      "walkToVenue": 9,
+      "originStation": "Halsey St",
+      "exitStation": "Astoria Blvd"
+    },
+    "walkTime": 138,
+    "savings": 71
+  },
+  {
+    "from": "Caffeine Underground",
+    "to": "The Pit Midtown",
+    "micmap": {
+      "totalTime": 51,
+      "lines": [
+        "J",
+        "A"
+      ],
+      "walkToStation": 10,
+      "subwayTime": 33,
+      "walkToVenue": 8,
+      "originStation": "Halsey St",
+      "exitStation": "23 St"
+    },
+    "walkTime": 134,
+    "savings": 83
+  },
+  {
+    "from": "Brooklyn Art Haus",
+    "to": "UCB",
+    "micmap": {
+      "totalTime": 14,
+      "lines": [
+        "L"
+      ],
+      "walkToStation": 5,
+      "subwayTime": 4,
+      "walkToVenue": 6,
+      "originStation": "Metropolitan Av",
+      "exitStation": "1 Av"
+    },
+    "walkTime": 50,
+    "savings": 36
+  },
+  {
+    "from": "Brooklyn Art Haus",
+    "to": "The Tiny Cupboard",
+    "micmap": {
+      "totalTime": 34,
+      "lines": [
+        "L"
+      ],
+      "walkToStation": 5,
+      "subwayTime": 17,
+      "walkToVenue": 12,
+      "originStation": "Metropolitan Av",
+      "exitStation": "Wilson Av"
+    },
+    "walkTime": 74,
+    "savings": 40
+  },
+  {
+    "from": "Brooklyn Art Haus",
+    "to": "Comedy Shop",
+    "micmap": {
+      "totalTime": 25,
+      "lines": [
+        "L",
+        "N"
+      ],
+      "walkToStation": 5,
+      "subwayTime": 11,
+      "walkToVenue": 10,
+      "originStation": "Metropolitan Av",
+      "exitStation": "8 St-NYU"
+    },
+    "walkTime": 62,
+    "savings": 37
+  },
+  {
+    "from": "Brooklyn Art Haus",
+    "to": "Greenwich Village Comedy Club",
+    "micmap": {
+      "totalTime": 29,
+      "lines": [
+        "L"
+      ],
+      "walkToStation": 5,
+      "subwayTime": 11,
+      "walkToVenue": 14,
+      "originStation": "Metropolitan Av",
+      "exitStation": "6 Av"
+    },
+    "walkTime": 64,
+    "savings": 35
+  },
+  {
+    "from": "Brooklyn Art Haus",
+    "to": "Pinebox",
+    "micmap": {
+      "totalTime": 19,
+      "lines": [
+        "L"
+      ],
+      "walkToStation": 5,
+      "subwayTime": 5,
+      "walkToVenue": 10,
+      "originStation": "Metropolitan Av",
+      "exitStation": "Montrose Av"
+    },
+    "walkTime": 31,
+    "savings": 12
+  },
+  {
+    "from": "Brooklyn Art Haus",
+    "to": "UWS NY Comedy Club",
+    "micmap": {
+      "totalTime": 27,
+      "lines": [
+        "L",
+        "N"
+      ],
+      "walkToStation": 5,
+      "subwayTime": 15,
+      "walkToVenue": 8,
+      "originStation": "Metropolitan Av",
+      "exitStation": "49 St"
+    },
+    "walkTime": 92,
+    "savings": 65
+  },
+  {
+    "from": "Brooklyn Art Haus",
+    "to": "Eastville Comedy Club",
+    "micmap": {
+      "totalTime": 33,
+      "lines": [
+        "L",
+        "Q"
+      ],
+      "walkToStation": 5,
+      "subwayTime": 21,
+      "walkToVenue": 8,
+      "originStation": "Metropolitan Av",
+      "exitStation": "DeKalb Av"
+    },
+    "walkTime": 57,
+    "savings": 24
+  },
+  {
+    "from": "Brooklyn Art Haus",
+    "to": "Phoenix Bar",
+    "micmap": {
+      "totalTime": 22,
+      "lines": [
+        "L"
+      ],
+      "walkToStation": 5,
+      "subwayTime": 4,
+      "walkToVenue": 13,
+      "originStation": "Metropolitan Av",
+      "exitStation": "1 Av"
+    },
+    "walkTime": 38,
+    "savings": 16
+  },
+  {
+    "from": "Brooklyn Art Haus",
+    "to": "St. Mark's Comedy Club",
+    "micmap": {
+      "totalTime": 19,
+      "lines": [
+        "L"
+      ],
+      "walkToStation": 5,
+      "subwayTime": 4,
+      "walkToVenue": 10,
+      "originStation": "Metropolitan Av",
+      "exitStation": "1 Av"
+    },
+    "walkTime": 50,
+    "savings": 31
+  },
+  {
+    "from": "Brooklyn Art Haus",
+    "to": "Producer's Club",
+    "micmap": {
+      "totalTime": 28,
+      "lines": [
+        "L",
+        "Q"
+      ],
+      "walkToStation": 5,
+      "subwayTime": 13,
+      "walkToVenue": 10,
+      "originStation": "Metropolitan Av",
+      "exitStation": "Times Sq-42 St"
+    },
+    "walkTime": 89,
+    "savings": 61
+  },
+  {
+    "from": "Brooklyn Art Haus",
+    "to": "Caffeine Underground",
+    "micmap": {
+      "totalTime": 29,
+      "lines": [
+        "L"
+      ],
+      "walkToStation": 5,
+      "subwayTime": 12,
+      "walkToVenue": 13,
+      "originStation": "Metropolitan Av",
+      "exitStation": "Myrtle-Wyckoff Avs"
+    },
+    "walkTime": 62,
+    "savings": 33
+  },
+  {
+    "from": "Brooklyn Art Haus",
+    "to": "The Comic Strip Live",
+    "micmap": {
+      "totalTime": 31,
+      "lines": [
+        "L",
+        "4"
+      ],
+      "walkToStation": 5,
+      "subwayTime": 18,
+      "walkToVenue": 8,
+      "originStation": "Metropolitan Av",
+      "exitStation": "86 St"
+    },
+    "walkTime": 102,
+    "savings": 71
+  },
+  {
+    "from": "Brooklyn Art Haus",
+    "to": "Fear City Comedy Club",
+    "micmap": {
+      "totalTime": 32,
+      "lines": [
+        "L",
+        "N"
+      ],
+      "walkToStation": 5,
+      "subwayTime": 13,
+      "walkToVenue": 14,
+      "originStation": "Metropolitan Av",
+      "exitStation": "Canal St"
+    },
+    "walkTime": 44,
+    "savings": 12
+  },
+  {
+    "from": "Brooklyn Art Haus",
+    "to": "Easy Lover BK",
+    "micmap": {
+      "error": "No route found"
+    },
+    "walkTime": 16,
+    "savings": null
+  },
+  {
+    "from": "Brooklyn Art Haus",
+    "to": "Bushwick Comedy Club",
+    "micmap": {
+      "totalTime": 19,
+      "lines": [
+        "L"
+      ],
+      "walkToStation": 5,
+      "subwayTime": 7,
+      "walkToVenue": 8,
+      "originStation": "Metropolitan Av",
+      "exitStation": "Morgan Av"
+    },
+    "walkTime": 37,
+    "savings": 18
+  },
+  {
+    "from": "Brooklyn Art Haus",
+    "to": "Idaho Bar",
+    "micmap": {
+      "totalTime": 11,
+      "lines": [
+        "L"
+      ],
+      "walkToStation": 5,
+      "subwayTime": 4,
+      "walkToVenue": 2,
+      "originStation": "Metropolitan Av",
+      "exitStation": "1 Av"
+    },
+    "walkTime": 46,
+    "savings": 35
+  },
+  {
+    "from": "Brooklyn Art Haus",
+    "to": "O'Keefe's Bar",
+    "micmap": {
+      "totalTime": 33,
+      "lines": [
+        "L",
+        "6",
+        "F"
+      ],
+      "walkToStation": 5,
+      "subwayTime": 24,
+      "walkToVenue": 5,
+      "originStation": "Metropolitan Av",
+      "exitStation": "Jay St-MetroTech"
+    },
+    "walkTime": 58,
+    "savings": 25
+  },
+  {
+    "from": "Brooklyn Art Haus",
+    "to": "QED Astoria",
+    "micmap": {
+      "totalTime": 45,
+      "lines": [
+        "L",
+        "4",
+        "N"
+      ],
+      "walkToStation": 5,
+      "subwayTime": 31,
+      "walkToVenue": 9,
+      "originStation": "Metropolitan Av",
+      "exitStation": "Astoria Blvd"
+    },
+    "walkTime": 115,
+    "savings": 70
+  },
+  {
+    "from": "Brooklyn Art Haus",
+    "to": "The Pit Midtown",
+    "micmap": {
+      "totalTime": 26,
+      "lines": [
+        "L",
+        "N"
+      ],
+      "walkToStation": 5,
+      "subwayTime": 11,
+      "walkToVenue": 11,
+      "originStation": "Metropolitan Av",
+      "exitStation": "23 St"
+    },
+    "walkTime": 73,
+    "savings": 47
+  },
+  {
+    "from": "The Comic Strip Live",
+    "to": "UCB",
+    "micmap": {
+      "totalTime": 27,
+      "lines": [
+        "Q"
+      ],
+      "walkToStation": 6,
+      "subwayTime": 14,
+      "walkToVenue": 8,
+      "originStation": "86 St",
+      "exitStation": "14 St-Union Sq"
+    },
+    "walkTime": 80,
+    "savings": 53
+  },
+  {
+    "from": "The Comic Strip Live",
+    "to": "The Tiny Cupboard",
+    "micmap": {
+      "totalTime": 58,
+      "lines": [
+        "Q",
+        "L"
+      ],
+      "walkToStation": 6,
+      "subwayTime": 41,
+      "walkToVenue": 12,
+      "originStation": "86 St",
+      "exitStation": "Wilson Av"
+    },
+    "walkTime": 160,
+    "savings": 102
+  },
+  {
+    "from": "The Comic Strip Live",
+    "to": "Comedy Shop",
+    "micmap": {
+      "totalTime": 30,
+      "lines": [
+        "Q"
+      ],
+      "walkToStation": 6,
+      "subwayTime": 15,
+      "walkToVenue": 10,
+      "originStation": "86 St",
+      "exitStation": "8 St-NYU"
+    },
+    "walkTime": 96,
+    "savings": 66
+  },
+  {
+    "from": "The Comic Strip Live",
+    "to": "Greenwich Village Comedy Club",
+    "micmap": {
+      "totalTime": 31,
+      "lines": [
+        "Q"
+      ],
+      "walkToStation": 6,
+      "subwayTime": 15,
+      "walkToVenue": 11,
+      "originStation": "86 St",
+      "exitStation": "8 St-NYU"
+    },
+    "walkTime": 96,
+    "savings": 65
+  },
+  {
+    "from": "The Comic Strip Live",
+    "to": "Pinebox",
+    "micmap": {
+      "totalTime": 44,
+      "lines": [
+        "Q",
+        "L"
+      ],
+      "walkToStation": 6,
+      "subwayTime": 28,
+      "walkToVenue": 10,
+      "originStation": "86 St",
+      "exitStation": "Montrose Av"
+    },
+    "walkTime": 118,
+    "savings": 74
+  },
+  {
+    "from": "The Comic Strip Live",
+    "to": "UWS NY Comedy Club",
+    "micmap": {
+      "totalTime": 16,
+      "lines": [
+        "Q"
+      ],
+      "walkToStation": 6,
+      "subwayTime": 7,
+      "walkToVenue": 3,
+      "originStation": "86 St",
+      "exitStation": "57 St-7 Av"
+    },
+    "walkTime": 41,
+    "savings": 25
+  },
+  {
+    "from": "The Comic Strip Live",
+    "to": "Eastville Comedy Club",
+    "micmap": {
+      "totalTime": 39,
+      "lines": [
+        "Q"
+      ],
+      "walkToStation": 6,
+      "subwayTime": 26,
+      "walkToVenue": 8,
+      "originStation": "86 St",
+      "exitStation": "DeKalb Av"
+    },
+    "walkTime": 152,
+    "savings": 113
+  },
+  {
+    "from": "The Comic Strip Live",
+    "to": "Phoenix Bar",
+    "micmap": {
+      "totalTime": 36,
+      "lines": [
+        "Q",
+        "F"
+      ],
+      "walkToStation": 6,
+      "subwayTime": 22,
+      "walkToVenue": 9,
+      "originStation": "86 St",
+      "exitStation": "2 Av"
+    },
+    "walkTime": 93,
+    "savings": 57
+  },
+  {
+    "from": "The Comic Strip Live",
+    "to": "St. Mark's Comedy Club",
+    "micmap": {
+      "totalTime": 30,
+      "lines": [
+        "Q"
+      ],
+      "walkToStation": 6,
+      "subwayTime": 14,
+      "walkToVenue": 11,
+      "originStation": "86 St",
+      "exitStation": "14 St-Union Sq"
+    },
+    "walkTime": 88,
+    "savings": 58
+  },
+  {
+    "from": "The Comic Strip Live",
+    "to": "Producer's Club",
+    "micmap": {
+      "totalTime": 23,
+      "lines": [
+        "Q"
+      ],
+      "walkToStation": 6,
+      "subwayTime": 9,
+      "walkToVenue": 9,
+      "originStation": "86 St",
+      "exitStation": "49 St"
+    },
+    "walkTime": 54,
+    "savings": 31
+  },
+  {
+    "from": "The Comic Strip Live",
+    "to": "Caffeine Underground",
+    "micmap": {
+      "totalTime": 54,
+      "lines": [
+        "Q",
+        "L"
+      ],
+      "walkToStation": 6,
+      "subwayTime": 35,
+      "walkToVenue": 13,
+      "originStation": "86 St",
+      "exitStation": "Myrtle-Wyckoff Avs"
+    },
+    "walkTime": 146,
+    "savings": 92
+  },
+  {
+    "from": "The Comic Strip Live",
+    "to": "Brooklyn Art Haus",
+    "micmap": {
+      "totalTime": 34,
+      "lines": [
+        "Q",
+        "L"
+      ],
+      "walkToStation": 6,
+      "subwayTime": 22,
+      "walkToVenue": 7,
+      "originStation": "86 St",
+      "exitStation": "Bedford Av"
+    },
+    "walkTime": 102,
+    "savings": 68
+  },
+  {
+    "from": "The Comic Strip Live",
+    "to": "Fear City Comedy Club",
+    "micmap": {
+      "totalTime": 37,
+      "lines": [
+        "Q"
+      ],
+      "walkToStation": 6,
+      "subwayTime": 18,
+      "walkToVenue": 14,
+      "originStation": "86 St",
+      "exitStation": "Canal St"
+    },
+    "walkTime": 109,
+    "savings": 72
+  },
+  {
+    "from": "The Comic Strip Live",
+    "to": "Easy Lover BK",
+    "micmap": {
+      "totalTime": 39,
+      "lines": [
+        "Q",
+        "L"
+      ],
+      "walkToStation": 6,
+      "subwayTime": 24,
+      "walkToVenue": 10,
+      "originStation": "86 St",
+      "exitStation": "Lorimer St"
+    },
+    "walkTime": 101,
+    "savings": 62
+  },
+  {
+    "from": "The Comic Strip Live",
+    "to": "Bushwick Comedy Club",
+    "micmap": {
+      "totalTime": 44,
+      "lines": [
+        "Q",
+        "L"
+      ],
+      "walkToStation": 6,
+      "subwayTime": 30,
+      "walkToVenue": 8,
+      "originStation": "86 St",
+      "exitStation": "Morgan Av"
+    },
+    "walkTime": 124,
+    "savings": 80
+  },
+  {
+    "from": "The Comic Strip Live",
+    "to": "Idaho Bar",
+    "micmap": {
+      "totalTime": 31,
+      "lines": [
+        "Q"
+      ],
+      "walkToStation": 6,
+      "subwayTime": 14,
+      "walkToVenue": 12,
+      "originStation": "86 St",
+      "exitStation": "14 St-Union Sq"
+    },
+    "walkTime": 82,
+    "savings": 51
+  },
+  {
+    "from": "The Comic Strip Live",
+    "to": "O'Keefe's Bar",
+    "micmap": {
+      "totalTime": 43,
+      "lines": [
+        "Q"
+      ],
+      "walkToStation": 6,
+      "subwayTime": 26,
+      "walkToVenue": 12,
+      "originStation": "86 St",
+      "exitStation": "DeKalb Av"
+    },
+    "walkTime": 145,
+    "savings": 102
+  },
+  {
+    "from": "The Comic Strip Live",
+    "to": "QED Astoria",
+    "micmap": {
+      "totalTime": 38,
+      "lines": [
+        "Q",
+        "N"
+      ],
+      "walkToStation": 6,
+      "subwayTime": 23,
+      "walkToVenue": 9,
+      "originStation": "86 St",
+      "exitStation": "Astoria Blvd"
+    },
+    "walkTime": 49,
+    "savings": 11
+  },
+  {
+    "from": "The Comic Strip Live",
+    "to": "The Pit Midtown",
+    "micmap": {
+      "totalTime": 29,
+      "lines": [
+        "Q"
+      ],
+      "walkToStation": 6,
+      "subwayTime": 10,
+      "walkToVenue": 14,
+      "originStation": "86 St",
+      "exitStation": "Times Sq-42 St"
+    },
+    "walkTime": 66,
+    "savings": 37
+  },
+  {
+    "from": "Fear City Comedy Club",
+    "to": "UCB",
+    "micmap": {
+      "totalTime": 20,
+      "lines": [
+        "F",
+        "6"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 9,
+      "walkToVenue": 9,
+      "originStation": "East Broadway",
+      "exitStation": "Astor Pl"
+    },
+    "walkTime": 30,
+    "savings": 10
+  },
+  {
+    "from": "Fear City Comedy Club",
+    "to": "The Tiny Cupboard",
+    "micmap": {
+      "totalTime": 33,
+      "lines": [
+        "F",
+        "A"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 19,
+      "walkToVenue": 12,
+      "originStation": "East Broadway",
+      "exitStation": "Broadway Junction"
+    },
+    "walkTime": 112,
+    "savings": 79
+  },
+  {
+    "from": "Fear City Comedy Club",
+    "to": "Comedy Shop",
+    "micmap": {
+      "totalTime": 14,
+      "lines": [
+        "F"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 4,
+      "walkToVenue": 8,
+      "originStation": "East Broadway",
+      "exitStation": "Broadway-Lafayette St"
+    },
+    "walkTime": 26,
+    "savings": 12
+  },
+  {
+    "from": "Fear City Comedy Club",
+    "to": "Greenwich Village Comedy Club",
+    "micmap": {
+      "totalTime": 16,
+      "lines": [
+        "F"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 4,
+      "walkToVenue": 9,
+      "originStation": "East Broadway",
+      "exitStation": "Broadway-Lafayette St"
+    },
+    "walkTime": 28,
+    "savings": 12
+  },
+  {
+    "from": "Fear City Comedy Club",
+    "to": "Pinebox",
+    "micmap": {
+      "totalTime": 37,
+      "lines": [
+        "F",
+        "6",
+        "L"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 25,
+      "walkToVenue": 10,
+      "originStation": "East Broadway",
+      "exitStation": "Montrose Av"
+    },
+    "walkTime": 74,
+    "savings": 37
+  },
+  {
+    "from": "Fear City Comedy Club",
+    "to": "UWS NY Comedy Club",
+    "micmap": {
+      "totalTime": 27,
+      "lines": [
+        "F",
+        "D"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 14,
+      "walkToVenue": 10,
+      "originStation": "East Broadway",
+      "exitStation": "47-50 Sts-Rockefeller Ctr"
+    },
+    "walkTime": 82,
+    "savings": 55
+  },
+  {
+    "from": "Fear City Comedy Club",
+    "to": "Eastville Comedy Club",
+    "micmap": {
+      "totalTime": 19,
+      "lines": [
+        "F"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 4,
+      "walkToVenue": 13,
+      "originStation": "East Broadway",
+      "exitStation": "Jay St-MetroTech"
+    },
+    "walkTime": 50,
+    "savings": 31
+  },
+  {
+    "from": "Fear City Comedy Club",
+    "to": "Phoenix Bar",
+    "micmap": {
+      "totalTime": 14,
+      "lines": [
+        "F"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 1,
+      "walkToVenue": 10,
+      "originStation": "East Broadway",
+      "exitStation": "Delancey St-Essex St"
+    },
+    "walkTime": 16,
+    "savings": 2
+  },
+  {
+    "from": "Fear City Comedy Club",
+    "to": "St. Mark's Comedy Club",
+    "micmap": {
+      "totalTime": 14,
+      "lines": [
+        "F"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 3,
+      "walkToVenue": 9,
+      "originStation": "East Broadway",
+      "exitStation": "2 Av"
+    },
+    "walkTime": 23,
+    "savings": 9
+  },
+  {
+    "from": "Fear City Comedy Club",
+    "to": "Producer's Club",
+    "micmap": {
+      "totalTime": 27,
+      "lines": [
+        "F",
+        "D"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 13,
+      "walkToVenue": 12,
+      "originStation": "East Broadway",
+      "exitStation": "42 St-Bryant Pk"
+    },
+    "walkTime": 73,
+    "savings": 46
+  },
+  {
+    "from": "Fear City Comedy Club",
+    "to": "Caffeine Underground",
+    "micmap": {
+      "totalTime": 37,
+      "lines": [
+        "F",
+        "A",
+        "J"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 24,
+      "walkToVenue": 10,
+      "originStation": "East Broadway",
+      "exitStation": "Halsey St"
+    },
+    "walkTime": 103,
+    "savings": 66
+  },
+  {
+    "from": "Fear City Comedy Club",
+    "to": "Brooklyn Art Haus",
+    "micmap": {
+      "totalTime": 28,
+      "lines": [
+        "F",
+        "6",
+        "L"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 19,
+      "walkToVenue": 7,
+      "originStation": "East Broadway",
+      "exitStation": "Bedford Av"
+    },
+    "walkTime": 44,
+    "savings": 16
+  },
+  {
+    "from": "Fear City Comedy Club",
+    "to": "The Comic Strip Live",
+    "micmap": {
+      "totalTime": 30,
+      "lines": [
+        "F",
+        "6"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 19,
+      "walkToVenue": 8,
+      "originStation": "East Broadway",
+      "exitStation": "86 St"
+    },
+    "walkTime": 109,
+    "savings": 79
+  },
+  {
+    "from": "Fear City Comedy Club",
+    "to": "Easy Lover BK",
+    "micmap": {
+      "totalTime": 32,
+      "lines": [
+        "F",
+        "6",
+        "L"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 20,
+      "walkToVenue": 10,
+      "originStation": "East Broadway",
+      "exitStation": "Lorimer St"
+    },
+    "walkTime": 60,
+    "savings": 28
+  },
+  {
+    "from": "Fear City Comedy Club",
+    "to": "Bushwick Comedy Club",
+    "micmap": {
+      "totalTime": 37,
+      "lines": [
+        "F",
+        "6",
+        "L"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 27,
+      "walkToVenue": 8,
+      "originStation": "East Broadway",
+      "exitStation": "Morgan Av"
+    },
+    "walkTime": 79,
+    "savings": 42
+  },
+  {
+    "from": "Fear City Comedy Club",
+    "to": "Idaho Bar",
+    "micmap": {
+      "totalTime": 21,
+      "lines": [
+        "F",
+        "6"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 9,
+      "walkToVenue": 10,
+      "originStation": "East Broadway",
+      "exitStation": "Astor Pl"
+    },
+    "walkTime": 27,
+    "savings": 6
+  },
+  {
+    "from": "Fear City Comedy Club",
+    "to": "O'Keefe's Bar",
+    "micmap": {
+      "totalTime": 12,
+      "lines": [
+        "F"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 4,
+      "walkToVenue": 5,
+      "originStation": "East Broadway",
+      "exitStation": "Jay St-MetroTech"
+    },
+    "walkTime": 39,
+    "savings": 27
+  },
+  {
+    "from": "Fear City Comedy Club",
+    "to": "QED Astoria",
+    "micmap": {
+      "totalTime": 44,
+      "lines": [
+        "F",
+        "6",
+        "N"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 32,
+      "walkToVenue": 9,
+      "originStation": "East Broadway",
+      "exitStation": "Astoria Blvd"
+    },
+    "walkTime": 138,
+    "savings": 94
+  },
+  {
+    "from": "Fear City Comedy Club",
+    "to": "The Pit Midtown",
+    "micmap": {
+      "totalTime": 20,
+      "lines": [
+        "F"
+      ],
+      "walkToStation": 3,
+      "subwayTime": 10,
+      "walkToVenue": 8,
+      "originStation": "East Broadway",
+      "exitStation": "23 St"
+    },
+    "walkTime": 53,
+    "savings": 33
+  },
+  {
+    "from": "Easy Lover BK",
+    "to": "UCB",
+    "micmap": {
+      "totalTime": 15,
+      "lines": [
+        "L"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 8,
+      "walkToVenue": 6,
+      "originStation": "Graham Av",
+      "exitStation": "1 Av"
+    },
+    "walkTime": 62,
+    "savings": 47
+  },
+  {
+    "from": "Easy Lover BK",
+    "to": "The Tiny Cupboard",
+    "micmap": {
+      "totalTime": 29,
+      "lines": [
+        "L"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 15,
+      "walkToVenue": 12,
+      "originStation": "Graham Av",
+      "exitStation": "Wilson Av"
+    },
+    "walkTime": 65,
+    "savings": 36
+  },
+  {
+    "from": "Easy Lover BK",
+    "to": "Comedy Shop",
+    "micmap": {
+      "totalTime": 26,
+      "lines": [
+        "L",
+        "N"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 14,
+      "walkToVenue": 10,
+      "originStation": "Graham Av",
+      "exitStation": "8 St-NYU"
+    },
+    "walkTime": 76,
+    "savings": 50
+  },
+  {
+    "from": "Easy Lover BK",
+    "to": "Greenwich Village Comedy Club",
+    "micmap": {
+      "totalTime": 30,
+      "lines": [
+        "L"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 14,
+      "walkToVenue": 14,
+      "originStation": "Graham Av",
+      "exitStation": "6 Av"
+    },
+    "walkTime": 78,
+    "savings": 48
+  },
+  {
+    "from": "Easy Lover BK",
+    "to": "Pinebox",
+    "micmap": {
+      "totalTime": 14,
+      "lines": [
+        "L"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 3,
+      "walkToVenue": 10,
+      "originStation": "Graham Av",
+      "exitStation": "Montrose Av"
+    },
+    "walkTime": 20,
+    "savings": 6
+  },
+  {
+    "from": "Easy Lover BK",
+    "to": "UWS NY Comedy Club",
+    "micmap": {
+      "totalTime": 28,
+      "lines": [
+        "L",
+        "N"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 18,
+      "walkToVenue": 8,
+      "originStation": "Graham Av",
+      "exitStation": "49 St"
+    },
+    "walkTime": 97,
+    "savings": 69
+  },
+  {
+    "from": "Easy Lover BK",
+    "to": "Eastville Comedy Club",
+    "micmap": {
+      "totalTime": 34,
+      "lines": [
+        "L",
+        "Q"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 25,
+      "walkToVenue": 8,
+      "originStation": "Graham Av",
+      "exitStation": "DeKalb Av"
+    },
+    "walkTime": 68,
+    "savings": 34
+  },
+  {
+    "from": "Easy Lover BK",
+    "to": "Phoenix Bar",
+    "micmap": {
+      "totalTime": 22,
+      "lines": [
+        "L"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 8,
+      "walkToVenue": 13,
+      "originStation": "Graham Av",
+      "exitStation": "1 Av"
+    },
+    "walkTime": 52,
+    "savings": 30
+  },
+  {
+    "from": "Easy Lover BK",
+    "to": "St. Mark's Comedy Club",
+    "micmap": {
+      "totalTime": 20,
+      "lines": [
+        "L"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 8,
+      "walkToVenue": 10,
+      "originStation": "Graham Av",
+      "exitStation": "1 Av"
+    },
+    "walkTime": 63,
+    "savings": 43
+  },
+  {
+    "from": "Easy Lover BK",
+    "to": "Producer's Club",
+    "micmap": {
+      "totalTime": 28,
+      "lines": [
+        "L",
+        "Q"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 17,
+      "walkToVenue": 10,
+      "originStation": "Graham Av",
+      "exitStation": "Times Sq-42 St"
+    },
+    "walkTime": 97,
+    "savings": 69
+  },
+  {
+    "from": "Easy Lover BK",
+    "to": "Caffeine Underground",
+    "micmap": {
+      "totalTime": 24,
+      "lines": [
+        "L"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 10,
+      "walkToVenue": 13,
+      "originStation": "Graham Av",
+      "exitStation": "Myrtle-Wyckoff Avs"
+    },
+    "walkTime": 51,
+    "savings": 27
+  },
+  {
+    "from": "Easy Lover BK",
+    "to": "Brooklyn Art Haus",
+    "micmap": {
+      "error": "No route found"
+    },
+    "walkTime": 16,
+    "savings": null
+  },
+  {
+    "from": "Easy Lover BK",
+    "to": "The Comic Strip Live",
+    "micmap": {
+      "totalTime": 31,
+      "lines": [
+        "L",
+        "4"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 22,
+      "walkToVenue": 8,
+      "originStation": "Graham Av",
+      "exitStation": "86 St"
+    },
+    "walkTime": 101,
+    "savings": 70
+  },
+  {
+    "from": "Easy Lover BK",
+    "to": "Fear City Comedy Club",
+    "micmap": {
+      "totalTime": 32,
+      "lines": [
+        "L",
+        "N"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 17,
+      "walkToVenue": 14,
+      "originStation": "Graham Av",
+      "exitStation": "Canal St"
+    },
+    "walkTime": 60,
+    "savings": 28
+  },
+  {
+    "from": "Easy Lover BK",
+    "to": "Bushwick Comedy Club",
+    "micmap": {
+      "totalTime": 14,
+      "lines": [
+        "L"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 5,
+      "walkToVenue": 8,
+      "originStation": "Graham Av",
+      "exitStation": "Morgan Av"
+    },
+    "walkTime": 26,
+    "savings": 12
+  },
+  {
+    "from": "Easy Lover BK",
+    "to": "Idaho Bar",
+    "micmap": {
+      "totalTime": 12,
+      "lines": [
+        "L"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 8,
+      "walkToVenue": 2,
+      "originStation": "Graham Av",
+      "exitStation": "1 Av"
+    },
+    "walkTime": 58,
+    "savings": 46
+  },
+  {
+    "from": "Easy Lover BK",
+    "to": "O'Keefe's Bar",
+    "micmap": {
+      "totalTime": 34,
+      "lines": [
+        "L",
+        "6",
+        "F"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 27,
+      "walkToVenue": 5,
+      "originStation": "Graham Av",
+      "exitStation": "Jay St-MetroTech"
+    },
+    "walkTime": 72,
+    "savings": 38
+  },
+  {
+    "from": "Easy Lover BK",
+    "to": "QED Astoria",
+    "micmap": {
+      "totalTime": 46,
+      "lines": [
+        "L",
+        "4",
+        "N"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 35,
+      "walkToVenue": 9,
+      "originStation": "Graham Av",
+      "exitStation": "Astoria Blvd"
+    },
+    "walkTime": 107,
+    "savings": 61
+  },
+  {
+    "from": "Easy Lover BK",
+    "to": "The Pit Midtown",
+    "micmap": {
+      "totalTime": 26,
+      "lines": [
+        "L",
+        "3"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 20,
+      "walkToVenue": 5,
+      "originStation": "Graham Av",
+      "exitStation": "34 St-Penn Station"
+    },
+    "walkTime": 83,
+    "savings": 57
+  },
+  {
+    "from": "Bushwick Comedy Club",
+    "to": "UCB",
+    "micmap": {
+      "totalTime": 25,
+      "lines": [
+        "L"
+      ],
+      "walkToStation": 8,
+      "subwayTime": 12,
+      "walkToVenue": 6,
+      "originStation": "Central Av",
+      "exitStation": "1 Av"
+    },
+    "walkTime": 87,
+    "savings": 62
+  },
+  {
+    "from": "Bushwick Comedy Club",
+    "to": "The Tiny Cupboard",
+    "micmap": {
+      "totalTime": 24,
+      "lines": [
+        "M",
+        "J"
+      ],
+      "walkToStation": 8,
+      "subwayTime": 8,
+      "walkToVenue": 8,
+      "originStation": "Central Av",
+      "exitStation": "Halsey St"
+    },
+    "walkTime": 38,
+    "savings": 14
+  },
+  {
+    "from": "Bushwick Comedy Club",
+    "to": "Comedy Shop",
+    "micmap": {
+      "totalTime": 35,
+      "lines": [
+        "L",
+        "N"
+      ],
+      "walkToStation": 8,
+      "subwayTime": 18,
+      "walkToVenue": 10,
+      "originStation": "Central Av",
+      "exitStation": "8 St-NYU"
+    },
+    "walkTime": 99,
+    "savings": 64
+  },
+  {
+    "from": "Bushwick Comedy Club",
+    "to": "Greenwich Village Comedy Club",
+    "micmap": {
+      "totalTime": 39,
+      "lines": [
+        "L"
+      ],
+      "walkToStation": 8,
+      "subwayTime": 18,
+      "walkToVenue": 14,
+      "originStation": "Central Av",
+      "exitStation": "6 Av"
+    },
+    "walkTime": 100,
+    "savings": 61
+  },
+  {
+    "from": "Bushwick Comedy Club",
+    "to": "Pinebox",
+    "micmap": {
+      "error": "No route found"
+    },
+    "walkTime": 6,
+    "savings": null
+  },
+  {
+    "from": "Bushwick Comedy Club",
+    "to": "UWS NY Comedy Club",
+    "micmap": {
+      "totalTime": 37,
+      "lines": [
+        "L",
+        "N"
+      ],
+      "walkToStation": 8,
+      "subwayTime": 22,
+      "walkToVenue": 8,
+      "originStation": "Central Av",
+      "exitStation": "49 St"
+    },
+    "walkTime": 124,
+    "savings": 87
+  },
+  {
+    "from": "Bushwick Comedy Club",
+    "to": "Eastville Comedy Club",
+    "micmap": {
+      "totalTime": 44,
+      "lines": [
+        "L",
+        "C"
+      ],
+      "walkToStation": 8,
+      "subwayTime": 27,
+      "walkToVenue": 10,
+      "originStation": "Central Av",
+      "exitStation": "Lafayette Av"
+    },
+    "walkTime": 70,
+    "savings": 26
+  },
+  {
+    "from": "Bushwick Comedy Club",
+    "to": "Phoenix Bar",
+    "micmap": {
+      "totalTime": 32,
+      "lines": [
+        "L"
+      ],
+      "walkToStation": 8,
+      "subwayTime": 12,
+      "walkToVenue": 13,
+      "originStation": "Central Av",
+      "exitStation": "1 Av"
+    },
+    "walkTime": 75,
+    "savings": 43
+  },
+  {
+    "from": "Bushwick Comedy Club",
+    "to": "St. Mark's Comedy Club",
+    "micmap": {
+      "totalTime": 29,
+      "lines": [
+        "L"
+      ],
+      "walkToStation": 8,
+      "subwayTime": 12,
+      "walkToVenue": 10,
+      "originStation": "Central Av",
+      "exitStation": "1 Av"
+    },
+    "walkTime": 87,
+    "savings": 58
+  },
+  {
+    "from": "Bushwick Comedy Club",
+    "to": "Producer's Club",
+    "micmap": {
+      "totalTime": 38,
+      "lines": [
+        "L",
+        "Q"
+      ],
+      "walkToStation": 8,
+      "subwayTime": 21,
+      "walkToVenue": 10,
+      "originStation": "Central Av",
+      "exitStation": "Times Sq-42 St"
+    },
+    "walkTime": 123,
+    "savings": 85
+  },
+  {
+    "from": "Bushwick Comedy Club",
+    "to": "Caffeine Underground",
+    "micmap": {
+      "totalTime": 22,
+      "lines": [
+        "M"
+      ],
+      "walkToStation": 8,
+      "subwayTime": 2,
+      "walkToVenue": 13,
+      "originStation": "Central Av",
+      "exitStation": "Knickerbocker Av"
+    },
+    "walkTime": 25,
+    "savings": 3
+  },
+  {
+    "from": "Bushwick Comedy Club",
+    "to": "Brooklyn Art Haus",
+    "micmap": {
+      "totalTime": 25,
+      "lines": [
+        "L"
+      ],
+      "walkToStation": 8,
+      "subwayTime": 4,
+      "walkToVenue": 14,
+      "originStation": "Central Av",
+      "exitStation": "Graham Av"
+    },
+    "walkTime": 37,
+    "savings": 12
+  },
+  {
+    "from": "Bushwick Comedy Club",
+    "to": "The Comic Strip Live",
+    "micmap": {
+      "totalTime": 41,
+      "lines": [
+        "L",
+        "4"
+      ],
+      "walkToStation": 8,
+      "subwayTime": 26,
+      "walkToVenue": 8,
+      "originStation": "Central Av",
+      "exitStation": "86 St"
+    },
+    "walkTime": 124,
+    "savings": 83
+  },
+  {
+    "from": "Bushwick Comedy Club",
+    "to": "Fear City Comedy Club",
+    "micmap": {
+      "totalTime": 42,
+      "lines": [
+        "L",
+        "N"
+      ],
+      "walkToStation": 8,
+      "subwayTime": 21,
+      "walkToVenue": 14,
+      "originStation": "Central Av",
+      "exitStation": "Canal St"
+    },
+    "walkTime": 79,
+    "savings": 37
+  },
+  {
+    "from": "Bushwick Comedy Club",
+    "to": "Easy Lover BK",
+    "micmap": {
+      "totalTime": 21,
+      "lines": [
+        "L"
+      ],
+      "walkToStation": 8,
+      "subwayTime": 2,
+      "walkToVenue": 12,
+      "originStation": "Central Av",
+      "exitStation": "Montrose Av"
+    },
+    "walkTime": 26,
+    "savings": 5
+  },
+  {
+    "from": "Bushwick Comedy Club",
+    "to": "Idaho Bar",
+    "micmap": {
+      "totalTime": 21,
+      "lines": [
+        "L"
+      ],
+      "walkToStation": 8,
+      "subwayTime": 12,
+      "walkToVenue": 2,
+      "originStation": "Central Av",
+      "exitStation": "1 Av"
+    },
+    "walkTime": 83,
+    "savings": 62
+  },
+  {
+    "from": "Bushwick Comedy Club",
+    "to": "O'Keefe's Bar",
+    "micmap": {
+      "totalTime": 45,
+      "lines": [
+        "L",
+        "A"
+      ],
+      "walkToStation": 8,
+      "subwayTime": 28,
+      "walkToVenue": 10,
+      "originStation": "Central Av",
+      "exitStation": "Hoyt-Schermerhorn Sts"
+    },
+    "walkTime": 79,
+    "savings": 34
+  },
+  {
+    "from": "Bushwick Comedy Club",
+    "to": "QED Astoria",
+    "micmap": {
+      "totalTime": 56,
+      "lines": [
+        "L",
+        "4",
+        "N"
+      ],
+      "walkToStation": 8,
+      "subwayTime": 39,
+      "walkToVenue": 9,
+      "originStation": "Central Av",
+      "exitStation": "Astoria Blvd"
+    },
+    "walkTime": 123,
+    "savings": 67
+  },
+  {
+    "from": "Bushwick Comedy Club",
+    "to": "The Pit Midtown",
+    "micmap": {
+      "totalTime": 36,
+      "lines": [
+        "L",
+        "N"
+      ],
+      "walkToStation": 8,
+      "subwayTime": 18,
+      "walkToVenue": 11,
+      "originStation": "Central Av",
+      "exitStation": "23 St"
+    },
+    "walkTime": 109,
+    "savings": 73
+  },
+  {
+    "from": "Idaho Bar",
+    "to": "UCB",
+    "micmap": {
+      "error": "No route found"
+    },
+    "walkTime": 4,
+    "savings": null
+  },
+  {
+    "from": "Idaho Bar",
+    "to": "The Tiny Cupboard",
+    "micmap": {
+      "totalTime": 37,
+      "lines": [
+        "L"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 23,
+      "walkToVenue": 12,
+      "originStation": "1 Av",
+      "exitStation": "Wilson Av"
+    },
+    "walkTime": 120,
+    "savings": 83
+  },
+  {
+    "from": "Idaho Bar",
+    "to": "Comedy Shop",
+    "micmap": {
+      "totalTime": 18,
+      "lines": [
+        "L",
+        "N"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 7,
+      "walkToVenue": 10,
+      "originStation": "1 Av",
+      "exitStation": "8 St-NYU"
+    },
+    "walkTime": 21,
+    "savings": 3
+  },
+  {
+    "from": "Idaho Bar",
+    "to": "Greenwich Village Comedy Club",
+    "micmap": {
+      "totalTime": 23,
+      "lines": [
+        "L"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 7,
+      "walkToVenue": 14,
+      "originStation": "1 Av",
+      "exitStation": "6 Av"
+    },
+    "walkTime": 22,
+    "savings": -1
+  },
+  {
+    "from": "Idaho Bar",
+    "to": "Pinebox",
+    "micmap": {
+      "totalTime": 22,
+      "lines": [
+        "L"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 10,
+      "walkToVenue": 10,
+      "originStation": "1 Av",
+      "exitStation": "Montrose Av"
+    },
+    "walkTime": 77,
+    "savings": 55
+  },
+  {
+    "from": "Idaho Bar",
+    "to": "UWS NY Comedy Club",
+    "micmap": {
+      "totalTime": 20,
+      "lines": [
+        "L",
+        "N"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 11,
+      "walkToVenue": 8,
+      "originStation": "1 Av",
+      "exitStation": "49 St"
+    },
+    "walkTime": 56,
+    "savings": 36
+  },
+  {
+    "from": "Idaho Bar",
+    "to": "Eastville Comedy Club",
+    "micmap": {
+      "totalTime": 27,
+      "lines": [
+        "L",
+        "Q"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 17,
+      "walkToVenue": 8,
+      "originStation": "1 Av",
+      "exitStation": "DeKalb Av"
+    },
+    "walkTime": 75,
+    "savings": 48
+  },
+  {
+    "from": "Idaho Bar",
+    "to": "Phoenix Bar",
+    "micmap": {
+      "error": "No route found"
+    },
+    "walkTime": 13,
+    "savings": null
+  },
+  {
+    "from": "Idaho Bar",
+    "to": "St. Mark's Comedy Club",
+    "micmap": {
+      "error": "No route found"
+    },
+    "walkTime": 8,
+    "savings": null
+  },
+  {
+    "from": "Idaho Bar",
+    "to": "Producer's Club",
+    "micmap": {
+      "totalTime": 21,
+      "lines": [
+        "L",
+        "Q"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 9,
+      "walkToVenue": 10,
+      "originStation": "1 Av",
+      "exitStation": "Times Sq-42 St"
+    },
+    "walkTime": 48,
+    "savings": 27
+  },
+  {
+    "from": "Idaho Bar",
+    "to": "Caffeine Underground",
+    "micmap": {
+      "totalTime": 32,
+      "lines": [
+        "L"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 17,
+      "walkToVenue": 13,
+      "originStation": "1 Av",
+      "exitStation": "Myrtle-Wyckoff Avs"
+    },
+    "walkTime": 108,
+    "savings": 76
+  },
+  {
+    "from": "Idaho Bar",
+    "to": "Brooklyn Art Haus",
+    "micmap": {
+      "totalTime": 13,
+      "lines": [
+        "L"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 4,
+      "walkToVenue": 7,
+      "originStation": "1 Av",
+      "exitStation": "Bedford Av"
+    },
+    "walkTime": 46,
+    "savings": 33
+  },
+  {
+    "from": "Idaho Bar",
+    "to": "The Comic Strip Live",
+    "micmap": {
+      "totalTime": 24,
+      "lines": [
+        "L",
+        "4"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 14,
+      "walkToVenue": 8,
+      "originStation": "1 Av",
+      "exitStation": "86 St"
+    },
+    "walkTime": 82,
+    "savings": 58
+  },
+  {
+    "from": "Idaho Bar",
+    "to": "Fear City Comedy Club",
+    "micmap": {
+      "totalTime": 25,
+      "lines": [
+        "L",
+        "N"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 9,
+      "walkToVenue": 14,
+      "originStation": "1 Av",
+      "exitStation": "Canal St"
+    },
+    "walkTime": 27,
+    "savings": 2
+  },
+  {
+    "from": "Idaho Bar",
+    "to": "Easy Lover BK",
+    "micmap": {
+      "totalTime": 17,
+      "lines": [
+        "L"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 6,
+      "walkToVenue": 10,
+      "originStation": "1 Av",
+      "exitStation": "Lorimer St"
+    },
+    "walkTime": 58,
+    "savings": 41
+  },
+  {
+    "from": "Idaho Bar",
+    "to": "Bushwick Comedy Club",
+    "micmap": {
+      "totalTime": 22,
+      "lines": [
+        "L"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 12,
+      "walkToVenue": 8,
+      "originStation": "1 Av",
+      "exitStation": "Morgan Av"
+    },
+    "walkTime": 83,
+    "savings": 61
+  },
+  {
+    "from": "Idaho Bar",
+    "to": "O'Keefe's Bar",
+    "micmap": {
+      "totalTime": 27,
+      "lines": [
+        "L",
+        "6",
+        "F"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 20,
+      "walkToVenue": 5,
+      "originStation": "1 Av",
+      "exitStation": "Jay St-MetroTech"
+    },
+    "walkTime": 65,
+    "savings": 38
+  },
+  {
+    "from": "Idaho Bar",
+    "to": "QED Astoria",
+    "micmap": {
+      "totalTime": 39,
+      "lines": [
+        "L",
+        "4",
+        "N"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 27,
+      "walkToVenue": 9,
+      "originStation": "1 Av",
+      "exitStation": "Astoria Blvd"
+    },
+    "walkTime": 113,
+    "savings": 74
+  },
+  {
+    "from": "Idaho Bar",
+    "to": "The Pit Midtown",
+    "micmap": {
+      "totalTime": 19,
+      "lines": [
+        "L",
+        "N"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 7,
+      "walkToVenue": 11,
+      "originStation": "1 Av",
+      "exitStation": "23 St"
+    },
+    "walkTime": 30,
+    "savings": 11
+  },
+  {
+    "from": "O'Keefe's Bar",
+    "to": "UCB",
+    "micmap": {
+      "totalTime": 21,
+      "lines": [
+        "4"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 14,
+      "walkToVenue": 6,
+      "originStation": "Borough Hall",
+      "exitStation": "14 St-Union Sq"
+    },
+    "walkTime": 68,
+    "savings": 47
+  },
+  {
+    "from": "O'Keefe's Bar",
+    "to": "The Tiny Cupboard",
+    "micmap": {
+      "totalTime": 29,
+      "lines": [
+        "N",
+        "A"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 16,
+      "walkToVenue": 12,
+      "originStation": "Borough Hall",
+      "exitStation": "Broadway Junction"
+    },
+    "walkTime": 102,
+    "savings": 73
+  },
+  {
+    "from": "O'Keefe's Bar",
+    "to": "Comedy Shop",
+    "micmap": {
+      "totalTime": 23,
+      "lines": [
+        "R"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 13,
+      "walkToVenue": 8,
+      "originStation": "Borough Hall",
+      "exitStation": "Prince St"
+    },
+    "walkTime": 62,
+    "savings": 39
+  },
+  {
+    "from": "O'Keefe's Bar",
+    "to": "Greenwich Village Comedy Club",
+    "micmap": {
+      "totalTime": 25,
+      "lines": [
+        "R"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 13,
+      "walkToVenue": 10,
+      "originStation": "Borough Hall",
+      "exitStation": "Prince St"
+    },
+    "walkTime": 64,
+    "savings": 39
+  },
+  {
+    "from": "O'Keefe's Bar",
+    "to": "Pinebox",
+    "micmap": {
+      "totalTime": 40,
+      "lines": [
+        "4",
+        "L"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 28,
+      "walkToVenue": 10,
+      "originStation": "Borough Hall",
+      "exitStation": "Montrose Av"
+    },
+    "walkTime": 77,
+    "savings": 37
+  },
+  {
+    "from": "O'Keefe's Bar",
+    "to": "UWS NY Comedy Club",
+    "micmap": {
+      "totalTime": 29,
+      "lines": [
+        "2",
+        "A"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 22,
+      "walkToVenue": 5,
+      "originStation": "Borough Hall",
+      "exitStation": "50 St"
+    },
+    "walkTime": 121,
+    "savings": 92
+  },
+  {
+    "from": "O'Keefe's Bar",
+    "to": "Eastville Comedy Club",
+    "micmap": {
+      "totalTime": 7,
+      "lines": [
+        "4"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 2,
+      "walkToVenue": 4,
+      "originStation": "Borough Hall",
+      "exitStation": "Nevins St"
+    },
+    "walkTime": 16,
+    "savings": 9
+  },
+  {
+    "from": "O'Keefe's Bar",
+    "to": "Phoenix Bar",
+    "micmap": {
+      "totalTime": 20,
+      "lines": [
+        "N",
+        "F"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 9,
+      "walkToVenue": 10,
+      "originStation": "Borough Hall",
+      "exitStation": "Delancey St-Essex St"
+    },
+    "walkTime": 53,
+    "savings": 33
+  },
+  {
+    "from": "O'Keefe's Bar",
+    "to": "St. Mark's Comedy Club",
+    "micmap": {
+      "totalTime": 28,
+      "lines": [
+        "R"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 13,
+      "walkToVenue": 13,
+      "originStation": "Borough Hall",
+      "exitStation": "Prince St"
+    },
+    "walkTime": 61,
+    "savings": 33
+  },
+  {
+    "from": "O'Keefe's Bar",
+    "to": "Producer's Club",
+    "micmap": {
+      "totalTime": 27,
+      "lines": [
+        "2"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 17,
+      "walkToVenue": 9,
+      "originStation": "Borough Hall",
+      "exitStation": "Times Sq-42 St"
+    },
+    "walkTime": 112,
+    "savings": 85
+  },
+  {
+    "from": "O'Keefe's Bar",
+    "to": "Caffeine Underground",
+    "micmap": {
+      "totalTime": 49,
+      "lines": [
+        "4",
+        "3",
+        "L"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 33,
+      "walkToVenue": 14,
+      "originStation": "Borough Hall",
+      "exitStation": "Wilson Av"
+    },
+    "walkTime": 97,
+    "savings": 48
+  },
+  {
+    "from": "O'Keefe's Bar",
+    "to": "Brooklyn Art Haus",
+    "micmap": {
+      "totalTime": 31,
+      "lines": [
+        "4",
+        "L"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 22,
+      "walkToVenue": 7,
+      "originStation": "Borough Hall",
+      "exitStation": "Bedford Av"
+    },
+    "walkTime": 58,
+    "savings": 27
+  },
+  {
+    "from": "O'Keefe's Bar",
+    "to": "The Comic Strip Live",
+    "micmap": {
+      "totalTime": 32,
+      "lines": [
+        "4"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 23,
+      "walkToVenue": 8,
+      "originStation": "Borough Hall",
+      "exitStation": "86 St"
+    },
+    "walkTime": 145,
+    "savings": 113
+  },
+  {
+    "from": "O'Keefe's Bar",
+    "to": "Fear City Comedy Club",
+    "micmap": {
+      "totalTime": 12,
+      "lines": [
+        "N",
+        "F"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 8,
+      "walkToVenue": 3,
+      "originStation": "Borough Hall",
+      "exitStation": "East Broadway"
+    },
+    "walkTime": 39,
+    "savings": 27
+  },
+  {
+    "from": "O'Keefe's Bar",
+    "to": "Easy Lover BK",
+    "micmap": {
+      "totalTime": 35,
+      "lines": [
+        "4",
+        "L"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 24,
+      "walkToVenue": 10,
+      "originStation": "Borough Hall",
+      "exitStation": "Lorimer St"
+    },
+    "walkTime": 72,
+    "savings": 37
+  },
+  {
+    "from": "O'Keefe's Bar",
+    "to": "Bushwick Comedy Club",
+    "micmap": {
+      "totalTime": 40,
+      "lines": [
+        "4",
+        "L"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 30,
+      "walkToVenue": 8,
+      "originStation": "Borough Hall",
+      "exitStation": "Morgan Av"
+    },
+    "walkTime": 79,
+    "savings": 39
+  },
+  {
+    "from": "O'Keefe's Bar",
+    "to": "Idaho Bar",
+    "micmap": {
+      "totalTime": 26,
+      "lines": [
+        "4"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 14,
+      "walkToVenue": 10,
+      "originStation": "Borough Hall",
+      "exitStation": "14 St-Union Sq"
+    },
+    "walkTime": 65,
+    "savings": 39
+  },
+  {
+    "from": "O'Keefe's Bar",
+    "to": "QED Astoria",
+    "micmap": {
+      "totalTime": 47,
+      "lines": [
+        "4",
+        "N"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 36,
+      "walkToVenue": 9,
+      "originStation": "Borough Hall",
+      "exitStation": "Astoria Blvd"
+    },
+    "walkTime": 169,
+    "savings": 122
+  },
+  {
+    "from": "O'Keefe's Bar",
+    "to": "The Pit Midtown",
+    "micmap": {
+      "totalTime": 22,
+      "lines": [
+        "3"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 15,
+      "walkToVenue": 5,
+      "originStation": "Borough Hall",
+      "exitStation": "34 St-Penn Station"
+    },
+    "walkTime": 92,
+    "savings": 70
+  },
+  {
+    "from": "QED Astoria",
+    "to": "UCB",
+    "micmap": {
+      "totalTime": 33,
+      "lines": [
+        "N",
+        "4"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 23,
+      "walkToVenue": 6,
+      "originStation": "Astoria-Ditmars Blvd",
+      "exitStation": "14 St-Union Sq"
+    },
+    "walkTime": 113,
+    "savings": 80
+  },
+  {
+    "from": "QED Astoria",
+    "to": "The Tiny Cupboard",
+    "micmap": {
+      "totalTime": 65,
+      "lines": [
+        "N",
+        "4",
+        "A"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 50,
+      "walkToVenue": 12,
+      "originStation": "Astoria-Ditmars Blvd",
+      "exitStation": "Broadway Junction"
+    },
+    "walkTime": 152,
+    "savings": 87
+  },
+  {
+    "from": "QED Astoria",
+    "to": "Comedy Shop",
+    "micmap": {
+      "totalTime": 39,
+      "lines": [
+        "N"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 26,
+      "walkToVenue": 10,
+      "originStation": "Astoria-Ditmars Blvd",
+      "exitStation": "8 St-NYU"
+    },
+    "walkTime": 132,
+    "savings": 93
+  },
+  {
+    "from": "QED Astoria",
+    "to": "Greenwich Village Comedy Club",
+    "micmap": {
+      "totalTime": 38,
+      "lines": [
+        "N",
+        "7",
+        "D"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 30,
+      "walkToVenue": 5,
+      "originStation": "Astoria-Ditmars Blvd",
+      "exitStation": "W 4 St-Wash Sq"
+    },
+    "walkTime": 132,
+    "savings": 94
+  },
+  {
+    "from": "QED Astoria",
+    "to": "Pinebox",
+    "micmap": {
+      "totalTime": 51,
+      "lines": [
+        "N",
+        "4",
+        "L"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 38,
+      "walkToVenue": 10,
+      "originStation": "Astoria-Ditmars Blvd",
+      "exitStation": "Montrose Av"
+    },
+    "walkTime": 119,
+    "savings": 68
+  },
+  {
+    "from": "QED Astoria",
+    "to": "UWS NY Comedy Club",
+    "micmap": {
+      "totalTime": 31,
+      "lines": [
+        "N"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 15,
+      "walkToVenue": 13,
+      "originStation": "Astoria-Ditmars Blvd",
+      "exitStation": "5 Av/59 St"
+    },
+    "walkTime": 88,
+    "savings": 57
+  },
+  {
+    "from": "QED Astoria",
+    "to": "Eastville Comedy Club",
+    "micmap": {
+      "totalTime": 51,
+      "lines": [
+        "N",
+        "Q"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 39,
+      "walkToVenue": 8,
+      "originStation": "Astoria-Ditmars Blvd",
+      "exitStation": "DeKalb Av"
+    },
+    "walkTime": 171,
+    "savings": 120
+  },
+  {
+    "from": "QED Astoria",
+    "to": "Phoenix Bar",
+    "micmap": {
+      "totalTime": 44,
+      "lines": [
+        "N",
+        "4",
+        "L"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 28,
+      "walkToVenue": 13,
+      "originStation": "Astoria-Ditmars Blvd",
+      "exitStation": "1 Av"
+    },
+    "walkTime": 122,
+    "savings": 78
+  },
+  {
+    "from": "QED Astoria",
+    "to": "St. Mark's Comedy Club",
+    "micmap": {
+      "totalTime": 36,
+      "lines": [
+        "N",
+        "4"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 23,
+      "walkToVenue": 9,
+      "originStation": "Astoria-Ditmars Blvd",
+      "exitStation": "14 St-Union Sq"
+    },
+    "walkTime": 121,
+    "savings": 85
+  },
+  {
+    "from": "QED Astoria",
+    "to": "Producer's Club",
+    "micmap": {
+      "totalTime": 32,
+      "lines": [
+        "N"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 19,
+      "walkToVenue": 9,
+      "originStation": "Astoria-Ditmars Blvd",
+      "exitStation": "49 St"
+    },
+    "walkTime": 100,
+    "savings": 68
+  },
+  {
+    "from": "QED Astoria",
+    "to": "Caffeine Underground",
+    "micmap": {
+      "totalTime": 61,
+      "lines": [
+        "N",
+        "4",
+        "L"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 45,
+      "walkToVenue": 13,
+      "originStation": "Astoria-Ditmars Blvd",
+      "exitStation": "Myrtle-Wyckoff Avs"
+    },
+    "walkTime": 138,
+    "savings": 77
+  },
+  {
+    "from": "QED Astoria",
+    "to": "Brooklyn Art Haus",
+    "micmap": {
+      "totalTime": 42,
+      "lines": [
+        "N",
+        "4",
+        "L"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 32,
+      "walkToVenue": 7,
+      "originStation": "Astoria-Ditmars Blvd",
+      "exitStation": "Bedford Av"
+    },
+    "walkTime": 115,
+    "savings": 73
+  },
+  {
+    "from": "QED Astoria",
+    "to": "The Comic Strip Live",
+    "micmap": {
+      "totalTime": 32,
+      "lines": [
+        "N",
+        "4"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 20,
+      "walkToVenue": 8,
+      "originStation": "Astoria-Ditmars Blvd",
+      "exitStation": "86 St"
+    },
+    "walkTime": 49,
+    "savings": 17
+  },
+  {
+    "from": "QED Astoria",
+    "to": "Fear City Comedy Club",
+    "micmap": {
+      "totalTime": 43,
+      "lines": [
+        "N",
+        "D"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 33,
+      "walkToVenue": 7,
+      "originStation": "Astoria-Ditmars Blvd",
+      "exitStation": "Grand St"
+    },
+    "walkTime": 138,
+    "savings": 95
+  },
+  {
+    "from": "QED Astoria",
+    "to": "Easy Lover BK",
+    "micmap": {
+      "totalTime": 46,
+      "lines": [
+        "N",
+        "4",
+        "L"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 33,
+      "walkToVenue": 10,
+      "originStation": "Astoria-Ditmars Blvd",
+      "exitStation": "Lorimer St"
+    },
+    "walkTime": 107,
+    "savings": 61
+  },
+  {
+    "from": "QED Astoria",
+    "to": "Bushwick Comedy Club",
+    "micmap": {
+      "totalTime": 51,
+      "lines": [
+        "N",
+        "4",
+        "L"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 40,
+      "walkToVenue": 8,
+      "originStation": "Astoria-Ditmars Blvd",
+      "exitStation": "Morgan Av"
+    },
+    "walkTime": 123,
+    "savings": 72
+  },
+  {
+    "from": "QED Astoria",
+    "to": "Idaho Bar",
+    "micmap": {
+      "totalTime": 37,
+      "lines": [
+        "N",
+        "4"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 23,
+      "walkToVenue": 10,
+      "originStation": "Astoria-Ditmars Blvd",
+      "exitStation": "14 St-Union Sq"
+    },
+    "walkTime": 113,
+    "savings": 76
+  },
+  {
+    "from": "QED Astoria",
+    "to": "O'Keefe's Bar",
+    "micmap": {
+      "totalTime": 51,
+      "lines": [
+        "N",
+        "4",
+        "A"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 35,
+      "walkToVenue": 12,
+      "originStation": "Astoria-Ditmars Blvd",
+      "exitStation": "High St"
+    },
+    "walkTime": 169,
+    "savings": 118
+  },
+  {
+    "from": "QED Astoria",
+    "to": "The Pit Midtown",
+    "micmap": {
+      "totalTime": 38,
+      "lines": [
+        "N"
+      ],
+      "walkToStation": 4,
+      "subwayTime": 21,
+      "walkToVenue": 14,
+      "originStation": "Astoria-Ditmars Blvd",
+      "exitStation": "Times Sq-42 St"
+    },
+    "walkTime": 108,
+    "savings": 70
+  },
+  {
+    "from": "The Pit Midtown",
+    "to": "UCB",
+    "micmap": {
+      "totalTime": 17,
+      "lines": [
+        "1",
+        "L"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 8,
+      "walkToVenue": 7,
+      "originStation": "28 St",
+      "exitStation": "14 St-Union Sq"
+    },
+    "walkTime": 25,
+    "savings": 8
+  },
+  {
+    "from": "The Pit Midtown",
+    "to": "The Tiny Cupboard",
+    "micmap": {
+      "totalTime": 46,
+      "lines": [
+        "1",
+        "L"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 32,
+      "walkToVenue": 12,
+      "originStation": "28 St",
+      "exitStation": "Wilson Av"
+    },
+    "walkTime": 147,
+    "savings": 101
+  },
+  {
+    "from": "The Pit Midtown",
+    "to": "Comedy Shop",
+    "micmap": {
+      "totalTime": 14,
+      "lines": [
+        "1"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 5,
+      "walkToVenue": 8,
+      "originStation": "28 St",
+      "exitStation": "Christopher St-Stonewall"
+    },
+    "walkTime": 32,
+    "savings": 18
+  },
+  {
+    "from": "The Pit Midtown",
+    "to": "Greenwich Village Comedy Club",
+    "micmap": {
+      "totalTime": 18,
+      "lines": [
+        "1"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 3,
+      "walkToVenue": 14,
+      "originStation": "28 St",
+      "exitStation": "14 St"
+    },
+    "walkTime": 32,
+    "savings": 14
+  },
+  {
+    "from": "The Pit Midtown",
+    "to": "Pinebox",
+    "micmap": {
+      "totalTime": 31,
+      "lines": [
+        "1",
+        "L"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 20,
+      "walkToVenue": 10,
+      "originStation": "28 St",
+      "exitStation": "Montrose Av"
+    },
+    "walkTime": 102,
+    "savings": 71
+  },
+  {
+    "from": "The Pit Midtown",
+    "to": "UWS NY Comedy Club",
+    "micmap": {
+      "totalTime": 11,
+      "lines": [
+        "1"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 5,
+      "walkToVenue": 5,
+      "originStation": "28 St",
+      "exitStation": "50 St"
+    },
+    "walkTime": 30,
+    "savings": 19
+  },
+  {
+    "from": "The Pit Midtown",
+    "to": "Eastville Comedy Club",
+    "micmap": {
+      "totalTime": 31,
+      "lines": [
+        "1",
+        "Q"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 22,
+      "walkToVenue": 8,
+      "originStation": "28 St",
+      "exitStation": "DeKalb Av"
+    },
+    "walkTime": 103,
+    "savings": 72
+  },
+  {
+    "from": "The Pit Midtown",
+    "to": "Phoenix Bar",
+    "micmap": {
+      "totalTime": 24,
+      "lines": [
+        "1",
+        "L"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 10,
+      "walkToVenue": 13,
+      "originStation": "28 St",
+      "exitStation": "1 Av"
+    },
+    "walkTime": 42,
+    "savings": 18
+  },
+  {
+    "from": "The Pit Midtown",
+    "to": "St. Mark's Comedy Club",
+    "micmap": {
+      "totalTime": 19,
+      "lines": [
+        "1",
+        "L"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 8,
+      "walkToVenue": 10,
+      "originStation": "28 St",
+      "exitStation": "14 St-Union Sq"
+    },
+    "walkTime": 31,
+    "savings": 12
+  },
+  {
+    "from": "The Pit Midtown",
+    "to": "Producer's Club",
+    "micmap": {
+      "totalTime": 13,
+      "lines": [
+        "1"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 3,
+      "walkToVenue": 9,
+      "originStation": "28 St",
+      "exitStation": "Times Sq-42 St"
+    },
+    "walkTime": 20,
+    "savings": 7
+  },
+  {
+    "from": "The Pit Midtown",
+    "to": "Caffeine Underground",
+    "micmap": {
+      "totalTime": 41,
+      "lines": [
+        "1",
+        "L"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 27,
+      "walkToVenue": 13,
+      "originStation": "28 St",
+      "exitStation": "Myrtle-Wyckoff Avs"
+    },
+    "walkTime": 134,
+    "savings": 93
+  },
+  {
+    "from": "The Pit Midtown",
+    "to": "Brooklyn Art Haus",
+    "micmap": {
+      "totalTime": 22,
+      "lines": [
+        "1",
+        "L"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 14,
+      "walkToVenue": 7,
+      "originStation": "28 St",
+      "exitStation": "Bedford Av"
+    },
+    "walkTime": 73,
+    "savings": 51
+  },
+  {
+    "from": "The Pit Midtown",
+    "to": "The Comic Strip Live",
+    "micmap": {
+      "totalTime": 27,
+      "lines": [
+        "1",
+        "Q"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 14,
+      "walkToVenue": 12,
+      "originStation": "28 St",
+      "exitStation": "72 St"
+    },
+    "walkTime": 66,
+    "savings": 39
+  },
+  {
+    "from": "The Pit Midtown",
+    "to": "Fear City Comedy Club",
+    "micmap": {
+      "totalTime": 27,
+      "lines": [
+        "1",
+        "7",
+        "D"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 19,
+      "walkToVenue": 7,
+      "originStation": "28 St",
+      "exitStation": "Grand St"
+    },
+    "walkTime": 53,
+    "savings": 26
+  },
+  {
+    "from": "The Pit Midtown",
+    "to": "Easy Lover BK",
+    "micmap": {
+      "totalTime": 26,
+      "lines": [
+        "1",
+        "L"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 15,
+      "walkToVenue": 10,
+      "originStation": "28 St",
+      "exitStation": "Lorimer St"
+    },
+    "walkTime": 83,
+    "savings": 57
+  },
+  {
+    "from": "The Pit Midtown",
+    "to": "Bushwick Comedy Club",
+    "micmap": {
+      "totalTime": 31,
+      "lines": [
+        "1",
+        "L"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 22,
+      "walkToVenue": 8,
+      "originStation": "28 St",
+      "exitStation": "Morgan Av"
+    },
+    "walkTime": 109,
+    "savings": 78
+  },
+  {
+    "from": "The Pit Midtown",
+    "to": "Idaho Bar",
+    "micmap": {
+      "totalTime": 21,
+      "lines": [
+        "1",
+        "L"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 8,
+      "walkToVenue": 11,
+      "originStation": "28 St",
+      "exitStation": "14 St-Union Sq"
+    },
+    "walkTime": 30,
+    "savings": 9
+  },
+  {
+    "from": "The Pit Midtown",
+    "to": "O'Keefe's Bar",
+    "micmap": {
+      "totalTime": 27,
+      "lines": [
+        "1",
+        "F"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 21,
+      "walkToVenue": 5,
+      "originStation": "28 St",
+      "exitStation": "Jay St-MetroTech"
+    },
+    "walkTime": 92,
+    "savings": 65
+  },
+  {
+    "from": "The Pit Midtown",
+    "to": "QED Astoria",
+    "micmap": {
+      "totalTime": 39,
+      "lines": [
+        "1",
+        "N"
+      ],
+      "walkToStation": 2,
+      "subwayTime": 28,
+      "walkToVenue": 9,
+      "originStation": "28 St",
+      "exitStation": "Astoria Blvd"
+    },
+    "walkTime": 108,
+    "savings": 69
+  }
+]

@@ -1,0 +1,12 @@
+{
+  "appId": "com.micmap.app",
+  "appName": "MicMap",
+  "webDir": "map_designs/newest_map",
+  "ios": {
+    "contentInset": "automatic",
+    "allowsLinkPreview": false
+  },
+  "server": {
+    "allowNavigation": ["micmap-production.up.railway.app"]
+  }
+}

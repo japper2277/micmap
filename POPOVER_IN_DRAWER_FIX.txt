@@ -1,0 +1,86 @@
+POPOVER VISIBILITY IN DRAWERS
+=============================
+
+COMMON PROBLEM:
+Popovers/dropdowns inside a drawer are invisible or clipped.
+
+
+WHY IT HAPPENS:
+---------------
+1. Drawer has overflow: hidden or overflow: auto
+2. Filter row has overflow-x: auto for horizontal scrolling
+3. Even position: fixed doesn't escape overflow clipping in some browsers
+   when parent has transform, backdrop-filter, or will-change properties
+
+
+THE FIX:
+--------
+Move the popover HTML OUTSIDE the drawer, to the body level.
+
+BEFORE (broken):
+  <div id="drawer">
+    <button id="filter-btn">Filter</button>
+    <div class="popover">...</div>  <!-- TRAPPED, gets clipped -->
+  </div>
+
+AFTER (works):
+  <div id="drawer">
+    <button id="filter-btn">Filter</button>
+  </div>
+
+  <!-- Popover at body level, near other modals -->
+  <div class="popover" id="my-popover">...</div>
+
+
+CSS FOR POPOVER:
+----------------
+.popover {
+    position: fixed;
+    z-index: 2000;           /* Higher than drawer (usually 900-1000) */
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    transition: all 0.2s ease;
+}
+
+.popover.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+
+JS TO POSITION IT:
+------------------
+function togglePopover() {
+    const popover = document.getElementById('my-popover');
+    const btn = document.getElementById('filter-btn');
+    const isOpen = popover.classList.contains('active');
+
+    if (isOpen) {
+        popover.classList.remove('active');
+    } else {
+        // Position below button
+        const rect = btn.getBoundingClientRect();
+        popover.style.top = (rect.bottom + 8) + 'px';
+        popover.style.left = rect.left + 'px';
+        popover.classList.add('active');
+    }
+}
+
+
+CLOSE ON OUTSIDE CLICK:
+-----------------------
+document.addEventListener('click', (e) => {
+    const popover = document.getElementById('my-popover');
+    const btn = document.getElementById('filter-btn');
+    if (!popover.contains(e.target) && !btn.contains(e.target)) {
+        popover.classList.remove('active');
+    }
+});
+
+
+SUMMARY:
+--------
+- Popovers inside drawers = bad (overflow clips them)
+- Popovers at body level + position:fixed + JS positioning = good

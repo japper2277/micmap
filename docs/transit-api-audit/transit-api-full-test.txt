@@ -1,0 +1,517 @@
+╔══════════════════════════════════════════════════════════════════════╗
+║           FULL VENUE TRANSIT API TEST                                ║
+║           Testing 104 venues                                          ║
+║           Generated: 2025-12-12T15:55:39.517Z              ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+📍 Comedy Shop
+   Station: W 4 St-Wash Sq (A32) - 1283ft
+   Lines: A, C, E
+
+📍 Greenwich Village Comedy Club
+   Station: W 4 St-Wash Sq (A32) - 992ft
+   Lines: A, C, E
+
+📍 Pinebox
+   Station: Morgan Av (L14) - 362ft
+   Lines: L
+
+📍 Pine Box Rock Shop
+   Station: Morgan Av (L14) - 362ft
+   Lines: L
+
+📍 Pine Box
+   Station: Morgan Av (L14) - 362ft
+   Lines: L
+
+📍 UWS NY Comedy Club
+   Station: 72 St (123) - 953ft
+   Lines: 1, 2, 3
+
+📍 West Side Comedy Club
+   Station: 72 St (123) - 953ft
+   Lines: 1, 2, 3
+
+⚠️  Eastville Comedy Club - No nearby stations found
+
+⚠️  Phoenix Bar - No nearby stations found
+
+⚠️  Phoenix Bar Avenue A - No nearby stations found
+
+📍 The Comic Strip Live
+   Station: 86 St (Q04) - 1226ft
+   Lines: N, Q, R
+
+📍 Comic Strip Live
+   Station: 86 St (Q04) - 1226ft
+   Lines: N, Q, R
+
+📍 St. Mark's Comedy Club
+   Station: Astor Pl (636) - 689ft
+   Lines: 4, 6, 6X
+
+📍 St. Marks Comedy Club
+   Station: Astor Pl (636) - 689ft
+   Lines: 4, 6, 6X
+
+📍 Producer's Club
+   Station: 50 St (A25) - 729ft
+   Lines: A, C, E
+
+📍 Caffeine Underground
+   Station: Chauncey St (J28) - 359ft
+   Lines: J, Z
+
+📍 Brooklyn Art Haus
+   Station: Bedford Av (L08) - 1171ft
+   Lines: L
+
+📍 Fear City Comedy Club
+   Station: East Broadway (F16) - 565ft
+   Lines: F, FX
+
+📍 Easy Lover BK
+   Station: Lorimer St (L10) - 1470ft
+   Lines: L
+
+📍 Bushwick Comedy Club
+   Station: Kosciuszko St (J31) - 800ft
+   Lines: J
+
+📍 Idaho Bar
+   Station: W 4 St-Wash Sq (A32) - 1283ft
+   Lines: A, C, E
+
+📍 O'Keefe's Bar
+   Station: Union St (R32) - 905ft
+   Lines: D, N, W, R
+
+📍 The Tiny Cupboard
+   Station: Chauncey St (J28) - 359ft
+   Lines: J, Z
+
+📍 QED Astoria
+   Station: Astoria-Ditmars Blvd (R01) - 824ft
+   Lines: N, W
+
+📍 The Pit Midtown
+   Station: 23 St-Baruch College (634) - 553ft
+   Lines: 4, 6, 6X
+
+📍 The PIT NYC
+   Station: 23 St-Baruch College (634) - 553ft
+   Lines: 4, 6, 6X
+
+📍 UCB
+   Station: Astor Pl (636) - 919ft
+   Lines: 4, 6, 6X
+
+📍 Grisly Pear
+   Station: Christopher St-Stonewall (133) - 614ft
+   Lines: 1, 2
+
+📍 The Grisly Pear
+   Station: Christopher St-Stonewall (133) - 614ft
+   Lines: 1, 2
+
+📍 Grisly Pear Midtown
+   Station: Times Sq-42 St (902) - 763ft
+   Lines: GS
+
+⚠️  New York Comedy Club Midtown - No nearby stations found
+
+📍 New York Comedy Club East Village
+   Station: 2 Av (F14) - 1544ft
+   Lines: F, FX
+
+📍 The Stand NYC
+   Station: 23 St-Baruch College (634) - 1299ft
+   Lines: 4, 6, 6X
+
+📍 The Stand
+   Station: 23 St-Baruch College (634) - 1299ft
+   Lines: 4, 6, 6X
+
+📍 Janice's apt
+   Station: 50 St (A25) - 729ft
+   Lines: A, C, E
+
+📍 Sesh Comedy
+   Station: East Broadway (F16) - 565ft
+   Lines: F, FX
+
+📍 BKLYN Made Comedy
+   Station: Kosciuszko St (J31) - 800ft
+   Lines: J
+
+📍 Comedy Village
+   Station: W 4 St-Wash Sq (A32) - 864ft
+   Lines: A, C, E
+
+⚠️  Caravan of Dreams - No nearby stations found
+
+📍 Alligator Lounge
+   Station: Lorimer St (L10) - 380ft
+   Lines: L
+
+📍 Second City BlackBox
+   Station: Bedford Av (L08) - 1480ft
+   Lines: L
+
+📍 Pete's Candy Store
+   Station: Lorimer St (L10) - 1470ft
+   Lines: L
+
+📍 Broadway Comedy Club
+   Station: Times Sq-42 St (902) - 763ft
+   Lines: GS
+
+📍 Laughing Devil Comedy Club
+   Station: Vernon Blvd-Jackson Av (721) - 675ft
+   Lines: 7, 7X
+
+📍 Young Ethel's
+   Station: Union St (R32) - 905ft
+   Lines: D, N, W, R
+
+📍 Harlem Nights Bar
+   Station: 125 St (225) - 475ft
+   Lines: 2, 3
+
+📍 Comedy in Harlem
+   Station: 125 St (225) - 475ft
+   Lines: 2, 3
+
+📍 Oh Craft Beer Harlem
+   Station: 125 St (225) - 475ft
+   Lines: 2, 3
+
+📍 Flop House Comedy Club
+   Station: Times Sq-42 St (902) - 763ft
+   Lines: GS
+
+📍 The Gutter Williamsburg
+   Station: Lorimer St (L10) - 385ft
+   Lines: L
+
+📍 Gutter Bar
+   Station: Lorimer St (L10) - 385ft
+   Lines: L
+
+📍 Alphaville
+   Station: Jefferson St (L15) - 790ft
+   Lines: L
+
+📍 Alphaville Bar
+   Station: Jefferson St (L15) - 790ft
+   Lines: L
+
+📍 Freddy's
+   Station: Atlantic Av-Barclays Ctr (D24) - 746ft
+   Lines: B, Q
+
+📍 Freddy's Bar
+   Station: Atlantic Av-Barclays Ctr (D24) - 746ft
+   Lines: B, Q
+
+📍 Good Judy
+   Station: Greenpoint Av (G26) - 1074ft
+   Lines: G
+
+📍 NYC Suite Bar
+   Station: Times Sq-42 St (902) - 763ft
+   Lines: GS
+
+📍 The Buddha Room
+   Station: Times Sq-42 St (902) - 763ft
+   Lines: GS
+
+📍 Black Cat LES
+   Station: Delancey St-Essex St (F15) - 508ft
+   Lines: F, FX
+
+📍 Cobra Club Brooklyn
+   Station: Jefferson St (L15) - 790ft
+   Lines: L
+
+📍 Cobra Club
+   Station: Jefferson St (L15) - 790ft
+   Lines: L
+
+📍 Tara Mor
+   Station: Times Sq-42 St (902) - 763ft
+   Lines: GS
+
+📍 KGB Bar
+   Station: 2 Av (F14) - 1544ft
+   Lines: F, FX
+
+📍 Stumble Inn
+   Station: 86 St (Q04) - 1245ft
+   Lines: N, Q, R
+
+📍 Halyards
+   Station: Union St (R32) - 892ft
+   Lines: D, N, W, R
+
+📍 Grove 34
+   Station: 34 St-Herald Sq (D17) - 9ft
+   Lines: B, D, F, FX, M
+
+⚠️  Windjammer - No nearby stations found
+
+📍 Rodney's Comedy Club
+   Station: Lorimer St (L10) - 385ft
+   Lines: L
+
+📍 Rodney's
+   Station: Lorimer St (L10) - 385ft
+   Lines: L
+
+📍 Housewatch
+   Station: Lorimer St (L10) - 385ft
+   Lines: L
+
+📍 Echo Bravo
+   Station: Jefferson St (L15) - 790ft
+   Lines: L
+
+📍 Secret Pour
+   Station: Times Sq-42 St (902) - 763ft
+   Lines: GS
+
+📍 Eastpoint Bar
+   Station: Jefferson St (L15) - 790ft
+   Lines: L
+
+📍 Grey Mare
+   Station: 2 Av (F14) - 1544ft
+   Lines: F, FX
+
+📍 One and One
+   Station: 2 Av (F14) - 1544ft
+   Lines: F, FX
+
+📍 Scorpion Records
+   Station: Jefferson St (L15) - 790ft
+   Lines: L
+
+📍 Logan's Run Bar
+   Station: Lorimer St (L10) - 385ft
+   Lines: L
+
+📍 Block Hill Station
+   Station: Atlantic Av-Barclays Ctr (D24) - 746ft
+   Lines: B, Q
+
+📍 Corner Store BK
+   Station: Lorimer St (L10) - 385ft
+   Lines: L
+
+📍 Isola
+   Station: Lorimer St (L10) - 385ft
+   Lines: L
+
+📍 iNINE Bistro
+   Station: Times Sq-42 St (902) - 763ft
+   Lines: GS
+
+📍 The Daily Press
+   Station: Jefferson St (L15) - 790ft
+   Lines: L
+
+📍 Branded Saloon
+   Station: Atlantic Av-Barclays Ctr (D24) - 746ft
+   Lines: B, Q
+
+📍 Stella & Fly
+   Station: Lorimer St (L10) - 385ft
+   Lines: L
+
+📍 Sanger Hall
+   Station: Jefferson St (L15) - 790ft
+   Lines: L
+
+📍 Brooklyn Comedy Collective
+   Station: Union St (R32) - 892ft
+   Lines: D, N, W, R
+
+📍 Pubkey
+   Station: 2 Av (F14) - 1544ft
+   Lines: F, FX
+
+📍 FRIGID Theater
+   Station: 2 Av (F14) - 1544ft
+   Lines: F, FX
+
+📍 Rose R&R Bar
+   Station: Lorimer St (L10) - 385ft
+   Lines: L
+
+📍 Luxor Lounge
+   Station: Jefferson St (L15) - 790ft
+   Lines: L
+
+📍 Starr Bar
+   Station: Jefferson St (L15) - 790ft
+   Lines: L
+
+📍 Judy Z's
+   Station: Lorimer St (L10) - 385ft
+   Lines: L
+
+📍 Enoch's
+   Station: Times Sq-42 St (902) - 763ft
+   Lines: GS
+
+📍 Fiction Bar
+   Station: Jefferson St (L15) - 790ft
+   Lines: L
+
+📍 Tommy Figz
+   Station: Jefferson St (L15) - 790ft
+   Lines: L
+
+📍 Hell Phone
+   Station: Jefferson St (L15) - 790ft
+   Lines: L
+
+📍 Brooklyn Dreams Juice Lounge
+   Station: Union St (R32) - 892ft
+   Lines: D, N, W, R
+
+📍 Soho Playhouse
+   Station: Prince St (R22) - 681ft
+   Lines: N, W, Q, R
+
+📍 Hotel Edison
+   Station: 49 St (R15) - 856ft
+   Lines: N, W, Q, R
+
+📍 Commune BK
+   Station: Jefferson St (L15) - 790ft
+   Lines: L
+
+📍 Island Ribhouse
+   Station: Ocean Pkwy (D41) - 634ft
+   Lines: Q
+
+📍 Cool Beans Coffee
+   Station: Lorimer St (L10) - 385ft
+   Lines: L
+
+📍 Talon Bar
+   Station: Jefferson St (L15) - 790ft
+   Lines: L
+
+📍 SkyBox Sports Bar & Grill
+   Station: Times Sq-42 St (902) - 763ft
+   Lines: GS
+
+
+
+╔══════════════════════════════════════════════════════════════════════╗
+║                         BUG SUMMARY                                  ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+Total bugs: 596
+Venues tested: 104
+Time: 9.9s
+
+
+NO_DESTINATION: 288 occurrences
+──────────────────────────────────────────────────
+  Comedy Shop [A,C,E]
+  Greenwich Village Comedy Club [A,C,E]
+  Pinebox [L]
+  Pine Box Rock Shop [L]
+  Pine Box [L]
+  UWS NY Comedy Club [1,2,3]
+  West Side Comedy Club [1,2,3]
+  The Comic Strip Live [N,Q,R]
+  Comic Strip Live [N,Q,R]
+  St. Mark's Comedy Club [4,6]
+  St. Marks Comedy Club [4,6]
+  Producer's Club [A,C,E]
+  Caffeine Underground [J,Z]
+  Brooklyn Art Haus [L]
+  Fear City Comedy Club [F]
+  ... and 72 more venues
+
+WRONG_LINE: 143 occurrences
+──────────────────────────────────────────────────
+  Comedy Shop [A,C,E]
+  Greenwich Village Comedy Club [A,C,E]
+  UWS NY Comedy Club [1,2,3]
+  West Side Comedy Club [1,2,3]
+  The Comic Strip Live [N,R]
+  Comic Strip Live [N,R]
+  St. Mark's Comedy Club [4]
+  St. Marks Comedy Club [4]
+  Producer's Club [A,C,E]
+  Caffeine Underground [Z]
+  Idaho Bar [A,C,E]
+  O'Keefe's Bar [N,W]
+  The Tiny Cupboard [Z]
+  QED Astoria [W,N]
+  The Pit Midtown [4,6]
+  ... and 19 more venues
+
+INCOMPLETE: 85 occurrences
+──────────────────────────────────────────────────
+  Comedy Shop [C,E,A]
+  Greenwich Village Comedy Club [C,E,A]
+  UWS NY Comedy Club [2,1,3]
+  West Side Comedy Club [2,1,3]
+  St. Mark's Comedy Club [6]
+  St. Marks Comedy Club [6]
+  Producer's Club [C,E]
+  Idaho Bar [C,E,A]
+  The Pit Midtown [6]
+  The PIT NYC [6]
+  UCB [6]
+  Grisly Pear Midtown [GS]
+  The Stand NYC [6]
+  The Stand [6]
+  Janice's apt [C,E]
+  ... and 30 more venues
+
+MISSING_DATA: 40 occurrences
+──────────────────────────────────────────────────
+  Comedy Shop [A]
+  Greenwich Village Comedy Club [A]
+  UWS NY Comedy Club [2]
+  West Side Comedy Club [2]
+  Caffeine Underground [J]
+  Bushwick Comedy Club [J]
+  Idaho Bar [A]
+  The Tiny Cupboard [J]
+  QED Astoria [W]
+  The Pit Midtown [4]
+  The PIT NYC [4]
+  Grisly Pear Midtown [GS]
+  The Stand NYC [4]
+  The Stand [4]
+  BKLYN Made Comedy [J]
+  ... and 13 more venues
+
+DUPLICATES: 34 occurrences
+──────────────────────────────────────────────────
+  St. Mark's Comedy Club [4,6]
+  St. Marks Comedy Club [4,6]
+  Producer's Club [A,C,E]
+  The Pit Midtown [4,6]
+  The PIT NYC [4,6]
+  UCB [4,6]
+  The Stand NYC [4,6]
+  The Stand [4,6]
+  Janice's apt [A,C,E]
+
+NO_STATION: 6 occurrences
+──────────────────────────────────────────────────
+  Eastville Comedy Club [-]
+  Phoenix Bar [-]
+  Phoenix Bar Avenue A [-]
+  New York Comedy Club Midtown [-]
+  Caravan of Dreams [-]
+  Windjammer [-]

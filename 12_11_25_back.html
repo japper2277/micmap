@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  body {
+    background-color: #000;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Roboto, Helvetica, Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    padding-top: 20px;
+    margin: 0;
+    color: white;
+  }
+  
+  .phone-screen {
+    width: 375px;
+    background: #1C1C1E;
+    border-radius: 40px;
+    overflow: hidden;
+    border: 1px solid #333;
+    position: relative;
+  }
+
+  /* --- STICKY HEADER (The Summary) --- */
+  .trip-header {
+    background: #2C2C2E;
+    padding: 20px;
+    border-bottom: 1px solid #38383A;
+    z-index: 10;
+  }
+
+  .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .big-time { font-size: 28px; font-weight: 800; }
+  .arrival { font-size: 15px; color: #98989F; }
+  .close-btn { 
+    background: #3A3A3C; width: 30px; height: 30px; 
+    border-radius: 50%; display: flex; 
+    align-items: center; justify-content: center; font-size: 18px; color: #fff;
+  }
+
+  /* --- TIMELINE CONTAINER --- */
+  .timeline-container {
+    padding: 0 24px 40px 24px;
+    margin-top: 20px;
+  }
+
+  /* The Vertical Line Layout */
+  .step {
+    display: flex;
+    position: relative;
+    padding-bottom: 30px; /* Space between steps */
+  }
+
+  /* The Left Column (Time + Line) */
+  .left-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 40px;
+    min-width: 40px;
+    margin-right: 16px;
+  }
+
+  .time-stamp {
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 8px;
+  }
+
+  /* The Dots and Lines */
+  .dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #fff;
+    border: 4px solid #1C1C1E; /* Creates 'cutout' effect */
+    z-index: 2;
+  }
+
+  .line {
+    width: 4px;
+    flex-grow: 1;
+    background: #3A3A3C;
+    margin-top: -2px;
+    border-radius: 4px;
+  }
+
+  /* Colored Lines for Trains */
+  .line-orange { background: #FF6319; }
+  .line-yellow { background: #FCCC0A; }
+  
+  /* The Right Column (Content) */
+  .content-col {
+    flex: 1;
+    padding-top: 2px;
+  }
+
+  .instruction-title {
+    font-size: 17px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .instruction-sub {
+    font-size: 14px;
+    color: #98989F;
+    margin-bottom: 8px;
+    line-height: 1.4;
+  }
+
+  /* BADGES */
+  .badge {
+    display: inline-flex;
+    width: 22px; height: 22px;
+    align-items: center; justify-content: center;
+    border-radius: 50%;
+    font-size: 13px; font-weight: bold; color: white;
+    margin-right: 6px;
+  }
+  .orange { background: #FF6319; }
+  .yellow { background: #FCCC0A; color: black; }
+
+  /* COMPONENT: Train Details Box */
+  .train-details-box {
+    background: #2C2C2E;
+    border-radius: 12px;
+    padding: 12px;
+    margin-top: 8px;
+  }
+
+  .stop-count {
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+  }
+
+  .chevron {
+    opacity: 0.5;
+    transform: rotate(90deg);
+    transition: transform 0.2s ease;
+  }
+
+  .train-details-box.expanded .chevron {
+    transform: rotate(180deg);
+  }
+
+  .stops-list {
+    display: none;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #3A3A3C;
+  }
+
+  .train-details-box.expanded .stops-list {
+    display: block;
+  }
+
+  .stop-item {
+    display: flex;
+    align-items: center;
+    padding: 6px 0;
+    font-size: 14px;
+    color: #98989F;
+  }
+
+  .stop-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #555;
+    margin-right: 12px;
+  }
+
+  /* COMPONENT: Best Car Indicator */
+  .pro-tip {
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #0A84FF; /* Blue for info */
+    font-weight: 600;
+  }
+  
+  .train-icon {
+    display: flex;
+    gap: 2px;
+  }
+  
+  .car { width: 12px; height: 8px; border-radius: 2px; background: #555; }
+  .car.active { background: #0A84FF; } /* The 'Best' car */
+
+</style>
+</head>
+<body>
+
+<div class="phone-screen">
+
+  <!-- 1. STICKY SUMMARY HEADER -->
+  <div class="trip-header">
+    <div class="header-top">
+      <div>
+        <div class="big-time">17 min</div>
+        <div class="arrival">Arrive 5:47 PM • $2.90</div>
+      </div>
+      <div class="close-btn">×</div>
+    </div>
+  </div>
+
+  <!-- 2. SCROLLABLE TIMELINE -->
+  <div class="timeline-container">
+
+    <!-- STEP 1: START -->
+    <div class="step">
+      <div class="left-col">
+        <div class="time-stamp">5:30</div>
+        <div class="dot"></div>
+        <div class="line" style="background: repeating-linear-gradient(to bottom, #555 0, #555 4px, transparent 4px, transparent 8px);"></div> <!-- Dotted Line for Walk -->
+      </div>
+      <div class="content-col">
+        <div class="instruction-title">Start at 23 St</div>
+        <div class="instruction-sub">Enter at 8th Ave & 23rd St (SW Corner)</div>
+      </div>
+    </div>
+
+    <!-- STEP 2: F TRAIN -->
+    <div class="step">
+      <div class="left-col">
+        <div class="time-stamp">5:33</div>
+        <div class="dot" style="border-color: #FF6319;"></div>
+        <div class="line line-orange"></div>
+      </div>
+      <div class="content-col">
+        <div class="instruction-title">
+          <span class="badge orange">F</span> Toward Jamaica - 179 St
+        </div>
+        <div class="instruction-sub">Next arrival in 2 min</div>
+
+        <!-- COLLAPSIBLE STOPS -->
+        <div class="train-details-box" onclick="this.classList.toggle('expanded')">
+          <div class="stop-count">
+            2 stops (4 min)
+            <span class="chevron">›</span>
+          </div>
+          <div class="stops-list">
+            <div class="stop-item"><span class="stop-dot"></span>14 St</div>
+            <div class="stop-item"><span class="stop-dot"></span>34 St - Herald Sq</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 3: TRANSFER -->
+    <div class="step">
+      <div class="left-col">
+        <div class="time-stamp">5:37</div>
+        <div class="dot"></div>
+        <div class="line" style="background: repeating-linear-gradient(to bottom, #555 0, #555 4px, transparent 4px, transparent 8px);"></div>
+      </div>
+      <div class="content-col">
+        <div class="instruction-title">Transfer at 34 St - Herald Sq</div>
+        <div class="instruction-sub">Walk 2 min • Follow signs to <span style="color:#FCCC0A; font-weight:bold;">N Q R W</span></div>
+      </div>
+    </div>
+
+    <!-- STEP 4: YELLOW LINE -->
+    <div class="step">
+      <div class="left-col">
+        <div class="time-stamp">5:39</div>
+        <div class="dot" style="border-color: #FCCC0A;"></div>
+        <div class="line line-yellow"></div>
+      </div>
+      <div class="content-col">
+        <div class="instruction-title">
+           <span class="badge yellow">N</span> <span class="badge yellow">Q</span> <span class="badge yellow">R</span>
+           Toward Queens / Uptown
+        </div>
+        <div class="instruction-sub">Any train works. Frequent service.</div>
+        
+        <div class="train-details-box" onclick="this.classList.toggle('expanded')">
+          <div class="stop-count">
+            1 stop (2 min)
+            <span class="chevron">›</span>
+          </div>
+          <div class="stops-list">
+            <div class="stop-item"><span class="stop-dot"></span>Times Sq - 42 St</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 5: END -->
+    <div class="step">
+      <div class="left-col">
+        <div class="time-stamp">5:42</div>
+        <div class="dot"></div>
+      </div>
+      <div class="content-col">
+        <div class="instruction-title">Exit at Times Sq - 42 St</div>
+        <div class="instruction-sub">Exit near Broadway & 42nd St</div>
+        <div class="instruction-sub" style="margin-top:8px;">🚶 Walk 5 min to Comedy Village</div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+</body>
+</html>

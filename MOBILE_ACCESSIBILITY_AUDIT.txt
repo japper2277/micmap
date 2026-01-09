@@ -1,0 +1,228 @@
+MOBILE ACCESSIBILITY AUDIT: map_designs/newest_map/index.html
+==============================================================
+
+FINAL GRADE: 41/100
+
+This is your best design file - notably better than the prototypes. But still has critical issues.
+
+---
+
+SCORING BREAKDOWN
+-----------------
+Category                | Score | Max | Notes
+------------------------|-------|-----|-------
+ARIA & Semantic HTML    | 12    | 25  | Has some aria-labels, role="search", but gaps
+Touch Targets           | 10    | 20  | Locate button good (44px), many others fail
+Keyboard Navigation     | 5     | 15  | Has focus-visible, but no trapping/nav
+Color Contrast          | 8     | 15  | Better than prototypes, some issues
+Screen Reader Support   | 3     | 15  | Basic labels present, dynamic content not announced
+Zoom/Viewport           | 0     | 5   | **Still blocked**
+Focus Management        | 3     | 5   | Has focus-visible, no modal trapping
+
+---
+
+WHAT YOU'RE DOING RIGHT
+-----------------------
+
+1. Aria labels on key buttons (index.html:39, 52, 54, 63):
+   <button ... aria-label="Center map on my location">
+   <input ... aria-label="Search venues or location">
+   <button ... aria-label="Clear search">
+   <button ... aria-label="Use my location">
+
+2. role="search" on command bar (index.html:46):
+   <div ... role="search">
+
+3. aria-hidden on decorative icons (index.html:48):
+   <svg ... aria-hidden="true">
+
+4. prefers-reduced-motion support (base.css:40-45):
+   @media (prefers-reduced-motion: reduce) {
+       *, *::before, *::after {
+           animation-duration: 0.01ms !important;
+       }
+   }
+
+5. focus-visible styles (base.css:48-51):
+   input:focus-visible, button:focus-visible {
+       outline: 2px solid rgba(251, 113, 133, 0.8);
+       outline-offset: 2px;
+   }
+
+6. Locate button meets 44x44px (controls.css:86-87):
+   .locate-btn {
+       width: 44px;
+       height: 44px;
+   }
+
+---
+
+CRITICAL VIOLATIONS (MUST FIX)
+------------------------------
+
+1. ZOOM STILL DISABLED (index.html:5)
+
+   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+   FIX: Remove "maximum-scale=1.0, user-scalable=no"
+
+   This is a WCAG 2.1 Level AA violation and grounds for accessibility lawsuits.
+
+
+2. TOUCH TARGETS BELOW 44px MINIMUM
+
+   Element                 | Actual | Required | Location
+   ------------------------|--------|----------|----------
+   Search clear btn        | 28x28  | 44x44    | controls.css:368-369
+   Search location btn     | 32x32  | 44x44    | controls.css:404-405
+   Drawer toggle (desktop) | 32x32  | 44x44    | index.html:71
+   Settings button         | 36x36  | 44x44    | controls.css:543-544
+   Calendar button         | 40x40  | 44x44    | controls.css:192-193
+   Filter buttons          | 32px h | 44px     | controls.css:217
+   Icon buttons (stream)   | 28x28  | 44x44    | stream.css:302-303
+   Settings close          | 32x32  | 44x44    | controls.css:604-605
+   Drag handle             | 40x4   | 44x44    | index.html:85
+
+
+3. MISSING ARIA ON INTERACTIVE ELEMENTS
+
+   No aria-label:
+   - Toggle buttons (Today/Tmrw) - index.html:100-101
+   - Calendar button - index.html:105
+   - Settings button - index.html:115
+   - All filter buttons - index.html:127-147
+   - Drawer toggle (desktop) - index.html:71
+   - Time popover options - index.html:202-220
+   - Alert modal dismiss - index.html:233
+   - Stream item cards (dynamically generated)
+
+   No aria-expanded:
+   - Drawer - needs aria-expanded="true/false"
+   - Time popover - needs aria-expanded
+   - Search dropdown - needs aria-expanded
+
+
+4. MODALS LACK ACCESSIBILITY ATTRIBUTES
+
+   Venue modal (index.html:171-198) missing:
+   <!-- Should be: -->
+   <div role="dialog" aria-modal="true" aria-labelledby="modal-venue-name">
+
+   Alert modal (index.html:224-237) missing:
+   <!-- Should be: -->
+   <div role="alertdialog" aria-modal="true" aria-labelledby="alert-title">
+
+
+5. NO FOCUS TRAPPING IN MODALS
+
+   When modals open:
+   - Focus doesn't move to modal
+   - Tab can escape modal to elements behind
+   - No return focus on close
+
+---
+
+MAJOR ISSUES
+------------
+
+6. DRAG HANDLE NOT A BUTTON (index.html:85)
+
+   Current:
+   <div onclick="toggleDrawer()" class="...">
+
+   Should be:
+   <button aria-label="Toggle drawer" aria-expanded="false" aria-controls="list-content">
+
+
+7. STREAM ITEMS NOT KEYBOARD ACCESSIBLE
+
+   Cards are <div> with onclick - not focusable or keyboard operable.
+   Should be <button> or <article role="button" tabindex="0">.
+
+
+8. DROPDOWN ITEMS NOT BUTTONS (controls.css:480-486)
+
+   Dropdown items are divs with cursor:pointer. Need proper button/role.
+
+
+9. COLOR CONTRAST ISSUES
+
+   Element         | Color                  | Background | Ratio  | Required
+   ----------------|------------------------|------------|--------|----------
+   .item-sub       | rgba(255,255,255,0.4)  | #0f0f0f    | ~3.8:1 | 4.5:1
+   .section-header | rgba(255,255,255,0.4)  | #0f0f0f    | ~3.8:1 | 4.5:1
+   .option-detail  | rgba(255,255,255,0.4)  | #141416    | ~3.8:1 | 4.5:1
+   .neighborhood   | #8E8E93                | #050505    | 5.2:1  | PASS
+   .count-text     | #8e8e93                | #0f0f0f    | 5.0:1  | PASS
+
+---
+
+COMPLETE TOUCHPOINT INVENTORY
+-----------------------------
+
+Touchpoint              | Size    | ARIA | Keyboard | Status
+------------------------|---------|------|----------|------------
+Locate button           | 44x44   | YES  | Partial  | GOOD
+Search input            | 48px h  | YES  | YES      | GOOD
+Search clear            | 28x28   | YES  | Partial  | FAIL SIZE
+Search location         | 32x32   | YES  | Partial  | FAIL SIZE
+Drawer toggle (desktop) | 32x32   | NO   | Partial  | FAIL
+Toggle Today/Tmrw       | 140x40  | NO   | Partial  | NEEDS ARIA
+Calendar button         | 40x40   | NO   | Partial  | BORDERLINE
+Settings button         | 36x36   | NO   | Partial  | FAIL SIZE
+Filter buttons          | 32px h  | NO   | NO       | FAIL
+Drag handle             | 40x4    | NO   | NO       | FAIL
+Time popover options    | ~38px   | NO   | NO       | FAIL
+Stream item cards       | ~64px   | NO   | NO       | NEEDS WORK
+Icon buttons (stream)   | 28x28   | NO   | NO       | FAIL SIZE
+Modal buttons           | ~44px   | NO   | Partial  | NEEDS ARIA
+Settings close          | 32x32   | NO   | Partial  | FAIL SIZE
+Alert dismiss           | 100% w  | NO   | Partial  | NEEDS ARIA
+Date carousel items     | 56x64   | NO   | NO       | NEEDS ARIA
+
+---
+
+PRIORITY FIXES
+--------------
+
+P0 - Legal/Compliance (Do First)
+1. Remove zoom blocking from viewport meta tag
+2. Add role="dialog" and aria-modal="true" to modals
+3. Add aria-label to all icon-only buttons
+
+P1 - Critical Usability
+4. Increase touch targets to 44x44px minimum:
+   - search-clear-btn -> 44px
+   - search-location-btn -> 44px
+   - settings-icon-btn -> 44px
+   - calendar-icon-btn -> 44px
+   - icon-btn (stream) -> 44px
+   - drawer-filter-btn -> 44px height
+   - settings-close -> 44px
+5. Convert drag handle div to button
+6. Add aria-expanded to drawer, dropdown, popover triggers
+7. Implement focus trapping in modals
+
+P2 - Important
+8. Make stream items keyboard focusable
+9. Add keyboard navigation for filters (arrow keys)
+10. Add aria-live regions for dynamic content updates
+11. Fix color contrast on low-opacity text
+
+P3 - Polish
+12. Add skip link to main content
+13. Add landmark roles (<main>, <nav>)
+14. Improve heading hierarchy in modals
+
+---
+
+FILES TO MODIFY
+---------------
+
+1. map_designs/newest_map/index.html - viewport, aria labels, semantic HTML
+2. map_designs/newest_map/css/controls.css - touch target sizes
+3. map_designs/newest_map/css/stream.css - icon button sizes
+4. map_designs/newest_map/css/modal.css - modal accessibility
+5. map_designs/newest_map/js/modal.js - focus trapping
+6. map_designs/newest_map/js/drawer.js - aria-expanded management
+7. map_designs/newest_map/js/render.js - stream item keyboard support

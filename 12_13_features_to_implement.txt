@@ -1,0 +1,151 @@
+MICMAP COMEDY OPEN MICS - FEATURES TO IMPLEMENT
+================================================
+Generated: 12/13/2025
+
+HIGH PRIORITY (Impact 80+/100)
+==============================
+
+1. "MIC TONIGHT" FILTER
+   Impact: 88/100
+   Effort: 2-3 hours
+   Description: One-tap filter showing only mics starting in next 3 hours
+   Use Case: "I'm free right now, where can I go tonight?"
+   Implementation: Add button to filter panel, update render logic
+
+2. MAP CLUSTERING
+   Impact: 85/100
+   Effort: 4-5 hours
+   Description: Group nearby venues when map is zoomed out
+   Use Case: Currently 2000+ pins make zoomed-out map unusable
+   Implementation: Use Leaflet MarkerClusterGroup plugin
+
+3. SORT OPTIONS
+   Impact: 82/100
+   Effort: 3-4 hours
+   Description: Sort venues by distance, start time, or latest start
+   Options: "Closest first", "Soonest first", "Latest start (night owls)"
+   Use Case: Users want different sorting based on context
+   Implementation: Add sort dropdown to filter panel
+
+4. SERVICE WORKER / PWA
+   Impact: 80/100
+   Effort: 5-6 hours
+   Description: Offline support, instant repeat loads, add to home screen
+   Use Case: Comedians browse repeatedly, offline fallback needed
+   Implementation: Add service worker, manifest.json updates
+   Features: Venue data caching, route caching, install prompt
+
+MEDIUM PRIORITY (Impact 70-79/100)
+==================================
+
+5. DARK MODE
+   Impact: 75/100
+   Effort: 3-4 hours
+   Description: Theme toggle for nighttime browsing
+   Use Case: Comedians browse late at night in dark venues
+   Implementation: CSS variable theme system, toggle in settings
+
+6. SCREEN READER SUPPORT
+   Impact: 75/100
+   Effort: 4-5 hours
+   Description: Accessible for vision-impaired users
+   Use Case: Inclusive design, legal compliance
+   Implementation: ARIA labels, semantic HTML, focus management
+
+7. ERROR BOUNDARIES / GRACEFUL FAILURES
+   Impact: 70/100
+   Effort: 3 hours
+   Description: Handle API failures gracefully
+   Use Case: Prevent blank screens when APIs go down
+   Implementation: Try-catch wrappers, fallback states, user messaging
+
+MEDIUM-LOW PRIORITY (Impact 60-69/100)
+======================================
+
+8. HAPTIC FEEDBACK
+   Impact: 62/100
+   Effort: 1-2 hours
+   Description: iOS vibration on drawer swipe, selections
+   Use Case: Premium feel, delightful micro-interactions
+   Implementation: navigator.vibrate API, iOS support
+
+9. SKELETON LOADERS
+   Impact: 65/100
+   Effort: 2-3 hours
+   Description: Replace toasts with skeleton UI for smoother transitions
+   Use Case: Better perceived performance
+   Implementation: Add skeleton components to modal/drawer
+
+10. FAVORITES / BOOKMARKS
+    Impact: 70/100
+    Effort: 3-4 hours
+    Description: Save favorite venues locally
+    Use Case: Power users would love recurring venues saved
+    Implementation: localStorage, heart icon on cards, favorites tab
+
+LOW PRIORITY (Impact <60/100)
+=============================
+
+11. RECENT SEARCHES
+    Impact: 45/100
+    Effort: 2 hours
+
+12. PULL-TO-REFRESH
+    Impact: 48/100
+    Effort: 1-2 hours
+
+13. KEYBOARD SHORTCUTS
+    Impact: 58/100
+    Effort: 2-3 hours
+
+14. INSTALL PROMPT / APP SHORTCUTS
+    Impact: 40-68/100
+    Effort: 2-3 hours
+
+COMEDY-SPECIFIC FEATURES (FUTURE CONSIDERATION)
+================================================
+
+- Filter by format (standup, variety, booked show)
+- Signup type indicator (list, lottery, first-come)
+- Stage time limits (3min, 5min, 10min)
+- Booker/host information
+- Frequency (weekly, monthly, one-time)
+- Audience vibe (beginner-friendly, roast battle, etc.)
+
+IMPLEMENTATION ROADMAP
+=====================
+
+PHASE 1 - ESSENTIAL WINS (Week 1-2)
+- "Mic tonight" filter (2-3h)
+- Sort options (3-4h)
+- Error boundaries (3h)
+Total: ~9 hours
+
+PHASE 2 - POLISH (Week 3)
+- Dark mode (3-4h)
+- Skeleton loaders (2-3h)
+- Haptic feedback (1-2h)
+Total: ~7-8 hours
+
+PHASE 3 - POWER FEATURES (Week 4)
+- Map clustering (4-5h)
+- Screen reader support (4-5h)
+- Favorites system (3-4h)
+Total: ~12 hours
+
+PHASE 4 - NATIVE-LIKE (Week 5)
+- Service Worker / PWA (5-6h)
+- Install prompt (2-3h)
+Total: ~8 hours
+
+ESTIMATED TOTAL: 40-45 hours for all features
+
+RECOMMENDED STARTING POINT
+==========================
+
+Start with PHASE 1 (Essential Wins):
+1. "Mic tonight" filter - Quick, high value
+2. Sort options - Essential UX improvement
+3. Error boundaries - Safety net
+
+These 3 features would dramatically improve usability with ~9 hours of work.

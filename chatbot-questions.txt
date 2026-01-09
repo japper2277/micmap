@@ -1,0 +1,513 @@
+MICFINDER CHATBOT - ALL POSSIBLE QUESTIONS
+==========================================
+
+LEGEND:
+  ✓ = Ready now (uses existing filters/data)
+  ⚠ = Needs new feature
+  📍 = Requires user location permission
+
+
+===========================================
+TIME-BASED QUESTIONS                    ✓ ALL READY
+===========================================
+
+Today/Tonight
+-------------
+✓ What's happening tonight?
+✓ What mics are on today?
+✓ Show me tonight's open mics
+
+Tomorrow
+--------
+✓ What's happening tomorrow?
+✓ What mics are on tomorrow night?
+
+Specific Days
+-------------
+✓ What's on Monday?
+✓ What's on Tuesday?
+✓ What's on Wednesday?
+✓ What's on Thursday?
+✓ What's on Friday?
+✓ What's on Saturday?
+✓ What's on Sunday?
+✓ What mics run on weekends?
+
+Time of Day
+-----------
+✓ What's on this afternoon? (12-5pm)
+✓ What's on this evening? (5-9pm)
+✓ What's on late night? (9pm+)
+✓ What starts before 6pm?
+✓ What starts after 9pm?
+✓ What's the earliest mic today?
+✓ What's the latest mic tonight?
+
+
+===========================================
+STATUS-BASED QUESTIONS                  ✓ ALL READY
+===========================================
+
+Live Now
+--------
+✓ What's happening right now?
+✓ What's live?
+✓ What already started?
+✓ Is anything happening now?
+✓ What can I catch right now?
+
+Starting Soon
+-------------
+✓ What's starting soon?
+✓ What's coming up in the next hour?
+✓ What's within the next 2 hours?
+✓ What's about to start?
+
+Still Time
+----------
+✓ Is there still time to catch something?
+✓ What haven't I missed yet?
+✓ What's still ahead tonight?
+
+
+===========================================
+PRICE-BASED QUESTIONS                   ✓ ALL READY
+===========================================
+
+Free
+----
+✓ What's free tonight?
+✓ Show me free mics
+✓ Any free ones today?
+✓ What doesn't cost anything?
+
+Paid/Cheap
+----------
+✓ What mics have a cover?
+✓ Show me paid mics
+✓ What costs under $5?
+
+
+===========================================
+LOCATION-BASED QUESTIONS                ✓ MOSTLY READY
+===========================================
+
+By Borough
+----------
+✓ What's in Manhattan?
+✓ What's in Brooklyn?
+✓ What's in Queens?
+✓ What's in the Bronx?
+✓ What's in Manhattan tonight?
+✓ What's in Brooklyn tomorrow?
+✓ Any free mics in Brooklyn?
+✓ What's happening in Queens this evening?
+
+Near Me (requires location)
+---------------------------
+📍 What's near me?
+📍 What's closest to me?
+📍 What's within walking distance?
+📍 What can I get to quickly?
+
+By Commute Time
+---------------
+📍 What's under 15 minutes away?
+📍 What's under 30 minutes away?
+📍 What's under 45 minutes away?
+📍 What's under an hour away?
+📍 What can I reach in 15 minutes?
+📍 What's a short commute from here?
+
+
+===========================================
+COMBINED FILTER QUESTIONS               ✓ ALL READY
+===========================================
+
+Price + Time
+------------
+✓ What's free tonight?
+✓ What's free tomorrow?
+✓ What's free this evening?
+✓ What's free late night?
+✓ Free mics starting after 8pm?
+
+Price + Location
+----------------
+✓ What's free in Manhattan?
+✓ What's free in Brooklyn?
+✓ Free mics in Queens?
+📍 Cheap mics near me?
+
+Time + Location
+---------------
+✓ What's in Brooklyn tonight?
+✓ Late night mics in Manhattan?
+✓ What's in Queens this afternoon?
+✓ Evening mics in the Bronx?
+
+Price + Time + Location
+-----------------------
+✓ What's free in Brooklyn tonight?
+✓ Free late night mics in Manhattan?
+📍 Cheap evening mics near me?
+✓ Free mics in Queens tomorrow?
+
+Near Me + Time
+--------------
+📍 What's near me tonight?
+📍 What's close and starting soon?
+📍 Closest mic that's still ahead?
+
+Near Me + Price
+---------------
+📍 What's free and near me?
+📍 Cheap mics close by?
+📍 Free mics I can walk to?
+
+
+===========================================
+DISCOVERY / RECOMMENDATION              ✓ READY (simple logic)
+===========================================
+
+General Discovery
+-----------------
+✓ Where should I go tonight?          → Show first upcoming mic
+✓ What do you recommend?              → Show closest or soonest
+✓ What's the best mic tonight?        → Show soonest free mic
+✓ Pick one for me                     → Random from filtered
+✓ Surprise me                         → Random mic
+
+Filtered Recommendations
+------------------------
+✓ Best free mic tonight?              → First free mic
+✓ Best mic in Brooklyn?               → First Brooklyn mic
+📍 Easiest to get to from here?       → Shortest commute
+✓ Best late night option?             → First latenight mic
+
+
+===========================================
+COUNT / SUMMARY QUESTIONS               ✓ ALL READY
+===========================================
+
+✓ How many mics are on tonight?
+✓ How many free mics today?
+✓ How many mics in Manhattan?
+⚠ How many mics this week?            → Needs week aggregation
+✓ What are my options tonight?
+✓ Give me a summary of tonight
+
+
+===========================================
+SPECIFIC VENUE QUESTIONS                ✓ ALL READY
+===========================================
+
+(Dynamic based on venue data)
+-----------------------------
+✓ Tell me about [Venue Name]
+✓ When is [Venue Name]?
+✓ How much is [Venue Name]?
+✓ Where is [Venue Name]?
+✓ How do I sign up for [Venue Name]?
+✓ What time does [Venue Name] start?
+✓ Is [Venue Name] free?
+✓ How do I get to [Venue Name]?
+
+
+===========================================
+SIGNUP / LOGISTICS QUESTIONS            ✓ MOSTLY READY
+===========================================
+
+✓ How do I sign up?                   → Show signup info from data
+✓ Do I need to sign up in advance?    → Check if signup URL exists
+⚠ Which mics have online signup?      → Needs filter by signupUrl
+⚠ Which mics are walk-in?             → Needs walk-in flag in data
+✓ How do I get on the list?           → Show signup instructions
+
+
+===========================================
+NAVIGATION QUESTIONS                    ✓ ALL READY
+===========================================
+
+✓ Show me on the map                  → Pan map to venue
+✓ How do I get there?                 → Open Google Maps directions
+✓ Get directions                      → Open Google Maps directions
+✓ Show this on the map                → Pan map to venue
+
+
+===========================================
+META / HELP QUESTIONS                   ✓ ALL READY
+===========================================
+
+✓ What can you help me with?          → Show available buttons
+✓ How does this work?                 → Explain app
+✓ What are my filter options?         → List filters
+✓ Start over                          → Reset conversation
+✓ Clear filters                       → Reset all filters
+✓ Show me everything                  → Remove all filters
+
+
+===========================================
+CONTEXTUAL FOLLOW-UPS                   ✓ ALL READY
+===========================================
+
+After showing results:
+✓ Show me more                        → Show next batch
+✓ Any others?                         → Show remaining
+✓ What else?                          → Show remaining
+✓ Something different                 → Different filter combo
+✓ Something earlier                   → Filter earlier time
+✓ Something later                     → Filter later time
+📍 Something closer                   → Sort by distance
+✓ Something free instead              → Add free filter
+✓ Try a different borough             → Show borough options
+
+After selecting a venue:
+✓ Tell me more                        → Show full venue details
+✓ How do I sign up?                   → Show signup info
+✓ Show on map                         → Pan to venue
+✓ Get directions                      → Open directions
+✓ What else is nearby?                → Filter by same area
+
+
+===========================================
+QUICK ACTION BUTTONS (RECOMMENDED)      ✓ ALL READY
+===========================================
+
+Primary (always show):
+✓ 1. What's happening now?
+✓ 2. What's free tonight?
+📍 3. What's near me?
+✓ 4. What's in [detected borough]?
+
+Contextual (based on time):
+✓ Morning (before 12pm): "This afternoon" / "This evening"
+✓ Afternoon (12-5pm): "This evening" / "Late night"
+✓ Evening (5-9pm): "Still time to catch?" / "Late night"
+✓ Late night (9pm+): "What's still ahead?" / "Tomorrow"
+
+Contextual (after results):
+✓ "Show more"
+✓ "Something free"
+📍 "Closer to me"
+✓ "Different borough"
+
+Contextual (after venue detail):
+✓ "Sign up"
+✓ "Get directions"
+✓ "Show similar"
+
+
+===========================================
+SCHEDULING / PLANNING QUESTIONS         ⚠ NEEDS NEW FEATURES
+===========================================
+
+Save & Bookmark                         ⚠ Needs: localStorage
+---------------
+⚠ Save this mic
+⚠ Bookmark this one
+⚠ Add to my list
+⚠ Remember this for later
+⚠ I want to go to this one
+
+View Saved                              ⚠ Needs: localStorage
+----------
+⚠ Show my saved mics
+⚠ What did I bookmark?
+⚠ What's on my list?
+⚠ Show my planned mics
+
+Reminders                               ⚠ Needs: Push notifications + Service Worker
+---------
+⚠ Remind me about this
+⚠ Set a reminder for [Venue]
+⚠ Notify me before it starts
+⚠ Remind me 1 hour before
+⚠ Alert me when signup opens
+
+Planning Specific Days                  ✓ READY (calendar picker exists)
+----------------------
+✓ What's on this Saturday?
+⚠ Plan my week                         → Needs week view
+✓ What are my options for Friday?
+✓ Show me next Monday's mics
+✓ What's happening this weekend?       → Can show Sat + Sun
+
+All Week View                           ✓ READY (text response in chat)
+-------------
+✓ Show me the whole week               → Aggregate by day, show counts
+✓ What's on all week?                  → List each day's count
+✓ Give me the full weekly schedule     → Format as text list
+✓ What days have the most mics?        → Sort days by count
+✓ What's every day this week?          → Same as above
+✓ Which days are best for free mics?   → Filter free, count by day
+✓ What's the busiest night?            → Max count day
+✓ Show all 7 days                      → List all days
+✓ When is [Venue] this week?           → Show venue's day
+✓ What's in Brooklyn all week?         → Filter borough, count by day
+✓ Free mics all week?                  → Filter free, count by day
+✓ What's on every night?               → Same as week view
+
+Recurring / Weekly                      ✓ PARTIALLY READY
+------------------
+✓ When is [Venue] every week?          → Data has day field
+✓ What runs weekly?                    → All mics are weekly
+✓ Is this mic every [day]?             → Check day field
+✓ What's the schedule for [Venue]?     → Show venue's day
+
+Calendar View                           ✓ PARTIALLY READY
+-------------
+✓ Show me the calendar                 → Open calendar picker
+⚠ What's coming up this week?          → Needs week aggregation
+⚠ Show me the next 7 days              → Needs week view
+⚠ What's my schedule look like?        → Needs saved mics
+
+History / Past                          ⚠ Needs: localStorage
+--------------
+⚠ What mics have I been to?
+⚠ Show my history
+⚠ Mark this as visited
+⚠ I went to this one
+
+Goals / Tracking                        ⚠ Needs: localStorage
+----------------
+⚠ How many mics have I done?
+⚠ Track my mic count
+⚠ How many this week?
+⚠ Show my stats
+
+Share / Social                          ⚠ Needs: Share API / Backend
+--------------
+⚠ Share this mic                       → Easy (Web Share API)
+⚠ Send to a friend                     → Easy (Web Share API)
+⚠ Who else is going?                   → Hard (needs accounts)
+⚠ Find comedy buddies                  → Hard (needs accounts)
+
+
+===========================================
+SUMMARY
+===========================================
+
+READY NOW (no code needed):
+- All time-based questions (today, tomorrow, days, time of day)
+- All status questions (live, upcoming, starting soon)
+- All price questions (free, paid)
+- All borough questions
+- All combined filter questions
+- Venue detail questions
+- Navigation/directions
+- Basic recommendations
+- Contextual follow-ups
+
+READY WITH LOCATION PERMISSION (📍):
+- Near me questions
+- Commute time questions
+- Distance-based sorting
+
+NEEDS localStorage (~1-2 hours to build):
+- Save/bookmark mics
+- View saved list
+- History tracking
+- Stats
+
+WEEK VIEW (no UI needed - just text in chat):
+- All week questions ✓
+- Weekly schedule ✓
+- Day comparison ✓
+
+NEEDS Push Notifications (~4-8 hours to build):
+- Reminders
+- Alerts before start time
+- Signup reminders
+
+NEEDS Backend/Accounts (significant effort):
+- Social features
+- "Who else is going"
+- Friend sharing
+
+
+===========================================
+LOCATION PERMISSION FLOW
+===========================================
+
+When user asks a location-based question:
+
+```
+User taps: "What's near me?"
+         ↓
+Check: STATE.userLocation exists?
+         ↓
+    ┌────┴────┐
+    ↓         ↓
+   YES        NO
+    ↓         ↓
+ Show      Show message:
+ nearby    "I need your location
+ mics      to find nearby mics"
+ sorted         ↓
+ by        [Allow Location] button
+ distance       ↓
+           User taps
+                ↓
+           getUserLocation()
+                ↓
+           Show results
+```
+
+Questions that trigger this flow:
+- What's near me?
+- What's closest to me?
+- What's under 15/30/45/60 min away?
+- Something closer
+- Cheap mics near me?
+- Free mics I can walk to?
+- Easiest to get to from here?
+
+Code pattern:
+```javascript
+function handleLocationQuestion(question) {
+  if (STATE.userLocation) {
+    // Already have location - answer immediately
+    return answerWithLocation(question);
+  } else {
+    // Need permission first
+    return {
+      message: "I need your location to find nearby mics",
+      buttons: [{
+        label: "Allow Location",
+        action: async () => {
+          await getUserLocation();
+          if (STATE.userLocation) {
+            return answerWithLocation(question);
+          } else {
+            return "Location access denied. Try searching by borough instead.";
+          }
+        }
+      }, {
+        label: "Search by borough",
+        action: () => showBoroughOptions()
+      }]
+    };
+  }
+}
+```
+
+Fallback if denied:
+- Offer borough filter instead
+- "Search by borough" button shows: Manhattan, Brooklyn, Queens, Bronx
+
+
+===========================================
+RECOMMENDED MVP BUTTONS
+===========================================
+
+Start with these 6 buttons (all ✓ ready):
+
+1. "Tonight"        → mode: today
+2. "Free"           → price: Free
+3. "Near me"        → commute filter (📍)
+4. "Brooklyn"       → borough: Brooklyn
+5. "Happening now"  → status: live
+6. "Tomorrow"       → mode: tomorrow
+
+These cover ~80% of user needs with zero new code.

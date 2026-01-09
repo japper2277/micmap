@@ -1,0 +1,84 @@
+MICMAP TROUBLESHOOTING GUIDE
+=============================
+
+ISSUE: Transit routes showing wrong data (wrong station, wrong time, wrong lines)
+--------------------------------------------------------------------------------
+SYMPTOMS:
+- Modal shows route from wrong station (e.g., "Marcy Av" instead of "Central Av")
+- Transit time doesn't match actual distance
+- Line sequence doesn't make sense (e.g., M→D→B when it should be M→L→N)
+
+CAUSE:
+- Stale cached route data in browser
+- Routes are cached in mic.route after first calculation
+- If user changes origin location, old cached routes may display
+
+FIX:
+1. Hard refresh: Cmd+Shift+R (Mac) or Ctrl+Shift+R (Windows)
+2. Re-enter transit mode from your location
+3. Routes will recalculate fresh from API
+
+PREVENTION:
+- transitService.routeCache has 5-min TTL (auto-clears)
+- clearTransitMode() clears mic.route data
+- Always hard refresh if routes look wrong
+
+
+ISSUE: "Route API error: 404" in console
+----------------------------------------
+CAUSE:
+- Frontend calling wrong port (e.g., port 8000 instead of 3001)
+- API server not running
+
+FIX:
+1. Check API server is running: curl http://localhost:3001/health
+2. If not running: cd api && node server.js
+3. Verify transit.js uses CONFIG.apiBase (not relative URLs)
+
+FILE: map_designs/newest_map/js/transit.js line 46 should be:
+  const url = `${CONFIG.apiBase}/api/subway/routes?...`
+NOT:
+  const url = `/api/subway/routes?...`
+
+
+ISSUE: Mics not loading
+-----------------------
+CAUSE:
+- API server not running on port 3001
+- Another process using port 3001
+
+FIX:
+1. Check what's on port 3001: lsof -i :3001
+2. Kill conflicting process if needed
+3. Start API server: cd api && node server.js
+4. Verify: curl http://localhost:3001/api/v1/mics
+
+
+ISSUE: Walk time seems wrong
+----------------------------
+NOTE: Walk speed is set to 24 min/mile (2.5 mph) in subway-router.js
+This is slower than typical 20 min/mile to account for:
+- Street crossings
+- Stairs/elevation
+- Crowded sidewalks
+
+FILE: scripts/subway-router.js line 312
+  const WALK_SPEED = 24; // minutes per mile
+
+
+DEBUG: Check what coordinates are being sent to API
+---------------------------------------------------
+Console will show:
+  🔍 Fetching route for [mic name]: user(lat,lng) → mic(lat,lng)
+
+If mic.lng shows "undefined":
+- Check utils.js processMics() normalizes lon→lng
+- API returns "lon", frontend expects "lng"
+
+
+PORTS
+-----
+- Frontend: 8000 (Python HTTP server)
+- API: 3001 (Express/Node)
+- Redis: 6379
+- MongoDB: 27017

@@ -5,6 +5,9 @@
     "generate": "node scripts/generate-venue-list.js"
   },
   "dependencies": {
+    "@capacitor/cli": "^8.0.0",
+    "@capacitor/core": "^8.0.0",
+    "@capacitor/ios": "^8.0.0",
     "axios": "^1.13.2",
     "csv-parse": "^6.1.0",
     "dotenv": "^17.2.3",

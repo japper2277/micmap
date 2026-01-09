@@ -1,0 +1,307 @@
+================================================================================
+                    MICMAP: VENUE DATA FLOW DOCUMENTATION
+================================================================================
+
+This document explains how venue/mic data flows from source files through the
+backend API to the frontend display.
+
+--------------------------------------------------------------------------------
+OVERVIEW
+--------------------------------------------------------------------------------
+
+    CSV File → Seed Script → MongoDB → API → Frontend Fetch → State → Render
+
+--------------------------------------------------------------------------------
+STEP 1: SOURCE DATA
+--------------------------------------------------------------------------------
+
+File: api/mics-geocoded.csv
+
+This CSV contains all venue/mic data with the following columns:
+- mic_name
+- day (Monday, Tuesday, etc.)
+- start_time (e.g., "7:00 PM")
+- end_time
+- venue_name
+- borough (Manhattan, Brooklyn, Queens, Bronx, Staten Island)
+- neighborhood
+- address
+- cost (e.g., "Free", "$5")
+- stage_time_minutes
+- signup_instructions
+- organizer_contact
+- notes
+- latitude
+- longitude
+
+--------------------------------------------------------------------------------
+STEP 2: DATABASE SEEDING
+--------------------------------------------------------------------------------
+
+File: api/scripts/seed-database.js
+
+Purpose: Reads the CSV file and inserts records into MongoDB.
+
+Process:
+1. Connects to MongoDB using connection string from .env
+2. Reads api/mics-geocoded.csv using csv-parser
+3. Validates coordinates (uses fallback lookup if missing)
+4. Inserts all records using Mic.insertMany()
+5. Creates indexes for performance (day+startTime, borough, score)
+
+To run: node api/scripts/seed-database.js
+
+--------------------------------------------------------------------------------
+STEP 3: DATABASE STORAGE
+--------------------------------------------------------------------------------
+
+File: api/models/Mic.js
+
+MongoDB collection: mics
+
+Schema fields:
+- name (String)
+- day (String, enum: weekdays)
+- startTime (String)
+- endTime (String)
+- venueName (String)
+- borough (String, enum: NYC boroughs)
+- neighborhood (String)
+- address (String)
+- lat (Number)
+- lon (Number)
+- location (GeoJSON Point for geospatial queries)
+- cost (String)
+- stageTime (String)
+- signUpDetails (String)
+- host (String)
+- environment (String)
+- notes (String)
+- score (Number, for Top Picks ranking)
+- lastUpdated (Date)
+
+Database config: api/config/database.js
+- Connection pooling: 10 max, 2 min connections
+
+--------------------------------------------------------------------------------
+STEP 4: API ENDPOINT
+--------------------------------------------------------------------------------
+
+File: api/server.js (lines 171-226)
+
+Endpoint: GET /api/v1/mics
+
+Query parameters:
+- day (filter by day of week)
+- borough (filter by NYC borough)
+- neighborhood (filter by neighborhood)
+- cost (filter by cost)
+- sort (time, score, or distance)
+
+Response format:
+{
+    "count": 46,
+    "lastUpdated": "2025-12-11T...",
+    "mics": [
+        {
+            "_id": "...",
+            "venueName": "West Side Comedy Club",
+            "day": "Wednesday",
+            "startTime": "7:00 PM",
+            "neighborhood": "UWS",
+            "cost": "$5",
+            "lat": 40.7812,
+            "lon": -73.9812,
+            ...
+        },
+        ...
+    ]
+}
+
+Caching: Redis middleware caches responses to reduce database load.
+
+--------------------------------------------------------------------------------
+STEP 5: FRONTEND CONFIGURATION
+--------------------------------------------------------------------------------
+
+File: map_designs/newest_map/js/config.js
+
+Key settings:
+- apiBase: 'http://localhost:3001' (backend server URL)
+- apiPath: 'http://localhost:3001/api/v1/mics' (full API endpoint)
+- mapCenter: [40.735, -73.99] (default NYC center)
+- mapZoom: 13
+
+--------------------------------------------------------------------------------
+STEP 6: FRONTEND DATA LOADING
+--------------------------------------------------------------------------------
+
+File: map_designs/newest_map/js/app.js (lines 6-19)
+
+On app initialization:
+
+    async function loadData() {
+        const response = await fetch(CONFIG.apiPath);
+        const data = await response.json();
+        const rawMics = data.mics || data;
+        STATE.mics = processMics(rawMics);
+        render('today');
+    }
+
+Called from init() function when page loads.
+Status refresh runs every 60 seconds to update live/upcoming/future states.
+
+--------------------------------------------------------------------------------
+STEP 7: DATA PROCESSING
+--------------------------------------------------------------------------------
+
+File: map_designs/newest_map/js/utils.js (lines 48-78)
+
+The processMics() function transforms API data for frontend use:
+
+API Field          →    Frontend Field
+-----------------------------------------
+venueName          →    title, venue
+startTime          →    start (Date object), timeStr
+neighborhood       →    hood
+cost               →    price
+stageTime          →    setTime
+borough            →    type
+signUpDetails      →    signupUrl, signupEmail, signupInstructions
+lon                →    lng (normalized)
+
+Status calculation (3-tier system):
+- live: Event started within last 90 minutes
+- upcoming: Event starts within 2 hours
+- future: Event more than 2 hours away
+
+--------------------------------------------------------------------------------
+STEP 8: STATE MANAGEMENT
+--------------------------------------------------------------------------------
+
+File: map_designs/newest_map/js/state.js
+
+Global STATE object stores:
+- mics: Array of all processed mic events
+- currentMode: 'today', 'tomorrow', or 'calendar'
+- markerLookup: Map of mic ID to Leaflet marker reference
+- activeFilters: { price: 'All', time: 'All' }
+- userLocation: { lat, lng } if geolocation enabled
+- isTransitMode: Boolean for commute sorting
+- transitTimes: Calculated commute times per mic
+
+--------------------------------------------------------------------------------
+STEP 9: RENDERING
+--------------------------------------------------------------------------------
+
+File: map_designs/newest_map/js/render.js
+
+The render(mode) function:
+
+1. FILTER by day and time
+   - Today mode: Show today's mics, exclude >1 hour in past
+   - Tomorrow mode: Show tomorrow's mics
+   - Calendar mode: Show selected date's mics
+
+2. APPLY FILTERS
+   - Price: All / Free / Paid
+   - Time: All / Early (<5pm) / Late (>=5pm)
+
+3. CALCULATE STATUS
+   - Recalculate live/upcoming/future based on current time
+
+4. GROUP BY VENUE
+   - Multiple mics at same lat/lng grouped into one map marker
+   - Best status used for pin color (live > upcoming > future)
+
+5. SORT
+   - Transit mode: By commute time (closest first)
+   - Default: By start time
+
+6. RENDER LIST
+   - Create DOM cards for each mic
+   - Display: status badge, venue name, commute, price, signup button
+   - Group by hour with sticky headers
+
+7. RENDER MAP
+   - Create Leaflet markers with status-colored pins
+   - Green pulsing = live
+   - Red solid = upcoming (<2 hours)
+   - Gray hollow = future
+
+--------------------------------------------------------------------------------
+STEP 10: MAP VISUALIZATION
+--------------------------------------------------------------------------------
+
+File: map_designs/newest_map/js/map.js
+
+Map setup:
+- Leaflet map with CartoDB Voyager tiles
+- Centered on NYC (40.735, -73.99)
+- Zoom level 13
+
+Pin icons by status:
+- Live: Green pulsing dot (14px)
+- Upcoming: Red solid dot with glow (14px)
+- Future: Gray hollow circle (12px)
+
+Tooltips show:
+- Live: "LIVE | VENUE NAME"
+- Upcoming: "4:30 | VENUE NAME"
+- Future: "8:30 | VENUE NAME"
+
+--------------------------------------------------------------------------------
+SCRIPT LOAD ORDER
+--------------------------------------------------------------------------------
+
+File: map_designs/newest_map/index.html (lines 197-211)
+
+Scripts load in this order (dependencies first):
+1.  config.js      - Configuration constants
+2.  state.js       - Global state object
+3.  utils.js       - Utility functions
+4.  map.js         - Map initialization
+5.  modal.js       - Venue modal
+6.  drawer.js      - UI drawer
+7.  filters.js     - Filter logic
+8.  calendar.js    - Calendar mode
+9.  toast.js       - Toast notifications
+10. search.js      - Search functionality
+11. transit.js     - Transit calculations
+12. mta.js         - MTA real-time data
+13. settings.js    - Settings modal
+14. render.js      - Rendering engine
+15. app.js         - Main app (calls init())
+
+--------------------------------------------------------------------------------
+HOW TO UPDATE VENUE DATA
+--------------------------------------------------------------------------------
+
+1. Edit the CSV file: api/mics-geocoded.csv
+2. Re-run the seed script: node api/scripts/seed-database.js
+3. Restart the server: npm start (in api/ directory)
+4. Refresh the frontend
+
+Alternatively, use the admin API endpoints (if available) to add/update mics
+directly in MongoDB without re-seeding.
+
+--------------------------------------------------------------------------------
+TROUBLESHOOTING
+--------------------------------------------------------------------------------
+
+Venue not showing?
+- Check CSV has correct day of week
+- Verify lat/lng coordinates are valid
+- Ensure start_time format is "H:MM AM/PM"
+
+Wrong location on map?
+- Verify latitude and longitude in CSV
+- Check for coordinate swaps (lat vs lng)
+
+Status not updating?
+- Status recalculates every 60 seconds
+- Check browser console for JavaScript errors
+
+================================================================================
+                              END OF DOCUMENT
+================================================================================

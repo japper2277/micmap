@@ -1,0 +1,182 @@
+======================================================================
+MICMAP SUBWAY TRANSFER OPTIONS AUDIT
+Generated: 2025-12-12
+======================================================================
+
+This document lists all transfer connections in the subway routing system.
+
+======================================================================
+SECTION 1: HARDCODED SUPER COMPLEXES (scripts/build-graph.js)
+======================================================================
+
+These are manually added transfers that connect stations GTFS treats
+as separate. Some may be INCORRECT.
+
+TIMES SQUARE COMPLEX:
+----------------------------------------------------------------------
+  127 (1/2/3) <-> A27 (A/C/E)
+    Time: 180s (3.0 min), Distance: 0.18 mi
+    Times Sq (1/2/3) <-> Port Auth (A/C/E)
+    STATUS: ✓ VALID - underground connection exists
+
+  127 (1/2/3) <-> 725 (7)
+    Time: 120s (2.0 min), Distance: 0.02 mi
+    Times Sq (1/2/3) <-> Times Sq (7)
+    STATUS: ✓ VALID - same complex
+
+  127 (1/2/3) <-> R16 (N/Q/R/W)
+    Time: 120s (2.0 min), Distance: 0.06 mi
+    Times Sq (1/2/3) <-> Times Sq (N/Q/R/W)
+    STATUS: ✓ VALID - same complex
+
+  725 (7) <-> R16 (N/Q/R/W)
+    Time: 120s (2.0 min), Distance: 0.07 mi
+    Times Sq (7) <-> Times Sq (N/Q/R/W)
+    STATUS: ✓ VALID - same complex
+
+  A27 (A/C/E) <-> R16 (N/Q/R/W)
+    Time: 180s (3.0 min), Distance: 0.24 mi
+    Port Auth (A/C/E) <-> Times Sq (N/Q/R/W)
+    STATUS: ✓ VALID - underground connection exists
+
+14TH STREET COMPLEX:
+----------------------------------------------------------------------
+  132 (1/2/3) <-> 635 (4/5/6)
+    Time: 180s (3.0 min), Distance: 0.58 mi
+    14 St @ 7th Ave <-> Union Sq @ 4th Ave
+    STATUS: ⚠️ INVALID - NOT CONNECTED! 0.58 mi apart, no tunnel
+
+  635 (4/5/6) <-> A31 (A/C/E)
+    Time: 240s (4.0 min), Distance: 0.75 mi
+    Union Sq @ 4th Ave <-> 14 St @ 8th Ave
+    STATUS: ⚠️ INVALID - NOT CONNECTED! 0.75 mi apart, no tunnel
+
+  635 (4/5/6) <-> L03 (L)
+    Time: 120s (2.0 min), Distance: 0.04 mi
+    Union Sq (4/5/6) <-> Union Sq (L)
+    STATUS: ✓ VALID - same complex
+
+  132 (1/2/3) <-> A31 (A/C/E)
+    Time: 240s (4.0 min), Distance: 0.23 mi
+    14 St @ 7th Ave <-> 14 St @ 8th Ave
+    STATUS: ⚠️ INVALID - NOT CONNECTED! Different stations
+
+FULTON COMPLEX:
+----------------------------------------------------------------------
+  418 (2/3) <-> 419 (4/5)
+    Time: 120s (2.0 min), Distance: 0.23 mi
+    Fulton St complex
+    STATUS: ✓ VALID - Fulton Center connection
+
+  419 (4/5) <-> A38 (A/C)
+    Time: 120s (2.0 min), Distance: 0.28 mi
+    Fulton St complex
+    STATUS: ✓ VALID - Fulton Center connection
+
+  A38 (A/C) <-> 229 (J/Z)
+    Time: 120s (2.0 min), Distance: 0.08 mi
+    Fulton St complex
+    STATUS: ✓ VALID - Fulton Center connection
+
+  418 (2/3) <-> A38 (A/C)
+    Time: 120s (2.0 min), Distance: 0.10 mi
+    Fulton St complex
+    STATUS: ✓ VALID - Fulton Center connection
+
+
+======================================================================
+SECTION 2: GTFS TRANSFERS (gtfs_supplemented/transfers.txt)
+======================================================================
+
+These come from the official MTA GTFS data. Total: 150 transfers.
+
+UNION SQUARE COMPLEX (CORRECT):
+----------------------------------------------------------------------
+  635 (4/5/6) - 14 St-Union Sq:
+    -> L03 (L) 14 St-Union Sq [180s]
+    -> R20 (N/Q/R/W) 14 St-Union Sq [180s]
+
+  L03 (L) - 14 St-Union Sq:
+    -> 635 (4/5/6) 14 St-Union Sq [180s]
+    -> R20 (N/Q/R/W) 14 St-Union Sq [180s]
+
+  R20 (N/Q/R/W) - 14 St-Union Sq:
+    -> 635 (4/5/6) 14 St-Union Sq [180s]
+    -> L03 (L) 14 St-Union Sq [180s]
+
+14TH ST - 7TH AVE (SEPARATE STATION):
+----------------------------------------------------------------------
+  132 (1/2/3) - 14 St:
+    -> D19 (F/M) 14 St [300s]  (across platform)
+    -> L02 (L) 6 Av [180s]     (L train at 6th Ave)
+    NOTE: Does NOT connect to Union Sq or A/C/E!
+
+14TH ST - 8TH AVE (SEPARATE STATION):
+----------------------------------------------------------------------
+  A31 (A/C/E) - 14 St:
+    -> L01 (L) 8 Av [90s]      (L train at 8th Ave)
+    NOTE: Does NOT connect to Union Sq or 1/2/3!
+
+TIMES SQUARE COMPLEX:
+----------------------------------------------------------------------
+  127 (1/2/3) - Times Sq-42 St:
+    -> 725 (7) Times Sq-42 St [180s]
+    -> 902 (S) Times Sq-42 St [180s]
+    -> A27 (A/C/E) 42 St-Port Authority [300s]
+    -> R16 (N/Q/R/W) Times Sq-42 St [180s]
+
+  R16 (N/Q/R/W) - Times Sq-42 St:
+    -> 127 (1/2/3) Times Sq-42 St [180s]
+    -> 725 (7) Times Sq-42 St [180s]
+    -> 902 (S) Times Sq-42 St [180s]
+    -> A27 (A/C/E) 42 St-Port Authority [300s]
+
+
+======================================================================
+SECTION 3: ISSUES FOUND
+======================================================================
+
+CRITICAL - BAD TRANSFERS IN SUPER_COMPLEXES:
+----------------------------------------------------------------------
+These create impossible routes (E -> 4/5 at 14th St):
+
+1. 132 <-> 635  (14 St 1/2/3 <-> Union Sq 4/5/6)
+   PROBLEM: These stations are 0.58 miles apart with no underground
+   connection. Walking would take ~12 minutes on surface streets.
+
+2. 635 <-> A31  (Union Sq 4/5/6 <-> 14 St A/C/E)
+   PROBLEM: These stations are 0.75 miles apart with no underground
+   connection. Walking would take ~15 minutes on surface streets.
+
+3. 132 <-> A31  (14 St 1/2/3 <-> 14 St A/C/E)
+   PROBLEM: These are different stations at 7th Ave and 8th Ave.
+   No underground connection. Walking ~5 minutes on surface.
+
+RECOMMENDED FIX:
+----------------------------------------------------------------------
+Remove these 3 bad transfers from SUPER_COMPLEXES in build-graph.js,
+then rebuild the graph with: node scripts/build-graph.js
+
+
+======================================================================
+SECTION 4: 14TH STREET AREA MAP
+======================================================================
+
+Walking distances between 14th St stations:
+
+                    8th Ave          7th Ave          6th Ave          Union Sq (4th Ave)
+                    A/C/E            1/2/3            F/M              4/5/6/L/N/Q/R/W
+                    (A31)            (132)            (D19)            (635/L03/R20)
+                      |                |                |                   |
+    14th St  --------[A31]--0.23mi--[132]--0.15mi--[D19]----0.43mi------[635]--------
+                      |                |                |                   |
+                    L train          L train                            L train
+                    @ 8th Ave        @ 6th Ave                          @ Union Sq
+                    (L01)            (L02)                              (L03)
+
+The L train connects them all, but that's a RIDE, not a transfer!
+
+
+======================================================================
+END OF AUDIT
+======================================================================

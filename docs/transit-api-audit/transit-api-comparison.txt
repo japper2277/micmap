@@ -1,0 +1,2669 @@
+╔══════════════════════════════════════════════════════════════════════╗
+║         TRANSIT API COMPARISON: Your MTA vs Transiter               ║
+║         Testing all venues, all lines, all directions               ║
+║         Generated: 2025-12-12T15:51:50.374Z                  ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+Testing 41 venues...
+
+
+══════════════════════════════════════════════════════════════════════
+📍 Comedy Shop
+   Stop: D20 | Lines: B, D, F, M
+──────────────────────────────────────────────────────────────────────
+
+  UPTOWN/QUEENS/MANHATTAN:
+  ----------------------------------------------------------------
+  TRANSITER (12 trains):
+    F  → Jamaica-179 St            0 min
+    B  → 145 St                    0 min
+    F  → Jamaica-179 St            3 min
+    M  → Forest Hills-71 Av        5 min
+    D  → Norwood-205 St            6 min
+
+  YOUR API - B line:
+    B    Uptown                     0 min
+    F    Uptown                     0 min
+    F    Uptown                     3 min
+    M    Manhattan                  5 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for B, got F,M
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 3 B trains, local has 1
+
+  YOUR API - D line:
+    B    Uptown                     0 min
+    F    Uptown                     0 min
+    F    Uptown                     3 min
+    M    Manhattan                  5 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for D, got B,F,M
+      - NO_DESTINATION: Local missing destination info
+
+  YOUR API - F line:
+    B    Uptown                     0 min
+    F    Uptown                     0 min
+    F    Uptown                     3 min
+    M    Manhattan                  5 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for F, got B,M
+      - NO_DESTINATION: Local missing destination info
+
+  YOUR API - M line:
+    B    Uptown                     0 min
+    F    Uptown                     0 min
+    F    Uptown                     3 min
+    M    Manhattan                  5 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for M, got B,F
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 3 M trains, local has 1
+
+  DOWNTOWN/BROOKLYN:
+  ----------------------------------------------------------------
+  TRANSITER (12 trains):
+    F  → Coney Island-Stillwell Av 1 min
+    F  → Coney Island-Stillwell Av 4 min
+    M  → Middle Village-Metropolit 7 min
+    D  → Coney Island-Stillwell Av 7 min
+    B  → Brighton Beach            10 min
+
+  YOUR API - B line:
+    F    Downtown                   1 min
+    F    Downtown                   4 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for B, got F
+      - NO_DESTINATION: Local missing destination info
+
+  YOUR API - D line:
+    F    Downtown                   1 min
+    F    Downtown                   4 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for D, got F
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 3 D trains, local has 0
+
+  YOUR API - F line:
+    F    Downtown                   1 min
+    F    Downtown                   4 min
+  ⚠️  BUGS FOUND:
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 6 F trains, local has 2
+
+  YOUR API - M line:
+    F    Downtown                   1 min
+    F    Downtown                   4 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for M, got F
+      - NO_DESTINATION: Local missing destination info
+
+══════════════════════════════════════════════════════════════════════
+📍 Greenwich Village Comedy Club
+   Stop: D20 | Lines: B, D, F, M
+──────────────────────────────────────────────────────────────────────
+
+  UPTOWN/QUEENS/MANHATTAN:
+  ----------------------------------------------------------------
+  TRANSITER (12 trains):
+    F  → Jamaica-179 St            0 min
+    B  → 145 St                    0 min
+    F  → Jamaica-179 St            3 min
+    M  → Forest Hills-71 Av        5 min
+    D  → Norwood-205 St            6 min
+
+  YOUR API - B line:
+    B    Uptown                     0 min
+    F    Uptown                     0 min
+    F    Uptown                     3 min
+    M    Manhattan                  5 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for B, got F,M
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 3 B trains, local has 1
+
+  YOUR API - D line:
+    B    Uptown                     0 min
+    F    Uptown                     0 min
+    F    Uptown                     3 min
+    M    Manhattan                  5 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for D, got B,F,M
+      - NO_DESTINATION: Local missing destination info
+
+  YOUR API - F line:
+    B    Uptown                     0 min
+    F    Uptown                     0 min
+    F    Uptown                     3 min
+    M    Manhattan                  5 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for F, got B,M
+      - NO_DESTINATION: Local missing destination info
+
+  YOUR API - M line:
+    B    Uptown                     0 min
+    F    Uptown                     0 min
+    F    Uptown                     3 min
+    M    Manhattan                  5 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for M, got B,F
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 3 M trains, local has 1
+
+  DOWNTOWN/BROOKLYN:
+  ----------------------------------------------------------------
+  TRANSITER (12 trains):
+    F  → Coney Island-Stillwell Av 1 min
+    F  → Coney Island-Stillwell Av 4 min
+    M  → Middle Village-Metropolit 7 min
+    D  → Coney Island-Stillwell Av 7 min
+    B  → Brighton Beach            10 min
+
+  YOUR API - B line:
+    F    Downtown                   1 min
+    F    Downtown                   4 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for B, got F
+      - NO_DESTINATION: Local missing destination info
+
+  YOUR API - D line:
+    F    Downtown                   1 min
+    F    Downtown                   4 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for D, got F
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 3 D trains, local has 0
+
+  YOUR API - F line:
+    F    Downtown                   1 min
+    F    Downtown                   4 min
+  ⚠️  BUGS FOUND:
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 6 F trains, local has 2
+
+  YOUR API - M line:
+    F    Downtown                   1 min
+    F    Downtown                   4 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for M, got F
+      - NO_DESTINATION: Local missing destination info
+
+══════════════════════════════════════════════════════════════════════
+📍 Grisly Pear
+   Stop: D20 | Lines: B, D, F, M
+──────────────────────────────────────────────────────────────────────
+
+  UPTOWN/QUEENS/MANHATTAN:
+  ----------------------------------------------------------------
+  TRANSITER (12 trains):
+    F  → Jamaica-179 St            0 min
+    B  → 145 St                    0 min
+    F  → Jamaica-179 St            3 min
+    M  → Forest Hills-71 Av        5 min
+    D  → Norwood-205 St            6 min
+
+  YOUR API - B line:
+    B    Uptown                     0 min
+    F    Uptown                     0 min
+    F    Uptown                     3 min
+    M    Manhattan                  5 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for B, got F,M
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 3 B trains, local has 1
+
+  YOUR API - D line:
+    B    Uptown                     0 min
+    F    Uptown                     0 min
+    F    Uptown                     3 min
+    M    Manhattan                  5 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for D, got B,F,M
+      - NO_DESTINATION: Local missing destination info
+
+  YOUR API - F line:
+    B    Uptown                     0 min
+    F    Uptown                     0 min
+    F    Uptown                     3 min
+    M    Manhattan                  5 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for F, got B,M
+      - NO_DESTINATION: Local missing destination info
+
+  YOUR API - M line:
+    B    Uptown                     0 min
+    F    Uptown                     0 min
+    F    Uptown                     3 min
+    M    Manhattan                  5 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for M, got B,F
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 3 M trains, local has 1
+
+  DOWNTOWN/BROOKLYN:
+  ----------------------------------------------------------------
+  TRANSITER (12 trains):
+    F  → Coney Island-Stillwell Av 1 min
+    F  → Coney Island-Stillwell Av 4 min
+    M  → Middle Village-Metropolit 7 min
+    D  → Coney Island-Stillwell Av 7 min
+    B  → Brighton Beach            10 min
+
+  YOUR API - B line:
+    F    Downtown                   1 min
+    F    Downtown                   4 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for B, got F
+      - NO_DESTINATION: Local missing destination info
+
+  YOUR API - D line:
+    F    Downtown                   1 min
+    F    Downtown                   4 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for D, got F
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 3 D trains, local has 0
+
+  YOUR API - F line:
+    F    Downtown                   1 min
+    F    Downtown                   4 min
+  ⚠️  BUGS FOUND:
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 6 F trains, local has 2
+
+  YOUR API - M line:
+    F    Downtown                   1 min
+    F    Downtown                   4 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for M, got F
+      - NO_DESTINATION: Local missing destination info
+
+══════════════════════════════════════════════════════════════════════
+📍 Comedy Village
+   Stop: D20 | Lines: B, D, F, M
+──────────────────────────────────────────────────────────────────────
+
+  UPTOWN/QUEENS/MANHATTAN:
+  ----------------------------------------------------------------
+  TRANSITER (12 trains):
+    F  → Jamaica-179 St            0 min
+    B  → 145 St                    0 min
+    F  → Jamaica-179 St            3 min
+    M  → Forest Hills-71 Av        5 min
+    D  → Norwood-205 St            6 min
+
+  YOUR API - B line:
+    B    Uptown                     0 min
+    F    Uptown                     0 min
+    F    Uptown                     3 min
+    M    Manhattan                  5 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for B, got F,M
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 3 B trains, local has 1
+
+  YOUR API - D line:
+    B    Uptown                     0 min
+    F    Uptown                     0 min
+    F    Uptown                     3 min
+    M    Manhattan                  5 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for D, got B,F,M
+      - NO_DESTINATION: Local missing destination info
+
+  YOUR API - F line:
+    B    Uptown                     0 min
+    F    Uptown                     0 min
+    F    Uptown                     3 min
+    M    Manhattan                  5 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for F, got B,M
+      - NO_DESTINATION: Local missing destination info
+
+  YOUR API - M line:
+    B    Uptown                     0 min
+    F    Uptown                     0 min
+    F    Uptown                     3 min
+    M    Manhattan                  5 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for M, got B,F
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 3 M trains, local has 1
+
+  DOWNTOWN/BROOKLYN:
+  ----------------------------------------------------------------
+  TRANSITER (12 trains):
+    F  → Coney Island-Stillwell Av 1 min
+    F  → Coney Island-Stillwell Av 4 min
+    M  → Middle Village-Metropolit 7 min
+    D  → Coney Island-Stillwell Av 7 min
+    B  → Brighton Beach            10 min
+
+  YOUR API - B line:
+    F    Downtown                   1 min
+    F    Downtown                   4 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for B, got F
+      - NO_DESTINATION: Local missing destination info
+
+  YOUR API - D line:
+    F    Downtown                   1 min
+    F    Downtown                   4 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for D, got F
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 3 D trains, local has 0
+
+  YOUR API - F line:
+    F    Downtown                   1 min
+    F    Downtown                   4 min
+  ⚠️  BUGS FOUND:
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 6 F trains, local has 2
+
+  YOUR API - M line:
+    F    Downtown                   1 min
+    F    Downtown                   4 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for M, got F
+      - NO_DESTINATION: Local missing destination info
+
+══════════════════════════════════════════════════════════════════════
+📍 St. Mark's Comedy Club
+   Stop: 636 | Lines: 6
+──────────────────────────────────────────────────────────────────────
+
+  UPTOWN/QUEENS/MANHATTAN:
+  ----------------------------------------------------------------
+  TRANSITER (7 trains):
+    6  → 3 Av-138 St               1 min
+    6  → Pelham Bay Park           4 min
+    6  → Pelham Bay Park           8 min
+    6  → 3 Av-138 St               9 min
+    6  → 3 Av-138 St               12 min
+
+  YOUR API - 6 line:
+    6    Uptown                     0 min
+    6    Uptown                     1 min
+    6    Uptown                     4 min
+  ⚠️  BUGS FOUND:
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 7 6 trains, local has 3
+
+  DOWNTOWN/BROOKLYN:
+  ----------------------------------------------------------------
+  TRANSITER (8 trains):
+    6  → Brooklyn Bridge-City Hall 0 min
+    6  → Brooklyn Bridge-City Hall 0 min
+    6  → Brooklyn Bridge-City Hall 0 min
+    4  → Crown Hts-Utica Av        5 min
+    6  → Brooklyn Bridge-City Hall 7 min
+
+  YOUR API - 6 line:
+    6    Downtown                   0 min
+    6    Downtown                   0 min
+    6    Downtown                   0 min
+  ⚠️  BUGS FOUND:
+      - DUPLICATES: 2 duplicate entries
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 7 6 trains, local has 3
+
+══════════════════════════════════════════════════════════════════════
+📍 Astor Pl area
+   Stop: 636 | Lines: 4, 5, 6
+──────────────────────────────────────────────────────────────────────
+
+  UPTOWN/QUEENS/MANHATTAN:
+  ----------------------------------------------------------------
+  TRANSITER (7 trains):
+    6  → 3 Av-138 St               1 min
+    6  → Pelham Bay Park           4 min
+    6  → Pelham Bay Park           8 min
+    6  → 3 Av-138 St               9 min
+    6  → 3 Av-138 St               12 min
+
+  YOUR API - 4 line:
+    6    Uptown                     0 min
+    6    Uptown                     1 min
+    6    Uptown                     4 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for 4, got 6
+      - NO_DESTINATION: Local missing destination info
+
+  YOUR API - 5 line:
+    6    Uptown                     0 min
+    6    Uptown                     1 min
+    6    Uptown                     4 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for 5, got 6
+      - NO_DESTINATION: Local missing destination info
+
+  YOUR API - 6 line:
+    6    Uptown                     0 min
+    6    Uptown                     1 min
+    6    Uptown                     4 min
+  ⚠️  BUGS FOUND:
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 7 6 trains, local has 3
+
+  DOWNTOWN/BROOKLYN:
+  ----------------------------------------------------------------
+  TRANSITER (8 trains):
+    6  → Brooklyn Bridge-City Hall 0 min
+    6  → Brooklyn Bridge-City Hall 0 min
+    6  → Brooklyn Bridge-City Hall 0 min
+    4  → Crown Hts-Utica Av        5 min
+    6  → Brooklyn Bridge-City Hall 7 min
+
+  YOUR API - 4 line:
+    6    Downtown                   0 min
+    6    Downtown                   0 min
+    6    Downtown                   0 min
+  ⚠️  BUGS FOUND:
+      - DUPLICATES: 2 duplicate entries
+      - WRONG_LINE: Asked for 4, got 6
+      - NO_DESTINATION: Local missing destination info
+
+  YOUR API - 5 line:
+    6    Downtown                   0 min
+    6    Downtown                   0 min
+    6    Downtown                   0 min
+  ⚠️  BUGS FOUND:
+      - DUPLICATES: 2 duplicate entries
+      - WRONG_LINE: Asked for 5, got 6
+      - NO_DESTINATION: Local missing destination info
+
+  YOUR API - 6 line:
+    6    Downtown                   0 min
+    6    Downtown                   0 min
+    6    Downtown                   0 min
+  ⚠️  BUGS FOUND:
+      - DUPLICATES: 2 duplicate entries
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 7 6 trains, local has 3
+
+══════════════════════════════════════════════════════════════════════
+📍 Fear City Comedy Club
+   Stop: F14 | Lines: F
+──────────────────────────────────────────────────────────────────────
+
+  UPTOWN/QUEENS/MANHATTAN:
+  ----------------------------------------------------------------
+  TRANSITER (3 trains):
+    F  → Jamaica-179 St            0 min
+    F  → Jamaica-179 St            8 min
+    F  → Jamaica-179 St            12 min
+
+  YOUR API - F line:
+    F    Uptown                     0 min
+    F    Uptown                     8 min
+    F    Uptown                     12 min
+  ⚠️  BUGS FOUND:
+      - NO_DESTINATION: Local missing destination info
+
+  DOWNTOWN/BROOKLYN:
+  ----------------------------------------------------------------
+  TRANSITER (4 trains):
+    F  → Coney Island-Stillwell Av 6 min
+    F  → Coney Island-Stillwell Av 9 min
+    F  → Coney Island-Stillwell Av 17 min
+    F  → Coney Island-Stillwell Av 18 min
+
+  YOUR API - F line:
+    F    Downtown                   6 min
+    F    Downtown                   9 min
+    F    Downtown                   17 min
+  ⚠️  BUGS FOUND:
+      - NO_DESTINATION: Local missing destination info
+
+══════════════════════════════════════════════════════════════════════
+📍 Black Cat LES
+   Stop: F14 | Lines: F
+──────────────────────────────────────────────────────────────────────
+
+  UPTOWN/QUEENS/MANHATTAN:
+  ----------------------------------------------------------------
+  TRANSITER (3 trains):
+    F  → Jamaica-179 St            0 min
+    F  → Jamaica-179 St            8 min
+    F  → Jamaica-179 St            12 min
+
+  YOUR API - F line:
+    F    Uptown                     0 min
+    F    Uptown                     8 min
+    F    Uptown                     12 min
+  ⚠️  BUGS FOUND:
+      - NO_DESTINATION: Local missing destination info
+
+  DOWNTOWN/BROOKLYN:
+  ----------------------------------------------------------------
+  TRANSITER (4 trains):
+    F  → Coney Island-Stillwell Av 6 min
+    F  → Coney Island-Stillwell Av 9 min
+    F  → Coney Island-Stillwell Av 17 min
+    F  → Coney Island-Stillwell Av 18 min
+
+  YOUR API - F line:
+    F    Downtown                   6 min
+    F    Downtown                   9 min
+    F    Downtown                   17 min
+  ⚠️  BUGS FOUND:
+      - NO_DESTINATION: Local missing destination info
+
+══════════════════════════════════════════════════════════════════════
+📍 Caravan of Dreams
+   Stop: F14 | Lines: F
+──────────────────────────────────────────────────────────────────────
+
+  UPTOWN/QUEENS/MANHATTAN:
+  ----------------------------------------------------------------
+  TRANSITER (3 trains):
+    F  → Jamaica-179 St            0 min
+    F  → Jamaica-179 St            8 min
+    F  → Jamaica-179 St            12 min
+
+  YOUR API - F line:
+    F    Uptown                     0 min
+    F    Uptown                     8 min
+    F    Uptown                     12 min
+  ⚠️  BUGS FOUND:
+      - NO_DESTINATION: Local missing destination info
+
+  DOWNTOWN/BROOKLYN:
+  ----------------------------------------------------------------
+  TRANSITER (4 trains):
+    F  → Coney Island-Stillwell Av 6 min
+    F  → Coney Island-Stillwell Av 9 min
+    F  → Coney Island-Stillwell Av 17 min
+    F  → Coney Island-Stillwell Av 18 min
+
+  YOUR API - F line:
+    F    Downtown                   6 min
+    F    Downtown                   9 min
+    F    Downtown                   17 min
+  ⚠️  BUGS FOUND:
+      - NO_DESTINATION: Local missing destination info
+
+══════════════════════════════════════════════════════════════════════
+📍 KGB Bar
+   Stop: F14 | Lines: F
+──────────────────────────────────────────────────────────────────────
+
+  UPTOWN/QUEENS/MANHATTAN:
+  ----------------------------------------------------------------
+  TRANSITER (3 trains):
+    F  → Jamaica-179 St            0 min
+    F  → Jamaica-179 St            8 min
+    F  → Jamaica-179 St            12 min
+
+  YOUR API - F line:
+    F    Uptown                     0 min
+    F    Uptown                     8 min
+    F    Uptown                     12 min
+  ⚠️  BUGS FOUND:
+      - NO_DESTINATION: Local missing destination info
+
+  DOWNTOWN/BROOKLYN:
+  ----------------------------------------------------------------
+  TRANSITER (4 trains):
+    F  → Coney Island-Stillwell Av 6 min
+    F  → Coney Island-Stillwell Av 9 min
+    F  → Coney Island-Stillwell Av 17 min
+    F  → Coney Island-Stillwell Av 18 min
+
+  YOUR API - F line:
+    F    Downtown                   6 min
+    F    Downtown                   9 min
+    F    Downtown                   17 min
+  ⚠️  BUGS FOUND:
+      - NO_DESTINATION: Local missing destination info
+
+══════════════════════════════════════════════════════════════════════
+📍 UCB
+   Stop: 635 | Lines: 4, 5, 6, L, N, Q, R, W
+──────────────────────────────────────────────────────────────────────
+
+  UPTOWN/QUEENS/MANHATTAN:
+  ----------------------------------------------------------------
+  TRANSITER (14 trains):
+    6  → 3 Av-138 St               2 min
+    6  → Pelham Bay Park           5 min
+    5  → Eastchester-Dyre Av       6 min
+    5  → E 180 St                  8 min
+    6  → Pelham Bay Park           10 min
+
+  YOUR API - 4 line:
+    6    Uptown                     2 min
+    6    Uptown                     2 min
+    6    Uptown                     5 min
+    5    Uptown                     6 min
+  ⚠️  BUGS FOUND:
+      - DUPLICATES: 1 duplicate entries
+      - WRONG_LINE: Asked for 4, got 6,5
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 3 4 trains, local has 0
+
+  YOUR API - 5 line:
+    6    Uptown                     2 min
+    6    Uptown                     2 min
+    6    Uptown                     5 min
+    5    Uptown                     6 min
+  ⚠️  BUGS FOUND:
+      - DUPLICATES: 1 duplicate entries
+      - WRONG_LINE: Asked for 5, got 6
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 5 5 trains, local has 1
+
+  YOUR API - 6 line:
+    6    Uptown                     2 min
+    6    Uptown                     2 min
+    6    Uptown                     5 min
+    5    Uptown                     6 min
+  ⚠️  BUGS FOUND:
+      - DUPLICATES: 1 duplicate entries
+      - WRONG_LINE: Asked for 6, got 5
+      - NO_DESTINATION: Local missing destination info
+
+  YOUR API - L line:
+    (none in this direction)
+  ⚠️  BUGS FOUND:
+      - MISSING_DATA: Transiter has 14 arrivals, local has 0
+
+  YOUR API - N line:
+    (none in this direction)
+  ⚠️  BUGS FOUND:
+      - MISSING_DATA: Transiter has 14 arrivals, local has 0
+
+  YOUR API - Q line:
+    (none in this direction)
+  ⚠️  BUGS FOUND:
+      - MISSING_DATA: Transiter has 14 arrivals, local has 0
+
+  YOUR API - R line:
+    (none in this direction)
+  ⚠️  BUGS FOUND:
+      - MISSING_DATA: Transiter has 14 arrivals, local has 0
+
+  YOUR API - W line:
+    (none in this direction)
+  ⚠️  BUGS FOUND:
+      - MISSING_DATA: Transiter has 14 arrivals, local has 0
+
+  DOWNTOWN/BROOKLYN:
+  ----------------------------------------------------------------
+  TRANSITER (8 trains):
+    4  → Crown Hts-Utica Av        4 min
+    6  → Brooklyn Bridge-City Hall 6 min
+    6  → Brooklyn Bridge-City Hall 8 min
+    5  → Flatbush Av-Brooklyn Coll 9 min
+    6  → Brooklyn Bridge-City Hall 12 min
+
+  YOUR API - 4 line:
+    4    Downtown                   4 min
+    6    Downtown                   6 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for 4, got 6
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 3 4 trains, local has 1
+
+  YOUR API - 5 line:
+    4    Downtown                   4 min
+    6    Downtown                   6 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for 5, got 4,6
+      - NO_DESTINATION: Local missing destination info
+
+  YOUR API - 6 line:
+    4    Downtown                   4 min
+    6    Downtown                   6 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for 6, got 4
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 4 6 trains, local has 1
+
+  YOUR API - L line:
+    (none in this direction)
+  ⚠️  BUGS FOUND:
+      - MISSING_DATA: Transiter has 8 arrivals, local has 0
+
+  YOUR API - N line:
+    (none in this direction)
+  ⚠️  BUGS FOUND:
+      - MISSING_DATA: Transiter has 8 arrivals, local has 0
+
+  YOUR API - Q line:
+    (none in this direction)
+  ⚠️  BUGS FOUND:
+      - MISSING_DATA: Transiter has 8 arrivals, local has 0
+
+  YOUR API - R line:
+    (none in this direction)
+  ⚠️  BUGS FOUND:
+      - MISSING_DATA: Transiter has 8 arrivals, local has 0
+
+  YOUR API - W line:
+    (none in this direction)
+  ⚠️  BUGS FOUND:
+      - MISSING_DATA: Transiter has 8 arrivals, local has 0
+
+══════════════════════════════════════════════════════════════════════
+📍 The Stand NYC
+   Stop: D19 | Lines: F, M
+──────────────────────────────────────────────────────────────────────
+
+  UPTOWN/QUEENS/MANHATTAN:
+  ----------------------------------------------------------------
+  TRANSITER (7 trains):
+    M  → Forest Hills-71 Av        0 min
+    F  → Jamaica-179 St            1 min
+    F  → Jamaica-179 St            4 min
+    M  → Forest Hills-71 Av        6 min
+    F  → Jamaica-179 St            14 min
+
+  YOUR API - F line:
+    M    Manhattan                  0 min
+    F    Uptown                     1 min
+    F    Uptown                     4 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for F, got M
+      - NO_DESTINATION: Local missing destination info
+
+  YOUR API - M line:
+    M    Manhattan                  0 min
+    F    Uptown                     1 min
+    F    Uptown                     4 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for M, got F
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 3 M trains, local has 1
+
+  DOWNTOWN/BROOKLYN:
+  ----------------------------------------------------------------
+  TRANSITER (9 trains):
+    F  → Coney Island-Stillwell Av 0 min
+    F  → Coney Island-Stillwell Av 2 min
+    M  → Middle Village-Metropolit 5 min
+    M  → Middle Village-Metropolit 9 min
+    F  → Coney Island-Stillwell Av 10 min
+
+  YOUR API - F line:
+    F    Downtown                   0 min
+    F    Downtown                   2 min
+    M    Brooklyn                   5 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for F, got M
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 6 F trains, local has 2
+
+  YOUR API - M line:
+    F    Downtown                   0 min
+    F    Downtown                   2 min
+    M    Brooklyn                   5 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for M, got F
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 3 M trains, local has 1
+
+══════════════════════════════════════════════════════════════════════
+📍 The Pit Midtown
+   Stop: D18 | Lines: F, M
+──────────────────────────────────────────────────────────────────────
+
+  UPTOWN/QUEENS/MANHATTAN:
+  ----------------------------------------------------------------
+  TRANSITER (7 trains):
+    M  → Forest Hills-71 Av        1 min
+    F  → Jamaica-179 St            2 min
+    F  → Jamaica-179 St            6 min
+    M  → Forest Hills-71 Av        8 min
+    F  → Jamaica-179 St            16 min
+
+  YOUR API - F line:
+    M    Manhattan                  1 min
+    F    Uptown                     2 min
+    F    Uptown                     6 min
+    M    Manhattan                  8 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for F, got M
+      - NO_DESTINATION: Local missing destination info
+
+  YOUR API - M line:
+    M    Manhattan                  1 min
+    F    Uptown                     2 min
+    F    Uptown                     6 min
+    M    Manhattan                  8 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for M, got F
+      - NO_DESTINATION: Local missing destination info
+
+  DOWNTOWN/BROOKLYN:
+  ----------------------------------------------------------------
+  TRANSITER (8 trains):
+    F  → Coney Island-Stillwell Av 1 min
+    M  → Middle Village-Metropolit 3 min
+    M  → Middle Village-Metropolit 8 min
+    F  → Coney Island-Stillwell Av 9 min
+    F  → Coney Island-Stillwell Av 10 min
+
+  YOUR API - F line:
+    F    Downtown                   1 min
+    M    Brooklyn                   3 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for F, got M
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 5 F trains, local has 1
+
+  YOUR API - M line:
+    F    Downtown                   1 min
+    M    Brooklyn                   3 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for M, got F
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 3 M trains, local has 1
+
+══════════════════════════════════════════════════════════════════════
+📍 New York Comedy Club Midtown
+   Stop: D18 | Lines: F, M
+──────────────────────────────────────────────────────────────────────
+
+  UPTOWN/QUEENS/MANHATTAN:
+  ----------------------------------------------------------------
+  TRANSITER (7 trains):
+    M  → Forest Hills-71 Av        1 min
+    F  → Jamaica-179 St            2 min
+    F  → Jamaica-179 St            6 min
+    M  → Forest Hills-71 Av        8 min
+    F  → Jamaica-179 St            16 min
+
+  YOUR API - F line:
+    M    Manhattan                  1 min
+    F    Uptown                     2 min
+    F    Uptown                     6 min
+    M    Manhattan                  8 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for F, got M
+      - NO_DESTINATION: Local missing destination info
+
+  YOUR API - M line:
+    M    Manhattan                  1 min
+    F    Uptown                     2 min
+    F    Uptown                     6 min
+    M    Manhattan                  8 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for M, got F
+      - NO_DESTINATION: Local missing destination info
+
+  DOWNTOWN/BROOKLYN:
+  ----------------------------------------------------------------
+  TRANSITER (8 trains):
+    F  → Coney Island-Stillwell Av 1 min
+    M  → Middle Village-Metropolit 3 min
+    M  → Middle Village-Metropolit 8 min
+    F  → Coney Island-Stillwell Av 9 min
+    F  → Coney Island-Stillwell Av 10 min
+
+  YOUR API - F line:
+    F    Downtown                   1 min
+    M    Brooklyn                   3 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for F, got M
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 5 F trains, local has 1
+
+  YOUR API - M line:
+    F    Downtown                   1 min
+    M    Brooklyn                   3 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for M, got F
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 3 M trains, local has 1
+
+══════════════════════════════════════════════════════════════════════
+📍 Broadway Comedy Club
+   Stop: R16 | Lines: N, Q, R, W, 1, 2, 3
+──────────────────────────────────────────────────────────────────────
+
+  UPTOWN/QUEENS/MANHATTAN:
+  ----------------------------------------------------------------
+  TRANSITER (11 trains):
+    N  → Astoria-Ditmars Blvd      0 min
+    Q  → 96 St                     1 min
+    R  → Forest Hills-71 Av        1 min
+    W  → Astoria-Ditmars Blvd      5 min
+    N  → Astoria-Ditmars Blvd      6 min
+
+  YOUR API - N line:
+    N    Uptown                     0 min
+    Q    Uptown                     0 min
+    R    Uptown                     0 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for N, got Q,R
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 3 N trains, local has 1
+
+  YOUR API - Q line:
+    N    Uptown                     0 min
+    Q    Uptown                     0 min
+    R    Uptown                     0 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for Q, got N,R
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 3 Q trains, local has 1
+
+  YOUR API - R line:
+    N    Uptown                     0 min
+    Q    Uptown                     1 min
+    R    Uptown                     1 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for R, got N,Q
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 3 R trains, local has 1
+
+  YOUR API - W line:
+    N    Uptown                     0 min
+    Q    Uptown                     1 min
+    R    Uptown                     1 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for W, got N,Q,R
+      - NO_DESTINATION: Local missing destination info
+
+  YOUR API - 1 line:
+    (none in this direction)
+  ⚠️  BUGS FOUND:
+      - MISSING_DATA: Transiter has 11 arrivals, local has 0
+
+  YOUR API - 2 line:
+    (none in this direction)
+  ⚠️  BUGS FOUND:
+      - MISSING_DATA: Transiter has 11 arrivals, local has 0
+
+  YOUR API - 3 line:
+    (none in this direction)
+  ⚠️  BUGS FOUND:
+      - MISSING_DATA: Transiter has 11 arrivals, local has 0
+
+  DOWNTOWN/BROOKLYN:
+  ----------------------------------------------------------------
+  TRANSITER (11 trains):
+    N  → Coney Island-Stillwell Av 0 min
+    R  → Bay Ridge-95 St           1 min
+    W  → Whitehall St-South Ferry  3 min
+    R  → Bay Ridge-95 St           4 min
+    Q  → Coney Island-Stillwell Av 6 min
+
+  YOUR API - N line:
+    N    Downtown                   0 min
+    R    Downtown                   0 min
+    W    Downtown                   3 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for N, got R,W
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 3 N trains, local has 1
+
+  YOUR API - Q line:
+    N    Downtown                   0 min
+    R    Downtown                   0 min
+    W    Downtown                   3 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for Q, got N,R,W
+      - NO_DESTINATION: Local missing destination info
+
+  YOUR API - R line:
+    N    Downtown                   0 min
+    R    Downtown                   1 min
+    W    Downtown                   3 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for R, got N,W
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 4 R trains, local has 1
+
+  YOUR API - W line:
+    N    Downtown                   0 min
+    R    Downtown                   1 min
+    W    Downtown                   3 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for W, got N,R
+      - NO_DESTINATION: Local missing destination info
+
+  YOUR API - 1 line:
+    (none in this direction)
+  ⚠️  BUGS FOUND:
+      - MISSING_DATA: Transiter has 11 arrivals, local has 0
+
+  YOUR API - 2 line:
+    (none in this direction)
+  ⚠️  BUGS FOUND:
+      - MISSING_DATA: Transiter has 11 arrivals, local has 0
+
+  YOUR API - 3 line:
+    (none in this direction)
+  ⚠️  BUGS FOUND:
+      - MISSING_DATA: Transiter has 11 arrivals, local has 0
+
+══════════════════════════════════════════════════════════════════════
+📍 Producer's Club
+   Stop: R16 | Lines: N, Q, R, W
+──────────────────────────────────────────────────────────────────────
+
+  UPTOWN/QUEENS/MANHATTAN:
+  ----------------------------------------------------------------
+  TRANSITER (11 trains):
+    N  → Astoria-Ditmars Blvd      0 min
+    R  → Forest Hills-71 Av        1 min
+    Q  → 96 St                     1 min
+    W  → Astoria-Ditmars Blvd      5 min
+    N  → Astoria-Ditmars Blvd      6 min
+
+  YOUR API - N line:
+    N    Uptown                     0 min
+    Q    Uptown                     0 min
+    R    Uptown                     0 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for N, got Q,R
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 3 N trains, local has 1
+
+  YOUR API - Q line:
+    N    Uptown                     0 min
+    Q    Uptown                     0 min
+    R    Uptown                     0 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for Q, got N,R
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 3 Q trains, local has 1
+
+  YOUR API - R line:
+    N    Uptown                     0 min
+    Q    Uptown                     1 min
+    R    Uptown                     1 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for R, got N,Q
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 3 R trains, local has 1
+
+  YOUR API - W line:
+    N    Uptown                     0 min
+    Q    Uptown                     1 min
+    R    Uptown                     1 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for W, got N,Q,R
+      - NO_DESTINATION: Local missing destination info
+
+  DOWNTOWN/BROOKLYN:
+  ----------------------------------------------------------------
+  TRANSITER (11 trains):
+    N  → Coney Island-Stillwell Av 0 min
+    R  → Bay Ridge-95 St           1 min
+    W  → Whitehall St-South Ferry  3 min
+    R  → Bay Ridge-95 St           4 min
+    Q  → Coney Island-Stillwell Av 6 min
+
+  YOUR API - N line:
+    N    Downtown                   0 min
+    R    Downtown                   0 min
+    W    Downtown                   3 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for N, got R,W
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 3 N trains, local has 1
+
+  YOUR API - Q line:
+    N    Downtown                   0 min
+    R    Downtown                   0 min
+    W    Downtown                   3 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for Q, got N,R,W
+      - NO_DESTINATION: Local missing destination info
+
+  YOUR API - R line:
+    N    Downtown                   0 min
+    R    Downtown                   1 min
+    W    Downtown                   3 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for R, got N,W
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 4 R trains, local has 1
+
+  YOUR API - W line:
+    N    Downtown                   0 min
+    R    Downtown                   1 min
+    W    Downtown                   3 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for W, got N,R
+      - NO_DESTINATION: Local missing destination info
+
+══════════════════════════════════════════════════════════════════════
+📍 Hotel Edison
+   Stop: R16 | Lines: N, Q, R, W
+──────────────────────────────────────────────────────────────────────
+
+  UPTOWN/QUEENS/MANHATTAN:
+  ----------------------------------------------------------------
+  TRANSITER (11 trains):
+    N  → Astoria-Ditmars Blvd      0 min
+    R  → Forest Hills-71 Av        1 min
+    Q  → 96 St                     1 min
+    W  → Astoria-Ditmars Blvd      5 min
+    N  → Astoria-Ditmars Blvd      6 min
+
+  YOUR API - N line:
+    N    Uptown                     0 min
+    Q    Uptown                     0 min
+    R    Uptown                     0 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for N, got Q,R
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 3 N trains, local has 1
+
+  YOUR API - Q line:
+    N    Uptown                     0 min
+    Q    Uptown                     0 min
+    R    Uptown                     0 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for Q, got N,R
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 3 Q trains, local has 1
+
+  YOUR API - R line:
+    N    Uptown                     0 min
+    Q    Uptown                     1 min
+    R    Uptown                     1 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for R, got N,Q
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 3 R trains, local has 1
+
+  YOUR API - W line:
+    N    Uptown                     0 min
+    Q    Uptown                     1 min
+    R    Uptown                     1 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for W, got N,Q,R
+      - NO_DESTINATION: Local missing destination info
+
+  DOWNTOWN/BROOKLYN:
+  ----------------------------------------------------------------
+  TRANSITER (11 trains):
+    N  → Coney Island-Stillwell Av 0 min
+    R  → Bay Ridge-95 St           1 min
+    W  → Whitehall St-South Ferry  3 min
+    R  → Bay Ridge-95 St           4 min
+    Q  → Coney Island-Stillwell Av 6 min
+
+  YOUR API - N line:
+    N    Downtown                   0 min
+    R    Downtown                   0 min
+    W    Downtown                   3 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for N, got R,W
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 3 N trains, local has 1
+
+  YOUR API - Q line:
+    N    Downtown                   0 min
+    R    Downtown                   0 min
+    W    Downtown                   3 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for Q, got N,R,W
+      - NO_DESTINATION: Local missing destination info
+
+  YOUR API - R line:
+    N    Downtown                   0 min
+    R    Downtown                   1 min
+    W    Downtown                   3 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for R, got N,W
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 4 R trains, local has 1
+
+  YOUR API - W line:
+    N    Downtown                   0 min
+    R    Downtown                   1 min
+    W    Downtown                   3 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for W, got N,R
+      - NO_DESTINATION: Local missing destination info
+
+══════════════════════════════════════════════════════════════════════
+📍 Grove 34
+   Stop: D17 | Lines: B, D, F, M, N, Q, R, W
+──────────────────────────────────────────────────────────────────────
+
+  UPTOWN/QUEENS/MANHATTAN:
+  ----------------------------------------------------------------
+  TRANSITER (13 trains):
+    F  → Jamaica-179 St            0 min
+    D  → Norwood-205 St            1 min
+    M  → Forest Hills-71 Av        3 min
+    B  → 145 St                    3 min
+    F  → Jamaica-179 St            4 min
+
+  YOUR API - B line:
+    F    Uptown                     0 min
+    D    Uptown                     1 min
+    B    Uptown                     3 min
+    M    Manhattan                  3 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for B, got F,D,M
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 3 B trains, local has 1
+
+  YOUR API - D line:
+    F    Uptown                     0 min
+    D    Uptown                     1 min
+    B    Uptown                     3 min
+    M    Manhattan                  3 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for D, got F,B,M
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 3 D trains, local has 1
+
+  YOUR API - F line:
+    F    Uptown                     0 min
+    D    Uptown                     1 min
+    B    Uptown                     3 min
+    M    Manhattan                  3 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for F, got D,B,M
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 4 F trains, local has 1
+
+  YOUR API - M line:
+    F    Uptown                     0 min
+    D    Uptown                     1 min
+    B    Uptown                     3 min
+    M    Manhattan                  3 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for M, got F,D,B
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 3 M trains, local has 1
+
+  YOUR API - N line:
+    (none in this direction)
+  ⚠️  BUGS FOUND:
+      - MISSING_DATA: Transiter has 13 arrivals, local has 0
+
+  YOUR API - Q line:
+    (none in this direction)
+  ⚠️  BUGS FOUND:
+      - MISSING_DATA: Transiter has 13 arrivals, local has 0
+
+  YOUR API - R line:
+    (none in this direction)
+  ⚠️  BUGS FOUND:
+      - MISSING_DATA: Transiter has 13 arrivals, local has 0
+
+  YOUR API - W line:
+    (none in this direction)
+  ⚠️  BUGS FOUND:
+      - MISSING_DATA: Transiter has 13 arrivals, local has 0
+
+  DOWNTOWN/BROOKLYN:
+  ----------------------------------------------------------------
+  TRANSITER (15 trains):
+    F  → Coney Island-Stillwell Av 0 min
+    M  → Middle Village-Metropolit 1 min
+    D  → Coney Island-Stillwell Av 4 min
+    M  → Middle Village-Metropolit 6 min
+    F  → Coney Island-Stillwell Av 7 min
+
+  YOUR API - B line:
+    F    Downtown                   0 min
+    M    Brooklyn                   1 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for B, got F,M
+      - NO_DESTINATION: Local missing destination info
+
+  YOUR API - D line:
+    F    Downtown                   0 min
+    M    Brooklyn                   1 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for D, got F,M
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 4 D trains, local has 0
+
+  YOUR API - F line:
+    F    Downtown                   0 min
+    M    Brooklyn                   1 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for F, got M
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 6 F trains, local has 1
+
+  YOUR API - M line:
+    F    Downtown                   0 min
+    M    Brooklyn                   1 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for M, got F
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 3 M trains, local has 1
+
+  YOUR API - N line:
+    (none in this direction)
+  ⚠️  BUGS FOUND:
+      - MISSING_DATA: Transiter has 15 arrivals, local has 0
+
+  YOUR API - Q line:
+    (none in this direction)
+  ⚠️  BUGS FOUND:
+      - MISSING_DATA: Transiter has 15 arrivals, local has 0
+
+  YOUR API - R line:
+    (none in this direction)
+  ⚠️  BUGS FOUND:
+      - MISSING_DATA: Transiter has 15 arrivals, local has 0
+
+  YOUR API - W line:
+    (none in this direction)
+  ⚠️  BUGS FOUND:
+      - MISSING_DATA: Transiter has 15 arrivals, local has 0
+
+══════════════════════════════════════════════════════════════════════
+📍 West Side Comedy Club
+   Stop: 120 | Lines: 1, 2, 3
+──────────────────────────────────────────────────────────────────────
+
+  UPTOWN/QUEENS/MANHATTAN:
+  ----------------------------------------------------------------
+  TRANSITER (9 trains):
+    3  → Harlem-148 St             0 min
+    1  → Van Cortlandt Park-242 St 2 min
+    2  → Wakefield-241 St          6 min
+    1  → Van Cortlandt Park-242 St 10 min
+    1  → Van Cortlandt Park-242 St 13 min
+
+  YOUR API - 1 line:
+    3    Uptown                     0 min
+    1    Uptown                     2 min
+    2    Uptown                     6 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for 1, got 3,2
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 4 1 trains, local has 1
+
+  YOUR API - 2 line:
+    3    Uptown                     0 min
+    1    Uptown                     2 min
+    2    Uptown                     6 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for 2, got 3,1
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 3 2 trains, local has 1
+
+  YOUR API - 3 line:
+    3    Uptown                     0 min
+    1    Uptown                     2 min
+    2    Uptown                     6 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for 3, got 1,2
+      - NO_DESTINATION: Local missing destination info
+
+  DOWNTOWN/BROOKLYN:
+  ----------------------------------------------------------------
+  TRANSITER (9 trains):
+    2  → Flatbush Av-Brooklyn Coll 1 min
+    1  → South Ferry               2 min
+    3  → New Lots Av               3 min
+    1  → South Ferry               8 min
+    3  → New Lots Av               9 min
+
+  YOUR API - 1 line:
+    2    Downtown                   1 min
+    1    Downtown                   2 min
+    3    Downtown                   3 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for 1, got 2,3
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 4 1 trains, local has 1
+
+  YOUR API - 2 line:
+    2    Downtown                   1 min
+    1    Downtown                   2 min
+    3    Downtown                   3 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for 2, got 1,3
+      - NO_DESTINATION: Local missing destination info
+
+  YOUR API - 3 line:
+    2    Downtown                   1 min
+    1    Downtown                   2 min
+    3    Downtown                   3 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for 3, got 2,1
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 3 3 trains, local has 1
+
+══════════════════════════════════════════════════════════════════════
+📍 UWS NY Comedy Club
+   Stop: 120 | Lines: 1, 2, 3
+──────────────────────────────────────────────────────────────────────
+
+  UPTOWN/QUEENS/MANHATTAN:
+  ----------------------------------------------------------------
+  TRANSITER (9 trains):
+    3  → Harlem-148 St             0 min
+    1  → Van Cortlandt Park-242 St 2 min
+    2  → Wakefield-241 St          6 min
+    1  → Van Cortlandt Park-242 St 10 min
+    1  → Van Cortlandt Park-242 St 13 min
+
+  YOUR API - 1 line:
+    3    Uptown                     0 min
+    1    Uptown                     2 min
+    2    Uptown                     6 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for 1, got 3,2
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 4 1 trains, local has 1
+
+  YOUR API - 2 line:
+    3    Uptown                     0 min
+    1    Uptown                     2 min
+    2    Uptown                     6 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for 2, got 3,1
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 3 2 trains, local has 1
+
+  YOUR API - 3 line:
+    3    Uptown                     0 min
+    1    Uptown                     2 min
+    2    Uptown                     6 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for 3, got 1,2
+      - NO_DESTINATION: Local missing destination info
+
+  DOWNTOWN/BROOKLYN:
+  ----------------------------------------------------------------
+  TRANSITER (9 trains):
+    2  → Flatbush Av-Brooklyn Coll 1 min
+    1  → South Ferry               2 min
+    3  → New Lots Av               3 min
+    1  → South Ferry               8 min
+    3  → New Lots Av               9 min
+
+  YOUR API - 1 line:
+    2    Downtown                   1 min
+    1    Downtown                   2 min
+    3    Downtown                   3 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for 1, got 2,3
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 4 1 trains, local has 1
+
+  YOUR API - 2 line:
+    2    Downtown                   1 min
+    1    Downtown                   2 min
+    3    Downtown                   3 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for 2, got 1,3
+      - NO_DESTINATION: Local missing destination info
+
+  YOUR API - 3 line:
+    2    Downtown                   1 min
+    1    Downtown                   2 min
+    3    Downtown                   3 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for 3, got 2,1
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 3 3 trains, local has 1
+
+══════════════════════════════════════════════════════════════════════
+📍 The Comic Strip Live
+   Stop: 629 | Lines: 4, 5, 6, N, R, W
+──────────────────────────────────────────────────────────────────────
+
+  UPTOWN/QUEENS/MANHATTAN:
+  ----------------------------------------------------------------
+  TRANSITER (13 trains):
+    6  → Pelham Bay Park           0 min
+    6  → 3 Av-138 St               2 min
+    5  → Eastchester-Dyre Av       2 min
+    6  → Pelham Bay Park           7 min
+    6  → 3 Av-138 St               12 min
+
+  YOUR API - 4 line:
+    6    Uptown                     0 min
+    6    Uptown                     0 min
+    5    Uptown                     2 min
+    6    Uptown                     2 min
+  ⚠️  BUGS FOUND:
+      - DUPLICATES: 1 duplicate entries
+      - WRONG_LINE: Asked for 4, got 6,5
+      - NO_DESTINATION: Local missing destination info
+
+  YOUR API - 5 line:
+    6    Uptown                     0 min
+    6    Uptown                     0 min
+    5    Uptown                     2 min
+    6    Uptown                     2 min
+  ⚠️  BUGS FOUND:
+      - DUPLICATES: 1 duplicate entries
+      - WRONG_LINE: Asked for 5, got 6
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 5 5 trains, local has 1
+
+  YOUR API - 6 line:
+    6    Uptown                     0 min
+    6    Uptown                     0 min
+    5    Uptown                     2 min
+    6    Uptown                     2 min
+  ⚠️  BUGS FOUND:
+      - DUPLICATES: 1 duplicate entries
+      - WRONG_LINE: Asked for 6, got 5
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 7 6 trains, local has 3
+
+  YOUR API - N line:
+    (none in this direction)
+  ⚠️  BUGS FOUND:
+      - MISSING_DATA: Transiter has 13 arrivals, local has 0
+
+  YOUR API - R line:
+    (none in this direction)
+  ⚠️  BUGS FOUND:
+      - MISSING_DATA: Transiter has 13 arrivals, local has 0
+
+  YOUR API - W line:
+    (none in this direction)
+  ⚠️  BUGS FOUND:
+      - MISSING_DATA: Transiter has 13 arrivals, local has 0
+
+  DOWNTOWN/BROOKLYN:
+  ----------------------------------------------------------------
+  TRANSITER (10 trains):
+    5  → Flatbush Av-Brooklyn Coll 1 min
+    6  → Brooklyn Bridge-City Hall 2 min
+    6  → Brooklyn Bridge-City Hall 3 min
+    4  → Crown Hts-Utica Av        5 min
+    4  → Crown Hts-Utica Av        10 min
+
+  YOUR API - 4 line:
+    5    Downtown                   1 min
+    6    Downtown                   2 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for 4, got 5,6
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 3 4 trains, local has 0
+
+  YOUR API - 5 line:
+    5    Downtown                   1 min
+    6    Downtown                   2 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for 5, got 6
+      - NO_DESTINATION: Local missing destination info
+
+  YOUR API - 6 line:
+    5    Downtown                   1 min
+    6    Downtown                   2 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for 6, got 5
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 5 6 trains, local has 1
+
+  YOUR API - N line:
+    (none in this direction)
+  ⚠️  BUGS FOUND:
+      - MISSING_DATA: Transiter has 10 arrivals, local has 0
+
+  YOUR API - R line:
+    (none in this direction)
+  ⚠️  BUGS FOUND:
+      - MISSING_DATA: Transiter has 10 arrivals, local has 0
+
+  YOUR API - W line:
+    (none in this direction)
+  ⚠️  BUGS FOUND:
+      - MISSING_DATA: Transiter has 10 arrivals, local has 0
+
+══════════════════════════════════════════════════════════════════════
+📍 Harlem Nights Bar
+   Stop: 225 | Lines: 2, 3
+──────────────────────────────────────────────────────────────────────
+
+  UPTOWN/QUEENS/MANHATTAN:
+  ----------------------------------------------------------------
+  TRANSITER (3 trains):
+    2  → Wakefield-241 St          3 min
+    3  → Harlem-148 St             7 min
+    2  → Wakefield-241 St          13 min
+
+  YOUR API - 2 line:
+    2    Uptown                     3 min
+    3    Uptown                     7 min
+    2    Uptown                     13 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for 2, got 3
+      - NO_DESTINATION: Local missing destination info
+
+  YOUR API - 3 line:
+    2    Uptown                     3 min
+    3    Uptown                     7 min
+    2    Uptown                     13 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for 3, got 2
+      - NO_DESTINATION: Local missing destination info
+
+  DOWNTOWN/BROOKLYN:
+  ----------------------------------------------------------------
+  TRANSITER (5 trains):
+    3  → New Lots Av               2 min
+    3  → New Lots Av               8 min
+    2  → Flatbush Av-Brooklyn Coll 12 min
+    3  → New Lots Av               16 min
+    2  → Flatbush Av-Brooklyn Coll 19 min
+
+  YOUR API - 2 line:
+    3    Downtown                   2 min
+    3    Downtown                   8 min
+    2    Downtown                   12 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for 2, got 3
+      - NO_DESTINATION: Local missing destination info
+
+  YOUR API - 3 line:
+    3    Downtown                   2 min
+    3    Downtown                   8 min
+    2    Downtown                   12 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for 3, got 2
+      - NO_DESTINATION: Local missing destination info
+
+══════════════════════════════════════════════════════════════════════
+📍 Comedy in Harlem
+   Stop: 225 | Lines: 2, 3
+──────────────────────────────────────────────────────────────────────
+
+  UPTOWN/QUEENS/MANHATTAN:
+  ----------------------------------------------------------------
+  TRANSITER (3 trains):
+    2  → Wakefield-241 St          3 min
+    3  → Harlem-148 St             7 min
+    2  → Wakefield-241 St          13 min
+
+  YOUR API - 2 line:
+    2    Uptown                     3 min
+    3    Uptown                     7 min
+    2    Uptown                     13 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for 2, got 3
+      - NO_DESTINATION: Local missing destination info
+
+  YOUR API - 3 line:
+    2    Uptown                     3 min
+    3    Uptown                     7 min
+    2    Uptown                     13 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for 3, got 2
+      - NO_DESTINATION: Local missing destination info
+
+  DOWNTOWN/BROOKLYN:
+  ----------------------------------------------------------------
+  TRANSITER (5 trains):
+    3  → New Lots Av               2 min
+    3  → New Lots Av               8 min
+    2  → Flatbush Av-Brooklyn Coll 12 min
+    3  → New Lots Av               16 min
+    2  → Flatbush Av-Brooklyn Coll 19 min
+
+  YOUR API - 2 line:
+    3    Downtown                   2 min
+    3    Downtown                   8 min
+    2    Downtown                   12 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for 2, got 3
+      - NO_DESTINATION: Local missing destination info
+
+  YOUR API - 3 line:
+    3    Downtown                   2 min
+    3    Downtown                   8 min
+    2    Downtown                   12 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for 3, got 2
+      - NO_DESTINATION: Local missing destination info
+
+══════════════════════════════════════════════════════════════════════
+📍 QED Astoria
+   Stop: R05 | Lines: N, W
+──────────────────────────────────────────────────────────────────────
+
+  UPTOWN/QUEENS/MANHATTAN:
+  ----------------------------------------------------------------
+  TRANSITER (5 trains):
+    W  → Astoria-Ditmars Blvd      0 min
+    N  → Astoria-Ditmars Blvd      1 min
+    N  → Astoria-Ditmars Blvd      11 min
+    W  → Astoria-Ditmars Blvd      12 min
+    N  → Astoria-Ditmars Blvd      17 min
+
+  YOUR API - N line:
+    N    Uptown                     0 min
+    W    Uptown                     0 min
+    N    Uptown                     11 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for N, got W
+      - NO_DESTINATION: Local missing destination info
+
+  YOUR API - W line:
+    W    Uptown                     0 min
+    N    Uptown                     1 min
+    N    Uptown                     11 min
+    W    Uptown                     12 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for W, got N
+      - NO_DESTINATION: Local missing destination info
+
+  DOWNTOWN/BROOKLYN:
+  ----------------------------------------------------------------
+  TRANSITER (4 trains):
+    W  → Whitehall St-South Ferry  3 min
+    N  → Coney Island-Stillwell Av 9 min
+    W  → Whitehall St-South Ferry  14 min
+    N  → Coney Island-Stillwell Av 19 min
+
+  YOUR API - N line:
+    N    Downtown                   0 min
+    W    Downtown                   2 min
+    N    Downtown                   9 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for N, got W
+      - NO_DESTINATION: Local missing destination info
+      - TIME_MISMATCH: Transiter says 9min, local says 0min
+
+  YOUR API - W line:
+    W    Downtown                   3 min
+    N    Downtown                   9 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for W, got N
+      - NO_DESTINATION: Local missing destination info
+
+══════════════════════════════════════════════════════════════════════
+📍 Eastville Comedy Club
+   Stop: L10 | Lines: L
+──────────────────────────────────────────────────────────────────────
+
+  UPTOWN/QUEENS/MANHATTAN:
+  ----------------------------------------------------------------
+  TRANSITER (6 trains):
+    L  → 8 Av                      0 min
+    L  → 8 Av                      3 min
+    L  → 8 Av                      7 min
+    L  → 8 Av                      10 min
+    L  → 8 Av                      15 min
+
+  YOUR API - L line:
+    L    Manhattan                  0 min
+    L    Manhattan                  3 min
+    L    Manhattan                  7 min
+  ⚠️  BUGS FOUND:
+      - NO_DESTINATION: Local missing destination info
+
+  DOWNTOWN/BROOKLYN:
+  ----------------------------------------------------------------
+  TRANSITER (6 trains):
+    L  → Canarsie-Rockaway Pkwy    0 min
+    L  → Myrtle-Wyckoff Avs        5 min
+    L  → Canarsie-Rockaway Pkwy    8 min
+    L  → Canarsie-Rockaway Pkwy    12 min
+    L  → Canarsie-Rockaway Pkwy    16 min
+
+  YOUR API - L line:
+    L    Brooklyn                   0 min
+    L    Brooklyn                   5 min
+    L    Brooklyn                   8 min
+  ⚠️  BUGS FOUND:
+      - NO_DESTINATION: Local missing destination info
+
+══════════════════════════════════════════════════════════════════════
+📍 Pete's Candy Store
+   Stop: L10 | Lines: L
+──────────────────────────────────────────────────────────────────────
+
+  UPTOWN/QUEENS/MANHATTAN:
+  ----------------------------------------------------------------
+  TRANSITER (6 trains):
+    L  → 8 Av                      0 min
+    L  → 8 Av                      3 min
+    L  → 8 Av                      7 min
+    L  → 8 Av                      10 min
+    L  → 8 Av                      15 min
+
+  YOUR API - L line:
+    L    Manhattan                  0 min
+    L    Manhattan                  3 min
+    L    Manhattan                  7 min
+  ⚠️  BUGS FOUND:
+      - NO_DESTINATION: Local missing destination info
+
+  DOWNTOWN/BROOKLYN:
+  ----------------------------------------------------------------
+  TRANSITER (6 trains):
+    L  → Canarsie-Rockaway Pkwy    0 min
+    L  → Myrtle-Wyckoff Avs        5 min
+    L  → Canarsie-Rockaway Pkwy    8 min
+    L  → Canarsie-Rockaway Pkwy    12 min
+    L  → Canarsie-Rockaway Pkwy    16 min
+
+  YOUR API - L line:
+    L    Brooklyn                   0 min
+    L    Brooklyn                   5 min
+    L    Brooklyn                   8 min
+  ⚠️  BUGS FOUND:
+      - NO_DESTINATION: Local missing destination info
+
+══════════════════════════════════════════════════════════════════════
+📍 Easy Lover BK
+   Stop: L10 | Lines: L
+──────────────────────────────────────────────────────────────────────
+
+  UPTOWN/QUEENS/MANHATTAN:
+  ----------------------------------------------------------------
+  TRANSITER (6 trains):
+    L  → 8 Av                      0 min
+    L  → 8 Av                      3 min
+    L  → 8 Av                      7 min
+    L  → 8 Av                      10 min
+    L  → 8 Av                      15 min
+
+  YOUR API - L line:
+    L    Manhattan                  0 min
+    L    Manhattan                  3 min
+    L    Manhattan                  7 min
+  ⚠️  BUGS FOUND:
+      - NO_DESTINATION: Local missing destination info
+
+  DOWNTOWN/BROOKLYN:
+  ----------------------------------------------------------------
+  TRANSITER (6 trains):
+    L  → Canarsie-Rockaway Pkwy    0 min
+    L  → Myrtle-Wyckoff Avs        5 min
+    L  → Canarsie-Rockaway Pkwy    8 min
+    L  → Canarsie-Rockaway Pkwy    12 min
+    L  → Canarsie-Rockaway Pkwy    16 min
+
+  YOUR API - L line:
+    L    Brooklyn                   0 min
+    L    Brooklyn                   5 min
+    L    Brooklyn                   8 min
+  ⚠️  BUGS FOUND:
+      - NO_DESTINATION: Local missing destination info
+
+══════════════════════════════════════════════════════════════════════
+📍 Alligator Lounge
+   Stop: L12 | Lines: L
+──────────────────────────────────────────────────────────────────────
+
+  UPTOWN/QUEENS/MANHATTAN:
+  ----------------------------------------------------------------
+  TRANSITER (5 trains):
+    L  → 8 Av                      1 min
+    L  → 8 Av                      4 min
+    L  → 8 Av                      7 min
+    L  → 8 Av                      12 min
+    L  → 8 Av                      16 min
+
+  YOUR API - L line:
+    L    Manhattan                  1 min
+    L    Manhattan                  4 min
+    L    Manhattan                  7 min
+  ⚠️  BUGS FOUND:
+      - NO_DESTINATION: Local missing destination info
+
+  DOWNTOWN/BROOKLYN:
+  ----------------------------------------------------------------
+  TRANSITER (6 trains):
+    L  → Canarsie-Rockaway Pkwy    1 min
+    L  → Canarsie-Rockaway Pkwy    2 min
+    L  → Myrtle-Wyckoff Avs        7 min
+    L  → Canarsie-Rockaway Pkwy    10 min
+    L  → Canarsie-Rockaway Pkwy    15 min
+
+  YOUR API - L line:
+    L    Brooklyn                   1 min
+    L    Brooklyn                   2 min
+    L    Brooklyn                   7 min
+  ⚠️  BUGS FOUND:
+      - NO_DESTINATION: Local missing destination info
+
+══════════════════════════════════════════════════════════════════════
+📍 The Gutter Williamsburg
+   Stop: L12 | Lines: L
+──────────────────────────────────────────────────────────────────────
+
+  UPTOWN/QUEENS/MANHATTAN:
+  ----------------------------------------------------------------
+  TRANSITER (5 trains):
+    L  → 8 Av                      1 min
+    L  → 8 Av                      4 min
+    L  → 8 Av                      7 min
+    L  → 8 Av                      12 min
+    L  → 8 Av                      16 min
+
+  YOUR API - L line:
+    L    Manhattan                  1 min
+    L    Manhattan                  4 min
+    L    Manhattan                  7 min
+  ⚠️  BUGS FOUND:
+      - NO_DESTINATION: Local missing destination info
+
+  DOWNTOWN/BROOKLYN:
+  ----------------------------------------------------------------
+  TRANSITER (6 trains):
+    L  → Canarsie-Rockaway Pkwy    1 min
+    L  → Canarsie-Rockaway Pkwy    2 min
+    L  → Myrtle-Wyckoff Avs        7 min
+    L  → Canarsie-Rockaway Pkwy    10 min
+    L  → Canarsie-Rockaway Pkwy    15 min
+
+  YOUR API - L line:
+    L    Brooklyn                   1 min
+    L    Brooklyn                   2 min
+    L    Brooklyn                   7 min
+  ⚠️  BUGS FOUND:
+      - NO_DESTINATION: Local missing destination info
+
+══════════════════════════════════════════════════════════════════════
+📍 Bushwick Comedy Club
+   Stop: L17 | Lines: L
+──────────────────────────────────────────────────────────────────────
+
+  UPTOWN/QUEENS/MANHATTAN:
+  ----------------------------------------------------------------
+  TRANSITER (6 trains):
+    L  → 8 Av                      0 min
+    L  → 8 Av                      4 min
+    L  → 8 Av                      9 min
+    L  → 8 Av                      14 min
+    L  → 8 Av                      17 min
+
+  YOUR API - L line:
+    L    Manhattan                  0 min
+    L    Manhattan                  4 min
+    L    Manhattan                  9 min
+  ⚠️  BUGS FOUND:
+      - NO_DESTINATION: Local missing destination info
+
+  DOWNTOWN/BROOKLYN:
+  ----------------------------------------------------------------
+  TRANSITER (6 trains):
+    L  → Canarsie-Rockaway Pkwy    0 min
+    L  → Canarsie-Rockaway Pkwy    3 min
+    L  → Canarsie-Rockaway Pkwy    9 min
+    L  → Canarsie-Rockaway Pkwy    10 min
+    L  → Myrtle-Wyckoff Avs        17 min
+
+  YOUR API - L line:
+    L    Brooklyn                   0 min
+    L    Brooklyn                   3 min
+    L    Brooklyn                   9 min
+  ⚠️  BUGS FOUND:
+      - NO_DESTINATION: Local missing destination info
+
+══════════════════════════════════════════════════════════════════════
+📍 Alphaville
+   Stop: L17 | Lines: L
+──────────────────────────────────────────────────────────────────────
+
+  UPTOWN/QUEENS/MANHATTAN:
+  ----------------------------------------------------------------
+  TRANSITER (6 trains):
+    L  → 8 Av                      0 min
+    L  → 8 Av                      4 min
+    L  → 8 Av                      9 min
+    L  → 8 Av                      14 min
+    L  → 8 Av                      17 min
+
+  YOUR API - L line:
+    L    Manhattan                  0 min
+    L    Manhattan                  4 min
+    L    Manhattan                  9 min
+  ⚠️  BUGS FOUND:
+      - NO_DESTINATION: Local missing destination info
+
+  DOWNTOWN/BROOKLYN:
+  ----------------------------------------------------------------
+  TRANSITER (6 trains):
+    L  → Canarsie-Rockaway Pkwy    0 min
+    L  → Canarsie-Rockaway Pkwy    3 min
+    L  → Canarsie-Rockaway Pkwy    9 min
+    L  → Canarsie-Rockaway Pkwy    10 min
+    L  → Myrtle-Wyckoff Avs        17 min
+
+  YOUR API - L line:
+    L    Brooklyn                   0 min
+    L    Brooklyn                   3 min
+    L    Brooklyn                   9 min
+  ⚠️  BUGS FOUND:
+      - NO_DESTINATION: Local missing destination info
+
+══════════════════════════════════════════════════════════════════════
+📍 BKLYN Made Comedy
+   Stop: L17 | Lines: L
+──────────────────────────────────────────────────────────────────────
+
+  UPTOWN/QUEENS/MANHATTAN:
+  ----------------------------------------------------------------
+  TRANSITER (6 trains):
+    L  → 8 Av                      0 min
+    L  → 8 Av                      4 min
+    L  → 8 Av                      9 min
+    L  → 8 Av                      14 min
+    L  → 8 Av                      17 min
+
+  YOUR API - L line:
+    L    Manhattan                  0 min
+    L    Manhattan                  4 min
+    L    Manhattan                  9 min
+  ⚠️  BUGS FOUND:
+      - NO_DESTINATION: Local missing destination info
+
+  DOWNTOWN/BROOKLYN:
+  ----------------------------------------------------------------
+  TRANSITER (6 trains):
+    L  → Canarsie-Rockaway Pkwy    0 min
+    L  → Canarsie-Rockaway Pkwy    3 min
+    L  → Canarsie-Rockaway Pkwy    9 min
+    L  → Canarsie-Rockaway Pkwy    10 min
+    L  → Myrtle-Wyckoff Avs        17 min
+
+  YOUR API - L line:
+    L    Brooklyn                   0 min
+    L    Brooklyn                   3 min
+    L    Brooklyn                   9 min
+  ⚠️  BUGS FOUND:
+      - NO_DESTINATION: Local missing destination info
+
+══════════════════════════════════════════════════════════════════════
+📍 Good Judy
+   Stop: G26 | Lines: G
+──────────────────────────────────────────────────────────────────────
+
+  UPTOWN/QUEENS/MANHATTAN:
+  ----------------------------------------------------------------
+  TRANSITER (2 trains):
+    G  → Court Sq                  5 min
+    G  → Court Sq                  12 min
+
+  YOUR API - G line:
+    G    Queens                     5 min
+    G    Queens                     12 min
+  ⚠️  BUGS FOUND:
+      - NO_DESTINATION: Local missing destination info
+
+  DOWNTOWN/BROOKLYN:
+  ----------------------------------------------------------------
+  TRANSITER (3 trains):
+    G  → Church Av                 1 min
+    G  → Church Av                 10 min
+    G  → Church Av                 18 min
+
+  YOUR API - G line:
+    G    Brooklyn                   1 min
+    G    Brooklyn                   10 min
+    G    Brooklyn                   18 min
+  ⚠️  BUGS FOUND:
+      - NO_DESTINATION: Local missing destination info
+
+══════════════════════════════════════════════════════════════════════
+📍 Brooklyn Comedy Collective
+   Stop: R31 | Lines: R
+──────────────────────────────────────────────────────────────────────
+
+  UPTOWN/QUEENS/MANHATTAN:
+  ----------------------------------------------------------------
+  TRANSITER (8 trains):
+    N  → Astoria-Ditmars Blvd      3 min
+    D  → Norwood-205 St            5 min
+    R  → Forest Hills-71 Av        6 min
+    R  → Forest Hills-71 Av        10 min
+    N  → Astoria-Ditmars Blvd      12 min
+
+  YOUR API - R line:
+    N    Uptown                     3 min
+    R    Uptown                     6 min
+    R    Uptown                     10 min
+    N    Uptown                     12 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for R, got N
+      - NO_DESTINATION: Local missing destination info
+
+  DOWNTOWN/BROOKLYN:
+  ----------------------------------------------------------------
+  TRANSITER (7 trains):
+    D  → Coney Island-Stillwell Av 0 min
+    R  → Bay Ridge-95 St           1 min
+    D  → Coney Island-Stillwell Av 11 min
+    R  → Bay Ridge-95 St           12 min
+    N  → Coney Island-Stillwell Av 13 min
+
+  YOUR API - R line:
+    R    Downtown                   1 min
+    R    Downtown                   12 min
+  ⚠️  BUGS FOUND:
+      - NO_DESTINATION: Local missing destination info
+
+══════════════════════════════════════════════════════════════════════
+📍 Branded Saloon
+   Stop: D24 | Lines: B, Q, 2, 3, 4, 5
+──────────────────────────────────────────────────────────────────────
+
+  UPTOWN/QUEENS/MANHATTAN:
+  ----------------------------------------------------------------
+  TRANSITER (4 trains):
+    B  → Bedford Park Blvd         0 min
+    Q  → 96 St                     4 min
+    B  → 145 St                    14 min
+    Q  → 96 St                     17 min
+
+  YOUR API - B line:
+    B    Uptown                     0 min
+    B    Uptown                     14 min
+  ⚠️  BUGS FOUND:
+      - NO_DESTINATION: Local missing destination info
+
+  YOUR API - Q line:
+    Q    Uptown                     4 min
+    Q    Uptown                     16 min
+  ⚠️  BUGS FOUND:
+      - NO_DESTINATION: Local missing destination info
+
+  YOUR API - 2 line:
+    (none in this direction)
+  ⚠️  BUGS FOUND:
+      - MISSING_DATA: Transiter has 4 arrivals, local has 0
+
+  YOUR API - 3 line:
+    (none in this direction)
+  ⚠️  BUGS FOUND:
+      - MISSING_DATA: Transiter has 4 arrivals, local has 0
+
+  YOUR API - 4 line:
+    (none in this direction)
+  ⚠️  BUGS FOUND:
+      - MISSING_DATA: Transiter has 4 arrivals, local has 0
+
+  YOUR API - 5 line:
+    (none in this direction)
+  ⚠️  BUGS FOUND:
+      - MISSING_DATA: Transiter has 4 arrivals, local has 0
+
+  DOWNTOWN/BROOKLYN:
+  ----------------------------------------------------------------
+  TRANSITER (5 trains):
+    Q  → Coney Island-Stillwell Av 1 min
+    B  → Brighton Beach            4 min
+    Q  → Coney Island-Stillwell Av 7 min
+    B  → Brighton Beach            15 min
+    Q  → Coney Island-Stillwell Av 17 min
+
+  YOUR API - B line:
+    B    Downtown                   4 min
+    B    Downtown                   15 min
+  ⚠️  BUGS FOUND:
+      - NO_DESTINATION: Local missing destination info
+
+  YOUR API - Q line:
+    Q    Downtown                   1 min
+    Q    Downtown                   7 min
+    Q    Downtown                   17 min
+  ⚠️  BUGS FOUND:
+      - NO_DESTINATION: Local missing destination info
+
+  YOUR API - 2 line:
+    (none in this direction)
+  ⚠️  BUGS FOUND:
+      - MISSING_DATA: Transiter has 5 arrivals, local has 0
+
+  YOUR API - 3 line:
+    (none in this direction)
+  ⚠️  BUGS FOUND:
+      - MISSING_DATA: Transiter has 5 arrivals, local has 0
+
+  YOUR API - 4 line:
+    (none in this direction)
+  ⚠️  BUGS FOUND:
+      - MISSING_DATA: Transiter has 5 arrivals, local has 0
+
+  YOUR API - 5 line:
+    (none in this direction)
+  ⚠️  BUGS FOUND:
+      - MISSING_DATA: Transiter has 5 arrivals, local has 0
+
+══════════════════════════════════════════════════════════════════════
+📍 Caffeine Underground
+   Stop: A46 | Lines: A, C
+──────────────────────────────────────────────────────────────────────
+
+  UPTOWN/QUEENS/MANHATTAN:
+  ----------------------------------------------------------------
+  TRANSITER (5 trains):
+    C  → 168 St                    7 min
+    A  → Inwood-207 St             7 min
+    A  → Inwood-207 St             10 min
+    C  → 168 St                    14 min
+    C  → 168 St                    20 min
+
+  YOUR API - A line:
+    A    Uptown                     7 min
+    C    Uptown                     7 min
+    A    Uptown                     10 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for A, got C
+      - NO_DESTINATION: Local missing destination info
+
+  YOUR API - C line:
+    A    Uptown                     7 min
+    C    Uptown                     7 min
+    A    Uptown                     10 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for C, got A
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 3 C trains, local has 1
+
+  DOWNTOWN/BROOKLYN:
+  ----------------------------------------------------------------
+  TRANSITER (3 trains):
+    A  → Far Rockaway-Mott Av      5 min
+    C  → Euclid Av                 9 min
+    A  → Ozone Park-Lefferts Blvd  14 min
+
+  YOUR API - A line:
+    A    Downtown                   5 min
+    C    Downtown                   9 min
+    A    Downtown                   14 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for A, got C
+      - NO_DESTINATION: Local missing destination info
+
+  YOUR API - C line:
+    A    Downtown                   5 min
+    C    Downtown                   9 min
+    A    Downtown                   14 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for C, got A
+      - NO_DESTINATION: Local missing destination info
+
+══════════════════════════════════════════════════════════════════════
+📍 The Tiny Cupboard
+   Stop: A46 | Lines: A, C
+──────────────────────────────────────────────────────────────────────
+
+  UPTOWN/QUEENS/MANHATTAN:
+  ----------------------------------------------------------------
+  TRANSITER (5 trains):
+    C  → 168 St                    7 min
+    A  → Inwood-207 St             7 min
+    A  → Inwood-207 St             10 min
+    C  → 168 St                    14 min
+    C  → 168 St                    20 min
+
+  YOUR API - A line:
+    A    Uptown                     7 min
+    C    Uptown                     7 min
+    A    Uptown                     10 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for A, got C
+      - NO_DESTINATION: Local missing destination info
+
+  YOUR API - C line:
+    A    Uptown                     7 min
+    C    Uptown                     7 min
+    A    Uptown                     10 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for C, got A
+      - NO_DESTINATION: Local missing destination info
+      - INCOMPLETE: Transiter has 3 C trains, local has 1
+
+  DOWNTOWN/BROOKLYN:
+  ----------------------------------------------------------------
+  TRANSITER (3 trains):
+    A  → Far Rockaway-Mott Av      5 min
+    C  → Euclid Av                 9 min
+    A  → Ozone Park-Lefferts Blvd  14 min
+
+  YOUR API - A line:
+    A    Downtown                   5 min
+    C    Downtown                   9 min
+    A    Downtown                   14 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for A, got C
+      - NO_DESTINATION: Local missing destination info
+
+  YOUR API - C line:
+    A    Downtown                   5 min
+    C    Downtown                   9 min
+    A    Downtown                   14 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for C, got A
+      - NO_DESTINATION: Local missing destination info
+
+══════════════════════════════════════════════════════════════════════
+📍 O'Keefe's Bar
+   Stop: D26 | Lines: B, Q
+──────────────────────────────────────────────────────────────────────
+
+  UPTOWN/QUEENS/MANHATTAN:
+  ----------------------------------------------------------------
+  TRANSITER (6 trains):
+    B  → 145 St                    8 min
+    FS → Franklin Av               9 min
+    Q  → 96 St                     10 min
+    B  → Bedford Park Blvd         16 min
+    Q  → 96 St                     18 min
+
+  YOUR API - B line:
+    B    Uptown                     8 min
+    FS   Uptown                     9 min
+    B    Uptown                     16 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for B, got FS
+      - NO_DESTINATION: Local missing destination info
+
+  YOUR API - Q line:
+    Q    Uptown                     10 min
+    Q    Uptown                     18 min
+  ⚠️  BUGS FOUND:
+      - NO_DESTINATION: Local missing destination info
+
+  DOWNTOWN/BROOKLYN:
+  ----------------------------------------------------------------
+  TRANSITER (5 trains):
+    Q  → Coney Island-Stillwell Av 0 min
+    Q  → Coney Island-Stillwell Av 7 min
+    B  → Brighton Beach            10 min
+    Q  → Coney Island-Stillwell Av 13 min
+    FS → Prospect Park             16 min
+
+  YOUR API - B line:
+    FS   Downtown                   6 min
+    B    Downtown                   10 min
+    FS   Downtown                   16 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for B, got FS
+      - NO_DESTINATION: Local missing destination info
+
+  YOUR API - Q line:
+    Q    Downtown                   0 min
+    Q    Downtown                   7 min
+    Q    Downtown                   13 min
+  ⚠️  BUGS FOUND:
+      - NO_DESTINATION: Local missing destination info
+
+══════════════════════════════════════════════════════════════════════
+📍 Freddy's Bar
+   Stop: D26 | Lines: B, Q
+──────────────────────────────────────────────────────────────────────
+
+  UPTOWN/QUEENS/MANHATTAN:
+  ----------------------------------------------------------------
+  TRANSITER (6 trains):
+    B  → 145 St                    8 min
+    FS → Franklin Av               9 min
+    Q  → 96 St                     10 min
+    B  → Bedford Park Blvd         16 min
+    Q  → 96 St                     18 min
+
+  YOUR API - B line:
+    B    Uptown                     8 min
+    FS   Uptown                     9 min
+    B    Uptown                     16 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for B, got FS
+      - NO_DESTINATION: Local missing destination info
+
+  YOUR API - Q line:
+    Q    Uptown                     10 min
+    Q    Uptown                     18 min
+  ⚠️  BUGS FOUND:
+      - NO_DESTINATION: Local missing destination info
+
+  DOWNTOWN/BROOKLYN:
+  ----------------------------------------------------------------
+  TRANSITER (5 trains):
+    Q  → Coney Island-Stillwell Av 0 min
+    Q  → Coney Island-Stillwell Av 7 min
+    B  → Brighton Beach            10 min
+    Q  → Coney Island-Stillwell Av 13 min
+    FS → Prospect Park             16 min
+
+  YOUR API - B line:
+    FS   Downtown                   6 min
+    B    Downtown                   10 min
+    FS   Downtown                   16 min
+  ⚠️  BUGS FOUND:
+      - WRONG_LINE: Asked for B, got FS
+      - NO_DESTINATION: Local missing destination info
+
+  YOUR API - Q line:
+    Q    Downtown                   0 min
+    Q    Downtown                   7 min
+    Q    Downtown                   13 min
+  ⚠️  BUGS FOUND:
+      - NO_DESTINATION: Local missing destination info
+
+══════════════════════════════════════════════════════════════════════
+📍 Second City
+   Stop: 719 | Lines: 7, G, E, M
+──────────────────────────────────────────────────────────────────────
+
+  UPTOWN/QUEENS/MANHATTAN:
+  ----------------------------------------------------------------
+  TRANSITER (3 trains):
+    7  → Flushing-Main St          3 min
+    7  → Flushing-Main St          12 min
+    7  → Flushing-Main St          17 min
+
+  YOUR API - 7 line:
+    (none in this direction)
+  ⚠️  BUGS FOUND:
+      - MISSING_DATA: Transiter has 3 arrivals, local has 0
+      - INCOMPLETE: Transiter has 3 7 trains, local has 0
+
+  YOUR API - G line:
+    (none in this direction)
+  ⚠️  BUGS FOUND:
+      - MISSING_DATA: Transiter has 3 arrivals, local has 0
+
+  YOUR API - E line:
+    (none in this direction)
+  ⚠️  BUGS FOUND:
+      - MISSING_DATA: Transiter has 3 arrivals, local has 0
+
+  YOUR API - M line:
+    (none in this direction)
+  ⚠️  BUGS FOUND:
+      - MISSING_DATA: Transiter has 3 arrivals, local has 0
+
+  DOWNTOWN/BROOKLYN:
+  ----------------------------------------------------------------
+  TRANSITER (5 trains):
+    7  → 34 St-Hudson Yards        0 min
+    7  → 34 St-Hudson Yards        9 min
+    7  → 34 St-Hudson Yards        12 min
+    7  → 34 St-Hudson Yards        13 min
+    7  → 34 St-Hudson Yards        18 min
+
+  YOUR API - 7 line:
+    (none in this direction)
+  ⚠️  BUGS FOUND:
+      - MISSING_DATA: Transiter has 5 arrivals, local has 0
+      - INCOMPLETE: Transiter has 5 7 trains, local has 0
+
+  YOUR API - G line:
+    (none in this direction)
+  ⚠️  BUGS FOUND:
+      - MISSING_DATA: Transiter has 5 arrivals, local has 0
+
+  YOUR API - E line:
+    (none in this direction)
+  ⚠️  BUGS FOUND:
+      - MISSING_DATA: Transiter has 5 arrivals, local has 0
+
+  YOUR API - M line:
+    (none in this direction)
+  ⚠️  BUGS FOUND:
+      - MISSING_DATA: Transiter has 5 arrivals, local has 0
+
+══════════════════════════════════════════════════════════════════════
+📍 Laughing Devil Comedy Club
+   Stop: 719 | Lines: 7
+──────────────────────────────────────────────────────────────────────
+
+  UPTOWN/QUEENS/MANHATTAN:
+  ----------------------------------------------------------------
+  TRANSITER (3 trains):
+    7  → Flushing-Main St          3 min
+    7  → Flushing-Main St          12 min
+    7  → Flushing-Main St          17 min
+
+  YOUR API - 7 line:
+    (none in this direction)
+  ⚠️  BUGS FOUND:
+      - MISSING_DATA: Transiter has 3 arrivals, local has 0
+      - INCOMPLETE: Transiter has 3 7 trains, local has 0
+
+  DOWNTOWN/BROOKLYN:
+  ----------------------------------------------------------------
+  TRANSITER (5 trains):
+    7  → 34 St-Hudson Yards        0 min
+    7  → 34 St-Hudson Yards        9 min
+    7  → 34 St-Hudson Yards        12 min
+    7  → 34 St-Hudson Yards        13 min
+    7  → 34 St-Hudson Yards        18 min
+
+  YOUR API - 7 line:
+    (none in this direction)
+  ⚠️  BUGS FOUND:
+      - MISSING_DATA: Transiter has 5 arrivals, local has 0
+      - INCOMPLETE: Transiter has 5 7 trains, local has 0
+
+
+╔══════════════════════════════════════════════════════════════════════╗
+║                           BUG SUMMARY                                ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+Total bugs found: 423
+
+
+WRONG_LINE (125 occurrences):
+--------------------------------------------------
+  Comedy Shop | B Uptown
+    WRONG_LINE: Asked for B, got F,M
+  Comedy Shop | D Uptown
+    WRONG_LINE: Asked for D, got B,F,M
+  Comedy Shop | F Uptown
+    WRONG_LINE: Asked for F, got B,M
+  Comedy Shop | M Uptown
+    WRONG_LINE: Asked for M, got B,F
+  Comedy Shop | B Downtown
+    WRONG_LINE: Asked for B, got F
+  Comedy Shop | D Downtown
+    WRONG_LINE: Asked for D, got F
+  Comedy Shop | M Downtown
+    WRONG_LINE: Asked for M, got F
+  Greenwich Village Comedy Club | B Uptown
+    WRONG_LINE: Asked for B, got F,M
+  Greenwich Village Comedy Club | D Uptown
+    WRONG_LINE: Asked for D, got B,F,M
+  Greenwich Village Comedy Club | F Uptown
+    WRONG_LINE: Asked for F, got B,M
+  ... and 115 more
+
+NO_DESTINATION (168 occurrences):
+--------------------------------------------------
+  Comedy Shop | B Uptown
+    NO_DESTINATION: Local missing destination info
+  Comedy Shop | D Uptown
+    NO_DESTINATION: Local missing destination info
+  Comedy Shop | F Uptown
+    NO_DESTINATION: Local missing destination info
+  Comedy Shop | M Uptown
+    NO_DESTINATION: Local missing destination info
+  Comedy Shop | B Downtown
+    NO_DESTINATION: Local missing destination info
+  Comedy Shop | D Downtown
+    NO_DESTINATION: Local missing destination info
+  Comedy Shop | F Downtown
+    NO_DESTINATION: Local missing destination info
+  Comedy Shop | M Downtown
+    NO_DESTINATION: Local missing destination info
+  Greenwich Village Comedy Club | B Uptown
+    NO_DESTINATION: Local missing destination info
+  Greenwich Village Comedy Club | D Uptown
+    NO_DESTINATION: Local missing destination info
+  ... and 158 more
+
+INCOMPLETE (71 occurrences):
+--------------------------------------------------
+  Comedy Shop | B Uptown
+    INCOMPLETE: Transiter has 3 B trains, local has 1
+  Comedy Shop | M Uptown
+    INCOMPLETE: Transiter has 3 M trains, local has 1
+  Comedy Shop | D Downtown
+    INCOMPLETE: Transiter has 3 D trains, local has 0
+  Comedy Shop | F Downtown
+    INCOMPLETE: Transiter has 6 F trains, local has 2
+  Greenwich Village Comedy Club | B Uptown
+    INCOMPLETE: Transiter has 3 B trains, local has 1
+  Greenwich Village Comedy Club | M Uptown
+    INCOMPLETE: Transiter has 3 M trains, local has 1
+  Greenwich Village Comedy Club | D Downtown
+    INCOMPLETE: Transiter has 3 D trains, local has 0
+  Greenwich Village Comedy Club | F Downtown
+    INCOMPLETE: Transiter has 6 F trains, local has 2
+  Grisly Pear | B Uptown
+    INCOMPLETE: Transiter has 3 B trains, local has 1
+  Grisly Pear | M Uptown
+    INCOMPLETE: Transiter has 3 M trains, local has 1
+  ... and 61 more
+
+DUPLICATES (10 occurrences):
+--------------------------------------------------
+  St. Mark's Comedy Club | 6 Downtown
+    DUPLICATES: 2 duplicate entries
+  Astor Pl area | 4 Downtown
+    DUPLICATES: 2 duplicate entries
+  Astor Pl area | 5 Downtown
+    DUPLICATES: 2 duplicate entries
+  Astor Pl area | 6 Downtown
+    DUPLICATES: 2 duplicate entries
+  UCB | 4 Uptown
+    DUPLICATES: 1 duplicate entries
+  UCB | 5 Uptown
+    DUPLICATES: 1 duplicate entries
+  UCB | 6 Uptown
+    DUPLICATES: 1 duplicate entries
+  The Comic Strip Live | 4 Uptown
+    DUPLICATES: 1 duplicate entries
+  The Comic Strip Live | 5 Uptown
+    DUPLICATES: 1 duplicate entries
+  The Comic Strip Live | 6 Uptown
+    DUPLICATES: 1 duplicate entries
+
+MISSING_DATA (48 occurrences):
+--------------------------------------------------
+  UCB | L Uptown
+    MISSING_DATA: Transiter has 14 arrivals, local has 0
+  UCB | N Uptown
+    MISSING_DATA: Transiter has 14 arrivals, local has 0
+  UCB | Q Uptown
+    MISSING_DATA: Transiter has 14 arrivals, local has 0
+  UCB | R Uptown
+    MISSING_DATA: Transiter has 14 arrivals, local has 0
+  UCB | W Uptown
+    MISSING_DATA: Transiter has 14 arrivals, local has 0
+  UCB | L Downtown
+    MISSING_DATA: Transiter has 8 arrivals, local has 0
+  UCB | N Downtown
+    MISSING_DATA: Transiter has 8 arrivals, local has 0
+  UCB | Q Downtown
+    MISSING_DATA: Transiter has 8 arrivals, local has 0
+  UCB | R Downtown
+    MISSING_DATA: Transiter has 8 arrivals, local has 0
+  UCB | W Downtown
+    MISSING_DATA: Transiter has 8 arrivals, local has 0
+  ... and 38 more
+
+TIME_MISMATCH (1 occurrences):
+--------------------------------------------------
+  QED Astoria | N Downtown
+    TIME_MISMATCH: Transiter says 9min, local says 0min

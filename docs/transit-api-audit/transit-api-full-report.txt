@@ -1,0 +1,204 @@
+╔══════════════════════════════════════════════════════════════════════╗
+║               COMPLETE MTA API BUG REPORT                            ║
+║               104 Venues Tested · All Lines · Both Directions        ║
+║               Generated: 2025-12-12                                  ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+
+EXECUTIVE SUMMARY
+═══════════════════════════════════════════════════════════════════════
+Total Bugs Found:     596
+Venues Tested:        104
+Venues with Bugs:     87 (84%)
+Venues Working:       11 (11%)
+No Station Found:     6 (5%)
+
+
+BUG BREAKDOWN
+═══════════════════════════════════════════════════════════════════════
+
+┌─────────────────┬───────┬──────┬────────────────────────────────────┐
+│ Bug Type        │ Count │  %   │ Description                        │
+├─────────────────┼───────┼──────┼────────────────────────────────────┤
+│ NO_DESTINATION  │  288  │ 48%  │ Missing "→ Jamaica-179 St"         │
+│ WRONG_LINE      │  143  │ 24%  │ Returns B,D,F when asked for F     │
+│ INCOMPLETE      │   85  │ 14%  │ Shows 2 trains when 6 exist        │
+│ MISSING_DATA    │   40  │  7%  │ Returns 0 when trains exist        │
+│ DUPLICATES      │   34  │  6%  │ Same train appears 2-3x            │
+│ NO_STATION      │    6  │  1%  │ Venue not near any subway          │
+└─────────────────┴───────┴──────┴────────────────────────────────────┘
+
+
+VENUES WITH NO NEARBY STATION (need coordinate fix)
+═══════════════════════════════════════════════════════════════════════
+1. Eastville Comedy Club       - coords may be wrong
+2. Phoenix Bar                 - coords may be wrong
+3. Phoenix Bar Avenue A        - coords may be wrong
+4. New York Comedy Club Midtown - coords may be wrong
+5. Caravan of Dreams           - coords may be wrong
+6. Windjammer                  - Sheepshead Bay (far from subway)
+
+
+STATION MAPPING ISSUES FOUND
+═══════════════════════════════════════════════════════════════════════
+
+Comedy Shop / Greenwich Village Comedy Club / Idaho Bar:
+  Current:  A32 (W 4 St A/C/E platform)
+  Problem:  These venues are closer to BDFM, should use D20
+
+The Pit Midtown / The Stand NYC:
+  Current:  634 (23 St 4/5/6 platform)
+  Problem:  Missing F/M, should also check D18/D19
+
+Broadway Comedy Club / Times Sq area venues:
+  Current:  902 (Times Sq shuttle)
+  Problem:  Shuttle-only, missing 1/2/3/7/N/Q/R/W
+  Should:   R16 (N/Q/R/W), 127 (1/2/3), 725 (7)
+
+QED Astoria:
+  Current:  R01 (Ditmars - end of line)
+  Problem:  Should use R05 (30 Av) which is closer
+
+
+LINES WITH MOST ISSUES
+═══════════════════════════════════════════════════════════════════════
+1. A/C/E lines  - 45 bugs (shares feed, wrong line returned)
+2. N/Q/R/W      - 38 bugs (shares feed, wrong line returned)
+3. 1/2/3        - 32 bugs (shares feed, wrong line returned)
+4. 4/5/6        - 28 bugs (shares feed + duplicates)
+5. B/D/F/M      - 25 bugs (shares feed, wrong line returned)
+6. L            - 15 bugs (mostly destination missing)
+7. J/Z          - 12 bugs (Z never runs, shows as missing)
+8. G            - 8 bugs (incomplete data)
+9. 7            - 6 bugs (incomplete data)
+
+
+ROOT CAUSES (server.js)
+═══════════════════════════════════════════════════════════════════════
+
+CAUSE 1: Not filtering by requested line
+Location: server.js line 463
+─────────────────────────────────────────────────────────────────────
+Problem:
+  if (stu.stopId?.startsWith(stopId)) {
+  // Returns ALL lines in the feed, not just requested line
+
+Fix:
+  if (stu.stopId?.startsWith(stopId) && trip.routeId === lineUpper) {
+
+
+CAUSE 2: No destination extraction
+Location: server.js line 476-480
+─────────────────────────────────────────────────────────────────────
+Problem:
+  arrivals.push({
+    line: trip.routeId,
+    direction,
+    minsAway
+  });
+  // No destination field
+
+Fix:
+  const headsign = trip.tripHeadsign ||
+    entity.tripUpdate.stopTimeUpdate?.find(s => s.stopSequence === 999)?.stop?.name ||
+    '';
+  arrivals.push({
+    line: trip.routeId,
+    direction,
+    destination: headsign,
+    minsAway
+  });
+
+
+CAUSE 3: No deduplication
+Location: server.js line 457
+─────────────────────────────────────────────────────────────────────
+Problem:
+  feed.entity.forEach(entity => {
+  // Same tripId can appear multiple times in feed
+
+Fix:
+  const seen = new Set();
+  feed.entity.forEach(entity => {
+    if (entity.tripUpdate) {
+      const tripId = entity.tripUpdate.trip?.tripId;
+      if (seen.has(tripId)) return;
+      seen.add(tripId);
+
+
+CAUSE 4: Limiting results before filtering
+Location: server.js line 490
+─────────────────────────────────────────────────────────────────────
+Problem:
+  return arrivals.slice(0, 6);
+  // Limits ALL arrivals to 6, not just the requested line
+
+Fix:
+  // Filter to requested line first, THEN limit
+  const forLine = arrivals.filter(a => a.line === requestedLine);
+  return forLine.slice(0, 6);
+
+
+COORDINATE FIXES NEEDED (VENUE_COORDINATES in server.js)
+═══════════════════════════════════════════════════════════════════════
+
+Eastville Comedy Club:
+  Current:  { lat: 40.7142545, lng: -73.9613017 }
+  Issue:    Too far from Bedford Av L
+  Fix:      Verify actual address
+
+Phoenix Bar / Phoenix Bar Avenue A:
+  Current:  { lat: 40.7262, lng: -73.9838 }
+  Issue:    Between stations, none within 0.3mi
+  Fix:      { lat: 40.7262, lng: -73.9838 } (near 1st Ave L or Astor 6)
+
+New York Comedy Club Midtown:
+  Current:  { lat: 40.7389213, lng: -73.9808057 }
+  Issue:    No station within 0.3mi
+  Fix:      Verify - should be near 28 St or 33 St
+
+Caravan of Dreams:
+  Current:  { lat: 40.7256, lng: -73.9831 }
+  Issue:    No station within 0.3mi
+  Fix:      { lat: 40.7256, lng: -73.9900 } (closer to 1st Ave)
+
+
+TEST RESULTS BY BOROUGH
+═══════════════════════════════════════════════════════════════════════
+
+Manhattan (42 venues):
+  - 38 with bugs
+  - 4 working correctly
+  - Main issues: WRONG_LINE, NO_DESTINATION
+
+Brooklyn (48 venues):
+  - 42 with bugs
+  - 6 working correctly
+  - Main issues: NO_DESTINATION, INCOMPLETE
+
+Queens (6 venues):
+  - 5 with bugs
+  - 1 working (sort of)
+  - Main issues: WRONG_LINE, MISSING_DATA
+
+Bronx/SI (0 venues tested)
+
+
+RECOMMENDED FIX ORDER
+═══════════════════════════════════════════════════════════════════════
+
+1. Fix line filtering (removes ~143 WRONG_LINE bugs)
+2. Add deduplication (removes ~34 DUPLICATES bugs)
+3. Add destination (removes ~288 NO_DESTINATION bugs)
+4. Fix station mappings (removes ~40 MISSING_DATA bugs)
+5. Fix venue coordinates (removes ~6 NO_STATION bugs)
+
+Expected result after fixes: <30 bugs (mostly edge cases)
+
+
+FILES GENERATED
+═══════════════════════════════════════════════════════════════════════
+1. transit-api-full-test.txt    - Raw test output
+2. transit-api-full-report.txt  - This summary (you're reading it)
+3. transit-api-comparison.txt   - Transiter vs Local side-by-side
+4. transit-api-bugs.txt         - Initial bug report
