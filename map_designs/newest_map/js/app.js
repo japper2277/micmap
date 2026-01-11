@@ -95,6 +95,24 @@ window.addEventListener('resize', () => {
 
 // Initialize everything
 function init() {
+    // Set calendar date buttons to current day + date
+    const now = new Date();
+    const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+    const day = days[now.getDay()];
+    const date = now.getDate();
+
+    // Desktop calendar
+    const calDay = document.getElementById('cal-month');
+    const calDate = document.getElementById('cal-date-num');
+    if (calDay) calDay.textContent = day;
+    if (calDate) calDate.textContent = date;
+
+    // Mobile calendar
+    const mobileCalDay = document.getElementById('mobile-cal-month');
+    const mobileCalDate = document.getElementById('mobile-cal-date-num');
+    if (mobileCalDay) mobileCalDay.textContent = day;
+    if (mobileCalDate) mobileCalDate.textContent = date;
+
     // Initialize modal DOM references
     initModal();
 

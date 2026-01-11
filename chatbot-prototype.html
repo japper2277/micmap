@@ -23,23 +23,27 @@
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
 
         .chat-panel {
-            position: fixed; bottom: 0; left: 0; right: 0;
-            height: 85vh; max-height: 700px;
-            background: #141414;
-            border-radius: 20px 20px 0 0;
-            transform: translateY(100%);
-            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
+            position: fixed; bottom: 24px; left: 50%;
+            width: 520px; max-width: calc(100% - 32px);
+            max-height: 70vh;
+            background: #1a1a1a;
+            border-radius: 12px;
+            border: 1px solid #333;
+            transform: translateX(-50%) translateY(20px);
+            opacity: 0;
+            visibility: hidden;
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s, visibility 0.2s;
+            box-shadow: 0 16px 48px rgba(0,0,0,0.5);
         }
-        .chat-panel.open { transform: translateY(0); }
+        .chat-panel.open {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+            visibility: visible;
+        }
 
         .backdrop {
-            position: fixed; inset: 0;
-            background: rgba(0,0,0,0.6);
-            opacity: 0; visibility: hidden;
-            transition: opacity 0.3s, visibility 0.3s;
+            display: none;
         }
-        .backdrop.show { opacity: 1; visibility: visible; }
 
         .step-container {
             position: relative;
@@ -86,13 +90,15 @@
         .quick-btn:active { transform: scale(0.96); }
 
         .fab {
-            width: 60px; height: 60px;
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            box-shadow: 0 4px 20px rgba(239, 68, 68, 0.4);
+            width: 48px; height: 48px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
             transition: all 0.2s;
         }
-        .fab:hover { transform: scale(1.05); }
+        .fab:hover { background: #252525; transform: scale(1.05); }
         .fab:active { transform: scale(0.95); }
+        .fab.hidden { opacity: 0; visibility: hidden; transform: scale(0.8); }
 
         .filter-chip {
             background: #1e1e1e;
@@ -176,8 +182,8 @@
     </div>
 
     <!-- FAB -->
-    <button id="fab" class="fab fixed bottom-6 right-6 rounded-full flex items-center justify-center z-40" onclick="toggleChat()">
-        <i class="fas fa-comment-dots text-2xl"></i>
+    <button id="fab" class="fab fixed bottom-6 left-1/2 -translate-x-1/2 rounded-full flex items-center justify-center z-40" onclick="toggleChat()">
+        <i class="fas fa-wand-magic-sparkles text-lg text-gray-300"></i>
     </button>
 
     <!-- Backdrop -->
@@ -185,29 +191,25 @@
 
     <!-- Chat Panel -->
     <div id="chatPanel" class="chat-panel z-50 flex flex-col">
-        <div class="flex justify-center pt-3 pb-2" onclick="toggleChat()">
-            <div class="w-10 h-1 bg-gray-600 rounded-full"></div>
-        </div>
-
         <!-- Header -->
-        <div class="px-4 pb-3 flex items-center justify-between border-b border-gray-800">
+        <div class="px-3 py-2 flex items-center justify-between border-b border-gray-800">
             <div class="flex items-center gap-2">
-                <button id="backBtn" onclick="goBack()" class="back-btn w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hidden">
-                    <i class="fas fa-arrow-left text-sm"></i>
+                <button id="backBtn" onclick="goBack()" class="back-btn w-7 h-7 rounded flex items-center justify-center text-gray-400 hover:bg-gray-800 hidden">
+                    <i class="fas fa-arrow-left text-xs"></i>
                 </button>
-                <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center">
-                        <i class="fas fa-microphone text-sm"></i>
-                    </div>
-                    <div>
-                        <div class="font-semibold text-sm">MicFinder</div>
-                        <div class="text-xs text-gray-500" id="headerSubtitle">Find your stage</div>
-                    </div>
-                </div>
+                <button class="flex items-center gap-1.5 px-2 py-1 rounded hover:bg-gray-800 text-sm text-gray-300">
+                    <span id="headerSubtitle">MicFinder AI</span>
+                    <i class="fas fa-chevron-down text-[10px] text-gray-500"></i>
+                </button>
             </div>
-            <button onclick="goHome()" class="text-gray-500 hover:text-white p-2">
-                <i class="fas fa-home text-sm"></i>
-            </button>
+            <div class="flex items-center gap-1">
+                <button onclick="goHome()" class="w-7 h-7 rounded flex items-center justify-center text-gray-500 hover:bg-gray-800 hover:text-gray-300">
+                    <i class="fas fa-arrow-rotate-right text-xs"></i>
+                </button>
+                <button onclick="toggleChat()" class="w-7 h-7 rounded flex items-center justify-center text-gray-500 hover:bg-gray-800 hover:text-gray-300">
+                    <i class="fas fa-minus text-xs"></i>
+                </button>
+            </div>
         </div>
 
         <!-- Content area -->
@@ -255,10 +257,7 @@
         function toggleChat() {
             isOpen = !isOpen;
             document.getElementById('chatPanel').classList.toggle('open', isOpen);
-            document.getElementById('backdrop').classList.toggle('show', isOpen);
-            document.getElementById('fab').innerHTML = isOpen
-                ? '<i class="fas fa-times text-2xl"></i>'
-                : '<i class="fas fa-comment-dots text-2xl"></i>';
+            document.getElementById('fab').classList.toggle('hidden', isOpen);
 
             if (isOpen && currentView === 'home') {
                 renderHome();
@@ -280,7 +279,7 @@
             filtersExpanded = false;
             transitionStep(renderHomeContent, 'back');
             document.getElementById('backBtn').classList.add('hidden');
-            document.getElementById('headerSubtitle').textContent = 'Find your stage';
+            document.getElementById('headerSubtitle').textContent = 'MicFinder AI';
         }
 
         function goBack() {

@@ -88,13 +88,12 @@
         <button class="mobile-filter-pill" id="mobile-filter-price" data-filter="price" onclick="cycleFilter('price')">Price</button>
         <button class="mobile-filter-pill" id="mobile-filter-time" data-filter="time" onclick="cycleFilter('time')">Time</button>
         <button class="mobile-filter-pill" id="mobile-filter-borough" data-filter="borough" onclick="cycleFilter('borough')">Borough</button>
-        <button class="mobile-filter-icon" id="mobile-calendar-btn" onclick="setMode('calendar')" aria-label="Open calendar picker">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                <line x1="16" y1="2" x2="16" y2="6"></line>
-                <line x1="8" y1="2" x2="8" y2="6"></line>
-                <line x1="3" y1="10" x2="21" y2="10"></line>
-            </svg>
+        <button class="mobile-filter-icon mobile-calendar-date-btn" id="mobile-calendar-btn" onclick="setMode('calendar')" aria-label="Open calendar picker">
+            <div class="cal-header">
+                <span id="mobile-cal-month"></span>
+                <svg class="cal-chevron" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+            <div class="cal-body" id="mobile-cal-date-num"></div>
         </button>
     </div>
 
@@ -131,13 +130,12 @@
                     </button>
 
                     <!-- Calendar Button -->
-                    <button class="calendar-icon-btn" id="btn-calendar" onclick="setMode('calendar')" aria-label="Open calendar picker">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                            <line x1="16" y1="2" x2="16" y2="6"></line>
-                            <line x1="8" y1="2" x2="8" y2="6"></line>
-                            <line x1="3" y1="10" x2="21" y2="10"></line>
-                        </svg>
+                    <button class="calendar-icon-btn calendar-date-btn" id="btn-calendar" onclick="setMode('calendar')" aria-label="Open calendar picker">
+                        <div class="cal-header">
+                            <span id="cal-month"></span>
+                            <svg class="cal-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </div>
+                        <div class="cal-body" id="cal-date-num"></div>
                     </button>
 
                     <!-- Sync Map Toggle (mobile only) -->
