@@ -42,32 +42,90 @@ function updateDateCarouselHighlight(dateString) {
     });
 }
 
+// Update range highlight for Airbnb-style date range picker
+function updateRangeHighlight() {
+    const capsules = document.querySelectorAll('.date-capsule');
+    const startDate = STATE.dateRangeStart ? new Date(STATE.dateRangeStart) : null;
+    const endDate = STATE.dateRangeEnd ? new Date(STATE.dateRangeEnd) : null;
+
+    capsules.forEach((cap, index) => {
+        const capDate = new Date(cap.dataset.date);
+
+        // Remove all range classes first
+        cap.classList.remove('range-start', 'range-end', 'range-middle', 'active-date');
+
+        if (startDate && capDate.toDateString() === startDate.toDateString()) {
+            cap.classList.add('range-start');
+            if (!endDate) cap.classList.add('active-date'); // Single selection
+        }
+
+        if (endDate && capDate.toDateString() === endDate.toDateString()) {
+            cap.classList.add('range-end');
+        }
+
+        if (startDate && endDate && capDate > startDate && capDate < endDate) {
+            cap.classList.add('range-middle');
+        }
+    });
+}
+
+// Airbnb-style range selection
 function selectDate(dateString) {
+    const clickedDate = new Date(dateString);
+    const startDate = STATE.dateRangeStart ? new Date(STATE.dateRangeStart) : null;
+    const endDate = STATE.dateRangeEnd ? new Date(STATE.dateRangeEnd) : null;
+
+    // If we have a complete range, or clicking on an already selected date, reset
+    if (endDate || (startDate && clickedDate.toDateString() === startDate.toDateString())) {
+        STATE.dateRangeStart = dateString;
+        STATE.dateRangeEnd = null;
+    }
+    // If we have a start date and clicking a date after it, complete the range
+    else if (startDate && clickedDate > startDate) {
+        STATE.dateRangeEnd = dateString;
+    }
+    // If clicking before start date, make this the new start
+    else if (startDate && clickedDate < startDate) {
+        STATE.dateRangeStart = dateString;
+        STATE.dateRangeEnd = null;
+    }
+    // No start date yet, set it
+    else {
+        STATE.dateRangeStart = dateString;
+        STATE.dateRangeEnd = null;
+    }
+
+    // Update mode and selected date for compatibility
     STATE.currentMode = 'calendar';
-    STATE.selectedCalendarDate = dateString;
-    hideDateCarousel();
+    STATE.selectedCalendarDate = STATE.dateRangeStart;
 
-    document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
-    const btnCalendar = document.getElementById('btn-calendar');
-    if (btnCalendar) btnCalendar.classList.add('active');
+    // Update visual highlight
+    updateRangeHighlight();
 
-    // Also deactivate mobile calendar button after selection
-    const mobileCalBtn = document.getElementById('mobile-calendar-btn');
-    if (mobileCalBtn) mobileCalBtn.classList.remove('active');
+    // Only close carousel and render when range is complete (or single day selected after double-tap)
+    if (STATE.dateRangeEnd || (STATE.dateRangeStart && !endDate && startDate && clickedDate.toDateString() === startDate.toDateString())) {
+        hideDateCarousel();
 
-    if (!STATE.isDrawerOpen) toggleDrawer(true);
+        document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+        const btnCalendar = document.getElementById('btn-calendar');
+        if (btnCalendar) btnCalendar.classList.add('active');
 
-    updateDateCarouselHighlight(dateString);
-    render('calendar');
+        const mobileCalBtn = document.getElementById('mobile-calendar-btn');
+        if (mobileCalBtn) mobileCalBtn.classList.remove('active');
 
-    // If transit mode is active, recalculate routes for new day's mics
-    if (STATE.isTransitMode && STATE.userOrigin) {
-        transitService.calculateFromOrigin(
-            STATE.userOrigin.lat,
-            STATE.userOrigin.lng,
-            STATE.userOrigin.name,
-            null
-        );
+        if (!STATE.isDrawerOpen) toggleDrawer(true);
+
+        render('calendar');
+
+        // If transit mode is active, recalculate routes
+        if (STATE.isTransitMode && STATE.userOrigin) {
+            transitService.calculateFromOrigin(
+                STATE.userOrigin.lat,
+                STATE.userOrigin.lng,
+                STATE.userOrigin.name,
+                null
+            );
+        }
     }
 }
 
@@ -137,6 +195,9 @@ function setMode(mode) {
             updateToggleUI('today');
             STATE.currentMode = 'today';
             STATE.selectedCalendarDate = currentTime.toDateString();
+            // Reset date range when closing calendar
+            STATE.dateRangeStart = null;
+            STATE.dateRangeEnd = null;
             render('today');
 
             // If transit mode is active, recalculate routes for new day's mics
@@ -152,12 +213,17 @@ function setMode(mode) {
             updateToggleUI('calendar');
             showDateCarousel();
             STATE.currentMode = 'calendar';
+            // Initialize range highlight when opening
+            updateRangeHighlight();
         }
     } else {
         updateToggleUI(mode);
         hideDateCarousel();
         STATE.currentMode = mode;
         STATE.selectedCalendarDate = (mode === 'today') ? currentTime.toDateString() : addDays(currentTime, 1).toDateString();
+        // Reset date range when switching to today/tomorrow
+        STATE.dateRangeStart = null;
+        STATE.dateRangeEnd = null;
         render(mode);
 
         // If transit mode is active, recalculate routes for new day's mics

@@ -1,7 +1,6 @@
 [
   {
     "id": 0,
-    "uuid": "9539c948-44bf-4555-8c1a-9b6475ffde0c",
     "name": "Fear City Mic",
     "day": "Friday",
     "startTime": "10:00 PM",
@@ -15,20 +14,11 @@
     "signup": "Sign up at venue",
     "contact": "@thefearcitycomedyclub",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "12/25/2025",
-      "smsResponse": null,
-      "signupEnabled": true
-    }
+    "lat": 40.7152631,
+    "lng": -73.9901598
   },
   {
     "id": 1,
-    "uuid": "3569288a-3e9e-4be9-905b-21af36a716a0",
     "name": "Producer's Club",
     "day": "Tuesday",
     "startTime": "6:00 PM",
@@ -42,20 +32,11 @@
     "signup": "in person only",
     "contact": "Dee Major (@micdupnyc)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "9177517544",
-      "signupEnabled": true
-    }
+    "lat": 40.7595017,
+    "lng": -73.9914437
   },
   {
     "id": 2,
-    "uuid": "e1875e5c-9c73-44d6-bad5-683dc7d6a3cf",
     "name": "Yard Sale",
     "day": "Monday",
     "startTime": "6:45 PM",
@@ -69,20 +50,11 @@
     "signup": "Sign up in person",
     "contact": "(@yardsalegirls)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "11/10",
-      "smsResponse": "9049829758",
-      "signupEnabled": true
-    }
+    "lat": 40.698006,
+    "lng": -73.925272
   },
   {
     "id": 3,
-    "uuid": "a76b31da-81ae-4c08-b19c-78119fd1ab54",
     "name": "Brooklyn Dreams Mic",
     "day": "Wednesday",
     "startTime": "8:00 PM",
@@ -96,20 +68,11 @@
     "signup": "https://www.eventbrite.com/e/winz-35-presents-brooklyn-dreams-open-mic-tickets-1840589906959?aff=oddtdtcreator$0",
     "contact": "Winz-35 (@worldofwinz)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "11/10",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.6910162,
+    "lng": -73.9249124
   },
   {
     "id": 4,
-    "uuid": "1b774ee2-20e4-4db1-bef5-f0488202c880",
     "name": "Fear City Mic",
     "day": "Friday",
     "startTime": "6:00 PM",
@@ -123,20 +86,11 @@
     "signup": "Sign up at venue",
     "contact": "@thefearcitycomedyclub",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "12/25/2025",
-      "smsResponse": null,
-      "signupEnabled": true
-    }
+    "lat": 40.7152631,
+    "lng": -73.9901598
   },
   {
     "id": 5,
-    "uuid": "860740b2-0ba0-41fe-97e9-43ac848527e0",
     "name": "Fear City Mic",
     "day": "Thursday",
     "startTime": "6:00 PM",
@@ -150,20 +104,11 @@
     "signup": "Sign up at venue",
     "contact": "@thefearcitycomedyclub",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "12/25/2025",
-      "smsResponse": null,
-      "signupEnabled": true
-    }
+    "lat": 40.7152631,
+    "lng": -73.9901598
   },
   {
     "id": 6,
-    "uuid": "6d4ee976-9238-4c1a-9021-6854458aea48",
     "name": "Fear City Mic",
     "day": "Saturday",
     "startTime": "6:00 PM",
@@ -177,20 +122,11 @@
     "signup": "Sign up at venue",
     "contact": "@thefearcitycomedyclub",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "12/25/2025",
-      "smsResponse": null,
-      "signupEnabled": true
-    }
+    "lat": 40.7152631,
+    "lng": -73.9901598
   },
   {
     "id": 7,
-    "uuid": "ae8cf766-003b-4d4d-bb4a-8e274684874e",
     "name": "Fear City Mic",
     "day": "Wednesday",
     "startTime": "6:00 PM",
@@ -204,20 +140,11 @@
     "signup": "Sign up at venue",
     "contact": "@thefearcitycomedyclub",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "12/25/2025",
-      "smsResponse": null,
-      "signupEnabled": true
-    }
+    "lat": 40.7152631,
+    "lng": -73.9901598
   },
   {
     "id": 8,
-    "uuid": "25c014e1-7be0-4a26-aff2-2e7ec7935326",
     "name": "Fear City Mic",
     "day": "Thursday",
     "startTime": "8:00 PM",
@@ -231,20 +158,11 @@
     "signup": "Sign up at venue",
     "contact": "@thefearcitycomedyclub",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "12/25/2025",
-      "smsResponse": null,
-      "signupEnabled": true
-    }
+    "lat": 40.7152631,
+    "lng": -73.9901598
   },
   {
     "id": 9,
-    "uuid": "123e2606-0132-4d49-83a1-64b1d16c31b3",
     "name": "Fear City Mic",
     "day": "Tuesday",
     "startTime": "8:00 PM",
@@ -258,20 +176,11 @@
     "signup": "Sign up at venue",
     "contact": "@thefearcitycomedyclub",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "12/25/2025",
-      "smsResponse": null,
-      "signupEnabled": true
-    }
+    "lat": 40.7152631,
+    "lng": -73.9901598
   },
   {
     "id": 10,
-    "uuid": "1fc53062-69e7-4b6a-84d1-0df70149b7c3",
     "name": "Fear City Mic",
     "day": "Wednesday",
     "startTime": "8:00 PM",
@@ -285,20 +194,11 @@
     "signup": "Sign up at venue",
     "contact": "@thefearcitycomedyclub",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "12/25/2025",
-      "smsResponse": null,
-      "signupEnabled": true
-    }
+    "lat": 40.7152631,
+    "lng": -73.9901598
   },
   {
     "id": 11,
-    "uuid": "69fbad90-35ef-4563-a216-a3d2f46816f9",
     "name": "Producer's Club",
     "day": "Thursday",
     "startTime": "9:00 PM",
@@ -312,20 +212,11 @@
     "signup": "in person only",
     "contact": "Dee Major (@micdupnyc)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "9177517544",
-      "signupEnabled": true
-    }
+    "lat": 40.7595017,
+    "lng": -73.9914437
   },
   {
     "id": 12,
-    "uuid": "41ee3ded-f6c8-4550-b774-3d6ca5a887af",
     "name": "Fear City Mic",
     "day": "Saturday",
     "startTime": "10:00 PM",
@@ -339,20 +230,11 @@
     "signup": "Sign up at venue",
     "contact": "@thefearcitycomedyclub",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "12/25/2025",
-      "smsResponse": null,
-      "signupEnabled": true
-    }
+    "lat": 40.7152631,
+    "lng": -73.9901598
   },
   {
     "id": 13,
-    "uuid": "bcf3f27e-8ebb-4d25-9498-b6766d3d744f",
     "name": "Producer's Club",
     "day": "Friday",
     "startTime": "7:30 PM",
@@ -366,20 +248,11 @@
     "signup": "Sign up in person",
     "contact": "Dee Major (@micdupnyc)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "9177517544",
-      "signupEnabled": true
-    }
+    "lat": 40.7595017,
+    "lng": -73.9914437
   },
   {
     "id": 14,
-    "uuid": "7a3fa744-b2a6-4d92-a344-ac4c6ce113e6",
     "name": "Sesh Mic",
     "day": "Wednesday",
     "startTime": "5:00 PM",
@@ -393,20 +266,11 @@
     "signup": "https://slotted.co/seshopenmics in advance required, they often cancel the mic if under 5 sign ups. If you don't see a sign up slot available, they cancelled the mic",
     "contact": "Sesh Comedy (@seshmic)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7190777,
+    "lng": -73.9912865
   },
   {
     "id": 15,
-    "uuid": "f534b265-33b0-4af2-9287-1dc52c5c22eb",
     "name": "Fear City Mic",
     "day": "Sunday",
     "startTime": "6:00 PM",
@@ -420,20 +284,11 @@
     "signup": "Sign up at venue",
     "contact": "@thefearcitycomedyclub",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "12/25/2025",
-      "smsResponse": null,
-      "signupEnabled": true
-    }
+    "lat": 40.7152631,
+    "lng": -73.9901598
   },
   {
     "id": 16,
-    "uuid": "19e2a5c6-035d-4510-b798-29f059686564",
     "name": "Fear City Mic",
     "day": "Sunday",
     "startTime": "9:00 PM",
@@ -447,20 +302,11 @@
     "signup": "Sign up at venue",
     "contact": "@thefearcitycomedyclub",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "12/25/2025",
-      "smsResponse": null,
-      "signupEnabled": true
-    }
+    "lat": 40.7152631,
+    "lng": -73.9901598
   },
   {
     "id": 17,
-    "uuid": "cfced183-b339-4e46-903e-ac656c914352",
     "name": "Producer's Club",
     "day": "Monday",
     "startTime": "7:30 PM",
@@ -474,20 +320,11 @@
     "signup": "in person only",
     "contact": "Dee Major (@micdupnyc)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "9177517544",
-      "signupEnabled": true
-    }
+    "lat": 40.7595017,
+    "lng": -73.9914437
   },
   {
     "id": 18,
-    "uuid": "24396ba2-7422-404e-8887-76c6003e0f82",
     "name": "Sesh Mic",
     "day": "Wednesday",
     "startTime": "6:00 PM",
@@ -501,20 +338,11 @@
     "signup": "https://slotted.co/seshopenmics in advance required, they often cancel the mic if under 5 sign ups. If you don't see a sign up slot available, they cancelled the mic",
     "contact": "Sesh Comedy (@theflowstatemic)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7190777,
+    "lng": -73.9912865
   },
   {
     "id": 19,
-    "uuid": "23bd3336-3bdf-4fcc-8764-9a3f355cdd3b",
     "name": "C Sweet Comedy",
     "day": "Sunday",
     "startTime": "4:00 PM",
@@ -529,19 +357,10 @@
     "contact": "C Sweet Comedy (@csweetcomedy)",
     "notes": null,
     "lat": 40.7231925,
-    "lng": -73.982715,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "9/1",
-      "smsResponse": "9176200134",
-      "signupEnabled": true
-    }
+    "lng": -73.982715
   },
   {
     "id": 20,
-    "uuid": "eec0ff9c-d217-4909-b075-c1ff97c4953d",
     "name": "Comedy Shop",
     "day": "Sunday",
     "startTime": "4:00 PM",
@@ -555,20 +374,11 @@
     "signup": "https://comedyshopnyc.com/events/  $7.62 but you get a free drink or fries",
     "contact": "Comedy Shop (@thecomedyshopvillage)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "7189869871",
-      "signupEnabled": true
-    }
+    "lat": 40.7288305,
+    "lng": -74.0001342
   },
   {
     "id": 21,
-    "uuid": "43b9cabc-e2fb-4da8-9119-64e5a1a6135f",
     "name": "Sesh Mic",
     "day": "Friday",
     "startTime": "6:00 PM",
@@ -582,20 +392,11 @@
     "signup": "https://slotted.co/seshopenmics in advance required, they often cancel the mic if under 5 sign ups. If you don't see a sign up slot available, they cancelled the mic",
     "contact": "Sesh Comedy (@theflowstatemic)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7190777,
+    "lng": -73.9912865
   },
   {
     "id": 22,
-    "uuid": "217104b3-dae2-46d9-902e-cd71aab5be48",
     "name": "St. Mark's LaughingBuddha Mic",
     "day": "Sunday",
     "startTime": "5:00 PM",
@@ -609,20 +410,11 @@
     "signup": "https://www.laughingbuddhacomedy.com/mics",
     "contact": "Laughing Buddha Staff (@laughingbuddhacomedy)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "7184902903",
-      "signupEnabled": true
-    }
+    "lat": 40.7645366,
+    "lng": -73.9833266
   },
   {
     "id": 23,
-    "uuid": "2bc4061b-0dcb-44f1-9baa-369e865eb3d5",
     "name": "Producer's Club",
     "day": "Sunday",
     "startTime": "5:00 PM",
@@ -636,20 +428,11 @@
     "signup": "in person only",
     "contact": "Dee Major (@micdupnyc)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "9177517544",
-      "signupEnabled": true
-    }
+    "lat": 40.7595017,
+    "lng": -73.9914437
   },
   {
     "id": 24,
-    "uuid": "828a6fd2-7d6c-4476-87e7-5fd0c2ef0178",
     "name": "Infinity Mic",
     "day": "Sunday",
     "startTime": "5:00 PM",
@@ -663,20 +446,11 @@
     "signup": "in person signup, free but buy smth at bar pls",
     "contact": "Infinity Mic (@thesubwayshowpartdeux)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Coffee Shop",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.6922369,
+    "lng": -73.9144937
   },
   {
     "id": 25,
-    "uuid": "1d8d58b4-2b12-4d92-9bb4-313c79e207cb",
     "name": "Contagious Comedy",
     "day": "Sunday",
     "startTime": "6:00 PM",
@@ -690,20 +464,11 @@
     "signup": "email contagiouscomedyopenmic@gmail.com",
     "contact": "Nicholle Kun",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "6463698611",
-      "signupEnabled": true
-    }
+    "lat": 40.7748581,
+    "lng": -73.9536956
   },
   {
     "id": 26,
-    "uuid": "4798726f-8da5-4bd6-ab6b-a4a205e28109",
     "name": "*1st/3rd Sun* Party Salad",
     "day": "Sunday",
     "startTime": "6:00 PM",
@@ -717,20 +482,11 @@
     "signup": "signup there",
     "contact": "Zoe and Polina (@partysaladmic)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7145615,
+    "lng": -73.9425485
   },
   {
     "id": 27,
-    "uuid": "1e8b3172-e842-4794-88af-512e9b9b1095",
     "name": "Idaho bar",
     "day": "Sunday",
     "startTime": "7:00 PM",
@@ -745,19 +501,10 @@
     "contact": "Idahoer (@udahocomedy)",
     "notes": null,
     "lat": 40.7309458,
-    "lng": -73.9833528,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "6467558209",
-      "signupEnabled": true
-    }
+    "lng": -73.9833528
   },
   {
     "id": 28,
-    "uuid": "9ee2c031-f162-4026-b0e1-3e314c5727b6",
     "name": "Bob and Sam",
     "day": "Sunday",
     "startTime": "8:00 PM",
@@ -771,20 +518,11 @@
     "signup": "Sign up in person",
     "contact": "(@bobandsammic)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7145615,
+    "lng": -73.9425485
   },
   {
     "id": 29,
-    "uuid": "5513bf46-a9a1-4264-a49e-58ba992d31dd",
     "name": "Punching Bag",
     "day": "Sunday",
     "startTime": "8:00 PM",
@@ -799,19 +537,10 @@
     "contact": "Punching Bag (@punchingbagcomedy)",
     "notes": null,
     "lat": 40.6920277,
-    "lng": -73.9914226,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "9/3",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lng": -73.9914226
   },
   {
     "id": 30,
-    "uuid": "bd86817e-5374-4619-8cea-c67ac188253e",
     "name": "Forthcoming mic",
     "day": "Wednesday",
     "startTime": "7:00 PM",
@@ -825,20 +554,11 @@
     "signup": null,
     "contact": "@douglasdood (@nameofshowforthcoming)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Other",
-      "lastVerified": "11/10",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7676,
+    "lng": -73.9833
   },
   {
     "id": 31,
-    "uuid": "ec491c87-12c1-43a2-8b10-187f22b73d73",
     "name": "thursdays at the rib",
     "day": "Thursday",
     "startTime": "7:30 PM",
@@ -852,20 +572,11 @@
     "signup": "signup there",
     "contact": "@bestmedicinenyc (@thursdaysattherib)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "11/10",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.6762978,
+    "lng": -73.9496345
   },
   {
     "id": 32,
-    "uuid": "8ab26b92-057a-4078-94ee-c9efc2623b3c",
     "name": "PIT Improv Jam FeelGoodFriday",
     "day": "Friday",
     "startTime": "5:00 PM",
@@ -879,20 +590,11 @@
     "signup": "Improv Jams & Open Mics | Peoples Improv Theater",
     "contact": "John T Haller (@johnthaller)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Theatre Space",
-      "lastVerified": "11/10",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7473936,
+    "lng": -73.9923712
   },
   {
     "id": 33,
-    "uuid": "b31ef4c6-0f40-4cc0-a26d-5373b6399c31",
     "name": "Bushwick Comedy Club",
     "day": "Tuesday",
     "startTime": "7:00 PM",
@@ -906,20 +608,11 @@
     "signup": "www.bushwickcomedy.com",
     "contact": "Jad/Brooks/Kyle (@bushwickcomedyclub)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.702,
+    "lng": -73.9299503
   },
   {
     "id": 34,
-    "uuid": "514094aa-c2da-4121-b71c-5ab7a76ea3ed",
     "name": "How Ya Doin' Open Mic",
     "day": "Sunday",
     "startTime": "4:00 PM",
@@ -933,20 +626,11 @@
     "signup": "signup there 30 mins prior",
     "contact": "Hunter Wright (@xhunterwrightx)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "11/10",
-      "smsResponse": "5599057234",
-      "signupEnabled": true
-    }
+    "lat": 40.6859068,
+    "lng": -73.9816185
   },
   {
     "id": 35,
-    "uuid": "0d6e6906-18a8-4a7b-89e4-e5d1b70dccb1",
     "name": "Comediq Sunday",
     "day": "Sunday",
     "startTime": "5:30 PM",
@@ -961,19 +645,10 @@
     "contact": "Mackenzie Graves (@zebracakemack)",
     "notes": null,
     "lat": 40.7133906,
-    "lng": -73.9549636,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Theatre Space",
-      "lastVerified": "11/10",
-      "smsResponse": "6469513366",
-      "signupEnabled": true
-    }
+    "lng": -73.9549636
   },
   {
     "id": 36,
-    "uuid": "cecb9441-e087-4caa-a482-b06cee615f38",
     "name": "No Name Mic",
     "day": "Sunday",
     "startTime": "6:00 PM",
@@ -987,20 +662,11 @@
     "signup": "sign up there",
     "contact": "Ryan Walsh and Jimmy James (@rwalsh55)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "11/10",
-      "smsResponse": "7573760729",
-      "signupEnabled": true
-    }
+    "lat": 40.6859068,
+    "lng": -73.9816185
   },
   {
     "id": 37,
-    "uuid": "f48269b5-0374-4b23-a130-a9fdae02f214",
     "name": "Grisly Pear",
     "day": "Monday",
     "startTime": "6:00 PM",
@@ -1014,20 +680,11 @@
     "signup": "in person only",
     "contact": "@shanonharrislive (@grislypear)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "11/10",
-      "smsResponse": "6126991644",
-      "signupEnabled": true
-    }
+    "lat": 40.7298491,
+    "lng": -74.0008199
   },
   {
     "id": 38,
-    "uuid": "03130d4a-c602-433a-a3cb-7d5215eab9c7",
     "name": "BK Made Open Mic",
     "day": "Monday",
     "startTime": "6:00 PM",
@@ -1041,20 +698,11 @@
     "signup": "Sign up in person",
     "contact": "(@bkmade_openmics)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "11/10",
-      "smsResponse": "5165249361",
-      "signupEnabled": true
-    }
+    "lat": 40.6939773,
+    "lng": -73.9073961
   },
   {
     "id": 39,
-    "uuid": "457b5c56-3474-4770-9126-ee7b5cd4afc1",
     "name": "BK Made Open Mic",
     "day": "Monday",
     "startTime": "8:00 PM",
@@ -1068,20 +716,11 @@
     "signup": "Sign up in person",
     "contact": "(@bkmade_openmics)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "11/10",
-      "smsResponse": "5165249361",
-      "signupEnabled": true
-    }
+    "lat": 40.6939773,
+    "lng": -73.9073961
   },
   {
     "id": 40,
-    "uuid": "94415caa-1bbc-405c-8478-37007db459bc",
     "name": "BK Made Open Mic",
     "day": "Tuesday",
     "startTime": "6:00 PM",
@@ -1095,20 +734,11 @@
     "signup": "Sign up in person",
     "contact": "(@bkmade_openmics)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "11/10",
-      "smsResponse": "5165249361",
-      "signupEnabled": true
-    }
+    "lat": 40.6939773,
+    "lng": -73.9073961
   },
   {
     "id": 41,
-    "uuid": "1c16162f-797b-4611-9f18-0fa0cde812fd",
     "name": "BK Made Open Mic",
     "day": "Tuesday",
     "startTime": "8:00 PM",
@@ -1122,20 +752,11 @@
     "signup": "Sign up in person",
     "contact": "(@bkmade_openmics)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "11/10",
-      "smsResponse": "5165249361",
-      "signupEnabled": true
-    }
+    "lat": 40.6939773,
+    "lng": -73.9073961
   },
   {
     "id": 42,
-    "uuid": "64d6f5f2-bffc-4ec5-ba72-76d4532a2a51",
     "name": "BK Made Open Mic",
     "day": "Thursday",
     "startTime": "6:00 PM",
@@ -1149,20 +770,11 @@
     "signup": "Sign up in person",
     "contact": "(@bkmade_openmics)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "11/10",
-      "smsResponse": "5165249361",
-      "signupEnabled": true
-    }
+    "lat": 40.6939773,
+    "lng": -73.9073961
   },
   {
     "id": 43,
-    "uuid": "04f2ef0c-47c2-49fd-9c5c-8e32ec069a87",
     "name": "Grisly Pear",
     "day": "Friday",
     "startTime": "4:00 PM",
@@ -1176,20 +788,11 @@
     "signup": "Sign up in person",
     "contact": "A grisly pear comic (@grislypear)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "11/10",
-      "smsResponse": "6126991644",
-      "signupEnabled": true
-    }
+    "lat": 40.7298491,
+    "lng": -74.0008199
   },
   {
     "id": 44,
-    "uuid": "66b3d1ea-d4c2-44cd-840d-ef6c8bed7642",
     "name": "Numbskull",
     "day": "Friday",
     "startTime": "5:00 PM",
@@ -1203,20 +806,11 @@
     "signup": "Sign up in person",
     "contact": "@molly_zalman (@numbskull_mic)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "11/10",
-      "smsResponse": "8608109577",
-      "signupEnabled": true
-    }
+    "lat": 40.7180926,
+    "lng": -73.9502883
   },
   {
     "id": 45,
-    "uuid": "438b59d3-b855-4be7-948d-321576dcb632",
     "name": "BK Made Open Mic",
     "day": "Friday",
     "startTime": "6:00 PM",
@@ -1230,20 +824,11 @@
     "signup": "Sign up in person",
     "contact": "(@bkmade_openmics)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "11/10",
-      "smsResponse": "5165249361",
-      "signupEnabled": true
-    }
+    "lat": 40.6939773,
+    "lng": -73.9073961
   },
   {
     "id": 46,
-    "uuid": "ca4ac065-5bc5-4bfb-8ad3-d3ba630d756e",
     "name": "Pure Flop chaos house mic",
     "day": "Friday",
     "startTime": "6:30 PM",
@@ -1257,20 +842,11 @@
     "signup": "https://checkout.square.site/merchant/MLE3S94S31KSN/checkout/SIS6B57KN346S6DZKXCFZ26T",
     "contact": "Flop House host (@purechaoscomedy)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "11/10",
-      "smsResponse": "2142366215",
-      "signupEnabled": true
-    }
+    "lat": 40.7122083,
+    "lng": -73.9557789
   },
   {
     "id": 47,
-    "uuid": "892f43cb-b965-412e-81f3-3f0fc3d6811b",
     "name": "Monday Night Mob",
     "day": "Monday",
     "startTime": "7:00",
@@ -1284,20 +860,11 @@
     "signup": "Sign up via comedymob.com. Random draw. Large weekly signup pool.",
     "contact": "@comedymobnyc",
     "notes": "Comics are encouraged to stay and support the room.",
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "2025-12-17",
-      "smsResponse": null,
-      "signupEnabled": true
-    }
+    "lat": 40.7610441,
+    "lng": -73.960624
   },
   {
     "id": 48,
-    "uuid": "cddd350c-0ead-46ac-82a3-c351166a8911",
     "name": "Comedy Mob East",
     "day": "Sunday",
     "startTime": "5:30",
@@ -1311,20 +878,11 @@
     "signup": "Sign up via comedymob.com. Random draw. Large weekly signup pool.",
     "contact": "@comedymobnyc",
     "notes": "Comics are encouraged to stay and support the room.",
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "2025-12-17",
-      "smsResponse": null,
-      "signupEnabled": true
-    }
+    "lat": 40.7265891,
+    "lng": -73.9898025
   },
   {
     "id": 49,
-    "uuid": "4769d8a1-7c92-4b63-bf83-50e6731f9782",
     "name": "Comedy Mob 24",
     "day": "Thursday",
     "startTime": "6:00",
@@ -1338,20 +896,11 @@
     "signup": "Sign up via comedymob.com. Random draw. Large weekly signup pool.",
     "contact": "@comedymobnyc",
     "notes": "Comics are encouraged to stay and support the room.",
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "2025-12-17",
-      "smsResponse": null,
-      "signupEnabled": true
-    }
+    "lat": 40.7389213,
+    "lng": -73.9808057
   },
   {
     "id": 50,
-    "uuid": "34e7498a-8643-4701-9190-355c9b7c2804",
     "name": "Tiny Cupboard",
     "day": "Sunday",
     "startTime": "8:30 PM",
@@ -1365,20 +914,11 @@
     "signup": "sign up there Open Mics Page for Tiny Cupboard Blue Room",
     "contact": "Tiny Cupboard (@thetinycupboard)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.6836915,
+    "lng": -73.9112136
   },
   {
     "id": 51,
-    "uuid": "128a6c60-195b-40ba-94ae-11bb0ab42765",
     "name": "QED Sunday Mic",
     "day": "Sunday",
     "startTime": "8:30 PM",
@@ -1393,19 +933,10 @@
     "contact": "QED Staff (@qedastoria)",
     "notes": null,
     "lat": 40.775548,
-    "lng": -73.9149401,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lng": -73.9149401
   },
   {
     "id": 52,
-    "uuid": "8f7b58b5-1348-4251-8e27-50f0cf5ac761",
     "name": "Pit Improv Jam",
     "day": "Sunday",
     "startTime": "9:30 PM",
@@ -1419,20 +950,11 @@
     "signup": "Sign up at 8:00",
     "contact": "The Pit Midtown (@thepitnyc)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Theatre Space",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7474462,
+    "lng": -73.9922022
   },
   {
     "id": 53,
-    "uuid": "e7716990-548d-4666-a803-dccc2c23bdcd",
     "name": "Merkin mic",
     "day": "Wednesday",
     "startTime": "8:30 PM",
@@ -1447,19 +969,10 @@
     "contact": "@laramieflick (@textandthecity_)",
     "notes": null,
     "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "House basement",
-      "lastVerified": "11/18",
-      "smsResponse": "+1 (646) 528-6574",
-      "signupEnabled": true
-    }
+    "lng": null
   },
   {
     "id": 54,
-    "uuid": "4e8231d8-cf2f-40eb-a85a-cf3766de4fc7",
     "name": "B. Y. O. T.",
     "day": "Sunday",
     "startTime": "10:00 PM",
@@ -1474,19 +987,10 @@
     "contact": "UCB (@byotmic)",
     "notes": null,
     "lat": 40.7328695,
-    "lng": -73.9853584,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Theatre Space",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lng": -73.9853584
   },
   {
     "id": 55,
-    "uuid": "920ac28a-d1e0-45aa-b729-28d4ce8d6296",
     "name": "Producer's Club",
     "day": "Sunday",
     "startTime": "7:30 PM",
@@ -1500,20 +1004,11 @@
     "signup": "in person only",
     "contact": "Dee Major (@micdupnyc)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "9177517544",
-      "signupEnabled": true
-    }
+    "lat": 40.7595017,
+    "lng": -73.9914437
   },
   {
     "id": 56,
-    "uuid": "3bcc9937-9820-4395-a222-85fb565cf7e1",
     "name": "The Golden Pen",
     "day": "Sunday",
     "startTime": "5:00 PM",
@@ -1527,20 +1022,11 @@
     "signup": "signup there 30 mins prior",
     "contact": "Vinnie Pedi (@vinnie_pedi)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "11/10",
-      "smsResponse": "8455223640",
-      "signupEnabled": true
-    }
+    "lat": 40.6859068,
+    "lng": -73.9816185
   },
   {
     "id": 57,
-    "uuid": "41bc293d-015d-48d7-9083-c15a4e0cf5a1",
     "name": "Grisly Pear",
     "day": "Sunday",
     "startTime": "2:00 PM",
@@ -1554,20 +1040,11 @@
     "signup": "in person only",
     "contact": "Grisly Pear (@grislypear)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "11/10",
-      "smsResponse": "6126991644",
-      "signupEnabled": true
-    }
+    "lat": 40.7298491,
+    "lng": -74.0008199
   },
   {
     "id": 58,
-    "uuid": "c2dd647d-5987-4e58-b48f-f13327fc9717",
     "name": "Don't Freak Out",
     "day": "Monday",
     "startTime": "5:00 PM",
@@ -1581,20 +1058,11 @@
     "signup": "signup there",
     "contact": "Alex Mahaney (@alexmahaney)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "8025985139",
-      "signupEnabled": true
-    }
+    "lat": 40.7389213,
+    "lng": -73.9808057
   },
   {
     "id": 59,
-    "uuid": "5e88b796-f45b-44d5-a1c9-ef4ac56adb2c",
     "name": "The Stand LaughingBuddhaMic",
     "day": "Monday",
     "startTime": "5:00 PM",
@@ -1608,20 +1076,11 @@
     "signup": "https://www.laughingbuddhacomedy.com/mics",
     "contact": "Laughing Buddha Staff (@laughingbuddhacomedy)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "7184902903",
-      "signupEnabled": true
-    }
+    "lat": 40.7353379,
+    "lng": -73.988463
   },
   {
     "id": 60,
-    "uuid": "a1e897f4-342a-4b6d-9a85-f33df5630b6e",
     "name": "Producer's Club",
     "day": "Monday",
     "startTime": "5:00 PM",
@@ -1635,20 +1094,11 @@
     "signup": "in person only",
     "contact": "Dee Major (@micdupnyc)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "9177517544",
-      "signupEnabled": true
-    }
+    "lat": 40.7595017,
+    "lng": -73.9914437
   },
   {
     "id": 61,
-    "uuid": "14ecea80-9e40-43c4-8dd1-ee0f8053c383",
     "name": "Mondays with Messite",
     "day": "Monday",
     "startTime": "5:00 PM",
@@ -1663,19 +1113,10 @@
     "contact": "Janice Messite (@janicemessite)",
     "notes": null,
     "lat": 40.7598818,
-    "lng": -73.9874267,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "9173704232",
-      "signupEnabled": true
-    }
+    "lng": -73.9874267
   },
   {
     "id": 62,
-    "uuid": "1a52aa68-c544-4063-8b3a-c22ef54c7799",
     "name": "Caravan of Dreams",
     "day": "Monday",
     "startTime": "6:00 PM",
@@ -1689,20 +1130,11 @@
     "signup": "List in Person",
     "contact": "Josh Daws (@dawsjosh)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Restaurant",
-      "lastVerified": "9/1",
-      "smsResponse": "8502847128",
-      "signupEnabled": true
-    }
+    "lat": 40.7264058,
+    "lng": -73.9856462
   },
   {
     "id": 63,
-    "uuid": "f7afd736-b916-4f04-90f0-dd5b73127d1f",
     "name": "Fear City Mic",
     "day": "Tuesday",
     "startTime": "6:00 PM",
@@ -1716,20 +1148,11 @@
     "signup": "Sign up at venue",
     "contact": "@thefearcitycomedyclub",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "12/25/2025",
-      "smsResponse": null,
-      "signupEnabled": true
-    }
+    "lat": 40.7152631,
+    "lng": -73.9901598
   },
   {
     "id": 64,
-    "uuid": "d19c89a4-e835-4650-b99d-008f5c771959",
     "name": "Producer's Club",
     "day": "Sunday",
     "startTime": "6:00 PM",
@@ -1743,20 +1166,11 @@
     "signup": "in person only",
     "contact": "Dee Major (@micdupnyc)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "9177517544",
-      "signupEnabled": true
-    }
+    "lat": 40.7595017,
+    "lng": -73.9914437
   },
   {
     "id": 65,
-    "uuid": "dcb28c2e-c8ba-4a1e-98e9-c05d7d702231",
     "name": "The Cozy Mic",
     "day": "Thursday",
     "startTime": "6:00 PM",
@@ -1771,19 +1185,10 @@
     "contact": "@setarehcomedy (@setarehcomedy)",
     "notes": null,
     "lat": 40.6859068,
-    "lng": -73.9816185,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy club",
-      "lastVerified": "11/18",
-      "smsResponse": null,
-      "signupEnabled": true
-    }
+    "lng": -73.9816185
   },
   {
     "id": 66,
-    "uuid": "8a7af4dc-eed9-49c6-8ce0-72b6ab40fa7e",
     "name": "Comedy Shop",
     "day": "Sunday",
     "startTime": "2:00 PM",
@@ -1797,20 +1202,11 @@
     "signup": "https://comedyshopnyc.com/events/  $7.62 but you get a free drink or fries",
     "contact": "(@thecomedyshopvillage)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "7189869871",
-      "signupEnabled": true
-    }
+    "lat": 40.7288305,
+    "lng": -74.0001342
   },
   {
     "id": 67,
-    "uuid": "da707b85-2f99-4f81-bc1e-156b486527e6",
     "name": "Greenwich village comedy club",
     "day": "Sunday",
     "startTime": "3:00 PM",
@@ -1824,20 +1220,11 @@
     "signup": "Email DrewAndPetermic@gmail.com",
     "contact": "Drew Tessier (@comedybydrew)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "3475151553",
-      "signupEnabled": true
-    }
+    "lat": 40.7296565,
+    "lng": -74.001091
   },
   {
     "id": 68,
-    "uuid": "45ce7806-cc11-43f8-950b-777436496a87",
     "name": "All American",
     "day": "Sunday",
     "startTime": "3:00 PM",
@@ -1851,20 +1238,11 @@
     "signup": "sign up in person list / @allamericancomedy",
     "contact": "NatalieLin (@allamericancomedy)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "9/1",
-      "smsResponse": "3123669800",
-      "signupEnabled": true
-    }
+    "lat": 40.7052293,
+    "lng": -73.9326664
   },
   {
     "id": 69,
-    "uuid": "352a9809-4462-4915-b03f-f74a59535f4a",
     "name": "UWS NYCC LaughingBuddha Mic",
     "day": "Sunday",
     "startTime": "3:00 PM",
@@ -1878,20 +1256,11 @@
     "signup": "https://www.laughingbuddhacomedy.com/mics",
     "contact": "Laughing Buddha Staff (@laughingbuddhacomedy)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "7184902903",
-      "signupEnabled": true
-    }
+    "lat": 40.7645366,
+    "lng": -73.9833266
   },
   {
     "id": 70,
-    "uuid": "1f115050-6f78-4f2b-be18-81807d13b548",
     "name": "Tiny Cupboard",
     "day": "Sunday",
     "startTime": "10:00 PM",
@@ -1905,20 +1274,11 @@
     "signup": "sign up there Open Mics Page for Tiny Cupboard Blue Room",
     "contact": "Tiny Cupboard (@thetinycupboard)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.6836915,
+    "lng": -73.9112136
   },
   {
     "id": 71,
-    "uuid": "09248056-6ec1-4f95-a952-ff17e74f83c7",
     "name": "Greenwich village comedy club",
     "day": "Monday",
     "startTime": "3:00 PM",
@@ -1932,20 +1292,11 @@
     "signup": "DrewTessier.com",
     "contact": "Robert Johnson (@comedybydrew)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "3475151553",
-      "signupEnabled": true
-    }
+    "lat": 40.7296565,
+    "lng": -74.001091
   },
   {
     "id": 72,
-    "uuid": "4cb00fb1-4a7e-4450-a93f-ec514147d53e",
     "name": "Comedy Shop",
     "day": "Monday",
     "startTime": "4:00 PM",
@@ -1959,20 +1310,11 @@
     "signup": "https://comedyshopnyc.com/events/  $7.62 but you get a free drink or fries",
     "contact": "A comedy shop comic (@thecomedyshopvillage)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "7189869871",
-      "signupEnabled": true
-    }
+    "lat": 40.7288305,
+    "lng": -74.0001342
   },
   {
     "id": 73,
-    "uuid": "26fdc583-e504-4c6b-9def-5a5f027bc851",
     "name": "Producer's Club",
     "day": "Tuesday",
     "startTime": "7:30 PM",
@@ -1986,20 +1328,11 @@
     "signup": "in person only",
     "contact": "Dee Major (@micdupnyc)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "9177517544",
-      "signupEnabled": true
-    }
+    "lat": 40.7595017,
+    "lng": -73.9914437
   },
   {
     "id": 74,
-    "uuid": "f31495d2-4763-4c69-83da-92c75169e11e",
     "name": "Broadway Comedy Club Mic",
     "day": "Tuesday",
     "startTime": "4:00 PM",
@@ -2013,20 +1346,11 @@
     "signup": "signup there",
     "contact": "Adrian Smith NOT Cody Lewis (@comedianatrain)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7644391,
+    "lng": -73.9856707
   },
   {
     "id": 75,
-    "uuid": "2e378c94-9c66-4677-8100-936d9e38ae82",
     "name": "Comedy Shop",
     "day": "Tuesday",
     "startTime": "4:00 PM",
@@ -2040,20 +1364,11 @@
     "signup": "https://comedyshopnyc.com/events/  $7.62 but you get a free drink or fries",
     "contact": "A comedy shop comic (@thecomedyshopvillage)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "7189869871",
-      "signupEnabled": true
-    }
+    "lat": 40.7288305,
+    "lng": -74.0001342
   },
   {
     "id": 76,
-    "uuid": "db93a94f-0dc3-43ff-a2a2-22c4749d873f",
     "name": "*biweekly 2nd/4th* The Mic about Ideas",
     "day": "Tuesday",
     "startTime": "7:00 PM",
@@ -2067,20 +1382,11 @@
     "signup": "signup there",
     "contact": "MaggieOlmstedpretty & Lilyarmweak (@themicaboutideas)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7227408,
+    "lng": -73.9554759
   },
   {
     "id": 77,
-    "uuid": "24d675ac-d906-43a5-870e-9cb8547e8bd9",
     "name": "PIT Improv Jam",
     "day": "Tuesday",
     "startTime": "9:30 PM",
@@ -2094,20 +1400,11 @@
     "signup": "Improv Jams & Open Mics | Peoples Improv Theater",
     "contact": "Lane Napper (@austino19)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Theatre Space",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7473936,
+    "lng": -73.9923712
   },
   {
     "id": 78,
-    "uuid": "9722b67c-0bbf-4b2c-b3bf-16d0db40d1a8",
     "name": "Win a Guest Spot! Buddha Rodney's",
     "day": "Tuesday",
     "startTime": "9:45 PM",
@@ -2122,19 +1419,10 @@
     "contact": "Danny Metz (@laughingbuddhacomedy)",
     "notes": null,
     "lat": 40.7610441,
-    "lng": -73.960624,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "7184902903",
-      "signupEnabled": true
-    }
+    "lng": -73.960624
   },
   {
     "id": 79,
-    "uuid": "a2c2e5c2-1709-4ba6-afa3-63abcea2616a",
     "name": "the champs",
     "day": "Wednesday",
     "startTime": "6:00 PM",
@@ -2148,20 +1436,11 @@
     "signup": "signup there",
     "contact": "PineBox host (@pineboxrockshop)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7052293,
+    "lng": -73.9326664
   },
   {
     "id": 80,
-    "uuid": "7f0faee1-6579-4410-a516-4ca039ca2bb5",
     "name": "Comedy Shop",
     "day": "Wednesday",
     "startTime": "6:00 PM",
@@ -2175,20 +1454,11 @@
     "signup": "https://comedyshopnyc.com/events/  $7.62 but you get a free drink or fries",
     "contact": "Alexis Ramirez @asapangry_ (@thecomedyshopvillage)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "7189869871",
-      "signupEnabled": true
-    }
+    "lat": 40.7288305,
+    "lng": -74.0001342
   },
   {
     "id": 81,
-    "uuid": "75877c29-43b9-4c68-b98c-17e0f81c3def",
     "name": "Brainstorm Mic",
     "day": "Wednesday",
     "startTime": "6:00 PM",
@@ -2202,20 +1472,11 @@
     "signup": "in person only",
     "contact": "Alec Wirth, Steve Messner (@albandero)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "Unverified",
-      "smsResponse": "9172087444",
-      "signupEnabled": true
-    }
+    "lat": 40.7297052,
+    "lng": -74.0048523
   },
   {
     "id": 82,
-    "uuid": "1b695b01-a77b-4438-aef9-86dcfb26df23",
     "name": "*show dependent* late mic",
     "day": "Wednesday",
     "startTime": "9:15 PM",
@@ -2229,20 +1490,11 @@
     "signup": "Sign up at 9:30",
     "contact": "QED Staff (@qedastoria)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.775548,
+    "lng": -73.9149401
   },
   {
     "id": 83,
-    "uuid": "f8d96ef8-3e49-4122-a466-4d8bcaf1313e",
     "name": "Soho Playhouse",
     "day": "Wednesday",
     "startTime": "9:30 PM",
@@ -2256,20 +1508,11 @@
     "signup": "in person only",
     "contact": "Jackson Sturkey (@thefinaljackson)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7264507,
+    "lng": -74.0043756
   },
   {
     "id": 84,
-    "uuid": "fd4c0237-d37f-4710-a337-96df56a0b34a",
     "name": "QED Open Mic",
     "day": "Thursday",
     "startTime": "6:00 PM",
@@ -2283,20 +1526,11 @@
     "signup": "Sign up at 5:30",
     "contact": "QED Staff (@qedastoria)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.775548,
+    "lng": -73.9149401
   },
   {
     "id": 85,
-    "uuid": "ff5a9210-1be3-4c87-9060-57f2468492a5",
     "name": "Adhd comedy",
     "day": "Thursday",
     "startTime": "6:00 PM",
@@ -2311,19 +1545,10 @@
     "contact": null,
     "notes": null,
     "lat": 40.686831,
-    "lng": -73.9593734,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Coffee Shop",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lng": -73.9593734
   },
   {
     "id": 86,
-    "uuid": "a0fcf3c5-a41e-4efa-9e43-e5abdc6c8a16",
     "name": "Gladys Simon Comic Strip",
     "day": "Thursday",
     "startTime": "6:00 PM",
@@ -2337,20 +1562,11 @@
     "signup": "gladyscomedy@yahoo.com",
     "contact": "Gladys Simon (@gladyscomedy)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7748581,
+    "lng": -73.9536956
   },
   {
     "id": 87,
-    "uuid": "c03e6a3e-cce3-4586-ba95-10b492e69987",
     "name": "Sesh Mic",
     "day": "Monday",
     "startTime": "5:00 PM",
@@ -2364,20 +1580,11 @@
     "signup": "https://slotted.co/seshopenmics in advance required, they often cancel the mic if under 5 sign ups. If you don't see a sign up slot available, they cancelled the mic",
     "contact": "Sesh Comedy (@theflowstatemic)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7190777,
+    "lng": -73.9912865
   },
   {
     "id": 88,
-    "uuid": "f3e86ae8-201c-4f66-a80f-cdc08ec87d0c",
     "name": "Tiny Cupboard",
     "day": "Thursday",
     "startTime": "8:30 PM",
@@ -2391,20 +1598,11 @@
     "signup": "sign up there Open Mics Page for Tiny Cupboard Blue Room",
     "contact": "Ryan Green (@thetinycupboard)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.6836915,
+    "lng": -73.9112136
   },
   {
     "id": 89,
-    "uuid": "5903510c-add6-43ec-9ce8-0c86a6729d56",
     "name": "Comedy Shop",
     "day": "Friday",
     "startTime": "6:00 PM",
@@ -2418,20 +1616,11 @@
     "signup": "https://comedyshopnyc.com/events/  $7.62 but you get a free drink or fries",
     "contact": "Alexis Ramirez (@asapangry_)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "18648164553",
-      "signupEnabled": true
-    }
+    "lat": 40.7288305,
+    "lng": -74.0001342
   },
   {
     "id": 90,
-    "uuid": "af849a2b-3483-4605-98dc-85495f7135d8",
     "name": "Phoenix Bar",
     "day": "Friday",
     "startTime": "6:00 PM",
@@ -2445,20 +1634,11 @@
     "signup": "Sign up in person",
     "contact": "Hetty Ra (@phoenixcomedynyc)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "9/1",
-      "smsResponse": "3476201026",
-      "signupEnabled": true
-    }
+    "lat": 40.7299744,
+    "lng": -73.9811697
   },
   {
     "id": 91,
-    "uuid": "24d2e7b8-b38d-487c-a90a-a51d9c1b6e91",
     "name": "fozzie bear presents",
     "day": "Friday",
     "startTime": "6:00 PM",
@@ -2472,20 +1652,11 @@
     "signup": "signup there",
     "contact": "(@pineboxrockshop)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7052293,
+    "lng": -73.9326664
   },
   {
     "id": 92,
-    "uuid": "24be9395-6fb3-414b-ae59-3585785bfff5",
     "name": "Sesh Mic",
     "day": "Tuesday",
     "startTime": "5:00 PM",
@@ -2499,20 +1670,11 @@
     "signup": "https://slotted.co/seshopenmics in advance required, they often cancel the mic if under 5 sign ups. If you don't see a sign up slot available, they cancelled the mic",
     "contact": "Sesh Comedy (@theflowstatemic)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7190777,
+    "lng": -73.9912865
   },
   {
     "id": 93,
-    "uuid": "137d8edd-c4ef-4621-9899-c0a6e83763eb",
     "name": "Producer's Club",
     "day": "Monday",
     "startTime": "6:00 PM",
@@ -2526,20 +1688,11 @@
     "signup": "in person only",
     "contact": "Dee Major (@micdupnyc)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "9177517544",
-      "signupEnabled": true
-    }
+    "lat": 40.7595017,
+    "lng": -73.9914437
   },
   {
     "id": 94,
-    "uuid": "dcc7b08a-81c9-44c8-b35c-07f5c70e1816",
     "name": "Phoenix Bar",
     "day": "Monday",
     "startTime": "6:00 PM",
@@ -2553,20 +1706,11 @@
     "signup": "in person only",
     "contact": "Brad Aford (@papatlalpan)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "9/1",
-      "smsResponse": "525618540645",
-      "signupEnabled": true
-    }
+    "lat": 40.7299744,
+    "lng": -73.9811697
   },
   {
     "id": 95,
-    "uuid": "e976556f-6c18-4731-920f-281282dfa178",
     "name": "QED Monday",
     "day": "Monday",
     "startTime": "6:00 PM",
@@ -2580,20 +1724,11 @@
     "signup": "Sign up at 8:00",
     "contact": "QED Staff (@qedastoria)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.775548,
+    "lng": -73.9149401
   },
   {
     "id": 96,
-    "uuid": "e276f4e6-655f-46a2-ae97-458b2961db90",
     "name": "Harlem Nights",
     "day": "Monday",
     "startTime": "6:00 PM",
@@ -2607,20 +1742,11 @@
     "signup": "Text Rashad Bashir",
     "contact": "Rashad Bashir (@rbashir_comedy)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "6463054819",
-      "signupEnabled": true
-    }
+    "lat": 40.8172204,
+    "lng": -73.9419721
   },
   {
     "id": 97,
-    "uuid": "8272fa66-0909-40fa-8a20-381566b82d64",
     "name": "Comedy Shop",
     "day": "Monday",
     "startTime": "6:00 PM",
@@ -2634,20 +1760,11 @@
     "signup": "https://comedyshopnyc.com/events/  $7.62 but you get a free drink or fries",
     "contact": "A comedy shop comic (@thecomedyshopvillage)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "7189869871",
-      "signupEnabled": true
-    }
+    "lat": 40.7288305,
+    "lng": -74.0001342
   },
   {
     "id": 98,
-    "uuid": "33b82543-d954-4de2-be6a-0a707d449900",
     "name": "Pillow Fight",
     "day": "Monday",
     "startTime": "6:00 PM",
@@ -2661,20 +1778,11 @@
     "signup": "Sign up in person",
     "contact": "(@pillowfightmic)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7052293,
+    "lng": -73.9326664
   },
   {
     "id": 99,
-    "uuid": "6e48fa02-a9c0-4729-8ff8-1d1409df5fad",
     "name": "Comedy in Harlem",
     "day": "Monday",
     "startTime": "6:00 PM",
@@ -2688,20 +1796,11 @@
     "signup": "SUGU",
     "contact": "SashaLynn Medina (@comedyinharlem)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "3477663001",
-      "signupEnabled": true
-    }
+    "lat": 40.8255092,
+    "lng": -73.9433543
   },
   {
     "id": 100,
-    "uuid": "ecf3921e-5669-49d1-974e-289c1faac691",
     "name": "Flop mic",
     "day": "Monday",
     "startTime": "6:30 PM",
@@ -2715,20 +1814,11 @@
     "signup": "https://checkout.square.site/merchant/MLE3S94S31KSN/checkout/SIS6B57KN346S6DZKXCFZ26T",
     "contact": "Flop House host (@flophousecomedy)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "9089679178",
-      "signupEnabled": true
-    }
+    "lat": 40.7122083,
+    "lng": -73.9557789
   },
   {
     "id": 101,
-    "uuid": "26df1e8c-0590-4b57-9117-321312f26c15",
     "name": "Open Mic! w/ Obi O'Brien",
     "day": "Monday",
     "startTime": "4:30 PM",
@@ -2743,19 +1833,10 @@
     "contact": "Obi O'Brien (@sayhiobi)",
     "notes": null,
     "lat": 40.7473936,
-    "lng": -73.9923712,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Theatre Space",
-      "lastVerified": "11/10",
-      "smsResponse": "N/A",
-      "signupEnabled": true
-    }
+    "lng": -73.9923712
   },
   {
     "id": 102,
-    "uuid": "a4b6c172-2f07-485d-ad37-c85608ff5f78",
     "name": "Sesh Mic",
     "day": "Monday",
     "startTime": "6:00 PM",
@@ -2769,20 +1850,11 @@
     "signup": "https://slotted.co/seshopenmics in advance required, they often cancel the mic if under 5 sign ups. If you don't see a sign up slot available, they cancelled the mic",
     "contact": "Sesh Comedy (@theflowstatemic)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7190777,
+    "lng": -73.9912865
   },
   {
     "id": 103,
-    "uuid": "ed011410-e26a-43c9-a654-65f7536181e6",
     "name": "West Side Comedy Club",
     "day": "Monday",
     "startTime": "4:30 PM",
@@ -2796,20 +1868,11 @@
     "signup": "https://punchup.live/v/funyopenmic",
     "contact": "Heming Ge (@heming_comedy)",
     "notes": "required sign up online ($2.38 in fees)",
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "11/24",
-      "smsResponse": "3364092165",
-      "signupEnabled": true
-    }
+    "lat": 40.7808191,
+    "lng": -73.9805102
   },
   {
     "id": 104,
-    "uuid": "03fdb3e8-9436-4421-8429-1a3b1f17221e",
     "name": "Grisly Pear",
     "day": "Monday",
     "startTime": "4:30 PM",
@@ -2823,20 +1886,11 @@
     "signup": "in person only",
     "contact": "@shanonharrislive (@grislypear)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "11/10",
-      "smsResponse": "6126991644",
-      "signupEnabled": true
-    }
+    "lat": 40.7298491,
+    "lng": -74.0008199
   },
   {
     "id": 105,
-    "uuid": "be90f316-e4ba-4355-829b-5890ca8817c2",
     "name": "Greg Giraldo's Open Mic",
     "day": "Monday",
     "startTime": "3:00 PM",
@@ -2851,19 +1905,10 @@
     "contact": "Greg Giraldo (@greggiraldojr)",
     "notes": "required sign up online ($2.38 in fees)",
     "lat": 40.7808191,
-    "lng": -73.9805102,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "9173867241",
-      "signupEnabled": true
-    }
+    "lng": -73.9805102
   },
   {
     "id": 106,
-    "uuid": "905be880-7b1b-465a-9af6-875b1762b399",
     "name": "Craig Lottner's Open Mic",
     "day": "Monday",
     "startTime": "12:30 PM",
@@ -2878,19 +1923,10 @@
     "contact": "Craig Lottner (@craiglottner)",
     "notes": "7 comics max, required sign up online ($2.38 in fees)",
     "lat": 40.7808191,
-    "lng": -73.9805102,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "11/10",
-      "smsResponse": "6464890738",
-      "signupEnabled": true
-    }
+    "lng": -73.9805102
   },
   {
     "id": 107,
-    "uuid": "485d5df0-26ad-481b-84f1-b0e1ef8b50f9",
     "name": "Ethically Ambiguous",
     "day": "Monday",
     "startTime": "7:00 PM",
@@ -2904,20 +1940,11 @@
     "signup": "Sign up in person",
     "contact": "(@ethicallyambiguousmic)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "5853540988",
-      "signupEnabled": true
-    }
+    "lat": 40.6859068,
+    "lng": -73.9816185
   },
   {
     "id": 108,
-    "uuid": "b3f843a1-f2d8-4240-9236-582e3541c784",
     "name": "Fun Mic",
     "day": "Monday",
     "startTime": "7:00 PM",
@@ -2932,19 +1959,10 @@
     "contact": "Asif L./Mike H. (@fisacomedy)",
     "notes": null,
     "lat": 40.6632901,
-    "lng": -73.9911383,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "9/1",
-      "smsResponse": "4044289418",
-      "signupEnabled": true
-    }
+    "lng": -73.9911383
   },
   {
     "id": 109,
-    "uuid": "ad0721fe-6aef-4ce6-9833-3a5250fdeda4",
     "name": "Femmes and Friends Mic",
     "day": "Monday",
     "startTime": "7:00 PM",
@@ -2958,20 +1976,11 @@
     "signup": "google sheet (link on IG)",
     "contact": "(@femmesandfriendsmic)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "9/1",
-      "smsResponse": "7542457111",
-      "signupEnabled": true
-    }
+    "lat": 40.8026454,
+    "lng": -73.964587
   },
   {
     "id": 110,
-    "uuid": "485bd039-7000-4b2e-9834-3c48bf51bd09",
     "name": "Laughing Buddha Mic-a-thon",
     "day": "Monday",
     "startTime": "6:00 PM",
@@ -2986,19 +1995,10 @@
     "contact": "@laughingbuddhacomedy (@laughingbuddhacomedy)",
     "notes": null,
     "lat": 40.7498782,
-    "lng": -73.9947359,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "9/1",
-      "smsResponse": "7184902903",
-      "signupEnabled": true
-    }
+    "lng": -73.9947359
   },
   {
     "id": 111,
-    "uuid": "363db223-633f-4e16-8c23-4436de91c183",
     "name": "Win a Guest Spot! St. Mark's LaughingBuddha Mic",
     "day": "Monday",
     "startTime": "7:00 PM",
@@ -3012,20 +2012,11 @@
     "signup": "https://www.laughingbuddhacomedy.com/mics",
     "contact": "Laughing Buddha Staff (@laughingbuddhacomedy)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "7184902903",
-      "signupEnabled": true
-    }
+    "lat": 40.7645366,
+    "lng": -73.9833266
   },
   {
     "id": 112,
-    "uuid": "c06215e2-6198-4cae-b109-05313ae44e16",
     "name": "Bushwick Comedy Club",
     "day": "Monday",
     "startTime": "7:30 PM",
@@ -3039,20 +2030,11 @@
     "signup": "www.bushwickcomedy.com",
     "contact": "Jad/Brooks/Kyle (@bushwickcomedyclub)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "refuse to",
-      "signupEnabled": true
-    }
+    "lat": 40.702,
+    "lng": -73.9299503
   },
   {
     "id": 113,
-    "uuid": "b1b0dfd1-3869-4131-8a82-c06490b42992",
     "name": "Comedians on the Loose",
     "day": "Monday",
     "startTime": "7:30 PM",
@@ -3066,20 +2048,11 @@
     "signup": "https://www.comediansontheloose.com/open-mics",
     "contact": "Sonja Savanovic (@cotlcomedy)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Coffee Shop",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7190777,
+    "lng": -73.9912865
   },
   {
     "id": 114,
-    "uuid": "971ad8fd-f610-4d0a-b2fc-d7b7091c5117",
     "name": "1st/3rd/5th Open to suggestions mic",
     "day": "Monday",
     "startTime": "7:45 PM",
@@ -3093,20 +2066,11 @@
     "signup": "Sign up in person",
     "contact": "(@opentosuggestionsmic)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7066852,
+    "lng": -73.9235217
   },
   {
     "id": 115,
-    "uuid": "252f3b25-00f4-4896-8cdb-d74b73a93635",
     "name": "2nd/4th All Friends Here",
     "day": "Monday",
     "startTime": "7:45 PM",
@@ -3120,20 +2084,11 @@
     "signup": "Sign up in person",
     "contact": "(@were.all.friends.here.comedy)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "3364470342",
-      "signupEnabled": true
-    }
+    "lat": 40.7066852,
+    "lng": -73.9235217
   },
   {
     "id": 116,
-    "uuid": "90d79c01-c29b-4d79-911b-74997f3ce8a2",
     "name": "*3 mics/month* Succulent Open Mic",
     "day": "Monday",
     "startTime": "8:00 PM",
@@ -3148,19 +2103,10 @@
     "contact": "@probablybobbyg (@succulent_comedy)",
     "notes": null,
     "lat": 40.7480429,
-    "lng": -73.9919743,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "9/1",
-      "smsResponse": "2127296045",
-      "signupEnabled": true
-    }
+    "lng": -73.9919743
   },
   {
     "id": 117,
-    "uuid": "77b1ed82-98fb-4810-9124-304453af6849",
     "name": "Easy paradise mag @kgb",
     "day": "Monday",
     "startTime": "8:00 PM",
@@ -3174,20 +2120,11 @@
     "signup": "dm easyparadisemag on ig",
     "contact": "Matt proctor (@easyparadisemag)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7265891,
+    "lng": -73.9898025
   },
   {
     "id": 118,
-    "uuid": "f940ae95-a36d-499e-9de9-9f5850be1232",
     "name": "Stumble Inn",
     "day": "Monday",
     "startTime": "8:00 PM",
@@ -3201,20 +2138,11 @@
     "signup": "Dm @jonmahoneycomedy on sunday to sign up, cap at 14",
     "contact": "Jon Mahoney (@jonmahoneycomedy)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "9/1",
-      "smsResponse": "2036467484",
-      "signupEnabled": true
-    }
+    "lat": 40.771213,
+    "lng": -73.9563888
   },
   {
     "id": 119,
-    "uuid": "814be9e2-7e5e-4724-aa82-2ba2b768f11d",
     "name": "Tiny Cupboard",
     "day": "Monday",
     "startTime": "8:30 PM",
@@ -3228,20 +2156,11 @@
     "signup": "sign up there Open Mics Page for Tiny Cupboard Blue Room",
     "contact": "(@thetinycupboard)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.6836915,
+    "lng": -73.9112136
   },
   {
     "id": 120,
-    "uuid": "ef7c9d24-7c1f-476d-9524-462f5859bba9",
     "name": "Producer's Club",
     "day": "Monday",
     "startTime": "8:30 PM",
@@ -3255,20 +2174,11 @@
     "signup": "in person only",
     "contact": "Dee Major (@micdupnyc)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "9177517544",
-      "signupEnabled": true
-    }
+    "lat": 40.7595017,
+    "lng": -73.9914437
   },
   {
     "id": 121,
-    "uuid": "c9549caf-1d85-442e-a83b-0b9c3929c59e",
     "name": "Hell Yeah",
     "day": "Monday",
     "startTime": "9:00 PM",
@@ -3282,20 +2192,11 @@
     "signup": "signup there",
     "contact": "Garrett Snipes (@garrettsnipes)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "9/1",
-      "smsResponse": "4195444463",
-      "signupEnabled": true
-    }
+    "lat": 40.6732561,
+    "lng": -73.9897416
   },
   {
     "id": 122,
-    "uuid": "4278a857-6572-4e78-a394-99335287e27b",
     "name": "Mixed mic!The Joy of Ranting",
     "day": "Monday",
     "startTime": "9:00 PM",
@@ -3310,19 +2211,10 @@
     "contact": null,
     "notes": null,
     "lat": 40.7093075,
-    "lng": -73.9070026,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lng": -73.9070026
   },
   {
     "id": 123,
-    "uuid": "858aafe8-5f9b-4052-98df-51224b7e52b0",
     "name": "PIT $10 Musical Improv Jam",
     "day": "Monday",
     "startTime": "9:30 PM",
@@ -3336,20 +2228,11 @@
     "signup": "Improv Jams & Open Mics | Peoples Improv Theater",
     "contact": "Hunter Martin and Austin Olsen (@austino19)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Theatre Space",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7473936,
+    "lng": -73.9923712
   },
   {
     "id": 124,
-    "uuid": "d44aba41-316b-4208-8ee3-64415d84d308",
     "name": "Laughing Buddha Mic-a-thon",
     "day": "Monday",
     "startTime": "7:30 PM",
@@ -3364,19 +2247,10 @@
     "contact": "@laughingbuddhacomedy (@laughingbuddhacomedy)",
     "notes": null,
     "lat": 40.7498782,
-    "lng": -73.9947359,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "9/1",
-      "smsResponse": "7184902903",
-      "signupEnabled": true
-    }
+    "lng": -73.9947359
   },
   {
     "id": 125,
-    "uuid": "8c029eb4-ca1e-4754-bcaf-20930c6fd414",
     "name": "Tiny Cupboard",
     "day": "Monday",
     "startTime": "10:00 PM",
@@ -3390,20 +2264,11 @@
     "signup": "sign up there Open Mics Page for Tiny Cupboard Blue Room",
     "contact": "(@thetinycupboard)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.6836915,
+    "lng": -73.9112136
   },
   {
     "id": 126,
-    "uuid": "15213b26-a314-4506-92c0-4e3739815304",
     "name": "Sesh Mic",
     "day": "Monday",
     "startTime": "7:00 PM",
@@ -3417,20 +2282,11 @@
     "signup": "https://slotted.co/seshopenmics in advance required, they often cancel the mic if under 5 sign ups. If you don't see a sign up slot available, they cancelled the mic",
     "contact": "Sesh Comedy (@theflowstatemic)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7190777,
+    "lng": -73.9912865
   },
   {
     "id": 127,
-    "uuid": "fba803d2-b03e-400b-b544-11d8de8baa22",
     "name": "Spare Time open mic",
     "day": "Monday",
     "startTime": "6:30 PM",
@@ -3444,20 +2300,11 @@
     "signup": "List in person",
     "contact": "Jake Hamilton (jakefrickinhamilton) (@sparetimecomedy)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "11/10",
-      "smsResponse": "6784276404",
-      "signupEnabled": true
-    }
+    "lat": 40.7227408,
+    "lng": -73.9554759
   },
   {
     "id": 128,
-    "uuid": "4c582700-4e00-4846-80eb-31d615e69d17",
     "name": "Freak Latte",
     "day": "Monday",
     "startTime": "7:00 PM",
@@ -3471,20 +2318,11 @@
     "signup": "Sign up in person",
     "contact": "(@freaklattemic)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "11/18",
-      "smsResponse": "6147472896",
-      "signupEnabled": true
-    }
+    "lat": 40.6652417,
+    "lng": -73.9892672
   },
   {
     "id": 129,
-    "uuid": "8870eb08-4e52-4662-8d09-2d307aa63ddb",
     "name": "Rodney's Mic",
     "day": "Monday",
     "startTime": "9:45 PM",
@@ -3499,19 +2337,10 @@
     "contact": "@laughingbuddhacomedy (@laughingbuddhacomedy)",
     "notes": null,
     "lat": 40.7610441,
-    "lng": -73.960624,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "2025-12-17",
-      "smsResponse": "7184902903",
-      "signupEnabled": true
-    }
+    "lng": -73.960624
   },
   {
     "id": 130,
-    "uuid": "41547971-0f3e-40ed-a409-ad34dc99b87f",
     "name": "Win a Guest Spot! St. Mark's LaughingBuddha Mic",
     "day": "Tuesday",
     "startTime": "5:00 PM",
@@ -3525,20 +2354,11 @@
     "signup": "https://www.laughingbuddhacomedy.com/mics",
     "contact": "Laughing Buddha Staff (@laughingbuddhacomedy)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "7184902903",
-      "signupEnabled": true
-    }
+    "lat": 40.7645366,
+    "lng": -73.9833266
   },
   {
     "id": 131,
-    "uuid": "9d726e6c-1987-4b63-bee8-5e2009cd7fc0",
     "name": "GVCC mic",
     "day": "Tuesday",
     "startTime": "5:15 PM",
@@ -3552,20 +2372,11 @@
     "signup": "Show up go up (sugu)",
     "contact": "Steve Arons",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "9179136628",
-      "signupEnabled": true
-    }
+    "lat": 40.7296565,
+    "lng": -74.001091
   },
   {
     "id": 132,
-    "uuid": "a644954b-1bc1-420e-8dbe-99ee08389f88",
     "name": "2nd/4th UCB IMPROV JAM",
     "day": "Tuesday",
     "startTime": "5:30 PM",
@@ -3579,20 +2390,11 @@
     "signup": "New York Shows - Upright Citizens Brigade",
     "contact": "(@ucb)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Theatre Space",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7328695,
+    "lng": -73.9853584
   },
   {
     "id": 133,
-    "uuid": "773f3b6b-d5c6-43b6-b52d-7ee547297244",
     "name": "The Grisly Pear Mic-a-thon",
     "day": "Tuesday",
     "startTime": "5:45 PM",
@@ -3607,19 +2409,10 @@
     "contact": "Laughing Buddha Staff (@laughingbuddhacomedy)",
     "notes": null,
     "lat": 40.7645366,
-    "lng": -73.9833266,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "7184902903",
-      "signupEnabled": true
-    }
+    "lng": -73.9833266
   },
   {
     "id": 134,
-    "uuid": "76046782-1301-4309-b9b9-77a12884c199",
     "name": "Laughing Buddha Mic-a-thon",
     "day": "Tuesday",
     "startTime": "6:00 PM",
@@ -3634,19 +2427,10 @@
     "contact": "@laughingbuddhacomedy (@laughingbuddhacomedy)",
     "notes": null,
     "lat": 40.7498782,
-    "lng": -73.9947359,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "9/1",
-      "smsResponse": "7184902903",
-      "signupEnabled": true
-    }
+    "lng": -73.9947359
   },
   {
     "id": 135,
-    "uuid": "1e536831-cc9b-40b4-8bae-b20177756ea3",
     "name": "Comedy in Harlem",
     "day": "Tuesday",
     "startTime": "6:00 PM",
@@ -3660,20 +2444,11 @@
     "signup": "5:30 signup",
     "contact": "(@comedyinharlem)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "3477663001",
-      "signupEnabled": true
-    }
+    "lat": 40.8255092,
+    "lng": -73.9433543
   },
   {
     "id": 136,
-    "uuid": "c904454b-b103-4063-9910-644ccba54523",
     "name": "Tues LGBTQ QED Mic",
     "day": "Tuesday",
     "startTime": "6:00 PM",
@@ -3687,20 +2462,11 @@
     "signup": "Sign up at 8:00",
     "contact": "QED Staff (@qedastoria)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.775548,
+    "lng": -73.9149401
   },
   {
     "id": 137,
-    "uuid": "52e8ae11-4e97-4761-8248-90b77f8e91d9",
     "name": "Comedy Shop",
     "day": "Tuesday",
     "startTime": "6:00 PM",
@@ -3714,20 +2480,11 @@
     "signup": "https://comedyshopnyc.com/events/  $7.62 but you get a free drink or fries",
     "contact": "A comedy shop comic (@thecomedyshopvillage)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "7189869871",
-      "signupEnabled": true
-    }
+    "lat": 40.7288305,
+    "lng": -74.0001342
   },
   {
     "id": 138,
-    "uuid": "c458dbbb-f2b4-4af8-bcd1-9fdf9a963633",
     "name": "Jeans and a Nice Top",
     "day": "Tuesday",
     "startTime": "6:00 PM",
@@ -3742,19 +2499,10 @@
     "contact": "(@jeansandanicetopcomedy)",
     "notes": null,
     "lat": 40.7052293,
-    "lng": -73.9326664,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lng": -73.9326664
   },
   {
     "id": 139,
-    "uuid": "d97a8063-4b17-41b1-bcfc-84aced9f3437",
     "name": "Tammany Hall",
     "day": "Tuesday",
     "startTime": "6:00 PM",
@@ -3768,20 +2516,11 @@
     "signup": "signup there",
     "contact": "(@tammanyhallmic)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.6732561,
+    "lng": -73.9897416
   },
   {
     "id": 140,
-    "uuid": "3947c118-fd7c-478a-b011-02ff6f19d9f4",
     "name": "Yikes! mic",
     "day": "Tuesday",
     "startTime": "6:30 PM",
@@ -3795,20 +2534,11 @@
     "signup": "https://checkout.square.site/merchant/MLE3S94S31KSN/checkout/SIS6B57KN346S6DZKXCFZ26T",
     "contact": "Flop House host (@flophousecomedy)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "9089679178",
-      "signupEnabled": true
-    }
+    "lat": 40.7122083,
+    "lng": -73.9557789
   },
   {
     "id": 141,
-    "uuid": "ddd595be-35df-4510-b679-7f41dc726842",
     "name": "*Biweekly 1st3rd* Flopsauce",
     "day": "Tuesday",
     "startTime": "7:00 PM",
@@ -3822,20 +2552,11 @@
     "signup": "signup there",
     "contact": "MLeeBaker and KaylaKirk (@flopsaucemic)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.6937282,
+    "lng": -73.9298594
   },
   {
     "id": 142,
-    "uuid": "8a4ec719-b1da-4b49-be72-f70b6a4f3957",
     "name": "Producer's Club",
     "day": "Tuesday",
     "startTime": "5:00 PM",
@@ -3849,20 +2570,11 @@
     "signup": "in person only",
     "contact": "Dee Major (@micdupnyc)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "9177517544",
-      "signupEnabled": true
-    }
+    "lat": 40.7595017,
+    "lng": -73.9914437
   },
   {
     "id": 143,
-    "uuid": "3c07a147-d5df-47e1-ad1a-388cda47527c",
     "name": "Bad Behavior Mic",
     "day": "Monday",
     "startTime": "6:00 PM",
@@ -3876,20 +2588,11 @@
     "signup": "signup there",
     "contact": "@graci3city @silliebobbiebrown (@behaviormic)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "11/10",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7079355,
+    "lng": -73.9216365
   },
   {
     "id": 144,
-    "uuid": "8ed77b76-6cab-4c5f-8724-df02b30de727",
     "name": "Sesh Mic",
     "day": "Tuesday",
     "startTime": "7:00 PM",
@@ -3903,20 +2606,11 @@
     "signup": "https://slotted.co/seshopenmics in advance required, they often cancel the mic if under 5 sign ups. If you don't see a sign up slot available, they cancelled the mic",
     "contact": "Sesh Comedy (@theflowstatemic)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7190777,
+    "lng": -73.9912865
   },
   {
     "id": 145,
-    "uuid": "82d2bbbf-d576-47cc-8219-e22ab59f73b9",
     "name": "Grisly Pear",
     "day": "Tuesday",
     "startTime": "4:30 PM",
@@ -3930,20 +2624,11 @@
     "signup": "in person only",
     "contact": "@shanonharrislive (@grislypear)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "11/10",
-      "smsResponse": "6126991644",
-      "signupEnabled": true
-    }
+    "lat": 40.7298491,
+    "lng": -74.0008199
   },
   {
     "id": 146,
-    "uuid": "d5a9b1a6-5515-45a0-927d-8e18b73020e8",
     "name": "Grisly Pear",
     "day": "Tuesday",
     "startTime": "6:00 PM",
@@ -3957,20 +2642,11 @@
     "signup": "in person only",
     "contact": "@shanonharrislive (@grislypear)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "11/10",
-      "smsResponse": "6126991644",
-      "signupEnabled": true
-    }
+    "lat": 40.7298491,
+    "lng": -74.0008199
   },
   {
     "id": 147,
-    "uuid": "d184167a-3ceb-4b9b-a2b5-e8521e7d73ce",
     "name": "Sesh Mic",
     "day": "Tuesday",
     "startTime": "6:00 PM",
@@ -3984,20 +2660,11 @@
     "signup": "https://slotted.co/seshopenmics in advance required, they often cancel the mic if under 5 sign ups. If you don't see a sign up slot available, they cancelled the mic",
     "contact": "Sesh Comedy (@theflowstatemic)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7190777,
+    "lng": -73.9912865
   },
   {
     "id": 148,
-    "uuid": "932defc5-0280-4449-9efc-50db7cd59687",
     "name": "*biweekly* Plan B Comedy",
     "day": "Tuesday",
     "startTime": "7:00 PM",
@@ -4011,20 +2678,11 @@
     "signup": "Check planb.comedy Instagram page Friday/Saturday before",
     "contact": "Joe Gerbo & Harrison Marx (@planb.comedy)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7222419,
+    "lng": -73.9830182
   },
   {
     "id": 149,
-    "uuid": "00e667ff-46d7-4897-8800-6bcb4e1dc0fe",
     "name": "Comedians on the Loose",
     "day": "Tuesday",
     "startTime": "7:00 PM",
@@ -4038,20 +2696,11 @@
     "signup": "https://www.comediansontheloose.com/open-mics",
     "contact": "Sonja Savanovic (@cotlcomedy)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Coffee Shop",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7190777,
+    "lng": -73.9912865
   },
   {
     "id": 150,
-    "uuid": "4d2f2a37-32e6-45fc-9fd4-4ff48961bd51",
     "name": "Scorpion Records",
     "day": "Tuesday",
     "startTime": "7:00 PM",
@@ -4065,20 +2714,11 @@
     "signup": "signup there",
     "contact": "@scorpionrecordsnyc (@scorpionrecordsnyc)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7024343,
+    "lng": -73.9048087
   },
   {
     "id": 151,
-    "uuid": "3d404b0b-b74b-499e-a1d6-e33986cb3cb0",
     "name": "Comedy in Harlem",
     "day": "Tuesday",
     "startTime": "7:00 PM",
@@ -4092,20 +2732,11 @@
     "signup": "signup starts at 7, 2nd mic starts as soon as the 1st ends",
     "contact": "(@laughpackproductions)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "9732348388",
-      "signupEnabled": true
-    }
+    "lat": 40.8255092,
+    "lng": -73.9433543
   },
   {
     "id": 152,
-    "uuid": "8003aa08-1016-4f9f-b6b8-36f4221340e8",
     "name": "Filthy Casuals",
     "day": "Tuesday",
     "startTime": "7:30 PM",
@@ -4119,20 +2750,11 @@
     "signup": "signup there",
     "contact": "@SoulKorea and @jaspercwang (@filthycasuals_comedy)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.662189,
+    "lng": -73.9925465
   },
   {
     "id": 153,
-    "uuid": "a81982c5-283c-4c2a-9841-93fe4192292e",
     "name": "Peer Pressure",
     "day": "Tuesday",
     "startTime": "7:30 PM",
@@ -4146,20 +2768,11 @@
     "signup": "In person sign up.  Cap at 18 comics",
     "contact": "Meg Felling & John Fox (@peerpressurecomedy)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "9/1",
-      "smsResponse": "3144713318",
-      "signupEnabled": true
-    }
+    "lat": 40.6605429,
+    "lng": -73.9945714
   },
   {
     "id": 154,
-    "uuid": "7678198e-8283-4b6b-b05f-a619e9583ed9",
     "name": "Franzia mic",
     "day": "Tuesday",
     "startTime": "7:30 PM",
@@ -4174,19 +2787,10 @@
     "contact": "@frankyjebbcomedy and @bigcventry (@franziaofficial)",
     "notes": null,
     "lat": 40.6715078,
-    "lng": -73.9502019,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Coffee Shop",
-      "lastVerified": "9/1",
-      "smsResponse": "810-280-0497",
-      "signupEnabled": true
-    }
+    "lng": -73.9502019
   },
   {
     "id": 155,
-    "uuid": "8e25cee4-ca30-4bdb-b6fc-9539f5626b53",
     "name": "Daily Press",
     "day": "Tuesday",
     "startTime": "8:00 PM",
@@ -4201,19 +2805,10 @@
     "contact": "(@daily_press)",
     "notes": null,
     "lat": 40.6787074,
-    "lng": -73.9107399,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Coffee Shop",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lng": -73.9107399
   },
   {
     "id": 156,
-    "uuid": "9fb9b3d5-adcc-4667-aa0a-8bef7fb07482",
     "name": "Bob and Sam",
     "day": "Tuesday",
     "startTime": "8:00 PM",
@@ -4227,20 +2822,11 @@
     "signup": "signup there",
     "contact": "(@bobandsammic)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.6792534,
+    "lng": -73.968081
   },
   {
     "id": 157,
-    "uuid": "52b4195d-6399-4deb-a8e4-f41f5eb2944d",
     "name": "The Grisly Pear Mic-a-thon",
     "day": "Tuesday",
     "startTime": "8:00 PM",
@@ -4254,20 +2840,11 @@
     "signup": "https://www.laughingbuddhacomedy.com/mics",
     "contact": "Laughing Buddha Staff (@laughingbuddhacomedy)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "7184902903",
-      "signupEnabled": true
-    }
+    "lat": 40.7645366,
+    "lng": -73.9833266
   },
   {
     "id": 158,
-    "uuid": "17a2c537-d8b7-46a3-89a2-76c14ee855cd",
     "name": "StandUpTown",
     "day": "Tuesday",
     "startTime": "8:00 PM",
@@ -4281,20 +2858,11 @@
     "signup": "form goes up day before on Instagram (@stand_uptown) - DM day of if you miss it",
     "contact": "@stand_uptown (@stand_uptown)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "3474470357",
-      "signupEnabled": true
-    }
+    "lat": 40.7785553,
+    "lng": -73.9485889
   },
   {
     "id": 159,
-    "uuid": "0e3ab7f1-2448-4510-8d3f-a8475ef9eac9",
     "name": "*BIWEEKLY* Sanger Hall Open Mic",
     "day": "Tuesday",
     "startTime": "8:00 PM",
@@ -4308,20 +2876,11 @@
     "signup": "https://form.jotform.com/241604548408154",
     "contact": "@ohthatCharlie Davis/ Renee Nicholas (@sangerhallopenmic)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "9/1",
-      "smsResponse": "6628321445",
-      "signupEnabled": true
-    }
+    "lat": 40.7463932,
+    "lng": -73.9164999
   },
   {
     "id": 160,
-    "uuid": "c24663c5-c1a9-40ba-bef3-ed0f67b874ea",
     "name": "Tiny Cupboard",
     "day": "Tuesday",
     "startTime": "8:30 PM",
@@ -4335,20 +2894,11 @@
     "signup": "sign up there Open Mics Page for Tiny Cupboard Blue Room",
     "contact": "Tiny Cupboard (@thetinycupboard)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.6836915,
+    "lng": -73.9112136
   },
   {
     "id": 161,
-    "uuid": "18fa5e91-09f4-4eba-9bc1-6c4ebd08f744",
     "name": "BCC Open Ass Mic",
     "day": "Tuesday",
     "startTime": "8:30 PM",
@@ -4362,20 +2912,11 @@
     "signup": "signup there",
     "contact": "@ladylensky @michaelsan_juan @ew22 (@asscomedy_bk)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7077362,
+    "lng": -73.9434301
   },
   {
     "id": 162,
-    "uuid": "158166b2-b4ae-4317-9e1d-f286588ce7f3",
     "name": "*1st/3rd* Chopt",
     "day": "Tuesday",
     "startTime": "8:30 PM",
@@ -4389,20 +2930,11 @@
     "signup": "signup there",
     "contact": "@patrick_is_tall @daddyshens @lizzie.high (@choptmic)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.732185,
+    "lng": -74.0000205
   },
   {
     "id": 163,
-    "uuid": "1ecef174-a4b7-44f9-b50f-f73703e0c037",
     "name": "*Biweekly* Status",
     "day": "Tuesday",
     "startTime": "9:00 PM",
@@ -4416,20 +2948,11 @@
     "signup": "signup there",
     "contact": "(@statusmic)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.6937282,
+    "lng": -73.9298594
   },
   {
     "id": 164,
-    "uuid": "64416776-3461-4bac-ad50-dde9a16194a2",
     "name": "Comedians on the Loose",
     "day": "Tuesday",
     "startTime": "9:00 PM",
@@ -4443,20 +2966,11 @@
     "signup": "https://www.comediansontheloose.com/open-mics",
     "contact": "Sonja Savanovic (@cotlcomedy)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Coffee Shop",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7190777,
+    "lng": -73.9912865
   },
   {
     "id": 165,
-    "uuid": "92a570e4-a5f1-4503-8ad7-96ef73ea663d",
     "name": "Under St Marks Mixed Open Mic",
     "day": "Tuesday",
     "startTime": "9:30 PM",
@@ -4470,20 +2984,11 @@
     "signup": "https://tickets.frigid.nyc/event/6897:24/",
     "contact": "(@frigidnewyork)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Theatre Space",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7272575,
+    "lng": -73.9847924
   },
   {
     "id": 166,
-    "uuid": "2ae2ddfb-bb55-470e-b569-e5eb8bdae9e7",
     "name": "Fact Check Open Mic & Trivia with Simeon Goodson",
     "day": "Tuesday",
     "startTime": "8:00 PM",
@@ -4498,19 +3003,10 @@
     "contact": "@simeongoodson (@isolabrooklyn)",
     "notes": null,
     "lat": 40.7142437,
-    "lng": -73.9558401,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Theatre Space",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lng": -73.9558401
   },
   {
     "id": 167,
-    "uuid": "bc196bfd-25fd-4d2c-b7f1-3e607a4e39f8",
     "name": "Pure Chaos",
     "day": "Tuesday",
     "startTime": "7:00 PM",
@@ -4524,20 +3020,11 @@
     "signup": "Check schedule & signup link in bio IG @shayayanyc",
     "contact": "PURE CHAOS (@purechaoscomedy)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "11/10",
-      "smsResponse": "2142366215",
-      "signupEnabled": true
-    }
+    "lat": 40.7005289,
+    "lng": -73.9258157
   },
   {
     "id": 168,
-    "uuid": "34fd8637-625b-4337-92be-786e3b60441a",
     "name": "BUCKET Pandamonium",
     "day": "Tuesday",
     "startTime": "10:00 PM",
@@ -4551,20 +3038,11 @@
     "signup": "sign up there Open Mics Page for Tiny Cupboard Blue Room",
     "contact": "@spaandaa @caragh.ab (@pandamoniumcomedyy)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "2144540917",
-      "signupEnabled": true
-    }
+    "lat": 40.6836915,
+    "lng": -73.9112136
   },
   {
     "id": 169,
-    "uuid": "c9af89a9-5744-4fbe-87a6-b89f3f109447",
     "name": "1st/3rd Tues Pure Chaos",
     "day": "Tuesday",
     "startTime": "10:30 PM",
@@ -4578,20 +3056,11 @@
     "signup": "Check schedule & signup link in bio IG @shayayanyc",
     "contact": "@anddyradio 1st @billyprinsell 3rd (@purechaoscomedy)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "9/1",
-      "smsResponse": "2142366215",
-      "signupEnabled": true
-    }
+    "lat": 40.719117,
+    "lng": -73.9454171
   },
   {
     "id": 170,
-    "uuid": "47ae81ef-ec71-4486-b76e-3dca1a74fa38",
     "name": "Greenwich Village CC",
     "day": "Wednesday",
     "startTime": "1:00 PM",
@@ -4605,20 +3074,11 @@
     "signup": "Email DrewAndPetermic@gmail.com",
     "contact": "Drew Tessier (@comedybydrew)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "3475151553",
-      "signupEnabled": true
-    }
+    "lat": 40.7296565,
+    "lng": -74.001091
   },
   {
     "id": 171,
-    "uuid": "ceb6fb59-bbbd-4655-8eaf-559e1c259d79",
     "name": "Broadway Comedy Club",
     "day": "Wednesday",
     "startTime": "3:00 PM",
@@ -4632,20 +3092,11 @@
     "signup": "https://slotted.co/wednesdaymic",
     "contact": "Audrey Mora (@industryroom)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "4344222525",
-      "signupEnabled": true
-    }
+    "lat": 40.7644391,
+    "lng": -73.9856707
   },
   {
     "id": 172,
-    "uuid": "3fabdb63-f87b-4c2e-99be-5c91f47b4ebc",
     "name": "Greenwich Village CC",
     "day": "Wednesday",
     "startTime": "3:00 PM",
@@ -4659,20 +3110,11 @@
     "signup": "Email DrewAndPetermic@gmail.com",
     "contact": "Drew Tessier (@comedybydrew)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "3475151553",
-      "signupEnabled": true
-    }
+    "lat": 40.7296565,
+    "lng": -74.001091
   },
   {
     "id": 173,
-    "uuid": "b075ad57-c3c7-448c-a090-22246b70e421",
     "name": "Comedy Shop",
     "day": "Wednesday",
     "startTime": "4:00 PM",
@@ -4686,20 +3128,11 @@
     "signup": "https://comedyshopnyc.com/events/  $7.62 but you get a free drink or fries",
     "contact": "Comedy Shop (@thecomedyshopvillage)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "7189869871",
-      "signupEnabled": true
-    }
+    "lat": 40.7288305,
+    "lng": -74.0001342
   },
   {
     "id": 174,
-    "uuid": "e65b0c09-71fb-481d-afae-1d48a6dddb63",
     "name": "PIT Show MIC",
     "day": "Wednesday",
     "startTime": "4:00 PM",
@@ -4713,20 +3146,11 @@
     "signup": "Improv Jams & Open Mics | Peoples Improv Theater",
     "contact": "DJ Dark Davey (@dmruizcreative)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Theatre Space",
-      "lastVerified": "9/1",
-      "smsResponse": "9154127927",
-      "signupEnabled": true
-    }
+    "lat": 40.7473936,
+    "lng": -73.9923712
   },
   {
     "id": 175,
-    "uuid": "5a2b2ad6-e2cb-4161-82f8-66bdfa48176b",
     "name": "Grisly Pear",
     "day": "Wednesday",
     "startTime": "4:30 PM",
@@ -4740,20 +3164,11 @@
     "signup": "in person only",
     "contact": "@shanonharrislive (@shanonharrislive)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "6126991644",
-      "signupEnabled": true
-    }
+    "lat": 40.7298491,
+    "lng": -74.0008199
   },
   {
     "id": 176,
-    "uuid": "428469ec-d4dc-4027-bc61-6c28aa5775dd",
     "name": "Broadway Comedy Club",
     "day": "Wednesday",
     "startTime": "5:00 PM",
@@ -4767,20 +3182,11 @@
     "signup": "https://slotted.co/wednesdaymic",
     "contact": "Audrey Mora (@industryroom)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "4344222525",
-      "signupEnabled": true
-    }
+    "lat": 40.7644391,
+    "lng": -73.9856707
   },
   {
     "id": 177,
-    "uuid": "b3262222-26a3-49af-8a1d-aaf56b593d28",
     "name": "Greenwich village comedy club",
     "day": "Wednesday",
     "startTime": "5:00 PM",
@@ -4794,20 +3200,11 @@
     "signup": "DrewTessier.com",
     "contact": "Drew Tessier (@comedybydrew)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "3475151553",
-      "signupEnabled": true
-    }
+    "lat": 40.7296565,
+    "lng": -74.001091
   },
   {
     "id": 178,
-    "uuid": "6743137c-f451-41a6-ae84-f7e979660b3b",
     "name": "Secret 🤫 mic",
     "day": "Wednesday",
     "startTime": "5:00 PM",
@@ -4821,20 +3218,11 @@
     "signup": "signup there",
     "contact": "Dezmend Lee (@dezmend_lee_drumgould)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "6467450427",
-      "signupEnabled": true
-    }
+    "lat": 40.7265891,
+    "lng": -73.9898025
   },
   {
     "id": 179,
-    "uuid": "1e557ee2-7682-42ce-b3d8-d64c067dedf9",
     "name": "Get it goin",
     "day": "Wednesday",
     "startTime": "5:00 PM",
@@ -4848,20 +3236,11 @@
     "signup": "in person",
     "contact": "Josue Reveles (@Josue.Reveles_)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "9176481335",
-      "signupEnabled": true
-    }
+    "lat": 40.7645366,
+    "lng": -73.9833266
   },
   {
     "id": 180,
-    "uuid": "6602936a-9abf-4ade-9cba-41b7ff8a4824",
     "name": "ComedyMicsGmail The Stand",
     "day": "Wednesday",
     "startTime": "5:00 PM",
@@ -4876,19 +3255,10 @@
     "contact": "Josh Homer",
     "notes": null,
     "lat": 40.7353379,
-    "lng": -73.988463,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lng": -73.988463
   },
   {
     "id": 181,
-    "uuid": "00de8153-b986-40f3-8080-16fab9905b77",
     "name": "Producer's Club",
     "day": "Wednesday",
     "startTime": "5:00 PM",
@@ -4902,20 +3272,11 @@
     "signup": "in person only",
     "contact": "Dee Major (@micdupnyc)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "9177517544",
-      "signupEnabled": true
-    }
+    "lat": 40.7595017,
+    "lng": -73.9914437
   },
   {
     "id": 182,
-    "uuid": "0a1154b7-18e6-427b-a569-6c23849e406a",
     "name": "teachers lounge",
     "day": "Wednesday",
     "startTime": "5:30 PM",
@@ -4929,20 +3290,11 @@
     "signup": "signup there",
     "contact": "@paigemode @_timchilds (@teachersloungeopenmic)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "4848850630",
-      "signupEnabled": true
-    }
+    "lat": 40.6732561,
+    "lng": -73.9897416
   },
   {
     "id": 183,
-    "uuid": "9e7c9741-7bc5-4ad8-a7d5-055c65ae9854",
     "name": "fully charged",
     "day": "Wednesday",
     "startTime": "5:30 PM",
@@ -4956,20 +3308,11 @@
     "signup": "signup there",
     "contact": null,
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7049722,
+    "lng": -73.9229059
   },
   {
     "id": 184,
-    "uuid": "d3bd5c3e-b9bb-467b-a1cf-fec71fffd6bd",
     "name": "Greek Yogurt",
     "day": "Wednesday",
     "startTime": "5:45 PM",
@@ -4983,20 +3326,11 @@
     "signup": "signup there",
     "contact": "Chris Lopez and Javier Hernandez (@greekyogurtcomedy, @lifeoflopez, @javi20hernandez)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "4079243899",
-      "signupEnabled": true
-    }
+    "lat": 40.7674298,
+    "lng": -73.9329303
   },
   {
     "id": 185,
-    "uuid": "046b9a55-cc32-4fbc-8393-5eff7c70fef8",
     "name": "2 eli's late mic",
     "day": "Tuesday",
     "startTime": "10:00 PM",
@@ -5010,20 +3344,11 @@
     "signup": "https://www.laughingbuddhacomedy.com/mics",
     "contact": "Eli Maroney & Eli #2 (@eli.maroney)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "11/10",
-      "smsResponse": "6033159208",
-      "signupEnabled": true
-    }
+    "lat": 40.7645366,
+    "lng": -73.9833266
   },
   {
     "id": 186,
-    "uuid": "0f7cb01c-8879-4ea3-a97b-0de90802490a",
     "name": "Michael Prank Mic",
     "day": "Tuesday",
     "startTime": "11:00 PM",
@@ -5038,19 +3363,10 @@
     "contact": "@beatrix_mcd (@michaelprankmic)",
     "notes": null,
     "lat": 40.7297418,
-    "lng": -74.0004218,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "12/16",
-      "smsResponse": "9148441722",
-      "signupEnabled": true
-    }
+    "lng": -74.0004218
   },
   {
     "id": 187,
-    "uuid": "6f772e76-eba9-447c-808a-d3079ab724f5",
     "name": "wizman comedy",
     "day": "Wednesday",
     "startTime": "6:00 PM",
@@ -5064,20 +3380,11 @@
     "signup": "signup there",
     "contact": "@RyanCiecwisz (@wizman.comedy)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "11/10",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7139062,
+    "lng": -73.9489165
   },
   {
     "id": 188,
-    "uuid": "60d53b64-9256-417b-8892-0e23f02ab766",
     "name": "(lgbtq + women) we wear pink",
     "day": "Wednesday",
     "startTime": "5:45 PM",
@@ -5092,19 +3399,10 @@
     "contact": "Alex Kimedian and Patricia Dinglas (@wewearpinkcomedy)",
     "notes": "required sign up online ($2.38 in fees)",
     "lat": 40.7808191,
-    "lng": -73.9805102,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club   ",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lng": -73.9805102
   },
   {
     "id": 189,
-    "uuid": "123eaccd-8b4f-4034-b1cf-39fa444c4dbd",
     "name": "BK Made Open Mic",
     "day": "Wednesday",
     "startTime": "6:00 PM",
@@ -5118,20 +3416,11 @@
     "signup": "Sign up in person",
     "contact": "(@bkmade_openmics)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "11/10",
-      "smsResponse": "5165249361",
-      "signupEnabled": true
-    }
+    "lat": 40.6939773,
+    "lng": -73.9073961
   },
   {
     "id": 190,
-    "uuid": "bf6f9fce-60a6-42ae-98d6-8ab4550f3e01",
     "name": "Phoenix Bar",
     "day": "Wednesday",
     "startTime": "6:00 PM",
@@ -5145,20 +3434,11 @@
     "signup": "in person only",
     "contact": "Wayne Charles II (@phoenixcomedynyc)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "3476201026",
-      "signupEnabled": true
-    }
+    "lat": 40.7299744,
+    "lng": -73.9811697
   },
   {
     "id": 191,
-    "uuid": "899b2f92-ac33-4288-ab4c-650b55270d1f",
     "name": "Producer's Club",
     "day": "Wednesday",
     "startTime": "6:00 PM",
@@ -5172,20 +3452,11 @@
     "signup": "in person only",
     "contact": "Dee Major (@micdupnyc)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "9177517544",
-      "signupEnabled": true
-    }
+    "lat": 40.7595017,
+    "lng": -73.9914437
   },
   {
     "id": 192,
-    "uuid": "1dee78bf-3596-498a-a822-c6be8f4ad38f",
     "name": "QED Open Mic",
     "day": "Wednesday",
     "startTime": "6:00 PM",
@@ -5199,20 +3470,11 @@
     "signup": "Sign up at 5:30",
     "contact": "QED Staff (@qedastoria)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Coffee Shop",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.775548,
+    "lng": -73.9149401
   },
   {
     "id": 193,
-    "uuid": "6dabc797-5897-4a0a-879b-54efde8092aa",
     "name": "finite jest",
     "day": "Wednesday",
     "startTime": "6:30 PM",
@@ -5226,20 +3488,11 @@
     "signup": "https://checkout.square.site/merchant/MLE3S94S31KSN/checkout/SIS6B57KN346S6DZKXCFZ26T",
     "contact": "Flop House host (@flophousecomedy)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "9089679178",
-      "signupEnabled": true
-    }
+    "lat": 40.7122083,
+    "lng": -73.9557789
   },
   {
     "id": 194,
-    "uuid": "d17d18dd-7707-4794-98d6-cf0ca51ba9f3",
     "name": "the ham mic",
     "day": "Wednesday",
     "startTime": "7:00 PM",
@@ -5253,20 +3506,11 @@
     "signup": "signup there",
     "contact": "@ellistthomson and @mollymanier (@itsthehammic)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7073204,
+    "lng": -73.9537223
   },
   {
     "id": 195,
-    "uuid": "94be5bb5-e46c-4d43-bb45-9d734c274d3e",
     "name": "Freddy's mic",
     "day": "Wednesday",
     "startTime": "7:00 PM",
@@ -5281,19 +3525,10 @@
     "contact": "Asif L./Mike H. (@fisacomedy)",
     "notes": null,
     "lat": 40.6632901,
-    "lng": -73.9911383,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "9/1",
-      "smsResponse": "4044289418",
-      "signupEnabled": true
-    }
+    "lng": -73.9911383
   },
   {
     "id": 196,
-    "uuid": "6f74d61a-c76f-4722-a7c5-ab4b0ae0cbd7",
     "name": "Jellicle Ball (4 girlies+queers)",
     "day": "Wednesday",
     "startTime": "7:00 PM",
@@ -5308,19 +3543,10 @@
     "contact": "@megsi_lee @eddie_estrada (@jellicle_comedy)",
     "notes": null,
     "lat": 40.7480429,
-    "lng": -73.9919743,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "Unverified",
-      "smsResponse": "9253542292",
-      "signupEnabled": true
-    }
+    "lng": -73.9919743
   },
   {
     "id": 197,
-    "uuid": "c91dfa8d-edad-4f3b-9410-b5cb5e2351f9",
     "name": "Bushwick Comedy Club",
     "day": "Wednesday",
     "startTime": "7:30 PM",
@@ -5334,20 +3560,11 @@
     "signup": "www.bushwickcomedy.com",
     "contact": "Jad/Brooks/Kyle (@bushwickcomedyclub)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.702,
+    "lng": -73.9299503
   },
   {
     "id": 198,
-    "uuid": "e33bfece-02d2-43fc-a5ed-89450bfe60aa",
     "name": "death to all of them",
     "day": "Wednesday",
     "startTime": "7:30 PM",
@@ -5361,20 +3578,11 @@
     "signup": "signup there",
     "contact": "@courtneyrpeck @erica.l.green (@deathtoallofthem)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "9/1",
-      "smsResponse": "3605100503",
-      "signupEnabled": true
-    }
+    "lat": 40.7042359,
+    "lng": -73.934179
   },
   {
     "id": 199,
-    "uuid": "82b14c86-6e66-45c2-8ae5-e600fe288e8f",
     "name": "Suite Gay Bar Mic",
     "day": "Wednesday",
     "startTime": "7:30 PM",
@@ -5388,20 +3596,11 @@
     "signup": "Show Up to Go Up beginning at 7:15 PM, gay bar but all performers welcome (usually has audience)",
     "contact": "Peter Struckmeyer (@pstruck14 on Instagram - please follow me so I see your message!)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "7035990681",
-      "signupEnabled": true
-    }
+    "lat": 40.8026454,
+    "lng": -73.964587
   },
   {
     "id": 200,
-    "uuid": "12d7b490-1557-4f2b-a16e-68c1dff5f475",
     "name": "Tiny Cupboard",
     "day": "Wednesday",
     "startTime": "8:30 PM",
@@ -5415,20 +3614,11 @@
     "signup": "sign up there Open Mics Page for Tiny Cupboard Blue Room",
     "contact": "Molly Levine (@thetinycupboard)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.6836915,
+    "lng": -73.9112136
   },
   {
     "id": 201,
-    "uuid": "da4c34b8-d473-44c5-ae41-0eaf264f3777",
     "name": "Sesh Mic",
     "day": "Wednesday",
     "startTime": "7:00 PM",
@@ -5442,20 +3632,11 @@
     "signup": "https://slotted.co/seshopenmics in advance required, they often cancel the mic if under 5 sign ups. If you don't see a sign up slot available, they cancelled the mic",
     "contact": "Sesh Comedy (@theflowstatemic)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7190777,
+    "lng": -73.9912865
   },
   {
     "id": 202,
-    "uuid": "534cd37a-c806-4db1-88dc-0420f346cad6",
     "name": "Grisly Pear",
     "day": "Wednesday",
     "startTime": "6:00 PM",
@@ -5469,20 +3650,11 @@
     "signup": "in person only",
     "contact": "@shanonharrislive (@grislypear)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "11/10",
-      "smsResponse": "6126991644",
-      "signupEnabled": true
-    }
+    "lat": 40.7298491,
+    "lng": -74.0008199
   },
   {
     "id": 203,
-    "uuid": "9fe1c821-9689-4d3a-ae7a-ceffcbdae0d2",
     "name": "sick hat / mic 2",
     "day": "Wednesday",
     "startTime": "7:45 PM",
@@ -5497,19 +3669,10 @@
     "contact": "Becky Granger (@Beckdaddyg)",
     "notes": null,
     "lat": 40.7066852,
-    "lng": -73.9235217,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lng": -73.9235217
   },
   {
     "id": 204,
-    "uuid": "caa755e4-6a43-4271-a395-c2ee26eddc42",
     "name": "Variety Mic",
     "day": "Wednesday",
     "startTime": "6:30 PM",
@@ -5524,19 +3687,10 @@
     "contact": "Shawn Wickens (@timetravelingstoned)",
     "notes": null,
     "lat": 40.7562531,
-    "lng": -73.9976964,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "11/10",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lng": -73.9976964
   },
   {
     "id": 205,
-    "uuid": "4a6d0697-442d-44ca-9d33-608982388a82",
     "name": "Caravan of Dreams",
     "day": "Wednesday",
     "startTime": "7:00 PM",
@@ -5550,20 +3704,11 @@
     "signup": "https://slotted.co/yve9r1gg",
     "contact": "Cooper Rego/Paola Dattner (@paoladattner)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "11/10",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7264058,
+    "lng": -73.9856462
   },
   {
     "id": 206,
-    "uuid": "99028ebe-998f-43a8-a996-fda99067cb62",
     "name": "The Hump Day Soirée",
     "day": "Wednesday",
     "startTime": "7:00 PM",
@@ -5577,20 +3722,11 @@
     "signup": "Show up, go up",
     "contact": "Tyler Losier (@losierty13)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "11/10",
-      "smsResponse": "9085316973",
-      "signupEnabled": true
-    }
+    "lat": 40.6937282,
+    "lng": -73.9298594
   },
   {
     "id": 207,
-    "uuid": "59ba1d47-c3ab-469c-94eb-0b9d1a2d3d71",
     "name": "BK Made Open Mic",
     "day": "Wednesday",
     "startTime": "8:00 PM",
@@ -5604,20 +3740,11 @@
     "signup": "Sign up in person",
     "contact": "(@bkmade_openmics)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "11/10",
-      "smsResponse": "5165249361",
-      "signupEnabled": true
-    }
+    "lat": 40.6939773,
+    "lng": -73.9073961
   },
   {
     "id": 208,
-    "uuid": "c9f211f2-07fb-4bf7-b44e-6958bc09f561",
     "name": "PIT Scene Improv Jam",
     "day": "Wednesday",
     "startTime": "9:30 PM",
@@ -5631,20 +3758,11 @@
     "signup": "Improv Jams & Open Mics | Peoples Improv Theater",
     "contact": "Slaney Rose Jordan, Melody Conte & Rob Davenport! (@thesongcountess)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Theatre Space",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7473936,
+    "lng": -73.9923712
   },
   {
     "id": 209,
-    "uuid": "251c539e-989f-442f-ac92-2a1b71e29f59",
     "name": "Laughing Buddha Mic-a-thon",
     "day": "Wednesday",
     "startTime": "6:00 PM",
@@ -5659,19 +3777,10 @@
     "contact": "@laughingbuddhacomedy (@laughingbuddhacomedy)",
     "notes": null,
     "lat": 40.7498782,
-    "lng": -73.9947359,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "9/1",
-      "smsResponse": "7184902903",
-      "signupEnabled": true
-    }
+    "lng": -73.9947359
   },
   {
     "id": 210,
-    "uuid": "eaf0ac36-0864-4a39-a8d4-b50d30e0ccc7",
     "name": "Laughing Buddha Mic-a-thon",
     "day": "Wednesday",
     "startTime": "7:30 PM",
@@ -5686,19 +3795,10 @@
     "contact": "@laughingbuddhacomedy (@laughingbuddhacomedy)",
     "notes": null,
     "lat": 40.7498782,
-    "lng": -73.9947359,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "9/1",
-      "smsResponse": "7184902903",
-      "signupEnabled": true
-    }
+    "lng": -73.9947359
   },
   {
     "id": 211,
-    "uuid": "23626566-e9f6-45e3-b6c2-9a21828ea9ca",
     "name": "Laughing Buddha Mic-a-thon",
     "day": "Wednesday",
     "startTime": "9:00 PM",
@@ -5713,19 +3813,10 @@
     "contact": "@laughingbuddhacomedy (@laughingbuddhacomedy)",
     "notes": null,
     "lat": 40.7498782,
-    "lng": -73.9947359,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "9/1",
-      "smsResponse": "7184902903",
-      "signupEnabled": true
-    }
+    "lng": -73.9947359
   },
   {
     "id": 212,
-    "uuid": "e583fed1-93c9-4ef2-bb71-9ea71af412c3",
     "name": "Rodney's Laughing Buddha",
     "day": "Wednesday",
     "startTime": "9:45 PM",
@@ -5739,20 +3830,11 @@
     "signup": "https://www.laughingbuddhacomedy.com/mics",
     "contact": "Laughing Buddha Staff (@laughingbuddhacomedy)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "9/1",
-      "smsResponse": "7184902903",
-      "signupEnabled": true
-    }
+    "lat": 40.7610441,
+    "lng": -73.960624
   },
   {
     "id": 213,
-    "uuid": "d9a9c0b5-7593-40a8-a748-c7ed80109ac6",
     "name": "Tiny Cupboard",
     "day": "Wednesday",
     "startTime": "10:00 PM",
@@ -5766,20 +3848,11 @@
     "signup": "sign up there Open Mics Page for Tiny Cupboard Blue Room",
     "contact": "Blue Room host (@thetinycupboard)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.6836915,
+    "lng": -73.9112136
   },
   {
     "id": 214,
-    "uuid": "faca8d7f-7870-41f1-92b3-e289cd13516c",
     "name": "Broadway Comedy Club",
     "day": "Thursday",
     "startTime": "3:00 PM",
@@ -5793,20 +3866,11 @@
     "signup": "https://slotted.co/gig-mic",
     "contact": "Audrey Mora (@industryroom)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "4344222525",
-      "signupEnabled": true
-    }
+    "lat": 40.7644391,
+    "lng": -73.9856707
   },
   {
     "id": 215,
-    "uuid": "de0d1f4b-d036-4748-998c-18a628bfc572",
     "name": "Comedy Shop",
     "day": "Thursday",
     "startTime": "4:00 PM",
@@ -5820,20 +3884,11 @@
     "signup": "https://comedyshopnyc.com/events/  $7.62 but you get a free drink or fries",
     "contact": "A comedy shop comic (@thecomedyshopvillage)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "7189869871",
-      "signupEnabled": true
-    }
+    "lat": 40.7288305,
+    "lng": -74.0001342
   },
   {
     "id": 216,
-    "uuid": "a5a61f4e-5762-4e54-b19b-b33801673c11",
     "name": "Laughing Buddha St. Marks",
     "day": "Thursday",
     "startTime": "4:30 PM",
@@ -5847,20 +3902,11 @@
     "signup": "https://www.laughingbuddhacomedy.com/mics",
     "contact": "Josue Reveles (@laughingbuddhacomedy)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "7184902903",
-      "signupEnabled": true
-    }
+    "lat": 40.7291,
+    "lng": -73.9897
   },
   {
     "id": 217,
-    "uuid": "3f94f1c2-f9c0-4d16-9931-38a0238351a1",
     "name": "Broadway Comedy Club",
     "day": "Thursday",
     "startTime": "5:00 PM",
@@ -5874,20 +3920,11 @@
     "signup": "https://slotted.co/gig-mic",
     "contact": "Audrey Mora (@industryroom)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "4344222525",
-      "signupEnabled": true
-    }
+    "lat": 40.7644391,
+    "lng": -73.9856707
   },
   {
     "id": 218,
-    "uuid": "805960f4-ae7c-4c33-b5cf-5cca266f9609",
     "name": "The Grisly Pear Guest Spot Mic",
     "day": "Thursday",
     "startTime": "5:00 PM",
@@ -5901,20 +3938,11 @@
     "signup": "https://www.laughingbuddhacomedy.com/mics",
     "contact": "Laughing Buddha Staff (@laughingbuddhacomedy)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "7184902903",
-      "signupEnabled": true
-    }
+    "lat": 40.7645366,
+    "lng": -73.9833266
   },
   {
     "id": 219,
-    "uuid": "5b43d5b5-e4d0-4038-b02b-38ea43d7434c",
     "name": "Knockouts comedy",
     "day": "Thursday",
     "startTime": "5:00 PM",
@@ -5929,19 +3957,10 @@
     "contact": "Knockouts Comedy (@knockoutscomedy)",
     "notes": null,
     "lat": 40.7353379,
-    "lng": -73.988463,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lng": -73.988463
   },
   {
     "id": 220,
-    "uuid": "582b9d02-7455-472d-8c53-ae562f8acb70",
     "name": "Laughing Buddha Mic-a-thon",
     "day": "Thursday",
     "startTime": "6:00 PM",
@@ -5956,19 +3975,10 @@
     "contact": "@laughingbuddhacomedy (@laughingbuddhacomedy)",
     "notes": null,
     "lat": 40.7498782,
-    "lng": -73.9947359,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "9/1",
-      "smsResponse": "7184902903",
-      "signupEnabled": true
-    }
+    "lng": -73.9947359
   },
   {
     "id": 221,
-    "uuid": "9b15deb4-b70f-449c-a8af-bb7ea2921811",
     "name": "Comedy Shop",
     "day": "Thursday",
     "startTime": "6:00 PM",
@@ -5982,20 +3992,11 @@
     "signup": "https://comedyshopnyc.com/events/  $7.62 but you get a free drink or fries",
     "contact": "A comedy shop comic (@thecomedyshopvillage)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "7189869871",
-      "signupEnabled": true
-    }
+    "lat": 40.7288305,
+    "lng": -74.0001342
   },
   {
     "id": 222,
-    "uuid": "6b93a0fa-f6d4-4e2d-8d2a-baf421efe704",
     "name": "Sesh Mic",
     "day": "Thursday",
     "startTime": "5:00 PM",
@@ -6009,20 +4010,11 @@
     "signup": "https://slotted.co/seshopenmics in advance required, they often cancel the mic if under 5 sign ups. If you don't see a sign up slot available, they cancelled the mic",
     "contact": "Sesh Comedy (@theflowstatemic)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7190777,
+    "lng": -73.9912865
   },
   {
     "id": 223,
-    "uuid": "454115c9-7dca-49d0-b664-0ca8b0b42403",
     "name": "Manic Depression Mic",
     "day": "Tuesday",
     "startTime": "9:00 PM",
@@ -6037,19 +4029,10 @@
     "contact": "Liz (@manicdepressionmic)",
     "notes": null,
     "lat": 40.7133906,
-    "lng": -73.9549636,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Theatre Space",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lng": -73.9549636
   },
   {
     "id": 224,
-    "uuid": "cef9df3d-eb8a-4e7d-a26a-b9ddd2d10950",
     "name": "Grisly Pear",
     "day": "Thursday",
     "startTime": "4:30 PM",
@@ -6063,20 +4046,11 @@
     "signup": "in person only",
     "contact": "A grisly pear comic (@grislypear)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "11/10",
-      "smsResponse": "6126991644",
-      "signupEnabled": true
-    }
+    "lat": 40.7298491,
+    "lng": -74.0008199
   },
   {
     "id": 225,
-    "uuid": "bff4746a-f6d8-43fb-96a5-57545d12d914",
     "name": "*biweekly* LGBTQ Oh Craft! Beer mic",
     "day": "Thursday",
     "startTime": "5:30 PM",
@@ -6090,20 +4064,11 @@
     "signup": "in person only",
     "contact": "Freddy Valoy (@freddyvaloy)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "11/10",
-      "smsResponse": "7043079795",
-      "signupEnabled": true
-    }
+    "lat": 40.8259371,
+    "lng": -73.9468664
   },
   {
     "id": 226,
-    "uuid": "18838f99-fd80-46f5-a6f9-dc9def84e863",
     "name": "Malev Phoenix Phoeedback",
     "day": "Thursday",
     "startTime": "6:05 PM",
@@ -6118,19 +4083,10 @@
     "contact": "Adam Malev at Phoenix Bar (@phoenixcomedynyc)",
     "notes": null,
     "lat": 40.7299744,
-    "lng": -73.9811697,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "9/1",
-      "smsResponse": "3476201026",
-      "signupEnabled": true
-    }
+    "lng": -73.9811697
   },
   {
     "id": 227,
-    "uuid": "26ea0619-42e2-426b-902e-295f7e28850e",
     "name": "Bushwick Comedy Club",
     "day": "Thursday",
     "startTime": "6:30 PM",
@@ -6144,20 +4100,11 @@
     "signup": "www.bushwickcomedy.com",
     "contact": "Jad/Brooks/Kyle (@bushwickcomedyclub)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.702,
+    "lng": -73.9299503
   },
   {
     "id": 228,
-    "uuid": "56696571-72c3-4102-bd89-9e7ce6dd91f0",
     "name": "Flop Mic",
     "day": "Thursday",
     "startTime": "6:30 PM",
@@ -6171,20 +4118,11 @@
     "signup": "https://checkout.square.site/merchant/MLE3S94S31KSN/checkout/SIS6B57KN346S6DZKXCFZ26T",
     "contact": "Flop House host (@flophousecomedy)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "9089679178",
-      "signupEnabled": true
-    }
+    "lat": 40.7122083,
+    "lng": -73.9557789
   },
   {
     "id": 229,
-    "uuid": "c501698b-a54d-4826-8288-bafbb1c64f49",
     "name": "taylor drew feedback mic",
     "day": "Thursday",
     "startTime": "7:00 PM",
@@ -6198,20 +4136,11 @@
     "signup": "signup there",
     "contact": "Taylor Drew (@taylordrew4u)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "9/1",
-      "smsResponse": "4436248116",
-      "signupEnabled": true
-    }
+    "lat": 40.6937282,
+    "lng": -73.9298594
   },
   {
     "id": 230,
-    "uuid": "2f1fd122-8680-4bd3-b129-197977940488",
     "name": "Comedians on the Loose",
     "day": "Thursday",
     "startTime": "7:00 PM",
@@ -6225,20 +4154,11 @@
     "signup": "https://www.comediansontheloose.com/open-mics",
     "contact": "Sonja Savanovic (@cotlcomedy)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Coffee Shop",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7190777,
+    "lng": -73.9912865
   },
   {
     "id": 231,
-    "uuid": "6e6d492d-8cac-471d-a570-3cdc5e83a98e",
     "name": "Manhattan Mic",
     "day": "Thursday",
     "startTime": "7:00 PM",
@@ -6252,20 +4172,11 @@
     "signup": "signup there",
     "contact": "@SeanPeecook and @Eion_ (@themanhattanmic)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7073204,
+    "lng": -73.9537223
   },
   {
     "id": 232,
-    "uuid": "d5a70c63-563f-42e4-ba77-3dcffbacdee0",
     "name": "pizzagator",
     "day": "Thursday",
     "startTime": "7:30 PM",
@@ -6279,20 +4190,11 @@
     "signup": "signup there",
     "contact": "(@alligatorlounge)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7139062,
+    "lng": -73.9489165
   },
   {
     "id": 233,
-    "uuid": "e117305b-e191-4f50-b629-73ddb0716adc",
     "name": "2nd/4th Thurs The fran mic",
     "day": "Thursday",
     "startTime": "8:00 PM",
@@ -6306,20 +4208,11 @@
     "signup": "signup there",
     "contact": "@allmyproblemz and @suchagreatsky (@franopenmic)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7145615,
+    "lng": -73.9425485
   },
   {
     "id": 234,
-    "uuid": "4795ece3-a652-4931-b78c-4d1b60434e96",
     "name": "Laughing Buddha Mic-a-thon",
     "day": "Thursday",
     "startTime": "7:30 PM",
@@ -6334,19 +4227,10 @@
     "contact": "@laughingbuddhacomedy (@laughingbuddhacomedy)",
     "notes": null,
     "lat": 40.7498782,
-    "lng": -73.9947359,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "9/1",
-      "smsResponse": "7184902903",
-      "signupEnabled": true
-    }
+    "lng": -73.9947359
   },
   {
     "id": 235,
-    "uuid": "e5c52351-52ad-4df9-9009-4c615505d16f",
     "name": "Trauma Dump Thursday Mic",
     "day": "Thursday",
     "startTime": "8:00 PM",
@@ -6360,20 +4244,11 @@
     "signup": "signup there 30 mins prior",
     "contact": "Rachel Warden (@traumadumpthursdaymic)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "9796762349",
-      "signupEnabled": true
-    }
+    "lat": 40.6859068,
+    "lng": -73.9816185
   },
   {
     "id": 236,
-    "uuid": "d8415ac9-0fd1-46c8-9e09-f56ee8a5fc3f",
     "name": "Flop Mic",
     "day": "Thursday",
     "startTime": "8:00 PM",
@@ -6387,20 +4262,11 @@
     "signup": "https://checkout.square.site/merchant/MLE3S94S31KSN/checkout/SIS6B57KN346S6DZKXCFZ26T",
     "contact": "Flop House host (@flophousecomedy)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "9089679178",
-      "signupEnabled": true
-    }
+    "lat": 40.7122083,
+    "lng": -73.9557789
   },
   {
     "id": 237,
-    "uuid": "1079b37f-ddb6-4220-97c8-b3ad6452186e",
     "name": "pop shop",
     "day": "Thursday",
     "startTime": "8:00 PM",
@@ -6415,19 +4281,10 @@
     "contact": "@sisoyoscarmonroy (@popshopcomedy)",
     "notes": null,
     "lat": 40.7486201,
-    "lng": -73.9130718,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Coffee Shop",
-      "lastVerified": "9/1",
-      "smsResponse": "3476840899",
-      "signupEnabled": true
-    }
+    "lng": -73.9130718
   },
   {
     "id": 238,
-    "uuid": "4ab4b30b-4f6b-48e1-a795-5fbfb3bfb1b4",
     "name": "Sesh Mic",
     "day": "Thursday",
     "startTime": "6:00 PM",
@@ -6441,20 +4298,11 @@
     "signup": "https://slotted.co/seshopenmics in advance required, they often cancel the mic if under 5 sign ups. If you don't see a sign up slot available, they cancelled the mic",
     "contact": "Sesh Comedy (@theflowstatemic)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7190777,
+    "lng": -73.9912865
   },
   {
     "id": 239,
-    "uuid": "3876afec-e68b-499d-926d-f69d16b6bb55",
     "name": "Let's Go Mental",
     "day": "Thursday",
     "startTime": "5:00 PM",
@@ -6469,19 +4317,10 @@
     "contact": "Jonah (10 comic cap) (@standupny)",
     "notes": null,
     "lat": 40.759647,
-    "lng": -73.9862944,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Other",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lng": -73.9862944
   },
   {
     "id": 240,
-    "uuid": "9f96a5ea-5fc2-4ec6-9224-8232c688cad1",
     "name": "Grisly Pear",
     "day": "Thursday",
     "startTime": "6:00 PM",
@@ -6495,20 +4334,11 @@
     "signup": "in person only",
     "contact": "A grisly pear comic (@grislypear)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "11/10",
-      "smsResponse": "6126991644",
-      "signupEnabled": true
-    }
+    "lat": 40.7298491,
+    "lng": -74.0008199
   },
   {
     "id": 241,
-    "uuid": "d9ca0086-fb18-42a8-a279-c8a0dddbfbcf",
     "name": "Sesh Mic",
     "day": "Thursday",
     "startTime": "7:00 PM",
@@ -6522,20 +4352,11 @@
     "signup": "https://slotted.co/seshopenmics in advance required, they often cancel the mic if under 5 sign ups. If you don't see a sign up slot available, they cancelled the mic",
     "contact": "Sesh Comedy (@theflowstatemic)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7190777,
+    "lng": -73.9912865
   },
   {
     "id": 242,
-    "uuid": "634f42f8-7c47-48a2-882b-23cae51b8110",
     "name": "*2nd/4th* backyard baseball",
     "day": "Thursday",
     "startTime": "7:00 PM",
@@ -6549,20 +4370,11 @@
     "signup": "Sign up in person",
     "contact": "(@backyardbbmic)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7145615,
+    "lng": -73.9425485
   },
   {
     "id": 243,
-    "uuid": "da8cfc1b-3ae0-428e-85df-cc6eceb2b622",
     "name": "PIT Scene Improv Jam",
     "day": "Thursday",
     "startTime": "6:00 PM",
@@ -6576,20 +4388,11 @@
     "signup": "Improv Jams & Open Mics | Peoples Improv Theater",
     "contact": "Beau Danner and Nick Rockwell (@hibeaudanner)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Theatre Space",
-      "lastVerified": "11/10",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7473936,
+    "lng": -73.9923712
   },
   {
     "id": 244,
-    "uuid": "c7e33bcb-ff39-4ed7-97a5-84da9aaadaaf",
     "name": "Noise complaint mic",
     "day": "Thursday",
     "startTime": "6:00 PM",
@@ -6603,20 +4406,11 @@
     "signup": "Sign up form posted on IG every Wednesday https://www.instagram.com/friday_mic",
     "contact": "Xavier Maurice (@noisecomplaintcomedy)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "11/10",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.6732561,
+    "lng": -73.9897416
   },
   {
     "id": 245,
-    "uuid": "adf06d72-50d0-4489-8329-0e306b950a37",
     "name": "BK Made Open Mic",
     "day": "Thursday",
     "startTime": "8:00 PM",
@@ -6630,20 +4424,11 @@
     "signup": "Sign up in person",
     "contact": "(@bkmade_openmics)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "11/10",
-      "smsResponse": "5165249361",
-      "signupEnabled": true
-    }
+    "lat": 40.6939773,
+    "lng": -73.9073961
   },
   {
     "id": 246,
-    "uuid": "f29afb15-c09b-466e-aedd-284f6b7ac433",
     "name": "Comedians on the Loose",
     "day": "Thursday",
     "startTime": "9:00 PM",
@@ -6657,20 +4442,11 @@
     "signup": "https://www.comediansontheloose.com/open-mics",
     "contact": "Sonja Savanovic (@cotlcomedy)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Coffee Shop",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7190777,
+    "lng": -73.9912865
   },
   {
     "id": 247,
-    "uuid": "5eeb77a2-cbf3-4ca0-87fe-2781ad8f359f",
     "name": "Laughing Buddha Mic-a-thon",
     "day": "Thursday",
     "startTime": "9:00 PM",
@@ -6685,19 +4461,10 @@
     "contact": "@laughingbuddhacomedy (@laughingbuddhacomedy)",
     "notes": null,
     "lat": 40.7498782,
-    "lng": -73.9947359,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "9/1",
-      "smsResponse": "7184902903",
-      "signupEnabled": true
-    }
+    "lng": -73.9947359
   },
   {
     "id": 248,
-    "uuid": "86ac4fb7-df21-4662-8df9-74267dc99b0f",
     "name": "Win a Guest Spot! Buddha Rodney's",
     "day": "Thursday",
     "startTime": "9:45 PM",
@@ -6712,19 +4479,10 @@
     "contact": "Riley Flanagan and Adam Thomas (@laughingbuddhacomedy)",
     "notes": null,
     "lat": 40.7610441,
-    "lng": -73.960624,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "7184902903",
-      "signupEnabled": true
-    }
+    "lng": -73.960624
   },
   {
     "id": 249,
-    "uuid": "25c80c36-b628-40ed-b7b5-767ddeb52631",
     "name": "Tiny Cupboard",
     "day": "Thursday",
     "startTime": "10:00 PM",
@@ -6738,20 +4496,11 @@
     "signup": "sign up there Open Mics Page for Tiny Cupboard Blue Room",
     "contact": "Ryan Green (@thetinycupboard)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.6836915,
+    "lng": -73.9112136
   },
   {
     "id": 250,
-    "uuid": "985f2500-d5a7-4823-8278-9ec5ac4d4d1c",
     "name": "*show dependent* QED Late Mic",
     "day": "Thursday",
     "startTime": "10:45 PM",
@@ -6765,20 +4514,11 @@
     "signup": "Sign up at 10:30",
     "contact": "QED Staff (@qedastoria)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.775548,
+    "lng": -73.9149401
   },
   {
     "id": 251,
-    "uuid": "642c2cea-3224-40af-94fd-cc7caea825de",
     "name": "Soho Playhouse",
     "day": "Thursday",
     "startTime": "11:00 PM",
@@ -6792,20 +4532,11 @@
     "signup": "in person only",
     "contact": "(@sohoplayhousenyc)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Theatre Space",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7264507,
+    "lng": -74.0043756
   },
   {
     "id": 252,
-    "uuid": "be2f26b4-b628-4c59-9bfc-897441c4b360",
     "name": "Greenwich Village CC",
     "day": "Friday",
     "startTime": "1:00 PM",
@@ -6819,20 +4550,11 @@
     "signup": "Email DrewAndPetermic@gmail.com",
     "contact": "Drew Tessier (@comedybydrew)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "3475151553",
-      "signupEnabled": true
-    }
+    "lat": 40.7296565,
+    "lng": -74.001091
   },
   {
     "id": 253,
-    "uuid": "e3c7576b-ffde-4764-85af-d9ada0eacec7",
     "name": "Greenwich Village CC",
     "day": "Friday",
     "startTime": "3:00 PM",
@@ -6846,20 +4568,11 @@
     "signup": "Email DrewAndPetermic@gmail.com",
     "contact": "Drew Tessier (@comedybydrew)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "3475151553",
-      "signupEnabled": true
-    }
+    "lat": 40.7296565,
+    "lng": -74.001091
   },
   {
     "id": 254,
-    "uuid": "a078aff8-68cd-4a25-84ae-9117e2bfc06e",
     "name": "Comedy Shop Mic",
     "day": "Friday",
     "startTime": "4:00 PM",
@@ -6873,20 +4586,11 @@
     "signup": "https://comedyshopnyc.com/events/  $7.62 but you get a free drink or fries",
     "contact": "A comedy shop comic (@thecomedyshopvillage)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "7189869871",
-      "signupEnabled": true
-    }
+    "lat": 40.7288305,
+    "lng": -74.0001342
   },
   {
     "id": 255,
-    "uuid": "ba4a4dd8-ec6e-4515-9cee-f14b39646944",
     "name": "St. Marks Comedy Club",
     "day": "Friday",
     "startTime": "4:30 PM",
@@ -6900,20 +4604,11 @@
     "signup": "https://www.laughingbuddhacomedy.com/mics",
     "contact": "Laughing Buddha Staff (@laughingbuddhacomedy)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "7184902903",
-      "signupEnabled": true
-    }
+    "lat": 40.7291,
+    "lng": -73.9897
   },
   {
     "id": 256,
-    "uuid": "6f47fc2b-4a03-46a8-b26b-7a683658f514",
     "name": "QED Open Mic",
     "day": "Friday",
     "startTime": "6:00 PM",
@@ -6927,20 +4622,11 @@
     "signup": "Sign up in person",
     "contact": "QED Staff (@qedastoria)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.775548,
+    "lng": -73.9149401
   },
   {
     "id": 257,
-    "uuid": "b74952ac-4adf-4133-aadc-f1cd1df4235e",
     "name": "The Grisly Pear Mic",
     "day": "Friday",
     "startTime": "5:00 PM",
@@ -6954,20 +4640,11 @@
     "signup": "https://www.laughingbuddhacomedy.com/mics",
     "contact": "Laughing Buddha Staff (@laughingbuddhacomedy)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "7184902903",
-      "signupEnabled": true
-    }
+    "lat": 40.7645366,
+    "lng": -73.9833266
   },
   {
     "id": 258,
-    "uuid": "bab89661-e811-4339-9ca5-166d45783cee",
     "name": "Laughing Buddha Mic-a-thon",
     "day": "Friday",
     "startTime": "6:00 PM",
@@ -6982,19 +4659,10 @@
     "contact": "@laughingbuddhacomedy (@laughingbuddhacomedy)",
     "notes": null,
     "lat": 40.7498782,
-    "lng": -73.9947359,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "9/1",
-      "smsResponse": "7184902903",
-      "signupEnabled": true
-    }
+    "lng": -73.9947359
   },
   {
     "id": 259,
-    "uuid": "584502a8-5e16-463e-9949-8cb61f92a9a5",
     "name": "Producer's Club",
     "day": "Friday",
     "startTime": "5:00 PM",
@@ -7008,20 +4676,11 @@
     "signup": "Sign up in person",
     "contact": "Dee Major (@micdupnyc)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "9177517544",
-      "signupEnabled": true
-    }
+    "lat": 40.7595017,
+    "lng": -73.9914437
   },
   {
     "id": 260,
-    "uuid": "a80b1c42-ea13-41ba-aa18-ddd6116612fb",
     "name": "Slander Factory Open Mic",
     "day": "Thursday",
     "startTime": "9:30 PM",
@@ -7035,20 +4694,11 @@
     "signup": "signup there",
     "contact": "Greg Gettle or @slanderfactory on IG (@slanderfactory)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "11/10",
-      "smsResponse": "4153289773",
-      "signupEnabled": true
-    }
+    "lat": 40.7011038,
+    "lng": -73.9143729
   },
   {
     "id": 261,
-    "uuid": "a74f6cd7-a56f-4161-9c6b-d207337385b4",
     "name": "Sesh Mic",
     "day": "Friday",
     "startTime": "5:00 PM",
@@ -7062,20 +4712,11 @@
     "signup": "https://slotted.co/seshopenmics in advance required, they often cancel the mic if under 5 sign ups. If you don't see a sign up slot available, they cancelled the mic",
     "contact": "Sesh Comedy (@theflowstatemic)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7190777,
+    "lng": -73.9912865
   },
   {
     "id": 262,
-    "uuid": "3d6cf963-6bc2-41cc-8d1d-6455c4c7f807",
     "name": "Rodney's",
     "day": "Friday",
     "startTime": "5:00 PM",
@@ -7089,20 +4730,11 @@
     "signup": "in person at 4:30",
     "contact": "Ryan Harroff (@Ryanhlaughs)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "11/10",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7610441,
+    "lng": -73.960624
   },
   {
     "id": 263,
-    "uuid": "7a915581-5812-4e3b-bc34-713ac26c9195",
     "name": "Broadway Comedy Club",
     "day": "Friday",
     "startTime": "4:00 PM",
@@ -7116,20 +4748,11 @@
     "signup": "https://slotted.co/gig-mic",
     "contact": "Dina Marie (@fabulousdinamarie)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "11/10",
-      "smsResponse": "6469548949",
-      "signupEnabled": true
-    }
+    "lat": 40.7644391,
+    "lng": -73.9856707
   },
   {
     "id": 264,
-    "uuid": "431a4ef2-4914-4b71-9d0f-d554fe478719",
     "name": "Don't Freak Out",
     "day": "Friday",
     "startTime": "4:00 PM",
@@ -7144,19 +4767,10 @@
     "contact": "Chris Pattwell (@chrispattwell.comedy)",
     "notes": null,
     "lat": 40.7389213,
-    "lng": -73.9808057,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lng": -73.9808057
   },
   {
     "id": 265,
-    "uuid": "ab460add-b9f3-4ace-bac6-6a52c69d60c9",
     "name": "*6 or 11* Fun Mug RIFF Mic",
     "day": "Friday",
     "startTime": "6:00 PM",
@@ -7171,19 +4785,10 @@
     "contact": "Pablo Pantalones (@funmugnyc or @pabspants)",
     "notes": null,
     "lat": 40.7674298,
-    "lng": -73.9329303,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "4422796520",
-      "signupEnabled": true
-    }
+    "lng": -73.9329303
   },
   {
     "id": 266,
-    "uuid": "3bc78f18-bb70-43a6-ab03-7176705d879c",
     "name": "Bushwick Comedy Club",
     "day": "Friday",
     "startTime": "6:30 PM",
@@ -7197,20 +4802,11 @@
     "signup": "www.bushwickcomedy.com",
     "contact": "Jad/Brooks/Kyle (@bushwickcomedyclub)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "refuse to",
-      "signupEnabled": true
-    }
+    "lat": 40.702,
+    "lng": -73.9299503
   },
   {
     "id": 267,
-    "uuid": "531301d1-0ee2-4f9e-a4ef-f8aab11b5593",
     "name": "Laughing Buddha Mic-a-thon",
     "day": "Friday",
     "startTime": "7:30 PM",
@@ -7225,19 +4821,10 @@
     "contact": "@laughingbuddhacomedy (@laughingbuddhacomedy)",
     "notes": null,
     "lat": 40.7498782,
-    "lng": -73.9947359,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "9/1",
-      "smsResponse": "7184902903",
-      "signupEnabled": true
-    }
+    "lng": -73.9947359
   },
   {
     "id": 268,
-    "uuid": "5cecc59a-f027-469d-a1a4-46d3c3c42c3a",
     "name": "Tiny Cupboard",
     "day": "Friday",
     "startTime": "8:30 PM",
@@ -7251,20 +4838,11 @@
     "signup": "sign up there Open Mics Page for Tiny Cupboard Blue Room",
     "contact": "Blue Room Host (@thetinycupboard)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.6836915,
+    "lng": -73.9112136
   },
   {
     "id": 269,
-    "uuid": "12d96cea-21b0-4147-94e3-ac97c1d6928c",
     "name": "Laughing Buddha Mic-a-thon",
     "day": "Friday",
     "startTime": "9:00 PM",
@@ -7279,19 +4857,10 @@
     "contact": "@laughingbuddhacomedy (@laughingbuddhacomedy)",
     "notes": null,
     "lat": 40.7498782,
-    "lng": -73.9947359,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "9/1",
-      "smsResponse": "7184902903",
-      "signupEnabled": true
-    }
+    "lng": -73.9947359
   },
   {
     "id": 270,
-    "uuid": "0e99409e-29cf-4682-8f79-bfae027d19bc",
     "name": "Tiny Cupboard",
     "day": "Friday",
     "startTime": "10:00 PM",
@@ -7305,20 +4874,11 @@
     "signup": "sign up there Open Mics Page for Tiny Cupboard Blue Room",
     "contact": "Nathan Roy (@nathan_roy_shenanigans or @thetinycupboard)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "6313941070",
-      "signupEnabled": true
-    }
+    "lat": 40.6836915,
+    "lng": -73.9112136
   },
   {
     "id": 271,
-    "uuid": "1d9817e6-385c-49e6-8cb2-353cea55372a",
     "name": "Goodnight Mic",
     "day": "Friday",
     "startTime": "11:30 PM",
@@ -7332,20 +4892,11 @@
     "signup": "Sign up in person",
     "contact": "Josh Blume/Angel Contreras (@goodnightmic)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "2025730316",
-      "signupEnabled": true
-    }
+    "lat": 40.6859068,
+    "lng": -73.9816185
   },
   {
     "id": 272,
-    "uuid": "4f5ddb07-b672-47dc-a9e2-98dbfc5400bd",
     "name": "Shareef's Mic",
     "day": "Saturday",
     "startTime": "1:00 PM",
@@ -7359,20 +4910,11 @@
     "signup": "DM IN ADVANCE Shareef Taher on fb or IG (@shareef_taher_haha) *walkins waitlist for no shows, so no guarantee*",
     "contact": "Shareef Taher (@shareef_taher)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "9/1",
-      "smsResponse": "5517750449",
-      "signupEnabled": true
-    }
+    "lat": 40.7472543,
+    "lng": -73.9918207
   },
   {
     "id": 273,
-    "uuid": "a38648e7-d451-4a8e-b818-520b103ce460",
     "name": "Comedy Shop",
     "day": "Saturday",
     "startTime": "2:00 PM",
@@ -7386,20 +4928,11 @@
     "signup": "https://comedyshopnyc.com/events/  $7.62 but you get a free drink or fries",
     "contact": "A comedy shop comic (@thecomedyshopvillage)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "7189869871",
-      "signupEnabled": true
-    }
+    "lat": 40.7288305,
+    "lng": -74.0001342
   },
   {
     "id": 274,
-    "uuid": "5142ecff-a0f1-4f09-b714-b4299a20a8cd",
     "name": "The Stand Laughing Buddha",
     "day": "Saturday",
     "startTime": "2:00 PM",
@@ -7413,20 +4946,11 @@
     "signup": "https://www.laughingbuddhacomedy.com/mics",
     "contact": "Laughing Buddha (@laughingbuddhacomedy)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "7184902903",
-      "signupEnabled": true
-    }
+    "lat": 40.7353379,
+    "lng": -73.988463
   },
   {
     "id": 275,
-    "uuid": "9d4e80b4-02db-4aed-97ff-ed0bb56bc913",
     "name": "The Grisly Pear Buddha Mic",
     "day": "Saturday",
     "startTime": "3:00 PM",
@@ -7440,20 +4964,11 @@
     "signup": "https://www.laughingbuddhacomedy.com/mics",
     "contact": "Laughing Buddha Staff (@laughingbuddhacomedy)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "7184902903",
-      "signupEnabled": true
-    }
+    "lat": 40.7645366,
+    "lng": -73.9833266
   },
   {
     "id": 276,
-    "uuid": "5e7b7729-91c7-4df7-8067-5af16e3643c7",
     "name": "Producer's Club",
     "day": "Friday",
     "startTime": "6:00 PM",
@@ -7467,20 +4982,11 @@
     "signup": "Sign up in person",
     "contact": "Dee Major (@micdupnyc)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "9177517544",
-      "signupEnabled": true
-    }
+    "lat": 40.7595017,
+    "lng": -73.9914437
   },
   {
     "id": 277,
-    "uuid": "55d06b37-24b9-4813-93e2-5b7aa4d9afbd",
     "name": "Sesh Mic",
     "day": "Friday",
     "startTime": "7:00 PM",
@@ -7494,20 +5000,11 @@
     "signup": "https://slotted.co/seshopenmics in advance required, they often cancel the mic if under 5 sign ups. If you don't see a sign up slot available, they cancelled the mic",
     "contact": "Sesh Comedy (@theflowstatemic)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7190777,
+    "lng": -73.9912865
   },
   {
     "id": 278,
-    "uuid": "7b2626a2-a2ab-43b3-9fca-9df8f4549368",
     "name": "Merkin Comedy Hole",
     "day": "Friday",
     "startTime": "11:59 PM",
@@ -7522,19 +5019,10 @@
     "contact": "Laramie Flick and Taylor Drew (@merkincomedy)",
     "notes": null,
     "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Other",
-      "lastVerified": "11/10",
-      "smsResponse": "6465286574",
-      "signupEnabled": true
-    }
+    "lng": null
   },
   {
     "id": 279,
-    "uuid": "4a663fca-378a-4138-ab37-7601bab1317f",
     "name": "friday mic",
     "day": "Friday",
     "startTime": "6:20 PM",
@@ -7548,20 +5036,11 @@
     "signup": "Sign up form posted on IG every Wednesday https://www.instagram.com/friday_mic",
     "contact": "Ilana Rubin (@friday_mic)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "11/10",
-      "smsResponse": "3473211959",
-      "signupEnabled": true
-    }
+    "lat": 40.6732561,
+    "lng": -73.9897416
   },
   {
     "id": 280,
-    "uuid": "bf5ed7a4-658a-4cbf-835b-8b0f8da7cc96",
     "name": "PIT CHARACTER Mic",
     "day": "Friday",
     "startTime": "6:30 PM",
@@ -7575,20 +5054,11 @@
     "signup": "Improv Jams & Open Mics | Peoples Improv Theater",
     "contact": "Liz Coin (@lizcoin)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Theatre Space",
-      "lastVerified": "11/10",
-      "smsResponse": "5636764463",
-      "signupEnabled": true
-    }
+    "lat": 40.7473936,
+    "lng": -73.9923712
   },
   {
     "id": 281,
-    "uuid": "4b4c2546-e26a-49ca-b3d7-65dbd833f827",
     "name": "*2nd/4th Fri Two Beautiful Women",
     "day": "Friday",
     "startTime": "7:00 PM",
@@ -7602,20 +5072,11 @@
     "signup": "Sign up in person",
     "contact": "@rockshart @yungviv (@twobeautifulpeoplecomedy)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7073204,
+    "lng": -73.9537223
   },
   {
     "id": 282,
-    "uuid": "6cbdbd01-15be-4315-b535-891c95df0d98",
     "name": "The Golden Pen",
     "day": "Friday",
     "startTime": "6:00 PM",
@@ -7629,20 +5090,11 @@
     "signup": "signup there 30 mins prior",
     "contact": "Vinnie Pedi (@vinnie_pedi)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "11/10",
-      "smsResponse": "8455223640",
-      "signupEnabled": true
-    }
+    "lat": 40.6859068,
+    "lng": -73.9816185
   },
   {
     "id": 283,
-    "uuid": "69b56f6e-3b84-4518-9d35-1e80f60c8831",
     "name": "Comedy Shop",
     "day": "Saturday",
     "startTime": "4:00 PM",
@@ -7656,20 +5108,11 @@
     "signup": "https://comedyshopnyc.com/events/  $7.62 but you get a free drink or fries",
     "contact": "A comedy shop comic (@thecomedyshopvillage)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "7189869871",
-      "signupEnabled": true
-    }
+    "lat": 40.7288305,
+    "lng": -74.0001342
   },
   {
     "id": 284,
-    "uuid": "a66a61ca-88c6-4026-90f2-c06265b17cf0",
     "name": "Flop Mic",
     "day": "Saturday",
     "startTime": "4:30 PM",
@@ -7683,20 +5126,11 @@
     "signup": "https://checkout.square.site/merchant/MLE3S94S31KSN/checkout/SIS6B57KN346S6DZKXCFZ26T",
     "contact": "Flop House host (@flophousecomedy)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "9089679178",
-      "signupEnabled": true
-    }
+    "lat": 40.7122083,
+    "lng": -73.9557789
   },
   {
     "id": 285,
-    "uuid": "a1535670-7205-46e5-8c8e-a905fa39beeb",
     "name": "The Grisly Pear Mic",
     "day": "Saturday",
     "startTime": "4:00 PM",
@@ -7710,20 +5144,11 @@
     "signup": "https://www.laughingbuddhacomedy.com/mics",
     "contact": "Laughing Buddha Staff (@laughingbuddhacomedy)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "7184902903",
-      "signupEnabled": true
-    }
+    "lat": 40.7645366,
+    "lng": -73.9833266
   },
   {
     "id": 286,
-    "uuid": "f8d6c0a7-3647-4979-84f9-8184d2cb935e",
     "name": "Bushwick Comedy Club",
     "day": "Saturday",
     "startTime": "6:30 PM",
@@ -7737,20 +5162,11 @@
     "signup": "www.bushwickcomedy.com",
     "contact": "Jad/Brooks/Kyle (@bushwickcomedyclub)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "refuse to",
-      "signupEnabled": true
-    }
+    "lat": 40.702,
+    "lng": -73.9299503
   },
   {
     "id": 287,
-    "uuid": "5c0ccee0-44bb-4a74-8080-863a021fd82f",
     "name": "Comedians on the Loose",
     "day": "Saturday",
     "startTime": "7:00 PM",
@@ -7764,20 +5180,11 @@
     "signup": "https://www.comediansontheloose.com/open-mics",
     "contact": "Sonja Savanovic (@cotlcomedy)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Coffee Shop",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7190777,
+    "lng": -73.9912865
   },
   {
     "id": 288,
-    "uuid": "146319a4-5add-449a-bed0-377c1d000453",
     "name": "SkyBox",
     "day": "Saturday",
     "startTime": "8:00 PM",
@@ -7792,19 +5199,10 @@
     "contact": "Ying Orck City (@yingcomedy)",
     "notes": null,
     "lat": 40.7955865,
-    "lng": -73.9360676,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lng": -73.9360676
   },
   {
     "id": 289,
-    "uuid": "e9fc2a6c-c846-407e-9ad4-82d0edf41af5",
     "name": "Laughing Buddha Mic-a-thon",
     "day": "Saturday",
     "startTime": "4:00 PM",
@@ -7819,19 +5217,10 @@
     "contact": "@laughingbuddhacomedy (@laughingbuddhacomedy)",
     "notes": null,
     "lat": 40.7498782,
-    "lng": -73.9947359,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "9/1",
-      "smsResponse": "7184902903",
-      "signupEnabled": true
-    }
+    "lng": -73.9947359
   },
   {
     "id": 290,
-    "uuid": "059afb5f-808a-4c87-8eeb-2a42088ed982",
     "name": "Tiny Cupboard",
     "day": "Saturday",
     "startTime": "8:30 PM",
@@ -7845,20 +5234,11 @@
     "signup": "sign up there Open Mics Page for Tiny Cupboard Blue Room",
     "contact": "@imbakerb 1st/3rd (@thetinycupboard)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.6836915,
+    "lng": -73.9112136
   },
   {
     "id": 291,
-    "uuid": "4caab943-08a0-4d13-b115-d9172ee6c840",
     "name": "Comedians on the Loose",
     "day": "Saturday",
     "startTime": "9:00 PM",
@@ -7872,20 +5252,11 @@
     "signup": "https://www.comediansontheloose.com/open-mics",
     "contact": "Sonja Savanovic (@cotlcomedy)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Coffee Shop",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7190777,
+    "lng": -73.9912865
   },
   {
     "id": 292,
-    "uuid": "e73080d4-944a-47e8-9fc0-9bb0faae8bbb",
     "name": "Laughing Buddha Mic-a-thon",
     "day": "Saturday",
     "startTime": "5:00 PM",
@@ -7900,19 +5271,10 @@
     "contact": "@laughingbuddhacomedy (@laughingbuddhacomedy)",
     "notes": null,
     "lat": 40.7498782,
-    "lng": -73.9947359,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "9/1",
-      "smsResponse": "7184902903",
-      "signupEnabled": true
-    }
+    "lng": -73.9947359
   },
   {
     "id": 293,
-    "uuid": "425759b2-ce4f-427a-bc24-2253efd1cf40",
     "name": "Laughing Buddha Mic-a-thon",
     "day": "Saturday",
     "startTime": "6:00 PM",
@@ -7927,19 +5289,10 @@
     "contact": "@laughingbuddhacomedy (@laughingbuddhacomedy)",
     "notes": null,
     "lat": 40.7498782,
-    "lng": -73.9947359,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "9/1",
-      "smsResponse": "7184902903",
-      "signupEnabled": true
-    }
+    "lng": -73.9947359
   },
   {
     "id": 294,
-    "uuid": "1b3e9c2c-dc56-4f86-af7c-6bf2df5cd4d9",
     "name": "Tiny Cupboard Bad Decision",
     "day": "Saturday",
     "startTime": "10:00 PM",
@@ -7953,20 +5306,11 @@
     "signup": "sign up there Open Mics Page for Tiny Cupboard Blue Room",
     "contact": "(@thetinycupboard)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.6836915,
+    "lng": -73.9112136
   },
   {
     "id": 295,
-    "uuid": "8048aba3-5bfc-495e-9a04-e1d152dd5d52",
     "name": "QED Late Mic",
     "day": "Saturday",
     "startTime": "11:00 PM",
@@ -7980,20 +5324,11 @@
     "signup": "Sign up at 10:30",
     "contact": "QED Staff (@qedastoria)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.775548,
+    "lng": -73.9149401
   },
   {
     "id": 296,
-    "uuid": "c4f50721-c4a7-425f-b9a5-d0dcfcaa291e",
     "name": "Producer's Club",
     "day": "Wednesday",
     "startTime": "7:30 PM",
@@ -8007,20 +5342,11 @@
     "signup": "in person only",
     "contact": "Dee Major (@micdupnyc)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "9/1",
-      "smsResponse": "9177517544",
-      "signupEnabled": true
-    }
+    "lat": 40.7595017,
+    "lng": -73.9914437
   },
   {
     "id": 297,
-    "uuid": "b91fe263-4ed1-42fd-87cd-09f80f2ab9ae",
     "name": "PIT WOMEN'S Mic",
     "day": "Saturday",
     "startTime": "6:30 PM",
@@ -8034,20 +5360,11 @@
     "signup": "Improv Jams & Open Mics | Peoples Improv Theater",
     "contact": "Obi O'Brien (@sayhiobi)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Theatre Space",
-      "lastVerified": "11/10",
-      "smsResponse": "N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7473936,
+    "lng": -73.9923712
   },
   {
     "id": 298,
-    "uuid": "258b0913-a9dd-4a0d-bc25-634bb2595a9a",
     "name": "Sesh Mic",
     "day": "Saturday",
     "startTime": "5:00 PM",
@@ -8061,20 +5378,11 @@
     "signup": "https://slotted.co/seshopenmics in advance required, they often cancel the mic if under 5 sign ups. If you don't see a sign up slot available, they cancelled the mic",
     "contact": "Sesh Comedy (@theflowstatemic)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7190777,
+    "lng": -73.9912865
   },
   {
     "id": 299,
-    "uuid": "a5e8eaf5-b06f-473d-96dd-54a90d4be8e3",
     "name": "Sesh Mic",
     "day": "Saturday",
     "startTime": "6:00 PM",
@@ -8088,20 +5396,11 @@
     "signup": "https://slotted.co/seshopenmics in advance required, they often cancel the mic if under 5 sign ups. If you don't see a sign up slot available, they cancelled the mic",
     "contact": "Sesh Comedy (@theflowstatemic)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7190777,
+    "lng": -73.9912865
   },
   {
     "id": 300,
-    "uuid": "2b825b75-0480-4a4e-9232-437bdfacd637",
     "name": "Sesh Mic",
     "day": "Saturday",
     "startTime": "7:00 PM",
@@ -8115,20 +5414,11 @@
     "signup": "https://slotted.co/seshopenmics in advance required, they often cancel the mic if under 5 sign ups. If you don't see a sign up slot available, they cancelled the mic",
     "contact": "Sesh Comedy (@theflowstatemic)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lat": 40.7190777,
+    "lng": -73.9912865
   },
   {
     "id": 301,
-    "uuid": "728267e5-f343-4889-8aff-5e42e57d88fa",
     "name": "Red Doors The Red Doors Comedy Showcase",
     "day": "Wednesday",
     "startTime": "7:00 PM",
@@ -8142,20 +5432,11 @@
     "signup": "show up there",
     "contact": "@olegkcomedy (@olegkcomedy)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "11/18",
-      "smsResponse": null,
-      "signupEnabled": true
-    }
+    "lat": 40.5758196,
+    "lng": -73.9798853
   },
   {
     "id": 302,
-    "uuid": "1a29640d-e9cf-4dc0-a0a4-a1b6f61ef174",
     "name": "Second City Mic",
     "day": "Saturday",
     "startTime": "3:30 PM",
@@ -8170,19 +5451,10 @@
     "contact": null,
     "notes": null,
     "lat": 40.7207729,
-    "lng": -73.9596507,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Theatre Space",
-      "lastVerified": "Unverified",
-      "smsResponse": "#N/A",
-      "signupEnabled": true
-    }
+    "lng": -73.9596507
   },
   {
     "id": 303,
-    "uuid": "60b43f3b-55a3-4bda-a014-859899b70e78",
     "name": "loose lips mic",
     "day": "Saturday",
     "startTime": "3:30 PM",
@@ -8196,20 +5468,11 @@
     "signup": "Sign up in person",
     "contact": "@fallonboles and @vassileiakazee (@looselipscomedy)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "11/10",
-      "smsResponse": "3472600062",
-      "signupEnabled": true
-    }
+    "lat": 40.7180926,
+    "lng": -73.9502883
   },
   {
     "id": 304,
-    "uuid": "8e71ab7e-f562-4464-bcab-01112f3f3275",
     "name": "feelings wheel",
     "day": "Saturday",
     "startTime": "5:30 PM",
@@ -8223,20 +5486,11 @@
     "signup": "Sign up in person",
     "contact": "Verified 7/10 Leo (@feelingswheeliess)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Bar",
-      "lastVerified": "11/10",
-      "smsResponse": "2483301714",
-      "signupEnabled": true
-    }
+    "lat": 40.7145615,
+    "lng": -73.9425485
   },
   {
     "id": 305,
-    "uuid": "14429d05-13d7-4f81-96b9-8c1926cab6d6",
     "name": "Last stop Mic",
     "day": "Saturday",
     "startTime": "11:30 PM",
@@ -8250,15 +5504,7 @@
     "signup": "Sign up in person",
     "contact": "Angel Contreras and Matt (@oddballmatt1)",
     "notes": null,
-    "lat": null,
-    "lng": null,
-    "_meta": {
-      "active": true,
-      "city": "New York",
-      "venueType": "Comedy Club",
-      "lastVerified": "11/10",
-      "smsResponse": "9144031914",
-      "signupEnabled": true
-    }
+    "lat": 40.6859068,
+    "lng": -73.9816185
   }
 ]

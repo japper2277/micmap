@@ -11,6 +11,10 @@ const STATE = {
     currentMode: 'today',
     selectedCalendarDate: new Date().toDateString(),
 
+    // Date range selection (Airbnb style)
+    dateRangeStart: null,  // First selected date string
+    dateRangeEnd: null,    // Second selected date string
+
     // UI state
     isDrawerOpen: false,
     drawerState: 'peek', // 'peek', 'half', or 'open' (mobile only)

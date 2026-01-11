@@ -178,9 +178,22 @@ function render(mode) {
         if (mode === 'today' && m.day !== todayName) return false;
         if (mode === 'tomorrow' && m.day !== tomorrowName) return false;
         if (mode === 'calendar') {
-            const selectedDate = new Date(STATE.selectedCalendarDate);
-            const selectedDayName = CONFIG.dayNames[selectedDate.getDay()];
-            if (m.day !== selectedDayName) return false;
+            // Date range mode: filter by range if both start and end are set
+            if (STATE.dateRangeStart && STATE.dateRangeEnd) {
+                const startDate = new Date(STATE.dateRangeStart);
+                const endDate = new Date(STATE.dateRangeEnd);
+                // Get all days in the range
+                const daysInRange = [];
+                for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+                    daysInRange.push(CONFIG.dayNames[d.getDay()]);
+                }
+                if (!daysInRange.includes(m.day)) return false;
+            } else {
+                // Single date selection
+                const selectedDate = new Date(STATE.selectedCalendarDate);
+                const selectedDayName = CONFIG.dayNames[selectedDate.getDay()];
+                if (m.day !== selectedDayName) return false;
+            }
         }
 
         return true;
