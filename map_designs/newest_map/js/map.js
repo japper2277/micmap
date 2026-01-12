@@ -28,7 +28,7 @@ function shortenVenueName(name) {
         // Classic NYC venues
         'grisly pear': 'Pear',
         'the grisly pear': 'Pear',
-        'grisly pear midtown': 'Pear Midtown',
+        'grisly pear midtown': 'Pear',
         'comedy shop': 'Shop',
         'the comedy shop': 'Shop',
         'stand nyc': 'Stand',
@@ -44,13 +44,19 @@ function shortenVenueName(name) {
         'cream': 'Cream',
         'tiny cupboard': 'Tiny Cupboard',
         'easy laughter': 'Easy Laughter',
+        'easy lover': 'Easy Lover',
         'the comic strip live': 'Comic Strip',
         'comic strip live': 'Comic Strip',
+        'ucb': 'UCB',
+        'ucb theatre': 'UCB',
 
-        // NYCC locations
-        'new york comedy club east village': 'NY CC East Village',
-        'new york comedy club midtown': 'NY CC Midtown',
-        'new york comedy club': 'NY CC',
+        // NYCC locations - one word, no midtown
+        'new york comedy club east village': 'NYCC',
+        'new york comedy club midtown': 'NYCC',
+        'new york comedy club': 'NYCC',
+        'nycc east village': 'NYCC',
+        'nycc midtown': 'NYCC',
+        'nycc': 'NYCC',
 
         // Brooklyn venues
         'brooklyn comedy collective': 'BK Collective',
@@ -67,9 +73,11 @@ function shortenVenueName(name) {
         'pete\'s candy store': 'Pete\'s',
         'caravan of dreams': 'Caravan',
         'caffeine underground': 'Caffeine UG',
-        'phoenix bar avenue a': 'Phoenix Bar',
+        'phoenix bar avenue a': 'Phoenix',
+        'phoenix bar': 'Phoenix',
         'alligator lounge': 'Alligator',
         'harlem nights bar': 'Harlem Nights',
+        'harlem nights': 'Harlem Nights',
         'oh craft beer harlem': 'Oh Craft',
         'second city blackbox': 'Second City',
         'skybox sports bar & grill': 'SkyBox',
@@ -77,8 +85,11 @@ function shortenVenueName(name) {
         'comedy in harlem': 'Harlem',
         'scorpion records': 'Scorpion',
         'logan\'s run bar': 'Logan\'s Run',
+        'logan\'s run': 'Logan\'s Run',
         'island ribhouse': 'Island',
         'block hill station': 'Block Hill',
+        'rose r&r bar': 'Rose R&R',
+        'rose r&r': 'Rose R&R',
     };
 
     const lower = name.toLowerCase().trim();
@@ -87,6 +98,10 @@ function shortenVenueName(name) {
     // Strip common suffixes and prefixes
     let short = name
         .replace(/\s*(comedy club|comedy cellar|cc|comedy|club|nyc)$/i, '')
+        .replace(/\s+bar$/i, '')  // Remove trailing "Bar"
+        .replace(/\s+bar\s+/i, ' ')  // Remove "Bar" in middle
+        .replace(/\s+midtown$/i, '')  // Remove trailing "Midtown"
+        .replace(/\s+lounge$/i, '')  // Remove trailing "Lounge"
         .replace(/^the\s+/i, '')
         .trim();
 
@@ -101,7 +116,8 @@ function shortenVenueName(name) {
 
 // Create marker - pill style (zoomed out) or ticket style (zoomed in)
 // extraCount: number of additional items, extraType: 'mics' or 'venues'
-function createPin(status, timeStr, extraCount, venueName, extraType = 'mics') {
+// dayAbbrev: optional day abbreviation for all-week mode (e.g., 'MON', 'TUE')
+function createPin(status, timeStr, extraCount, venueName, extraType = 'mics', dayAbbrev = null) {
     const displayTime = timeStr || '?';
     const isZoomedIn = map.getZoom() >= ZOOM_TICKET_THRESHOLD;
 
@@ -119,19 +135,28 @@ function createPin(status, timeStr, extraCount, venueName, extraType = 'mics') {
         : (extraCount === 1 ? 'mic' : 'mics');
 
     if (isZoomedIn && venueName) {
-        // TICKET STYLE: Time on top, venue name below
+        // TICKET STYLE: Side tab for day, stacked time/venue
         const shortName = shortenVenueName(venueName);
         const displayName = shortName.length > 14 ? shortName.substring(0, 13) + '…' : shortName;
         const countBadge = extraCount > 0 ? `<span class="ticket-count">+${extraCount} ${countLabel}</span>` : '';
 
-        // Dynamic width based on name length
-        const ticketWidth = Math.max(70, Math.min(displayName.length * 7 + 16, 120));
+        // Side tab for day (30px wide, only when day exists)
+        const dayTab = dayAbbrev ? `<div class="ticket-day-tab">${dayAbbrev}</div>` : '';
+
+        // Dynamic width based on longer of: times or venue name
+        const timeWidth = displayTime.length * 8 + 16;  // times are bigger font
+        const nameWidth = displayName.length * 7 + 16;
+        const contentWidth = Math.max(timeWidth, nameWidth);
+        const ticketWidth = Math.max(70, Math.min(contentWidth + (dayAbbrev ? 30 : 0), 180));
 
         return L.divIcon({
             className: 'bg-transparent',
             html: `<div class="mic-ticket ticket-${statusClass}">
-                    <div class="ticket-time">${displayTime}${countBadge}</div>
-                    <div class="ticket-venue">${displayName}</div>
+                    ${dayTab}
+                    <div class="ticket-content">
+                        <div class="ticket-time">${displayTime}${countBadge}</div>
+                        <div class="ticket-venue">${displayName}</div>
+                    </div>
                    </div>`,
             iconSize: [ticketWidth, 44],
             iconAnchor: [ticketWidth / 2, 44]
@@ -139,7 +164,9 @@ function createPin(status, timeStr, extraCount, venueName, extraType = 'mics') {
     } else {
         // PILL STYLE: Main pill with white chip badge for venue count
         const isLive = statusClass === 'live';
-        const mainText = isLive ? 'LIVE' : displayTime;
+        // For pills, only show earliest time (first one before comma)
+        const firstTime = displayTime.split(',')[0].trim();
+        const mainText = isLive ? 'LIVE' : firstTime;
         const hasCount = extraCount > 0;
 
         // White chip badge for venue count
@@ -148,7 +175,7 @@ function createPin(status, timeStr, extraCount, venueName, extraType = 'mics') {
             : '';
 
         // Calculate dimensions - tighter fit for short times like "7p"
-        const textWidth = isLive ? 50 : (displayTime.length * 11 + 12);
+        const textWidth = isLive ? 50 : (firstTime.length * 11 + 12);
         const totalWidth = Math.max(textWidth, 44) + (hasCount ? 20 : 0);
         const totalHeight = 42;
 

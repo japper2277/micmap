@@ -178,23 +178,11 @@ function render(mode) {
         if (mode === 'today' && m.day !== todayName) return false;
         if (mode === 'tomorrow' && m.day !== tomorrowName) return false;
         if (mode === 'calendar') {
-            // Date range mode: filter by range if both start and end are set
-            if (STATE.dateRangeStart && STATE.dateRangeEnd) {
-                const startDate = new Date(STATE.dateRangeStart);
-                const endDate = new Date(STATE.dateRangeEnd);
-                // Get all days in the range
-                const daysInRange = [];
-                for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-                    daysInRange.push(CONFIG.dayNames[d.getDay()]);
-                }
-                if (!daysInRange.includes(m.day)) return false;
-            } else {
-                // Single date selection
-                const selectedDate = new Date(STATE.selectedCalendarDate);
-                const selectedDayName = CONFIG.dayNames[selectedDate.getDay()];
-                if (m.day !== selectedDayName) return false;
-            }
+            const selectedDate = new Date(STATE.selectedCalendarDate);
+            const selectedDayName = CONFIG.dayNames[selectedDate.getDay()];
+            if (m.day !== selectedDayName) return false;
         }
+        // 'allweek' mode shows all days - no filtering needed
 
         return true;
     });
@@ -349,21 +337,25 @@ function render(mode) {
             (statusPriority[mic.status] || 0) > (statusPriority[best] || 0) ? mic.status : best
         , 'future');
 
-        // Get earliest time for pill display (format: "6p" or "6:30p")
-        let earliestTime = '?';
-        if (firstMic.start instanceof Date) {
-            const hours = firstMic.start.getHours();
-            const mins = firstMic.start.getMinutes();
-            const displayHour = hours > 12 ? hours - 12 : (hours === 0 ? 12 : hours);
-            const period = hours >= 12 ? 'p' : 'a';
-            // Only show minutes if not on the hour
-            earliestTime = mins === 0
-                ? `${displayHour}${period}`
-                : `${displayHour}:${mins.toString().padStart(2, '0')}${period}`;
-        } else if (firstMic.timeStr) {
-            // Clean up timeStr too (e.g., "6:00p" -> "6p")
-            earliestTime = firstMic.timeStr.replace(/:00([ap])$/, '$1');
-        }
+        // Get ALL times for this venue (format: "6p, 9p")
+        const formatTime = (mic) => {
+            if (mic.start instanceof Date) {
+                const hours = mic.start.getHours();
+                const mins = mic.start.getMinutes();
+                const displayHour = hours > 12 ? hours - 12 : (hours === 0 ? 12 : hours);
+                const period = hours >= 12 ? 'p' : 'a';
+                return mins === 0
+                    ? `${displayHour}${period}`
+                    : `${displayHour}:${mins.toString().padStart(2, '0')}${period}`;
+            } else if (mic.timeStr) {
+                return mic.timeStr.replace(/:00([ap])$/, '$1');
+            }
+            return '?';
+        };
+
+        // Get unique times (dedupe in case of duplicates)
+        const allTimes = [...new Set(cluster.mics.map(formatTime))];
+        const displayTimes = allTimes.join(', ');
 
         // Count unique venues
         const venueNames = [...new Set(cluster.mics.map(m => m.title || m.venue))];
@@ -374,8 +366,14 @@ function render(mode) {
         const extraType = 'venues';
         const venueName = firstMic.title || firstMic.venue || 'Venue';
 
+        // Day abbreviation for all-week mode (only on ticket/expanded view)
+        const dayAbbrevs = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+        const dayAbbrev = (mode === 'allweek' && firstMic.day)
+            ? dayAbbrevs[CONFIG.dayNames.indexOf(firstMic.day)]
+            : null;
+
         const marker = L.marker([cluster.lat, cluster.lng], {
-            icon: createPin(bestStatus, earliestTime, extraCount, isMultiVenue ? null : venueName, extraType),
+            icon: createPin(bestStatus, displayTimes, extraCount, isMultiVenue ? null : venueName, extraType, dayAbbrev),
             zIndexOffset: bestStatus === 'live' ? 1000 : (bestStatus === 'upcoming' ? 500 : 100)
         }).addTo(markersGroup);
 

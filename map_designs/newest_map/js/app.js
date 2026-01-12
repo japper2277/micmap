@@ -46,15 +46,11 @@ function refreshStatuses() {
     });
 }
 
-// Click on map dismisses date carousel
+// Click on map dismisses date carousel (but keeps selected date)
 map.on('click', () => {
     const carousel = document.getElementById('date-carousel');
     if (carousel && carousel.classList.contains('active')) {
         hideDateCarousel();
-        updateToggleUI('today');
-        STATE.currentMode = 'today';
-        STATE.selectedCalendarDate = new Date().toDateString();
-        render('today');
     }
 });
 

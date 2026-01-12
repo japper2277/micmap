@@ -163,9 +163,11 @@
 
 /* --- TICKET MARKERS (zoomed in view) --- */
 
+/* Ticket container: flex row for side tab layout */
 .mic-ticket {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    height: 44px;
     min-width: 56px;
     border-radius: 8px;
     overflow: hidden;
@@ -189,14 +191,41 @@
     transition: transform 0.05s ease-out;
 }
 
-/* Ticket time section (top) */
+/* Side tab for day (30px wide, full height) */
+.ticket-day-tab {
+    width: 30px;
+    height: 44px;
+    background: #3a3f4b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+    color: white;
+    flex-shrink: 0;
+    letter-spacing: 0.3px;
+}
+
+/* Content stack (time + venue) */
+.ticket-content {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+/* Ticket time section (top row) */
 .ticket-time {
-    padding: 4px 8px;
+    height: 22px;
+    padding: 0 8px;
     font-size: 14px;
     font-weight: 700;
+    line-height: 22px;
     color: white;
     text-align: center;
     white-space: nowrap;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .ticket-count {
@@ -206,14 +235,16 @@
     margin-left: 3px;
 }
 
-/* Ticket venue section (bottom) */
+/* Ticket venue section (bottom row) */
 .ticket-venue {
+    height: 22px;
     background: #1a1a1a;
     color: #e5e5e5;
     font-size: 10px;
     font-weight: 600;
+    line-height: 22px;
     text-align: center;
-    padding: 4px 6px;
+    padding: 0 6px;
     text-transform: uppercase;
     letter-spacing: 0.3px;
     white-space: nowrap;
@@ -221,7 +252,7 @@
     text-overflow: ellipsis;
 }
 
-/* Ticket status colors */
+/* Ticket status colors - apply to time row */
 .ticket-live .ticket-time {
     background: #22c55e;
 }

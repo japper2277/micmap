@@ -42,91 +42,52 @@ function updateDateCarouselHighlight(dateString) {
     });
 }
 
-// Update range highlight for Airbnb-style date range picker
-function updateRangeHighlight() {
-    const capsules = document.querySelectorAll('.date-capsule');
-    const startDate = STATE.dateRangeStart ? new Date(STATE.dateRangeStart) : null;
-    const endDate = STATE.dateRangeEnd ? new Date(STATE.dateRangeEnd) : null;
+function selectDate(dateString) {
+    STATE.currentMode = 'calendar';
+    STATE.selectedCalendarDate = dateString;
 
-    capsules.forEach((cap, index) => {
-        const capDate = new Date(cap.dataset.date);
-
-        // Remove all range classes first
-        cap.classList.remove('range-start', 'range-end', 'range-middle', 'active-date');
-
-        if (startDate && capDate.toDateString() === startDate.toDateString()) {
-            cap.classList.add('range-start');
-            if (!endDate) cap.classList.add('active-date'); // Single selection
-        }
-
-        if (endDate && capDate.toDateString() === endDate.toDateString()) {
-            cap.classList.add('range-end');
-        }
-
-        if (startDate && endDate && capDate > startDate && capDate < endDate) {
-            cap.classList.add('range-middle');
-        }
+    // Update visual highlight - also clear allweek if it was active
+    document.querySelectorAll('.date-capsule').forEach(cap => {
+        const isActive = cap.dataset.date === dateString;
+        cap.classList.toggle('active-date', isActive);
+        cap.setAttribute('aria-pressed', isActive ? 'true' : 'false');
     });
+
+    // Update the header calendar button to show selected date
+    updateCalendarButtonDisplay(dateString);
+
+    // Render immediately with the selected date
+    render('calendar');
+
+    // If transit mode is active, recalculate routes for new day's mics
+    if (STATE.isTransitMode && STATE.userOrigin) {
+        transitService.calculateFromOrigin(
+            STATE.userOrigin.lat,
+            STATE.userOrigin.lng,
+            STATE.userOrigin.name,
+            null
+        );
+    }
 }
 
-// Airbnb-style range selection
-function selectDate(dateString) {
-    const clickedDate = new Date(dateString);
-    const startDate = STATE.dateRangeStart ? new Date(STATE.dateRangeStart) : null;
-    const endDate = STATE.dateRangeEnd ? new Date(STATE.dateRangeEnd) : null;
+// Update the calendar button in header to show the selected date
+function updateCalendarButtonDisplay(dateString) {
+    const date = new Date(dateString);
+    const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+    const day = days[date.getDay()];
+    const dateNum = date.getDate();
 
-    // If we have a complete range, or clicking on an already selected date, reset
-    if (endDate || (startDate && clickedDate.toDateString() === startDate.toDateString())) {
-        STATE.dateRangeStart = dateString;
-        STATE.dateRangeEnd = null;
-    }
-    // If we have a start date and clicking a date after it, complete the range
-    else if (startDate && clickedDate > startDate) {
-        STATE.dateRangeEnd = dateString;
-    }
-    // If clicking before start date, make this the new start
-    else if (startDate && clickedDate < startDate) {
-        STATE.dateRangeStart = dateString;
-        STATE.dateRangeEnd = null;
-    }
-    // No start date yet, set it
-    else {
-        STATE.dateRangeStart = dateString;
-        STATE.dateRangeEnd = null;
-    }
+    // Desktop calendar button
+    const calDay = document.getElementById('cal-month');
+    const calDate = document.getElementById('cal-date-num');
+    if (calDay) calDay.textContent = day;
+    if (calDate) calDate.textContent = dateNum;
 
-    // Update mode and selected date for compatibility
-    STATE.currentMode = 'calendar';
-    STATE.selectedCalendarDate = STATE.dateRangeStart;
-
-    // Update visual highlight
-    updateRangeHighlight();
-
-    // Only close carousel and render when range is complete (or single day selected after double-tap)
-    if (STATE.dateRangeEnd || (STATE.dateRangeStart && !endDate && startDate && clickedDate.toDateString() === startDate.toDateString())) {
-        hideDateCarousel();
-
-        document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
-        const btnCalendar = document.getElementById('btn-calendar');
-        if (btnCalendar) btnCalendar.classList.add('active');
-
-        const mobileCalBtn = document.getElementById('mobile-calendar-btn');
-        if (mobileCalBtn) mobileCalBtn.classList.remove('active');
-
-        if (!STATE.isDrawerOpen) toggleDrawer(true);
-
-        render('calendar');
-
-        // If transit mode is active, recalculate routes
-        if (STATE.isTransitMode && STATE.userOrigin) {
-            transitService.calculateFromOrigin(
-                STATE.userOrigin.lat,
-                STATE.userOrigin.lng,
-                STATE.userOrigin.name,
-                null
-            );
-        }
-    }
+    // Mobile calendar button
+    const mobileCalDay = document.getElementById('mobile-cal-month');
+    const mobileCalDate = document.getElementById('mobile-cal-date-num');
+    if (mobileCalDay) mobileCalDay.textContent = day;
+    if (mobileCalDate) mobileCalDate.textContent = dateNum;
 }
 
 // Update the sliding toggle UI
@@ -187,43 +148,20 @@ function setMode(mode) {
     const isCarouselOpen = carousel && carousel.classList.contains('active');
 
     if (mode === 'calendar') {
-        // Toggle calendar if already open
+        // Toggle calendar open/closed
         if (isCarouselOpen) {
+            // Just close the carousel - keep the currently selected date/mode
             hideDateCarousel();
-            // Switch back to today mode
-            mode = 'today';
-            updateToggleUI('today');
-            STATE.currentMode = 'today';
-            STATE.selectedCalendarDate = currentTime.toDateString();
-            // Reset date range when closing calendar
-            STATE.dateRangeStart = null;
-            STATE.dateRangeEnd = null;
-            render('today');
-
-            // If transit mode is active, recalculate routes for new day's mics
-            if (STATE.isTransitMode && STATE.userOrigin) {
-                transitService.calculateFromOrigin(
-                    STATE.userOrigin.lat,
-                    STATE.userOrigin.lng,
-                    STATE.userOrigin.name,
-                    null
-                );
-            }
         } else {
             updateToggleUI('calendar');
             showDateCarousel();
             STATE.currentMode = 'calendar';
-            // Initialize range highlight when opening
-            updateRangeHighlight();
         }
     } else {
         updateToggleUI(mode);
         hideDateCarousel();
         STATE.currentMode = mode;
         STATE.selectedCalendarDate = (mode === 'today') ? currentTime.toDateString() : addDays(currentTime, 1).toDateString();
-        // Reset date range when switching to today/tomorrow
-        STATE.dateRangeStart = null;
-        STATE.dateRangeEnd = null;
         render(mode);
 
         // If transit mode is active, recalculate routes for new day's mics
@@ -251,7 +189,7 @@ function generateDateCarousel() {
         const dayStr = days[date.getDay()];
         const dateNum = date.getDate();
         const dateString = date.toDateString();
-        const isActive = dateString === STATE.selectedCalendarDate;
+        const isActive = dateString === STATE.selectedCalendarDate && STATE.currentMode !== 'allweek';
 
         // Create accessible label: "Monday, December 16"
         const fullDayName = date.toLocaleDateString('en-US', { weekday: 'long' });
@@ -270,8 +208,61 @@ function generateDateCarousel() {
         container.appendChild(capsule);
     }
 
+    // Add separator
+    const separator = document.createElement('div');
+    separator.className = 'date-separator';
+    container.appendChild(separator);
+
+    // Add "All Week" button
+    const isAllWeekActive = STATE.currentMode === 'allweek';
+    const allWeekBtn = document.createElement('button');
+    allWeekBtn.className = `date-capsule all-week-btn flex-shrink-0 w-16 h-16 rounded-xl transition-all cursor-pointer flex flex-col items-center justify-center text-center text-neutral-400 font-bold bg-black/40 hover:bg-white/10 active:scale-95
+                         ${isAllWeekActive ? 'active-date' : ''}`;
+    allWeekBtn.dataset.date = 'allweek';
+    allWeekBtn.setAttribute('role', 'option');
+    allWeekBtn.setAttribute('aria-label', 'View all week');
+    allWeekBtn.setAttribute('aria-pressed', isAllWeekActive ? 'true' : 'false');
+    allWeekBtn.onclick = () => selectAllWeek();
+    allWeekBtn.innerHTML = `<span class="text-xs uppercase" aria-hidden="true">ALL</span><span class="text-base mt-0.5 leading-none text-white font-bold" aria-hidden="true">WEEK</span>`;
+    container.appendChild(allWeekBtn);
+
     // Add active date styles
     const style = document.createElement('style');
-    style.innerHTML = `.date-capsule.active-date { background: var(--rose); color: white !important; box-shadow: 0 0 15px var(--rose-glow); } .date-capsule.active-date span { color: white !important; }`;
+    style.innerHTML = `.date-capsule.active-date { background: var(--rose); color: white !important; box-shadow: 0 4px 15px var(--rose-glow); transform: scale(1.05); } .date-capsule.active-date span { color: white !important; } .date-separator { width: 1px; background: #333; margin: 5px 5px; flex-shrink: 0; }`;
     document.head.appendChild(style);
+}
+
+function selectAllWeek() {
+    STATE.currentMode = 'allweek';
+
+    // Update highlights
+    document.querySelectorAll('.date-capsule').forEach(cap => {
+        const isAllWeek = cap.dataset.date === 'allweek';
+        cap.classList.toggle('active-date', isAllWeek);
+        cap.setAttribute('aria-pressed', isAllWeek ? 'true' : 'false');
+    });
+
+    // Update header calendar button to show "ALL WEEK"
+    const calDay = document.getElementById('cal-month');
+    const calDate = document.getElementById('cal-date-num');
+    if (calDay) calDay.textContent = 'ALL';
+    if (calDate) calDate.textContent = '7';
+
+    const mobileCalDay = document.getElementById('mobile-cal-month');
+    const mobileCalDate = document.getElementById('mobile-cal-date-num');
+    if (mobileCalDay) mobileCalDay.textContent = 'ALL';
+    if (mobileCalDate) mobileCalDate.textContent = '7';
+
+    // Render all week's mics
+    render('allweek');
+
+    // If transit mode is active, recalculate routes
+    if (STATE.isTransitMode && STATE.userOrigin) {
+        transitService.calculateFromOrigin(
+            STATE.userOrigin.lat,
+            STATE.userOrigin.lng,
+            STATE.userOrigin.name,
+            null
+        );
+    }
 }

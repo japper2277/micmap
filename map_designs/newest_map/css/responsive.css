@@ -251,33 +251,6 @@
         color: #1D1D1F !important;
     }
 
-    /* Date range selection styles (Airbnb-style) */
-    #date-carousel .date-capsule.range-start {
-        background: var(--rose, #E63946) !important;
-        border-radius: 12px 4px 4px 12px;
-        box-shadow: 0 0 15px rgba(230, 57, 70, 0.4);
-    }
-    #date-carousel .date-capsule.range-start span {
-        color: white !important;
-    }
-
-    #date-carousel .date-capsule.range-end {
-        background: var(--rose, #E63946) !important;
-        border-radius: 4px 12px 12px 4px;
-        box-shadow: 0 0 15px rgba(230, 57, 70, 0.4);
-    }
-    #date-carousel .date-capsule.range-end span {
-        color: white !important;
-    }
-
-    #date-carousel .date-capsule.range-middle {
-        background: rgba(230, 57, 70, 0.3) !important;
-        border-radius: 4px;
-    }
-    #date-carousel .date-capsule.range-middle span {
-        color: rgba(255, 255, 255, 0.9) !important;
-    }
-
     /* Adjust drawer header */
     .mics-header-row {
         padding-top: 16px;
