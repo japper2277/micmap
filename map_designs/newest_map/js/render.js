@@ -372,8 +372,32 @@ function render(mode) {
             ? dayAbbrevs[CONFIG.dayNames.indexOf(firstMic.day)]
             : null;
 
+        // Determine which icon to use
+        let markerIcon;
+        const isZoomedIn = map.getZoom() >= ZOOM_TICKET_THRESHOLD;
+
+        if (isZoomedIn && isMultiVenue) {
+            // Multi-venue stacked ticket: build venue data array
+            const venueMap = {};
+            cluster.mics.forEach(mic => {
+                const key = mic.title || mic.venue || 'Unknown';
+                if (!venueMap[key]) venueMap[key] = { name: key, times: [] };
+                venueMap[key].times.push(formatTime(mic));
+            });
+
+            const venueData = Object.values(venueMap).map(v => ({
+                name: v.name,
+                times: v.times.join(', ')
+            }));
+
+            markerIcon = createMultiVenuePin(venueData, dayAbbrev);
+        } else {
+            // Single venue ticket OR pill (zoomed out)
+            markerIcon = createPin(bestStatus, displayTimes, extraCount, isMultiVenue ? null : venueName, extraType, dayAbbrev);
+        }
+
         const marker = L.marker([cluster.lat, cluster.lng], {
-            icon: createPin(bestStatus, displayTimes, extraCount, isMultiVenue ? null : venueName, extraType, dayAbbrev),
+            icon: markerIcon,
             zIndexOffset: bestStatus === 'live' ? 1000 : (bestStatus === 'upcoming' ? 500 : 100)
         }).addTo(markersGroup);
 

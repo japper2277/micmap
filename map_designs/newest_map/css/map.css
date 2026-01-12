@@ -581,3 +581,116 @@
     color: rgba(255, 255, 255, 0.6);
     text-align: right;
 }
+
+/* =================================================================
+   MULTI-VENUE STACKED TICKET (140px Architecture)
+   ================================================================= */
+
+.multi-venue-ticket {
+    display: flex;
+    width: 140px;
+    background: #000000;
+    border-radius: 9px;
+    overflow: hidden;
+    border: 0.5px solid rgba(0, 0, 0, 0.8);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    cursor: pointer;
+    transition: transform 0.1s cubic-bezier(0.25, 0.8, 0.25, 1);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+}
+
+/* Hover only for pointer devices */
+@media (hover: hover) and (pointer: fine) {
+    .multi-venue-ticket:hover {
+        transform: scale(1.05) translateY(-3px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    }
+}
+
+.multi-venue-ticket:active {
+    transform: scale(0.94);
+    transition: transform 0.05s ease-out;
+}
+
+/* Day tab (30px, only in allweek mode) */
+.mv-day-tab {
+    width: 30px;
+    flex-shrink: 0;
+    background: linear-gradient(180deg, #3a4452 0%, #1c1f26 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8px;
+    font-weight: 900;
+    text-transform: uppercase;
+    border-right: 0.5px solid rgba(0, 0, 0, 0.5);
+}
+
+/* Content stack (rows of venues) */
+.mv-content-stack {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+/* Each venue row */
+.mv-venue-row {
+    display: flex;
+    height: 22px;
+    border-bottom: 0.5px solid rgba(255, 255, 255, 0.1);
+    min-width: 0;
+}
+.mv-venue-row:last-child {
+    border-bottom: none;
+}
+
+/* Venue name column */
+.mv-venue-name {
+    width: 50px;
+    flex-shrink: 0;
+    padding: 0 4px 0 8px;
+    font-size: 8.5px;
+    font-weight: 700;
+    color: #ffffff;
+    text-transform: uppercase;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 22px;
+}
+
+/* Gutter divider */
+.mv-gutter {
+    width: 1px;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    flex-shrink: 0;
+}
+
+/* Times column */
+.mv-times-list {
+    flex: 1;
+    padding: 0 8px 0 6px;
+    background: #1c1f26;
+    color: #ffffff;
+    font-family: "SF Mono", Menlo, monospace;
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: -0.04em;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 22px;
+}
+
+/* No day tab variant - expand venue name */
+.multi-venue-ticket.no-day .mv-day-tab {
+    display: none;
+}
+.multi-venue-ticket.no-day .mv-venue-name {
+    width: 60px;
+}

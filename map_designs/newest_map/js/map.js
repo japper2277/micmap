@@ -192,6 +192,47 @@ function createPin(status, timeStr, extraCount, venueName, extraType = 'mics', d
     }
 }
 
+// Create multi-venue stacked ticket marker (for zoomed-in view of multi-venue clusters)
+// venueData: array of { name: string, times: string } objects
+// dayAbbrev: optional day abbreviation for all-week mode (e.g., 'WED')
+function createMultiVenuePin(venueData, dayAbbrev = null) {
+    const showDayTab = dayAbbrev !== null;
+    const noDayClass = showDayTab ? '' : 'no-day';
+
+    // Build day tab HTML (only if in allweek mode)
+    const dayTabHtml = showDayTab
+        ? `<div class="mv-day-tab">${dayAbbrev}</div>`
+        : '';
+
+    // Build venue rows (max 4 to keep marker reasonable)
+    const maxVenues = 4;
+    const displayVenues = venueData.slice(0, maxVenues);
+
+    const rowsHtml = displayVenues.map(v => {
+        const shortName = shortenVenueName(v.name);
+        return `<div class="mv-venue-row">
+            <div class="mv-venue-name">${shortName}</div>
+            <div class="mv-gutter"></div>
+            <div class="mv-times-list">${v.times}</div>
+        </div>`;
+    }).join('');
+
+    // Calculate height: 22px per venue row
+    const ticketHeight = displayVenues.length * 22;
+
+    return L.divIcon({
+        className: 'bg-transparent',
+        html: `<div class="multi-venue-ticket ${noDayClass}">
+                ${dayTabHtml}
+                <div class="mv-content-stack">
+                    ${rowsHtml}
+                </div>
+               </div>`,
+        iconSize: [140, ticketHeight],
+        iconAnchor: [70, ticketHeight]
+    });
+}
+
 // Get user location
 function getUserLocation() {
     if (navigator.geolocation) {
