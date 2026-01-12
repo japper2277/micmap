@@ -381,13 +381,19 @@ function render(mode) {
             const venueMap = {};
             cluster.mics.forEach(mic => {
                 const key = mic.title || mic.venue || 'Unknown';
-                if (!venueMap[key]) venueMap[key] = { name: key, times: [] };
+                if (!venueMap[key]) venueMap[key] = { name: key, times: [], status: 'future' };
                 venueMap[key].times.push(formatTime(mic));
+                // Use best status (live > upcoming > future)
+                const statusPri = { live: 3, upcoming: 2, future: 0 };
+                if ((statusPri[mic.status] || 0) > (statusPri[venueMap[key].status] || 0)) {
+                    venueMap[key].status = mic.status;
+                }
             });
 
             const venueData = Object.values(venueMap).map(v => ({
                 name: v.name,
-                times: v.times.join(', ')
+                times: v.times.join(', '),
+                status: v.status
             }));
 
             markerIcon = createMultiVenuePin(venueData, dayAbbrev);

@@ -210,8 +210,12 @@ function createMultiVenuePin(venueData, dayAbbrev = null) {
 
     const rowsHtml = displayVenues.map(v => {
         const shortName = shortenVenueName(v.name);
+        const status = v.status || 'future';
         return `<div class="mv-venue-row">
-            <div class="mv-venue-name">${shortName}</div>
+            <div class="mv-venue-info">
+                <div class="mv-status-dot ${status}"></div>
+                <div class="mv-venue-name">${shortName}</div>
+            </div>
             <div class="mv-gutter"></div>
             <div class="mv-times-list">${v.times}</div>
         </div>`;
