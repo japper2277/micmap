@@ -217,7 +217,7 @@ function createMultiVenuePin(venueData, dayAbbrev = null) {
                 <div class="mv-venue-name">${shortName}</div>
             </div>
             <div class="mv-gutter"></div>
-            <div class="mv-times-list">${v.times}</div>
+            <div class="mv-times-list ${status}">${v.times}</div>
         </div>`;
     }).join('');
 

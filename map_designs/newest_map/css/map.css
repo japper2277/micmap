@@ -605,6 +605,11 @@
         transform: scale(1.05) translateY(-3px);
         box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
     }
+
+    /* Bring hovered marker to top */
+    .leaflet-marker-icon:has(.multi-venue-ticket):hover {
+        z-index: 9999 !important;
+    }
 }
 
 .multi-venue-ticket:active {
@@ -664,7 +669,7 @@
     min-width: 0;
     padding: 0 4px 0 4px;
     background: #000000;
-    font-size: 8.5px;
+    font-size: 9.5px;
     font-weight: 700;
     color: #ffffff;
     text-transform: uppercase;
@@ -699,7 +704,7 @@
     background: #ffffff;
     color: #1a1a1a;
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 700;
     letter-spacing: -0.01em;
     display: block;
@@ -708,6 +713,9 @@
     text-overflow: ellipsis;
     line-height: 22px;
 }
+.mv-times-list.live { color: #16a34a; }
+.mv-times-list.upcoming { color: #dc2626; }
+.mv-times-list.future { color: #4b5563; }
 
 /* No day tab variant - expand venue info */
 .multi-venue-ticket.no-day .mv-day-tab {
