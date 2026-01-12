@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Algorithm Adventures - Learn How MicFinder Works!</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 40px;
+        }
+
+        .section {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .section h2 {
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section h2 .emoji {
+            font-size: 2rem;
+        }
+
+        .explanation {
+            background: rgba(0, 212, 255, 0.1);
+            border-left: 4px solid #00d4ff;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 10px 10px 0;
+        }
+
+        .code-block {
+            background: #0d1117;
+            border-radius: 10px;
+            padding: 20px;
+            overflow-x: auto;
+            font-family: 'Fira Code', 'Consolas', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            margin: 20px 0;
+        }
+
+        .code-block .comment {
+            color: #8b949e;
+        }
+
+        .code-block .keyword {
+            color: #ff7b72;
+        }
+
+        .code-block .function {
+            color: #d2a8ff;
+        }
+
+        .code-block .number {
+            color: #79c0ff;
+        }
+
+        .code-block .string {
+            color: #a5d6ff;
+        }
+
+        .demo-area {
+            background: rgba(123, 44, 191, 0.1);
+            border: 2px dashed #7b2cbf;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 20px;
+        }
+
+        .demo-area h3 {
+            margin-top: 0;
+            color: #7b2cbf;
+        }
+
+        input[type="number"], input[type="text"] {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            padding: 10px 15px;
+            color: #fff;
+            font-size: 16px;
+            width: 150px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #00d4ff;
+        }
+
+        button {
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            border: none;
+            border-radius: 8px;
+            padding: 12px 25px;
+            color: #fff;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid #00ff88;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            font-size: 1.2rem;
+        }
+
+        .result.error {
+            background: rgba(255, 0, 0, 0.1);
+            border-color: #ff4444;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin: 10px 0;
+            flex-wrap: wrap;
+        }
+
+        .input-group label {
+            min-width: 120px;
+            color: #aaa;
+        }
+
+        /* Dijkstra Graph Styles */
+        .graph-container {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .graph-svg {
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            flex: 1;
+            min-width: 400px;
+        }
+
+        .graph-controls {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .node {
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .node circle {
+            stroke-width: 3;
+            transition: all 0.3s;
+        }
+
+        .node.visited circle {
+            fill: #00ff88 !important;
+            stroke: #00ff88 !important;
+        }
+
+        .node.current circle {
+            fill: #ffcc00 !important;
+            stroke: #ffcc00 !important;
+            filter: drop-shadow(0 0 10px #ffcc00);
+        }
+
+        .node.start circle {
+            fill: #00d4ff !important;
+            stroke: #00d4ff !important;
+        }
+
+        .node.end circle {
+            fill: #ff6b6b !important;
+            stroke: #ff6b6b !important;
+        }
+
+        .edge {
+            stroke: #444;
+            stroke-width: 3;
+            transition: all 0.3s;
+        }
+
+        .edge.visited {
+            stroke: #00ff88;
+            stroke-width: 4;
+        }
+
+        .edge.path {
+            stroke: #ffcc00;
+            stroke-width: 5;
+        }
+
+        .edge-label {
+            fill: #888;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .step-log {
+            background: #0d1117;
+            border-radius: 10px;
+            padding: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 13px;
+        }
+
+        .step-log .step {
+            padding: 5px 0;
+            border-bottom: 1px solid #333;
+        }
+
+        .step-log .step:last-child {
+            border-bottom: none;
+        }
+
+        .step-log .highlight {
+            color: #00ff88;
+        }
+
+        .legend {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin: 15px 0;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+        }
+
+        /* Cache Demo Styles */
+        .cache-demo {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .cache-box {
+            flex: 1;
+            min-width: 250px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 20px;
+        }
+
+        .cache-box h4 {
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .cache-entries {
+            min-height: 150px;
+        }
+
+        .cache-entry {
+            background: rgba(0, 212, 255, 0.2);
+            border-radius: 8px;
+            padding: 10px;
+            margin: 8px 0;
+            font-family: monospace;
+            font-size: 12px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .timer {
+            font-size: 2rem;
+            font-weight: bold;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .timer.fast {
+            color: #00ff88;
+        }
+
+        .timer.slow {
+            color: #ff6b6b;
+        }
+
+        .preset-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 15px 0;
+        }
+
+        .preset-btn {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 8px 15px;
+            font-size: 14px;
+        }
+
+        .preset-btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .fun-fact {
+            background: rgba(255, 204, 0, 0.1);
+            border-left: 4px solid #ffcc00;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 10px 10px 0;
+        }
+
+        .fun-fact::before {
+            content: "Fun Fact: ";
+            font-weight: bold;
+            color: #ffcc00;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 20px;
+            color: #666;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .section {
+                padding: 20px;
+            }
+
+            input[type="number"] {
+                width: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Algorithm Adventures</h1>
+    <p class="subtitle">Learn the real code behind MicFinder NYC!</p>
+
+    <!-- SECTION 1: HAVERSINE -->
+    <section class="section" id="haversine">
+        <h2><span class="emoji">🌍</span> Algorithm #1: Haversine Formula</h2>
+
+        <div class="explanation">
+            <strong>The Problem:</strong> Your phone knows you're at latitude 40.7128, longitude -74.0060 (that's NYC!).
+            The comedy club is at 40.7580, -73.9855. How far is it to walk?
+            <br><br>
+            <strong>The Tricky Part:</strong> Earth is a sphere! A straight line between two points would go <em>through</em> the planet.
+            We need the distance along the curved surface.
+        </div>
+
+        <div class="code-block">
+<span class="comment">// The Haversine Formula - invented in 1805!</span>
+<span class="keyword">function</span> <span class="function">calculateDistance</span>(lat1, lng1, lat2, lng2) {
+    <span class="keyword">const</span> R = <span class="number">3959</span>; <span class="comment">// Earth's radius in miles</span>
+
+    <span class="comment">// Convert degrees to radians (math thing - like inches to cm)</span>
+    <span class="keyword">const</span> dLat = (lat2 - lat1) * Math.PI / <span class="number">180</span>;
+    <span class="keyword">const</span> dLng = (lng2 - lng1) * Math.PI / <span class="number">180</span>;
+
+    <span class="comment">// The magic formula (uses sine, cosine, and arctangent)</span>
+    <span class="keyword">const</span> a = Math.sin(dLat/<span class="number">2</span>) * Math.sin(dLat/<span class="number">2</span>) +
+              Math.cos(lat1 * Math.PI/<span class="number">180</span>) * Math.cos(lat2 * Math.PI/<span class="number">180</span>) *
+              Math.sin(dLng/<span class="number">2</span>) * Math.sin(dLng/<span class="number">2</span>);
+
+    <span class="keyword">const</span> c = <span class="number">2</span> * Math.atan2(Math.sqrt(a), Math.sqrt(<span class="number">1</span>-a));
+
+    <span class="keyword">return</span> R * c; <span class="comment">// Distance in miles!</span>
+}
+        </div>
+
+        <div class="demo-area">
+            <h3>Try It Yourself!</h3>
+
+            <div class="preset-buttons">
+                <button class="preset-btn" onclick="setHaversinePreset('times-square', 'empire-state')">Times Square → Empire State</button>
+                <button class="preset-btn" onclick="setHaversinePreset('brooklyn-bridge', 'statue-liberty')">Brooklyn Bridge → Statue of Liberty</button>
+                <button class="preset-btn" onclick="setHaversinePreset('central-park', 'yankee-stadium')">Central Park → Yankee Stadium</button>
+            </div>
+
+            <div class="input-group">
+                <label>Point A - Lat:</label>
+                <input type="number" id="lat1" step="0.0001" value="40.7580">
+                <label>Lng:</label>
+                <input type="number" id="lng1" step="0.0001" value="-73.9855">
+            </div>
+            <div class="input-group">
+                <label>Point B - Lat:</label>
+                <input type="number" id="lat2" step="0.0001" value="40.7484">
+                <label>Lng:</label>
+                <input type="number" id="lng2" step="0.0001" value="-73.9857">
+            </div>
+
+            <button onclick="calculateHaversine()">Calculate Distance!</button>
+
+            <div class="result" id="haversine-result" style="display: none;"></div>
+        </div>
+
+        <div class="fun-fact">
+            The Haversine formula was invented by James Inman in 1805 to help sailors navigate the ocean.
+            Now it's in your phone helping you find pizza!
+        </div>
+    </section>
+
+    <!-- SECTION 2: DIJKSTRA -->
+    <section class="section" id="dijkstra">
+        <h2><span class="emoji">🚇</span> Algorithm #2: Dijkstra's Shortest Path</h2>
+
+        <div class="explanation">
+            <strong>The Problem:</strong> NYC has 472 subway stations connected by 27 different lines.
+            If you're at station A and want to get to station F, which route is fastest?
+            <br><br>
+            <strong>The Solution:</strong> Dijkstra's algorithm explores outward from your starting point,
+            always picking the closest unexplored station next. It's like water spreading through pipes!
+        </div>
+
+        <div class="code-block">
+<span class="comment">// Dijkstra's Algorithm - invented in 1956 by Edsger Dijkstra</span>
+<span class="keyword">function</span> <span class="function">dijkstra</span>(startStation, graph) {
+    <span class="keyword">const</span> times = {};           <span class="comment">// How long to reach each station</span>
+    <span class="keyword">const</span> previous = {};        <span class="comment">// Where we came from</span>
+    <span class="keyword">const</span> visited = <span class="keyword">new</span> Set();  <span class="comment">// Stations we've explored</span>
+    <span class="keyword">const</span> queue = [];           <span class="comment">// Stations to check next</span>
+
+    times[startStation] = <span class="number">0</span>;   <span class="comment">// Start at time 0</span>
+    queue.push({ station: startStation, time: <span class="number">0</span> });
+
+    <span class="keyword">while</span> (queue.length > <span class="number">0</span>) {
+        <span class="comment">// KEY INSIGHT: Always pick the station with shortest time!</span>
+        queue.sort((a, b) => a.time - b.time);
+        <span class="keyword">const</span> current = queue.shift();
+
+        <span class="comment">// Check all connected stations</span>
+        <span class="keyword">for</span> (<span class="keyword">const</span> neighbor <span class="keyword">of</span> graph[current.station]) {
+            <span class="keyword">const</span> newTime = current.time + neighbor.travelTime;
+
+            <span class="comment">// Found a faster route? Update it!</span>
+            <span class="keyword">if</span> (newTime < times[neighbor.station]) {
+                times[neighbor.station] = newTime;
+                previous[neighbor.station] = current.station;
+                queue.push({ station: neighbor.station, time: newTime });
+            }
+        }
+    }
+}
+        </div>
+
+        <div class="demo-area">
+            <h3>Watch It Work!</h3>
+            <p>Click "Start" to see Dijkstra find the shortest path from A to F. Watch how it always explores the closest station first!</p>
+
+            <div class="legend">
+                <div class="legend-item"><div class="legend-dot" style="background: #00d4ff;"></div> Start</div>
+                <div class="legend-item"><div class="legend-dot" style="background: #ff6b6b;"></div> End (Goal)</div>
+                <div class="legend-item"><div class="legend-dot" style="background: #ffcc00;"></div> Currently Checking</div>
+                <div class="legend-item"><div class="legend-dot" style="background: #00ff88;"></div> Visited</div>
+            </div>
+
+            <div class="graph-container">
+                <svg class="graph-svg" viewBox="0 0 500 350" id="dijkstra-graph">
+                    <!-- Edges (lines between stations) -->
+                    <line class="edge" id="edge-A-B" x1="80" y1="100" x2="200" y2="50"/>
+                    <line class="edge" id="edge-A-C" x1="80" y1="100" x2="200" y2="180"/>
+                    <line class="edge" id="edge-B-D" x1="200" y1="50" x2="350" y2="80"/>
+                    <line class="edge" id="edge-B-C" x1="200" y1="50" x2="200" y2="180"/>
+                    <line class="edge" id="edge-C-D" x1="200" y1="180" x2="350" y2="80"/>
+                    <line class="edge" id="edge-C-E" x1="200" y1="180" x2="350" y2="250"/>
+                    <line class="edge" id="edge-D-F" x1="350" y1="80" x2="450" y2="150"/>
+                    <line class="edge" id="edge-E-F" x1="350" y1="250" x2="450" y2="150"/>
+
+                    <!-- Edge labels (travel times) -->
+                    <text class="edge-label" x="130" y="60">4 min</text>
+                    <text class="edge-label" x="110" y="160">2 min</text>
+                    <text class="edge-label" x="265" y="50">5 min</text>
+                    <text class="edge-label" x="210" y="115">3 min</text>
+                    <text class="edge-label" x="260" y="145">6 min</text>
+                    <text class="edge-label" x="250" y="235">4 min</text>
+                    <text class="edge-label" x="400" y="95">3 min</text>
+                    <text class="edge-label" x="400" y="220">2 min</text>
+
+                    <!-- Nodes (stations) -->
+                    <g class="node start" id="node-A" data-station="A">
+                        <circle cx="80" cy="100" r="25" fill="#00d4ff" stroke="#00d4ff"/>
+                        <text x="80" y="107" text-anchor="middle" fill="#000" font-weight="bold" font-size="18">A</text>
+                    </g>
+                    <g class="node" id="node-B" data-station="B">
+                        <circle cx="200" cy="50" r="25" fill="#333" stroke="#666"/>
+                        <text x="200" y="57" text-anchor="middle" fill="#fff" font-weight="bold" font-size="18">B</text>
+                    </g>
+                    <g class="node" id="node-C" data-station="C">
+                        <circle cx="200" cy="180" r="25" fill="#333" stroke="#666"/>
+                        <text x="200" y="187" text-anchor="middle" fill="#fff" font-weight="bold" font-size="18">C</text>
+                    </g>
+                    <g class="node" id="node-D" data-station="D">
+                        <circle cx="350" cy="80" r="25" fill="#333" stroke="#666"/>
+                        <text x="350" y="87" text-anchor="middle" fill="#fff" font-weight="bold" font-size="18">D</text>
+                    </g>
+                    <g class="node" id="node-E" data-station="E">
+                        <circle cx="350" cy="250" r="25" fill="#333" stroke="#666"/>
+                        <text x="350" y="257" text-anchor="middle" fill="#fff" font-weight="bold" font-size="18">E</text>
+                    </g>
+                    <g class="node end" id="node-F" data-station="F">
+                        <circle cx="450" cy="150" r="25" fill="#ff6b6b" stroke="#ff6b6b"/>
+                        <text x="450" y="157" text-anchor="middle" fill="#000" font-weight="bold" font-size="18">F</text>
+                    </g>
+
+                    <!-- Time labels on nodes (updated by algorithm) -->
+                    <text class="time-label" id="time-A" x="80" y="140" text-anchor="middle" fill="#00d4ff" font-size="12">0 min</text>
+                    <text class="time-label" id="time-B" x="200" y="20" text-anchor="middle" fill="#888" font-size="12">∞</text>
+                    <text class="time-label" id="time-C" x="200" y="220" text-anchor="middle" fill="#888" font-size="12">∞</text>
+                    <text class="time-label" id="time-D" x="350" y="50" text-anchor="middle" fill="#888" font-size="12">∞</text>
+                    <text class="time-label" id="time-E" x="350" y="290" text-anchor="middle" fill="#888" font-size="12">∞</text>
+                    <text class="time-label" id="time-F" x="450" y="190" text-anchor="middle" fill="#888" font-size="12">∞</text>
+                </svg>
+
+                <div class="graph-controls">
+                    <button onclick="startDijkstra()" id="dijkstra-start-btn">Start Algorithm</button>
+                    <button onclick="stepDijkstra()" id="dijkstra-step-btn" disabled>Next Step</button>
+                    <button onclick="resetDijkstra()">Reset</button>
+
+                    <div class="step-log" id="dijkstra-log">
+                        <div class="step">Click "Start Algorithm" to begin!</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="fun-fact">
+            Edsger Dijkstra invented this algorithm in about 20 minutes while sitting at a café!
+            He was trying to demonstrate the power of his new computer. It's now used billions of times daily by Google Maps, video games, and even your internet router!
+        </div>
+    </section>
+
+    <!-- SECTION 3: CACHING -->
+    <section class="section" id="caching">
+        <h2><span class="emoji">🧠</span> Algorithm #3: Caching (The Memory Trick)</h2>
+
+        <div class="explanation">
+            <strong>The Problem:</strong> Calculating a walking route takes about 500ms (half a second).
+            If 100 people ask for the same route, should we calculate it 100 times?
+            <br><br>
+            <strong>The Solution:</strong> Save the answer! The first person waits 500ms, but everyone else gets the answer instantly.
+            It's like writing down test answers so you don't have to solve them again.
+        </div>
+
+        <div class="code-block">
+<span class="comment">// Caching = Remembering answers</span>
+<span class="keyword">const</span> cache = {};  <span class="comment">// Our "cheat sheet"</span>
+
+<span class="keyword">async function</span> <span class="function">getWalkingTime</span>(from, to) {
+    <span class="comment">// Create a unique key for this route</span>
+    <span class="keyword">const</span> key = <span class="string">`${from} → ${to}`</span>;
+
+    <span class="comment">// Already calculated? Return instantly!</span>
+    <span class="keyword">if</span> (cache[key]) {
+        console.log(<span class="string">"CACHE HIT! Returning saved answer"</span>);
+        <span class="keyword">return</span> cache[key];  <span class="comment">// 0ms - instant!</span>
+    }
+
+    <span class="comment">// First time? Do the slow calculation...</span>
+    console.log(<span class="string">"CACHE MISS! Calculating..."</span>);
+    <span class="keyword">const</span> result = <span class="keyword">await</span> slowAPICall(from, to);  <span class="comment">// ~500ms</span>
+
+    cache[key] = result;  <span class="comment">// Save for next time!</span>
+    <span class="keyword">return</span> result;
+}
+        </div>
+
+        <div class="demo-area">
+            <h3>See The Speed Difference!</h3>
+            <p>Click "Calculate Route" multiple times. First time is slow (simulated API call). Second time is instant (cached)!</p>
+
+            <div class="input-group">
+                <label>From:</label>
+                <input type="text" id="cache-from" value="Times Square">
+                <label>To:</label>
+                <input type="text" id="cache-to" value="Central Park">
+            </div>
+
+            <button onclick="calculateWithCache()">Calculate Route</button>
+            <button onclick="clearCacheDemo()">Clear Cache</button>
+
+            <div class="cache-demo">
+                <div class="cache-box">
+                    <h4>⏱️ Response Time</h4>
+                    <div class="timer" id="cache-timer">-</div>
+                    <div id="cache-status"></div>
+                </div>
+
+                <div class="cache-box">
+                    <h4>📦 Cache Contents</h4>
+                    <div class="cache-entries" id="cache-entries">
+                        <div style="color: #666; font-style: italic;">Cache is empty</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="result" id="cache-result" style="display: none;"></div>
+        </div>
+
+        <div class="fun-fact">
+            YouTube caches popular videos on servers near you. That's why trending videos load faster than obscure ones -
+            they're already saved closer to your location!
+        </div>
+    </section>
+
+    <!-- BONUS SECTION -->
+    <section class="section" id="challenge">
+        <h2><span class="emoji">🎯</span> Challenge: Combine Them All!</h2>
+
+        <div class="explanation">
+            This is exactly what MicFinder does:
+            <ol>
+                <li><strong>Haversine</strong> - Find stations within 0.5 miles of you</li>
+                <li><strong>Dijkstra</strong> - Find the fastest subway route to each comedy club</li>
+                <li><strong>Caching</strong> - Remember routes so you don't recalculate for every user</li>
+            </ol>
+            The result? Real-time commute estimates for 100+ venues in under 1 second!
+        </div>
+
+        <div class="demo-area">
+            <h3>Quick Quiz</h3>
+            <div id="quiz-area">
+                <p><strong>Question 1:</strong> Why can't we just use a straight-line distance for walking?</p>
+                <button onclick="showAnswer(1)">Show Answer</button>
+                <div id="answer-1" style="display:none; margin: 10px 0; padding: 10px; background: rgba(0,255,136,0.1); border-radius: 8px;">
+                    Because we can't walk through buildings! Real walking distance follows streets, which is usually 30-40% longer than straight-line distance in a city grid.
+                </div>
+
+                <p><strong>Question 2:</strong> What makes Dijkstra's algorithm "greedy"?</p>
+                <button onclick="showAnswer(2)">Show Answer</button>
+                <div id="answer-2" style="display:none; margin: 10px 0; padding: 10px; background: rgba(0,255,136,0.1); border-radius: 8px;">
+                    It always picks the station with the shortest time next. It's "greedy" because it always takes the best-looking option at each step - and amazingly, this strategy guarantees finding the absolute best path!
+                </div>
+
+                <p><strong>Question 3:</strong> When should you NOT use caching?</p>
+                <button onclick="showAnswer(3)">Show Answer</button>
+                <div id="answer-3" style="display:none; margin: 10px 0; padding: 10px; background: rgba(0,255,136,0.1); border-radius: 8px;">
+                    When data changes frequently! For example, live train arrival times change every minute, so caching for too long would give wrong information. MicFinder clears its cache every 5 minutes.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        Made with 💜 for teaching coding | Part of MicFinder NYC
+    </footer>
+
+    <script>
+        // ==========================================
+        // HAVERSINE DEMO
+        // ==========================================
+
+        const NYC_LOCATIONS = {
+            'times-square': { lat: 40.7580, lng: -73.9855, name: 'Times Square' },
+            'empire-state': { lat: 40.7484, lng: -73.9857, name: 'Empire State Building' },
+            'brooklyn-bridge': { lat: 40.7061, lng: -73.9969, name: 'Brooklyn Bridge' },
+            'statue-liberty': { lat: 40.6892, lng: -74.0445, name: 'Statue of Liberty' },
+            'central-park': { lat: 40.7829, lng: -73.9654, name: 'Central Park' },
+            'yankee-stadium': { lat: 40.8296, lng: -73.9262, name: 'Yankee Stadium' }
+        };
+
+        function setHaversinePreset(from, to) {
+            const fromLoc = NYC_LOCATIONS[from];
+            const toLoc = NYC_LOCATIONS[to];
+
+            document.getElementById('lat1').value = fromLoc.lat;
+            document.getElementById('lng1').value = fromLoc.lng;
+            document.getElementById('lat2').value = toLoc.lat;
+            document.getElementById('lng2').value = toLoc.lng;
+
+            calculateHaversine();
+        }
+
+        function calculateHaversine() {
+            const lat1 = parseFloat(document.getElementById('lat1').value);
+            const lng1 = parseFloat(document.getElementById('lng1').value);
+            const lat2 = parseFloat(document.getElementById('lat2').value);
+            const lng2 = parseFloat(document.getElementById('lng2').value);
+
+            if (isNaN(lat1) || isNaN(lng1) || isNaN(lat2) || isNaN(lng2)) {
+                showResult('haversine-result', 'Please enter valid numbers!', true);
+                return;
+            }
+
+            // THE ACTUAL HAVERSINE FORMULA
+            const R = 3959; // Earth's radius in miles
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLng = (lng2 - lng1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLng/2) * Math.sin(dLng/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            const distance = R * c;
+
+            // Walking time estimate (20 min per mile)
+            const walkMins = Math.round(distance * 20);
+
+            showResult('haversine-result', `
+                <strong>Distance:</strong> ${distance.toFixed(2)} miles (${(distance * 1.609).toFixed(2)} km)<br>
+                <strong>Walking time:</strong> ~${walkMins} minutes (at 3 mph)<br>
+                <strong>Feet:</strong> ${Math.round(distance * 5280).toLocaleString()} feet
+            `);
+        }
+
+        // ==========================================
+        // DIJKSTRA DEMO
+        // ==========================================
+
+        // Graph definition (adjacency list)
+        const GRAPH = {
+            'A': [{ to: 'B', time: 4 }, { to: 'C', time: 2 }],
+            'B': [{ to: 'A', time: 4 }, { to: 'C', time: 3 }, { to: 'D', time: 5 }],
+            'C': [{ to: 'A', time: 2 }, { to: 'B', time: 3 }, { to: 'D', time: 6 }, { to: 'E', time: 4 }],
+            'D': [{ to: 'B', time: 5 }, { to: 'C', time: 6 }, { to: 'F', time: 3 }],
+            'E': [{ to: 'C', time: 4 }, { to: 'F', time: 2 }],
+            'F': [{ to: 'D', time: 3 }, { to: 'E', time: 2 }]
+        };
+
+        let dijkstraState = null;
+
+        function startDijkstra() {
+            // Initialize state
+            dijkstraState = {
+                times: { A: 0, B: Infinity, C: Infinity, D: Infinity, E: Infinity, F: Infinity },
+                previous: { A: null, B: null, C: null, D: null, E: null, F: null },
+                visited: new Set(),
+                queue: [{ station: 'A', time: 0 }],
+                step: 0,
+                finished: false
+            };
+
+            // Reset visuals
+            document.querySelectorAll('.node').forEach(n => {
+                n.classList.remove('visited', 'current');
+            });
+            document.querySelectorAll('.edge').forEach(e => {
+                e.classList.remove('visited', 'path');
+            });
+            document.getElementById('node-A').classList.add('start');
+            document.getElementById('node-F').classList.add('end');
+
+            // Update time labels
+            updateTimeLabels();
+
+            // Clear log
+            document.getElementById('dijkstra-log').innerHTML = '<div class="step">Starting at station A (time = 0)</div>';
+
+            // Enable step button
+            document.getElementById('dijkstra-step-btn').disabled = false;
+            document.getElementById('dijkstra-start-btn').disabled = true;
+        }
+
+        function stepDijkstra() {
+            if (!dijkstraState || dijkstraState.finished) return;
+
+            const { times, previous, visited, queue } = dijkstraState;
+
+            if (queue.length === 0) {
+                dijkstraState.finished = true;
+                addLog('No more stations to explore!');
+                document.getElementById('dijkstra-step-btn').disabled = true;
+                return;
+            }
+
+            // Sort queue and get minimum
+            queue.sort((a, b) => a.time - b.time);
+            const current = queue.shift();
+
+            if (visited.has(current.station)) {
+                stepDijkstra(); // Skip already visited
+                return;
+            }
+
+            // Mark as visited
+            visited.add(current.station);
+            document.querySelectorAll('.node.current').forEach(n => n.classList.remove('current'));
+            document.getElementById(`node-${current.station}`).classList.add('visited', 'current');
+
+            addLog(`<span class="highlight">Visiting ${current.station}</span> (total time: ${current.time} min)`);
+
+            // Did we reach the goal?
+            if (current.station === 'F') {
+                dijkstraState.finished = true;
+                addLog('<span class="highlight">🎉 Found the goal! Tracing path...</span>');
+                highlightPath();
+                document.getElementById('dijkstra-step-btn').disabled = true;
+                return;
+            }
+
+            // Explore neighbors
+            const neighbors = GRAPH[current.station] || [];
+            for (const neighbor of neighbors) {
+                if (visited.has(neighbor.to)) continue;
+
+                const newTime = current.time + neighbor.time;
+
+                // Mark edge as explored
+                const edgeId = getEdgeId(current.station, neighbor.to);
+                if (edgeId) {
+                    document.getElementById(edgeId).classList.add('visited');
+                }
+
+                if (newTime < times[neighbor.to]) {
+                    const oldTime = times[neighbor.to] === Infinity ? '∞' : times[neighbor.to];
+                    times[neighbor.to] = newTime;
+                    previous[neighbor.to] = current.station;
+                    queue.push({ station: neighbor.to, time: newTime });
+                    addLog(`  → ${neighbor.to}: ${oldTime} → ${newTime} min (via ${current.station})`);
+                }
+            }
+
+            updateTimeLabels();
+        }
+
+        function getEdgeId(from, to) {
+            // Check both directions since edges are undirected
+            const id1 = `edge-${from}-${to}`;
+            const id2 = `edge-${to}-${from}`;
+            if (document.getElementById(id1)) return id1;
+            if (document.getElementById(id2)) return id2;
+            return null;
+        }
+
+        function updateTimeLabels() {
+            if (!dijkstraState) return;
+            const { times } = dijkstraState;
+
+            for (const station of Object.keys(times)) {
+                const label = document.getElementById(`time-${station}`);
+                if (label) {
+                    const time = times[station];
+                    label.textContent = time === Infinity ? '∞' : `${time} min`;
+                    label.style.fill = time === Infinity ? '#888' : '#00ff88';
+                }
+            }
+        }
+
+        function highlightPath() {
+            if (!dijkstraState) return;
+            const { previous } = dijkstraState;
+
+            // Trace back from F to A
+            let current = 'F';
+            const path = [current];
+
+            while (previous[current]) {
+                const prev = previous[current];
+                path.unshift(prev);
+
+                // Highlight edge
+                const edgeId = getEdgeId(prev, current);
+                if (edgeId) {
+                    document.getElementById(edgeId).classList.add('path');
+                }
+
+                current = prev;
+            }
+
+            addLog(`<span class="highlight">Shortest path: ${path.join(' → ')} (${dijkstraState.times['F']} minutes)</span>`);
+        }
+
+        function addLog(message) {
+            const log = document.getElementById('dijkstra-log');
+            const step = document.createElement('div');
+            step.className = 'step';
+            step.innerHTML = message;
+            log.appendChild(step);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function resetDijkstra() {
+            dijkstraState = null;
+
+            // Reset all visuals
+            document.querySelectorAll('.node').forEach(n => {
+                n.classList.remove('visited', 'current');
+            });
+            document.querySelectorAll('.edge').forEach(e => {
+                e.classList.remove('visited', 'path');
+            });
+
+            document.getElementById('node-A').classList.add('start');
+            document.getElementById('node-F').classList.add('end');
+
+            // Reset time labels
+            ['A', 'B', 'C', 'D', 'E', 'F'].forEach(station => {
+                const label = document.getElementById(`time-${station}`);
+                if (label) {
+                    label.textContent = station === 'A' ? '0 min' : '∞';
+                    label.style.fill = station === 'A' ? '#00d4ff' : '#888';
+                }
+            });
+
+            document.getElementById('dijkstra-log').innerHTML = '<div class="step">Click "Start Algorithm" to begin!</div>';
+            document.getElementById('dijkstra-step-btn').disabled = true;
+            document.getElementById('dijkstra-start-btn').disabled = false;
+        }
+
+        // ==========================================
+        // CACHING DEMO
+        // ==========================================
+
+        const demoCache = {};
+
+        async function calculateWithCache() {
+            const from = document.getElementById('cache-from').value;
+            const to = document.getElementById('cache-to').value;
+            const key = `${from} → ${to}`;
+
+            const timerEl = document.getElementById('cache-timer');
+            const statusEl = document.getElementById('cache-status');
+
+            const startTime = performance.now();
+
+            if (demoCache[key]) {
+                // CACHE HIT!
+                const elapsed = (performance.now() - startTime).toFixed(1);
+                timerEl.textContent = `${elapsed}ms`;
+                timerEl.className = 'timer fast';
+                statusEl.innerHTML = '<span style="color: #00ff88;">✓ CACHE HIT!</span> Returned saved answer instantly.';
+
+                showResult('cache-result', `
+                    <strong>Route:</strong> ${key}<br>
+                    <strong>Walking time:</strong> ${demoCache[key].walkMins} minutes<br>
+                    <strong>Source:</strong> Cache (instant!)
+                `);
+            } else {
+                // CACHE MISS - simulate slow API call
+                timerEl.textContent = 'Calculating...';
+                timerEl.className = 'timer slow';
+                statusEl.innerHTML = '<span style="color: #ff6b6b;">✗ CACHE MISS</span> - Making API call...';
+
+                // Simulate 500-800ms API delay
+                const delay = 500 + Math.random() * 300;
+                await new Promise(r => setTimeout(r, delay));
+
+                // Generate fake walking time
+                const walkMins = 10 + Math.floor(Math.random() * 20);
+                demoCache[key] = { walkMins, timestamp: Date.now() };
+
+                const elapsed = (performance.now() - startTime).toFixed(1);
+                timerEl.textContent = `${elapsed}ms`;
+                statusEl.innerHTML = '<span style="color: #ffcc00;">Saved to cache!</span> Next time will be instant.';
+
+                showResult('cache-result', `
+                    <strong>Route:</strong> ${key}<br>
+                    <strong>Walking time:</strong> ${walkMins} minutes<br>
+                    <strong>Source:</strong> API call (slow)
+                `);
+
+                // Update cache display
+                updateCacheDisplay();
+            }
+        }
+
+        function updateCacheDisplay() {
+            const entriesEl = document.getElementById('cache-entries');
+            const keys = Object.keys(demoCache);
+
+            if (keys.length === 0) {
+                entriesEl.innerHTML = '<div style="color: #666; font-style: italic;">Cache is empty</div>';
+                return;
+            }
+
+            entriesEl.innerHTML = keys.map(key => `
+                <div class="cache-entry">
+                    <strong>${key}</strong><br>
+                    ${demoCache[key].walkMins} min
+                </div>
+            `).join('');
+        }
+
+        function clearCacheDemo() {
+            Object.keys(demoCache).forEach(key => delete demoCache[key]);
+            updateCacheDisplay();
+            document.getElementById('cache-timer').textContent = '-';
+            document.getElementById('cache-timer').className = 'timer';
+            document.getElementById('cache-status').textContent = '';
+            document.getElementById('cache-result').style.display = 'none';
+        }
+
+        // ==========================================
+        // UTILITIES
+        // ==========================================
+
+        function showResult(elementId, message, isError = false) {
+            const el = document.getElementById(elementId);
+            el.innerHTML = message;
+            el.style.display = 'block';
+            el.className = isError ? 'result error' : 'result';
+        }
+
+        function showAnswer(num) {
+            const el = document.getElementById(`answer-${num}`);
+            el.style.display = el.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // Initialize
+        resetDijkstra();
+    </script>
+</body>
+</html>

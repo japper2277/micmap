@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cluster Card Redesign</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #1a1a2e;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 48px;
+            padding: 40px 20px;
+        }
+
+        .label {
+            color: #666;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+
+        /* OLD DESIGN */
+        .old-card {
+            background: #1e2433;
+            border-radius: 8px;
+            padding: 8px 12px;
+            min-width: 180px;
+        }
+
+        .old-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .old-row:last-child {
+            border-bottom: none;
+        }
+
+        .old-venue {
+            color: #a0a0a0;
+            font-size: 13px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .old-times {
+            color: #7dd3fc;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        /* NEW DESIGN */
+        .new-card {
+            background: #16181c;
+            border-radius: 12px;
+            overflow: hidden;
+            min-width: 260px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .card-header {
+            background: rgba(255,255,255,0.03);
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .card-header-text {
+            color: #888;
+            font-size: 11px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .venue-count {
+            background: rgba(255,255,255,0.08);
+            color: #aaa;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+
+        .venue-row {
+            display: flex;
+            align-items: center;
+            padding: 12px 14px;
+            gap: 12px;
+            cursor: pointer;
+            transition: background 0.15s ease;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+
+        .venue-row:last-child {
+            border-bottom: none;
+        }
+
+        .venue-row:hover {
+            background: rgba(255,255,255,0.04);
+        }
+
+        .venue-row:active {
+            background: rgba(255,255,255,0.06);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .status-dot.live {
+            background: #22c55e;
+            box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.upcoming {
+            background: #ef4444;
+        }
+
+        .status-dot.future {
+            background: #6b7280;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .venue-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .venue-name {
+            color: #f0f0f0;
+            font-size: 14px;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 2px;
+        }
+
+        .venue-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #666;
+            font-size: 11px;
+        }
+
+        .venue-meta .free {
+            color: #22c55e;
+            font-weight: 500;
+        }
+
+        .venue-time {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 2px;
+        }
+
+        .time-badge {
+            font-size: 13px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 6px;
+            background: rgba(125, 211, 252, 0.15);
+            color: #7dd3fc;
+        }
+
+        .time-badge.live {
+            background: rgba(34, 197, 94, 0.15);
+            color: #4ade80;
+        }
+
+        .time-label {
+            font-size: 9px;
+            color: #555;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .chevron {
+            color: #444;
+            font-size: 12px;
+            margin-left: 4px;
+        }
+
+        /* COMPARISON WRAPPER */
+        .comparison {
+            display: flex;
+            gap: 60px;
+            align-items: flex-start;
+        }
+
+        .card-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Map background simulation */
+        .map-bg {
+            background:
+                linear-gradient(rgba(26, 26, 46, 0.7), rgba(26, 26, 46, 0.7)),
+                url('https://api.mapbox.com/styles/v1/mapbox/dark-v10/static/-74.00,40.73,14,0/400x300@2x?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw');
+            background-size: cover;
+            padding: 40px;
+            border-radius: 12px;
+        }
+
+        /* Multiple times variant */
+        .multi-times {
+            display: flex;
+            gap: 4px;
+        }
+
+        .multi-times .time-badge {
+            font-size: 11px;
+            padding: 3px 6px;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="color: #fff; font-size: 24px; font-weight: 600; margin-bottom: -20px;">Cluster Card Redesign</h1>
+
+    <div class="comparison">
+        <!-- OLD VERSION -->
+        <div class="card-wrapper">
+            <div class="label">Before (34/100)</div>
+            <div class="old-card">
+                <div class="old-row">
+                    <span class="old-venue">GREENW...</span>
+                    <span class="old-times">3p</span>
+                </div>
+                <div class="old-row">
+                    <span class="old-venue">SHOP</span>
+                    <span class="old-times">4p, 6p</span>
+                </div>
+                <div class="old-row">
+                    <span class="old-venue">PEAR</span>
+                    <span class="old-times">4:30p, 6p</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- NEW VERSION -->
+        <div class="card-wrapper">
+            <div class="label">After</div>
+            <div class="new-card">
+                <div class="card-header">
+                    <span class="card-header-text">West Village</span>
+                    <span class="venue-count">3 mics</span>
+                </div>
+
+                <div class="venue-row">
+                    <div class="status-dot live"></div>
+                    <div class="venue-info">
+                        <div class="venue-name">Greenwich Village Comedy</div>
+                        <div class="venue-meta">
+                            <span class="free">Free</span>
+                            <span>Stand-up</span>
+                        </div>
+                    </div>
+                    <div class="venue-time">
+                        <div class="time-badge live">NOW</div>
+                    </div>
+                    <i class="fas fa-chevron-right chevron"></i>
+                </div>
+
+                <div class="venue-row">
+                    <div class="status-dot upcoming"></div>
+                    <div class="venue-info">
+                        <div class="venue-name">The Comedy Shop</div>
+                        <div class="venue-meta">
+                            <span>$5</span>
+                            <span>Stand-up</span>
+                        </div>
+                    </div>
+                    <div class="venue-time">
+                        <div class="time-badge">4:00p</div>
+                        <span class="time-label">Starts in 47m</span>
+                    </div>
+                    <i class="fas fa-chevron-right chevron"></i>
+                </div>
+
+                <div class="venue-row">
+                    <div class="status-dot future"></div>
+                    <div class="venue-info">
+                        <div class="venue-name">Pearson's Pub</div>
+                        <div class="venue-meta">
+                            <span class="free">Free</span>
+                            <span>Variety</span>
+                        </div>
+                    </div>
+                    <div class="venue-time">
+                        <div class="time-badge">6:00p</div>
+                        <span class="time-label">Tonight</span>
+                    </div>
+                    <i class="fas fa-chevron-right chevron"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- COMPACT VARIANT -->
+    <div class="card-wrapper">
+        <div class="label">Compact Variant (for zoomed out)</div>
+        <div class="new-card" style="min-width: 220px;">
+            <div class="card-header">
+                <span class="card-header-text">West Village</span>
+                <span class="venue-count">3</span>
+            </div>
+
+            <div class="venue-row" style="padding: 10px 14px;">
+                <div class="status-dot live"></div>
+                <div class="venue-info">
+                    <div class="venue-name" style="font-size: 13px;">Greenwich Village</div>
+                </div>
+                <div class="time-badge live" style="font-size: 11px; padding: 3px 8px;">NOW</div>
+            </div>
+
+            <div class="venue-row" style="padding: 10px 14px;">
+                <div class="status-dot upcoming"></div>
+                <div class="venue-info">
+                    <div class="venue-name" style="font-size: 13px;">The Comedy Shop</div>
+                </div>
+                <div class="time-badge" style="font-size: 11px; padding: 3px 8px;">4p</div>
+            </div>
+
+            <div class="venue-row" style="padding: 10px 14px;">
+                <div class="status-dot future"></div>
+                <div class="venue-info">
+                    <div class="venue-name" style="font-size: 13px;">Pearson's Pub</div>
+                </div>
+                <div class="time-badge" style="font-size: 11px; padding: 3px 8px;">6p</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SINGLE VENUE HOVER STATE -->
+    <div class="comparison" style="margin-top: 20px;">
+        <div class="card-wrapper">
+            <div class="label">Single Venue (hover state)</div>
+            <div class="new-card" style="min-width: 240px;">
+                <div class="venue-row" style="border-bottom: none;">
+                    <div class="status-dot upcoming"></div>
+                    <div class="venue-info">
+                        <div class="venue-name">Stand Up NY</div>
+                        <div class="venue-meta">
+                            <span class="free">Free</span>
+                            <span>Upper West Side</span>
+                        </div>
+                    </div>
+                    <div class="venue-time">
+                        <div class="time-badge">7:30p</div>
+                        <span class="time-label">In 2 hours</span>
+                    </div>
+                    <i class="fas fa-chevron-right chevron"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-wrapper">
+            <div class="label">Multiple shows same venue</div>
+            <div class="new-card" style="min-width: 240px;">
+                <div class="venue-row" style="border-bottom: none;">
+                    <div class="status-dot future"></div>
+                    <div class="venue-info">
+                        <div class="venue-name">The Creek & The Cave</div>
+                        <div class="venue-meta">
+                            <span class="free">Free</span>
+                            <span>LIC</span>
+                        </div>
+                    </div>
+                    <div class="venue-time">
+                        <div class="multi-times">
+                            <div class="time-badge">4p</div>
+                            <div class="time-badge">6p</div>
+                            <div class="time-badge">9p</div>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right chevron"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Stacked Venues - Venue Left, Times Right</title>
+    <style>
+        :root {
+            --oled-black: #0a0a0a;
+            --slate: #1e293b;
+            --row-h: 24px;
+        }
+
+        body {
+            background: #e8e4d9;
+            padding: 60px;
+            display: flex;
+            flex-direction: column;
+            gap: 50px;
+            align-items: center;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+        }
+
+        h2 { margin: 0; font-size: 14px; color: #666; }
+
+        /* CLUSTER MARKER */
+        .cluster-marker {
+            display: flex;
+            flex-direction: row;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+        }
+
+        /* Day tab - only in all-week mode */
+        .day-tab {
+            width: 30px;
+            background: linear-gradient(180deg, #334155 0%, #1e293b 100%);
+            color: #cbd5e1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            flex-shrink: 0;
+        }
+
+        .stack {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Each venue row */
+        .venue-row {
+            display: flex;
+            flex-direction: row;
+            height: var(--row-h);
+            border-top: 1px solid rgba(255,255,255,0.08);
+            cursor: pointer;
+            transition: filter 0.15s;
+        }
+
+        .venue-row:first-child {
+            border-top: none;
+        }
+
+        .venue-row:hover {
+            filter: brightness(1.15);
+        }
+
+        /* Venue name - LEFT side */
+        .venue-name {
+            background: var(--oled-black);
+            color: #f1f5f9;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 0 10px;
+            display: flex;
+            align-items: center;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            white-space: nowrap;
+            min-width: 70px;
+        }
+
+        /* Times - RIGHT side */
+        .times {
+            background: #475569;
+            color: white;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 0 10px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            white-space: nowrap;
+            min-width: 60px;
+        }
+
+        /* Status colors for times */
+        .times.live { background: #10b981; }
+        .times.upcoming { background: #f43f5e; }
+
+        /* Hide day tab for today view */
+        .today-view .day-tab { display: none; }
+
+        .row { display: flex; gap: 60px; align-items: flex-start; }
+        .item { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+        .label { font-size: 11px; color: #888; }
+
+        /* Single venue marker (no cluster) */
+        .single-marker {
+            display: flex;
+            flex-direction: row;
+            height: 44px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+        }
+
+        .single-marker .venue-name {
+            font-size: 11px;
+            padding: 0 12px;
+        }
+
+        .single-marker .times {
+            font-size: 13px;
+            padding: 0 14px;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Today View (no day tab) - Venue Left, Times Right</h2>
+    <div class="row">
+        <div class="item">
+            <div class="cluster-marker today-view">
+                <div class="day-tab">SUN</div>
+                <div class="stack">
+                    <div class="venue-row">
+                        <div class="venue-name">Sesh</div>
+                        <div class="times">5p, 6p, 7p</div>
+                    </div>
+                    <div class="venue-row">
+                        <div class="venue-name">Black Cat</div>
+                        <div class="times upcoming">7p, 9p</div>
+                    </div>
+                </div>
+            </div>
+            <span class="label">2 venues, 5 mics</span>
+        </div>
+
+        <div class="item">
+            <div class="cluster-marker today-view">
+                <div class="day-tab">SUN</div>
+                <div class="stack">
+                    <div class="venue-row">
+                        <div class="venue-name">Producer's</div>
+                        <div class="times">5p, 6p, 7:30p</div>
+                    </div>
+                    <div class="venue-row">
+                        <div class="venue-name">Comedy Village</div>
+                        <div class="times">5:30p</div>
+                    </div>
+                </div>
+            </div>
+            <span class="label">2 venues, 4 mics</span>
+        </div>
+
+        <div class="item">
+            <div class="single-marker today-view">
+                <div class="venue-name">Fear City</div>
+                <div class="times">6p, 9p</div>
+            </div>
+            <span class="label">1 venue, 2 mics</span>
+        </div>
+    </div>
+
+    <h2>All-Week View (with day tab)</h2>
+    <div class="row">
+        <div class="item">
+            <div class="cluster-marker">
+                <div class="day-tab">MON</div>
+                <div class="stack">
+                    <div class="venue-row">
+                        <div class="venue-name">Sesh</div>
+                        <div class="times">5p, 6p, 7p</div>
+                    </div>
+                    <div class="venue-row">
+                        <div class="venue-name">Black Cat</div>
+                        <div class="times">7p, 9p</div>
+                    </div>
+                </div>
+            </div>
+            <span class="label">2 venues, 5 mics</span>
+        </div>
+
+        <div class="item">
+            <div class="cluster-marker">
+                <div class="day-tab">TUE</div>
+                <div class="stack">
+                    <div class="venue-row">
+                        <div class="venue-name">Cellar</div>
+                        <div class="times live">7p</div>
+                    </div>
+                    <div class="venue-row">
+                        <div class="venue-name">Pussycat</div>
+                        <div class="times">9p</div>
+                    </div>
+                </div>
+            </div>
+            <span class="label">2 venues, 2 mics</span>
+        </div>
+
+        <div class="item">
+            <div class="single-marker">
+                <div class="day-tab">WED</div>
+                <div class="venue-name">Fear City</div>
+                <div class="times">6p, 9p</div>
+            </div>
+            <span class="label">1 venue, 2 mics</span>
+        </div>
+    </div>
+
+    <h2>Single Mic (Original Ticket Style)</h2>
+    <div class="row">
+        <div class="item">
+            <div class="single-marker today-view">
+                <div class="venue-name">Alligator</div>
+                <div class="times">3p</div>
+            </div>
+            <span class="label">Today view</span>
+        </div>
+
+        <div class="item">
+            <div class="single-marker">
+                <div class="day-tab">MON</div>
+                <div class="venue-name">UCB</div>
+                <div class="times upcoming">6p</div>
+            </div>
+            <span class="label">All-week view</span>
+        </div>
+    </div>
+
+</body>
+</html>

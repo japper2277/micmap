@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marker Expansion Demo</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f5f5f5;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 60px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 24px;
+            color: #333;
+        }
+
+        .demo-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .label {
+            font-size: 14px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .zoom-label {
+            font-size: 12px;
+            color: #999;
+            margin-top: 8px;
+        }
+
+        /* ========== PILL STYLE (Zoomed Out) ========== */
+        .pill {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .pill-main {
+            background: #1a1a1a;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 16px;
+            font-weight: 700;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
+        }
+
+        .pill-badge {
+            background: #1a1a1a;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+        }
+
+        /* ========== TICKET STYLE (Zoomed In - Single Day) ========== */
+        .ticket {
+            display: flex;
+            flex-direction: row;
+            height: 44px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
+        }
+
+        .ticket-day-tab {
+            width: 30px;
+            height: 44px;
+            background: #3a3f4b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 700;
+            color: white;
+            letter-spacing: 0.3px;
+        }
+
+        .ticket-content {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .ticket-time {
+            height: 22px;
+            padding: 0 12px;
+            font-size: 14px;
+            font-weight: 700;
+            line-height: 22px;
+            color: white;
+            text-align: center;
+            background: #6b7280;
+        }
+
+        .ticket-time.live { background: #22c55e; }
+        .ticket-time.upcoming { background: #ef4444; }
+
+        .ticket-venue {
+            height: 22px;
+            background: #1a1a1a;
+            color: #e5e5e5;
+            font-size: 10px;
+            font-weight: 600;
+            line-height: 22px;
+            text-align: center;
+            padding: 0 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        /* ========== EXPANDED CLUSTER (Zoomed In - Multi-venue) ========== */
+        .cluster-expanded {
+            display: flex;
+            flex-direction: row;
+            height: 44px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
+        }
+
+        .cluster-day-tab {
+            width: 30px;
+            height: 44px;
+            background: #3a3f4b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .cluster-content {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .cluster-time {
+            height: 22px;
+            padding: 0 12px;
+            font-size: 14px;
+            font-weight: 700;
+            line-height: 22px;
+            color: white;
+            text-align: center;
+            background: #6b7280;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .cluster-count {
+            font-size: 10px;
+            font-weight: 500;
+            opacity: 0.85;
+        }
+
+        .cluster-venues {
+            height: 22px;
+            background: #1a1a1a;
+            color: #e5e5e5;
+            font-size: 10px;
+            font-weight: 600;
+            line-height: 22px;
+            text-align: center;
+            padding: 0 8px;
+            text-transform: uppercase;
+        }
+
+        /* ========== INTERACTIVE DEMO ========== */
+        .interactive-demo {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+            min-width: 400px;
+        }
+
+        .slider-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            font-size: 12px;
+            color: #999;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: #e0e0e0;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #333;
+            cursor: pointer;
+        }
+
+        .marker-container {
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Animated marker */
+        .animated-marker {
+            display: flex;
+            flex-direction: row;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
+            transition: all 0.3s ease;
+        }
+
+        .animated-marker.pill-mode {
+            border-radius: 20px;
+        }
+
+        .animated-day {
+            width: 0;
+            height: 44px;
+            background: #3a3f4b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 700;
+            color: white;
+            overflow: hidden;
+            transition: width 0.3s ease;
+        }
+
+        .animated-day.visible {
+            width: 30px;
+        }
+
+        .animated-content {
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+        }
+
+        .animated-content.pill-mode {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .animated-time {
+            height: 22px;
+            padding: 0 12px;
+            font-size: 14px;
+            font-weight: 700;
+            line-height: 22px;
+            color: white;
+            text-align: center;
+            background: #6b7280;
+            transition: all 0.3s ease;
+        }
+
+        .animated-time.pill-mode {
+            height: 36px;
+            line-height: 36px;
+            border-radius: 18px;
+            padding: 0 16px;
+            background: #1a1a1a;
+        }
+
+        .animated-venue {
+            height: 22px;
+            background: #1a1a1a;
+            color: #e5e5e5;
+            font-size: 10px;
+            font-weight: 600;
+            line-height: 22px;
+            text-align: center;
+            padding: 0 8px;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .animated-venue.hidden {
+            height: 0;
+            padding: 0;
+        }
+
+        .animated-badge {
+            background: #1a1a1a;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+            margin-top: 4px;
+            transition: all 0.3s ease;
+            opacity: 1;
+        }
+
+        .animated-badge.hidden {
+            opacity: 0;
+            height: 0;
+            padding: 0;
+            margin: 0;
+        }
+
+        /* ========== FLOW DIAGRAM ========== */
+        .flow {
+            display: flex;
+            align-items: center;
+            gap: 40px;
+        }
+
+        .flow-arrow {
+            font-size: 24px;
+            color: #ccc;
+        }
+
+        .flow-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .comparison-row {
+            display: flex;
+            gap: 60px;
+            align-items: flex-start;
+        }
+
+        .comparison-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .comparison-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .comparison-sublabel {
+            font-size: 11px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <h1>Marker Expansion Demo</h1>
+
+    <!-- Interactive Slider Demo -->
+    <div class="interactive-demo">
+        <div class="label">Interactive: Drag to Zoom</div>
+
+        <div class="slider-container">
+            <div class="slider-label">
+                <span>Zoomed Out (Pill)</span>
+                <span>Zoomed In (Ticket)</span>
+            </div>
+            <input type="range" id="zoomSlider" min="0" max="100" value="0">
+        </div>
+
+        <div class="marker-container">
+            <div class="animated-marker pill-mode" id="marker">
+                <div class="animated-day" id="dayTab">MON</div>
+                <div class="animated-content pill-mode" id="content">
+                    <div class="animated-time pill-mode" id="timeRow">3p</div>
+                    <div class="animated-venue hidden" id="venueRow">ALLIGATOR</div>
+                </div>
+            </div>
+            <div class="animated-badge" id="badge">+4 venues</div>
+        </div>
+
+        <div class="zoom-label" id="zoomLabel">Zoom Level: 12 (Pill)</div>
+    </div>
+
+    <!-- Static Examples -->
+    <div class="demo-section">
+        <div class="label">Single Venue Flow</div>
+        <div class="flow">
+            <div class="flow-item">
+                <div class="pill">
+                    <div class="pill-main">3p</div>
+                </div>
+                <span class="zoom-label">Zoom 12</span>
+            </div>
+
+            <div class="flow-arrow">→</div>
+
+            <div class="flow-item">
+                <div class="ticket">
+                    <div class="ticket-day-tab">MON</div>
+                    <div class="ticket-content">
+                        <div class="ticket-time">3p</div>
+                        <div class="ticket-venue">ALLIGATOR</div>
+                    </div>
+                </div>
+                <span class="zoom-label">Zoom 15+</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="demo-section">
+        <div class="label">Cluster Flow (Multiple Venues)</div>
+        <div class="flow">
+            <div class="flow-item">
+                <div class="pill">
+                    <div class="pill-main">3p</div>
+                    <div class="pill-badge">+4 venues</div>
+                </div>
+                <span class="zoom-label">Zoom 12</span>
+            </div>
+
+            <div class="flow-arrow">→</div>
+
+            <div class="flow-item">
+                <div class="cluster-expanded">
+                    <div class="cluster-day-tab">MON</div>
+                    <div class="cluster-content">
+                        <div class="cluster-time">
+                            3p
+                            <span class="cluster-count">+4 venues</span>
+                        </div>
+                        <div class="cluster-venues">TAP TO EXPAND</div>
+                    </div>
+                </div>
+                <span class="zoom-label">Zoom 15+</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Color Examples -->
+    <div class="demo-section">
+        <div class="label">Status Colors (Zoomed In)</div>
+        <div class="comparison-row">
+            <div class="comparison-item">
+                <div class="comparison-label">Future</div>
+                <div class="ticket">
+                    <div class="ticket-day-tab">MON</div>
+                    <div class="ticket-content">
+                        <div class="ticket-time">6:30p</div>
+                        <div class="ticket-venue">FLOP HOUSE</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="comparison-item">
+                <div class="comparison-label">Upcoming</div>
+                <div class="ticket">
+                    <div class="ticket-day-tab">MON</div>
+                    <div class="ticket-content">
+                        <div class="ticket-time upcoming">6:30p</div>
+                        <div class="ticket-venue">FLOP HOUSE</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="comparison-item">
+                <div class="comparison-label">Live</div>
+                <div class="ticket">
+                    <div class="ticket-day-tab">MON</div>
+                    <div class="ticket-content">
+                        <div class="ticket-time live">6:30p</div>
+                        <div class="ticket-venue">FLOP HOUSE</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const slider = document.getElementById('zoomSlider');
+        const marker = document.getElementById('marker');
+        const dayTab = document.getElementById('dayTab');
+        const content = document.getElementById('content');
+        const timeRow = document.getElementById('timeRow');
+        const venueRow = document.getElementById('venueRow');
+        const badge = document.getElementById('badge');
+        const zoomLabel = document.getElementById('zoomLabel');
+
+        slider.addEventListener('input', function() {
+            const value = parseInt(this.value);
+            const zoomLevel = Math.round(12 + (value / 100) * 5); // 12 to 17
+
+            if (value < 50) {
+                // Pill mode
+                marker.classList.add('pill-mode');
+                content.classList.add('pill-mode');
+                timeRow.classList.add('pill-mode');
+                dayTab.classList.remove('visible');
+                venueRow.classList.add('hidden');
+                badge.classList.remove('hidden');
+                zoomLabel.textContent = `Zoom Level: ${zoomLevel} (Pill)`;
+            } else {
+                // Ticket mode
+                marker.classList.remove('pill-mode');
+                content.classList.remove('pill-mode');
+                timeRow.classList.remove('pill-mode');
+                dayTab.classList.add('visible');
+                venueRow.classList.remove('hidden');
+                badge.classList.add('hidden');
+                zoomLabel.textContent = `Zoom Level: ${zoomLevel} (Ticket)`;
+            }
+        });
+    </script>
+</body>
+</html>
