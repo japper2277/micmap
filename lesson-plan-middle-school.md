@@ -6,7 +6,7 @@
 ## Overview
 
 **Grade Level:** 6-8
-**Duration:** 3 hours (with buffer activities for early finishers)
+**Duration:** 3-3.5 hours (with buffer activities for early finishers)
 **Materials Needed:**
 - Printed NYC borough maps (1 per group)
 - Colored stickers/dots (red, green, gray, blue)
@@ -25,6 +25,7 @@ By the end of this lesson, students will be able to:
 3. Solve real-world problems using logical thinking
 4. Recognize that building apps involves solving many small problems
 5. Design solutions for user experience challenges
+6. Understand that failure and iteration are normal parts of building software
 
 ---
 
@@ -40,7 +41,8 @@ By the end of this lesson, students will be able to:
 | 1:50-2:15 | Problem 4 | The Status Problem (Live vs Upcoming) |
 | 2:15-2:40 | Problem 5 | The "How Far?" Problem (Transit) |
 | 2:40-2:55 | Problem 6 | The Phone vs Computer Problem (Responsive Design) |
-| 2:55-3:00 | Wrap-Up | Reflection + Discussion |
+| 2:55-3:15 | Problem 7 | The "It Didn't Work!" Problem (Learning from Failures) |
+| 3:15-3:20 | Wrap-Up | Reflection + Discussion |
 
 ---
 
@@ -66,7 +68,7 @@ Pull up micfinder.nyc on a large screen and demonstrate:
 5. "Happening Now" section
 6. **Show on phone AND computer** - notice how it looks different!
 
-**Key point:** "Building this app meant solving about 20 different problems. Today, I'm going to teach you the 6 hardest ones, and YOU'RE going to solve them the same way I did."
+**Key point:** "Building this app meant solving about 20 different problems. Today, I'm going to teach you the 7 most important ones, and YOU'RE going to solve them the same way I did - including learning from the ones that didn't work!"
 
 ---
 
@@ -608,6 +610,106 @@ Questions:
 
 ---
 
+## SECTION 7: The "It Didn't Work!" Problem - Learning from Failures (20 min)
+
+### The Reality of Building Apps (5 min)
+
+**Say:**
+
+> "I've shown you 6 problems and how I solved them. But here's the truth: NONE of those solutions worked the first time. I tried things that failed. I built features users hated. I had to start over multiple times. And that's NORMAL. That's how building things actually works."
+
+**Ask:** "Has anyone here ever built something - a LEGO set, a craft project, a science experiment - that didn't work the first time?"
+
+*Let students share briefly*
+
+**Key point:** "The difference between a beginner and an expert isn't that experts don't fail. It's that experts EXPECT to fail and know how to learn from it."
+
+### What I Tried First (10 min)
+
+**Tell these real stories from the project:**
+
+#### Story 1: The Tiny Markers Disaster
+> "My first version of the map had tiny little dots for markers - just circles, maybe 8 pixels wide. I thought 'smaller markers = cleaner map.' WRONG. On my phone, I couldn't tap them! My thumb would miss and tap the venue next to it. I had to make them 3x bigger and add padding around the tap area."
+
+**Ask:** "Why did this seem like a good idea at first? Why did it fail?"
+
+#### Story 2: The "Show Everything" Mistake
+> "At first, when you opened the app, it showed ALL 150 mics at once - every day of the week, all on the map together. I thought 'more information = better!' The map was a mess of overlapping dots. Users said 'I can't find anything!' So I added the day filter to show only today's mics by default."
+
+**Ask:** "When is MORE information actually WORSE? Can you think of other examples?"
+
+#### Story 3: The Distance Trap
+> "For the commute filter, my first version just measured straight-line distance. 'Show me mics within 2 miles.' But in NYC, you can't walk through buildings! A venue 2 miles away might take 15 minutes by subway OR 45 minutes if you have to walk around a river. I had to switch to using real transit time."
+
+**Ask:** "What other situations where straight-line distance doesn't work? (Hint: mountains? water? highways?)"
+
+#### Story 4: The API Cost Explosion
+> "When I first added transit times, every time ANYONE loaded the map, I asked Google Maps for directions to EVERY venue. If 10 people used the app, I made 1,500 requests! Google charges money per request. My first month's bill was $200! Now I cache (save) the answers and reuse them."
+
+**Ask:** "How could I have tested this BEFORE real users found it?"
+
+#### Story 5: The Desktop-Only Design
+> "I built the whole app on my laptop. It looked great on my big monitor. Then I opened it on my phone and... the drawer didn't work. The buttons were too small. The list covered the whole map. I had to redesign the entire layout for mobile. I should have started with mobile first!"
+
+**Ask:** "Why is it smarter to design for phones FIRST, then add desktop features, instead of the other way around?"
+
+#### Story 6: The Status Color Confusion
+> "Originally, I used blue for 'live' mics and red for 'upcoming.' But users kept clicking the red ones thinking they were urgent/important. Red means 'stop' or 'danger' to most people! I switched to green for live (like a green light = go!) and red for upcoming (like 'get ready'). The colors matter!"
+
+**Ask:** "What other colors have specific meanings? (traffic lights, warning signs, etc.)"
+
+### STUDENT ACTIVITY: Failure Analysis (5 min)
+
+**Give each group one of these scenarios:**
+
+```
+SCENARIO A: Instagram Story Disaster
+A developer built a new Instagram feature: "Post your story to ALL your followers at once, no exceptions."
+Users HATED it. Why? What should they have done instead?
+
+SCENARIO B: The Auto-Correct Fail
+A keyboard app decided to auto-correct EVERY word, even names and slang.
+Users kept typing "gonna" and it changed to "going to."
+What went wrong? How could they fix it?
+
+SCENARIO C: The Notification Nightmare
+A game app sent a push notification every time ANYTHING happened:
+"Your friend logged in!" "Someone beat your score!" "It's been 1 hour since you played!"
+Users uninstalled the app. Why? What's the right amount of notifications?
+
+SCENARIO D: The Undo Button That Wasn't
+A drawing app let you draw amazing art, but had NO undo button.
+One wrong stroke = start over completely.
+Why did the developer think this was OK? (Hint: "Real artists don't need undo!")
+Why were they wrong?
+```
+
+**Each group:**
+1. Identifies the problem
+2. Explains why the developer thought it would work
+3. Designs a better solution
+
+**Share out:** Quick 30-second pitches from each group
+
+### Key Takeaways (2 min)
+
+**Write on board:**
+```
+GOOD DEVELOPERS:
+✓ Test with real users early
+✓ Start simple, add features slowly
+✓ Expect their first idea to need changes
+✓ Ask "What could go wrong?" BEFORE launching
+
+BAD DEVELOPERS:
+✗ Think they know what users want without asking
+✗ Add every feature they can think of
+✗ Launch to everyone without testing
+✗ Get defensive when users complain
+```
+
+---
+
 ## SECTION 8: Wrap-Up (5 min)
 
 ### The Big Picture (3 min)
@@ -622,10 +724,11 @@ Questions:
 | Is it still relevant? | Status Logic | Time-based rules need careful thought |
 | How long to get there? | Routing | Distance ≠ Time |
 | Phone vs Computer | Responsive Design | Same app, different layouts |
+| It didn't work! | Iteration & Failure | First attempts fail - that's normal and expected |
 
 **Say:**
 
-> "Building an app isn't about writing code. It's about solving problems. The code is just how you tell the computer your solution. Every app you use - Instagram, Google Maps, your favorite game - was built by people who had to solve hundreds of problems like these."
+> "Building an app isn't about writing code. It's about solving problems. The code is just how you tell the computer your solution. Every app you use - Instagram, Google Maps, your favorite game - was built by people who had to solve hundreds of problems like these. And they all failed many times before they got it right."
 
 ### Reflection Questions (2 min)
 

@@ -282,8 +282,10 @@ function render(mode) {
 
     // First group by exact venue (same lat/lng)
     // Use filtered mics for map markers so filters apply to both list AND map
+    // Skip mics without valid coordinates (they'll still show in the list)
     const venueGroups = {};
     filtered.forEach(mic => {
+        if (mic.lat == null || mic.lng == null || isNaN(mic.lat) || isNaN(mic.lng)) return;
         const key = `${mic.lat},${mic.lng}`;
         if (!venueGroups[key]) venueGroups[key] = [];
         venueGroups[key].push(mic);
