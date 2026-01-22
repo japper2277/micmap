@@ -16,11 +16,13 @@ const OSRM_LOCAL = 'http://localhost:5001/route/v1/foot';
 const OSRM_PUBLIC = 'https://routing.openstreetmap.de/routed-foot/route/v1/foot';
 let osrmEndpoint = OSRM_LOCAL;
 let osrmLocalFailed = false;
+let osrmLocalFailedAt = null;  // Track when it failed to allow retry after 5 min
 
 const transitService = {
 
-    // Walking route cache
+    // Walking route cache (expires after 30 min)
     walkCache: {},
+    walkCacheTimestamp: null,
 
     // Route cache: keyed by "userLat,userLng|venueLat,venueLng"
     routeCache: {},
@@ -35,8 +37,8 @@ const transitService = {
 
     // Call subway router API for accurate Dijkstra-based routing
     async fetchSubwayRoute(userLat, userLng, venueLat, venueLng) {
-        // Cache key: round to 4 decimals (~11 meter precision)
-        const cacheKey = `${userLat.toFixed(4)},${userLng.toFixed(4)}|${venueLat.toFixed(4)},${venueLng.toFixed(4)}`;
+        // Cache key: round to 3 decimals (~111 meter precision, reduces API spam)
+        const cacheKey = `${userLat.toFixed(3)},${userLng.toFixed(3)}|${venueLat.toFixed(3)},${venueLng.toFixed(3)}`;
 
         // Cache invalidation: clear after 5 minutes
         if (!this.cacheTimestamp) this.cacheTimestamp = Date.now();
@@ -88,13 +90,23 @@ const transitService = {
         // Cache key
         const cacheKey = `walk:${fromLat.toFixed(4)},${fromLng.toFixed(4)}|${toLat.toFixed(4)},${toLng.toFixed(4)}`;
 
+        // Cache invalidation: clear walk cache after 30 minutes
+        if (!this.walkCacheTimestamp) this.walkCacheTimestamp = Date.now();
+        if (Date.now() - this.walkCacheTimestamp > 30 * 60 * 1000) {
+            this.walkCache = {};
+            this.walkCacheTimestamp = Date.now();
+        }
+
         // Return cached result if available
         if (this.walkCache[cacheKey]) {
             return this.walkCache[cacheKey];
         }
 
         // Try local OSRM first, then public API as fallback
-        const endpoints = osrmLocalFailed ? [OSRM_PUBLIC] : [OSRM_LOCAL, OSRM_PUBLIC];
+        // Retry local after 5 minutes even if it failed before
+        const shouldRetryLocal = !osrmLocalFailed ||
+            (osrmLocalFailedAt && Date.now() - osrmLocalFailedAt > 5 * 60 * 1000);
+        const endpoints = shouldRetryLocal ? [OSRM_LOCAL, OSRM_PUBLIC] : [OSRM_PUBLIC];
 
         for (const endpoint of endpoints) {
             try {
@@ -115,6 +127,7 @@ const transitService = {
                 if (!response.ok) {
                     if (endpoint === OSRM_LOCAL) {
                         osrmLocalFailed = true;
+                        osrmLocalFailedAt = Date.now();
                         console.log('Local OSRM unavailable, switching to public API');
                         continue;
                     }
@@ -136,6 +149,7 @@ const transitService = {
             } catch (error) {
                 if (endpoint === OSRM_LOCAL) {
                     osrmLocalFailed = true;
+                    osrmLocalFailedAt = Date.now();
                     console.log('Local OSRM unavailable, switching to public API');
                     continue;
                 }
@@ -283,8 +297,10 @@ const transitService = {
                     const route = await this.fetchSubwayRoute(userLat, userLng, mic.lat, mic.lng);
 
                     if (route) {
-                        mic.transitMins = route.totalTime;
-                        mic.transitSeconds = route.totalTime * 60;
+                        // Use adjustedTotalTime (includes wait times) if available
+                        const totalMins = route.adjustedTotalTime || route.totalTime;
+                        mic.transitMins = totalMins;
+                        mic.transitSeconds = totalMins * 60;
                         mic.transitType = 'transit';
                         mic.route = route;
                     } else {
@@ -395,9 +411,10 @@ const transitService = {
                     );
 
                     if (route) {
-                        // Success - use exact time
-                        mic.transitMins = route.totalTime;
-                        mic.transitSeconds = route.totalTime * 60;
+                        // Success - use exact time (adjustedTotalTime includes wait times)
+                        const totalMins = route.adjustedTotalTime || route.totalTime;
+                        mic.transitMins = totalMins;
+                        mic.transitSeconds = totalMins * 60;
                         mic.transitType = 'transit';
                         mic.route = route; // Store for modal detail view
                     } else {

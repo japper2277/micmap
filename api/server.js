@@ -1033,11 +1033,18 @@ app.get('/api/subway/routes', async (req, res) => {
     const isWeekend = nycDay === 0 || nycDay === 6;
     const isRushHour = !isWeekend && ((nycHour >= 7 && nycHour <= 9) || (nycHour >= 17 && nycHour <= 19));
 
-    // Late night: swap lines that don't run
-    const lateNightSwaps = { 'B': 'D', 'W': 'N', 'Z': 'J' };
+    // Late night: swap lines that don't run (midnight - 6am)
+    const lateNightSwaps = {
+      'B': 'D',    // B doesn't run late night
+      'W': 'N',    // W doesn't run late night
+      'Z': 'J',    // Z doesn't run late night
+      '7X': '7',   // Express doesn't run late night
+      '6X': '6',   // Express doesn't run late night
+      '5X': '5',   // Express doesn't run
+    };
 
     // Rush hour only lines - will be filtered by real-time validation if not running
-    const rushHourOnlyLines = ['Z', '7X', '6X'];
+    const rushHourOnlyLines = ['Z', '7X', '6X', '5X'];
 
     if (isLateNight) {
       for (const route of routes) {
@@ -1093,7 +1100,7 @@ app.get('/api/subway/routes', async (req, res) => {
         // Check if this line has real-time service at BOTH origin AND destination
         // Direction filter is required - we need trains going the RIGHT way
         const serviceAtOrigin = await getLinesWithService([leg.line], fromStationId, neededDirection);
-        const serviceAtDest = await getLinesWithService([leg.line], toStationId, null);
+        const serviceAtDest = await getLinesWithService([leg.line], toStationId, neededDirection);
 
         const hasService = serviceAtOrigin.length > 0 && serviceAtDest.length > 0;
 
@@ -1293,7 +1300,14 @@ app.get('/api/subway/routes', async (req, res) => {
             // Fallback: use the station ID with direction guess based on route
             const fromStation = stationsData?.[nextRide.fromId];
             const toStation = stationsData?.[nextRide.toId];
-            const direction = (fromStation?.lat && toStation?.lat && toStation.lat > fromStation.lat) ? 'N' : 'S';
+            let direction;
+            // L line runs east-west: N=Manhattan(west), S=Canarsie(east)
+            if (nextRide.line === 'L') {
+              direction = (fromStation?.lng && toStation?.lng && toStation.lng < fromStation.lng) ? 'N' : 'S';
+            } else {
+              // Most lines run north-south
+              direction = (fromStation?.lat && toStation?.lat && toStation.lat > fromStation.lat) ? 'N' : 'S';
+            }
             transferStopId = nextRide.fromId + direction;
           }
 

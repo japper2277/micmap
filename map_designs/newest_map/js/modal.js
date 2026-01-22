@@ -373,9 +373,15 @@ const walkIcon = '<svg class="walk-icon" width="14" height="14" fill="#8e8e93" v
 
 // Helper: Format time range (e.g., "11:15 AM - 11:36 AM")
 function formatTimeRange(durationMins) {
+    // Default to 15 min if invalid
+    const mins = (typeof durationMins === 'number' && !isNaN(durationMins)) ? durationMins : 15;
     const now = new Date();
-    const end = new Date(now.getTime() + durationMins * 60000);
-    const formatTime = (d) => d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+    const end = new Date(now.getTime() + mins * 60000);
+    const formatTime = (d) => new Intl.DateTimeFormat('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+    }).format(d);
     return `${formatTime(now)} - ${formatTime(end)}`;
 }
 
@@ -496,7 +502,7 @@ async function displaySubwayRoutes(routes, mic, walkOption = null, schedule = nu
 
                 iconFlow += '<span class="arrow">→</span>';
 
-                // Add badge for each line
+                // Add badge for each line (all wrapped consistently for spacing)
                 lines.forEach((line, lineIdx) => {
                     if (hasAlert && lineIdx === 0) {
                         // Use data attributes to avoid XSS - event handler will read them
@@ -505,7 +511,9 @@ async function displaySubwayRoutes(routes, mic, walkOption = null, schedule = nu
                             <div class="alert-dot"></div>
                         </div>`;
                     } else {
-                        iconFlow += `<div class="badge b-${escapeHtml(line)}">${escapeHtml(line)}</div>`;
+                        iconFlow += `<div class="badge-wrap">
+                            <div class="badge b-${escapeHtml(line)}">${escapeHtml(line)}</div>
+                        </div>`;
                     }
                 });
             }
@@ -516,11 +524,11 @@ async function displaySubwayRoutes(routes, mic, walkOption = null, schedule = nu
 
         // Get first ride leg for station name
         const firstRideLeg = route.legs.find(l => l.type === 'ride');
-        const originStation = firstRideLeg?.from || route.originStation;
+        const originStation = firstRideLeg?.from || route.originStation || 'Nearby station';
 
         // Use wait times from API (already calculated with real-time + GTFS fallback)
         const waitTime = route.waitTime || 0;
-        const adjustedTotalTime = route.adjustedTotalTime || route.totalTime;
+        const adjustedTotalTime = route.adjustedTotalTime ?? route.totalTime ?? 15;
 
         // Format departure times - fetch next 3 catchable departures from origin station
         let depTimesStr = 'Now';
@@ -531,13 +539,20 @@ async function displaySubwayRoutes(routes, mic, walkOption = null, schedule = nu
                     mtaService.fetchArrivals(firstLine, originStationId + 'N').catch(() => []),
                     mtaService.fetchArrivals(firstLine, originStationId + 'S').catch(() => [])
                 ]);
-                // Combine and sort by arrival time
+                // Combine, dedupe by minsAway, and sort by arrival time
                 const allArrivals = [...(arrivalsN || []), ...(arrivalsS || [])];
-                allArrivals.sort((a, b) => a.minsAway - b.minsAway);
+                const seenTimes = new Set();
+                const uniqueArrivals = allArrivals.filter(a => {
+                    if (seenTimes.has(a.minsAway)) return false;
+                    seenTimes.add(a.minsAway);
+                    return true;
+                });
+                uniqueArrivals.sort((a, b) => a.minsAway - b.minsAway);
 
-                // Filter to only trains user can catch (walk time - 2 min buffer)
-                const minCatchTime = Math.max(0, (route.walkToStation || 0) - 2);
-                const catchable = allArrivals.filter(a => a.minsAway >= minCatchTime);
+                // Filter to only trains user can catch (2 min buffer for longer walks)
+                const walkTime = route.walkToStation || 0;
+                const minCatchTime = walkTime <= 3 ? walkTime : (walkTime - 2);
+                const catchable = uniqueArrivals.filter(a => a.minsAway >= minCatchTime);
 
                 if (catchable.length > 0) {
                     // Get next 3 departures, format as clock times
@@ -610,7 +625,7 @@ async function loadModalArrivals(mic) {
     }
 
     // Under 0.5 miles actual walk - just show walking card
-    if (walkDist < WALK_ONLY_THRESHOLD) {
+    if (walkDist <= WALK_ONLY_THRESHOLD) {
         const distDisplay = walkDist < 0.2
             ? `${(walkDist * 5280).toFixed(0)} ft`
             : `${walkDist.toFixed(2)} mi`;
@@ -653,6 +668,36 @@ async function loadModalArrivals(mic) {
     // Display routes with walking option if under 1 mile actual walk
     if (routes && routes.length > 0) {
         await displaySubwayRoutes(routes, mic, walkDist < SHOW_WALK_OPTION ? { walkMins, directDist: walkDist } : null, schedule);
+        return;
+    }
+
+    // No subway routes but walkable - show walk-only card
+    if (walkDist < SHOW_WALK_OPTION) {
+        const distDisplay = walkDist < 0.2
+            ? `${(walkDist * 5280).toFixed(0)} ft`
+            : `${walkDist.toFixed(2)} mi`;
+
+        modalTransit.innerHTML = `
+            <div class="card-base">
+                <div class="card-top">
+                    <span class="time-main">${formatTimeRange(walkMins)}</span>
+                    <span class="duration-main">${walkMins} min</span>
+                </div>
+                <div class="card-mid">
+                    <span>${walkIcon} Start</span>
+                    <span class="arrow">→</span>
+                    <div class="badge-pill-green">Walk</div>
+                    <span class="arrow">→</span>
+                    <span>${distDisplay}</span>
+                </div>
+                <div class="card-bottom">
+                    <div class="station-name">
+                        <span class="station-prefix">Route:</span> Direct
+                    </div>
+                    <div class="status-text">No transit needed</div>
+                </div>
+            </div>
+        `;
         return;
     }
 
@@ -736,7 +781,9 @@ async function loadModalArrivals(mic) {
                     <div class="alert-dot"></div>
                 </div>`;
             } else {
-                badgeFlow += `<div class="badge b-${escapeHtml(line)}">${escapeHtml(line)}</div>`;
+                badgeFlow += `<div class="badge-wrap">
+                    <div class="badge b-${escapeHtml(line)}">${escapeHtml(line)}</div>
+                </div>`;
             }
         });
 
