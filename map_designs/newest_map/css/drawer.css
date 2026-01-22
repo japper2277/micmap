@@ -22,13 +22,13 @@
     will-change: transform, height, opacity;
 }
 
-/* Desktop drawer states - fully hide/show via search bar toggle */
+/* Desktop drawer states - open/closed toggle */
 @media (min-width: 768px) {
     #list-drawer {
         height: auto;
         max-height: calc(100vh - 100px);
     }
-    /* Closed: fully hidden */
+    /* Closed/Peek: fully hidden */
     #list-drawer.drawer-peek,
     #list-drawer.drawer-closed {
         opacity: 0;

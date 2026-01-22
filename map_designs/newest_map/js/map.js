@@ -353,10 +353,10 @@ map.on('moveend', () => {
     }
 });
 
-// Collapse drawer on desktop when user drags the map
+// Collapse drawer to peek on desktop when user drags the map
 map.on('dragstart', () => {
     const isDesktop = window.matchMedia('(min-width: 768px)').matches;
-    if (isDesktop && typeof setDrawerState !== 'undefined' && typeof DRAWER_STATES !== 'undefined') {
+    if (isDesktop && STATE.drawerState === DRAWER_STATES.OPEN) {
         setDrawerState(DRAWER_STATES.PEEK);
     }
 });

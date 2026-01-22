@@ -118,6 +118,9 @@ function init() {
     // Setup mobile swipe
     setupMobileSwipe();
 
+    // Setup desktop hover-to-expand
+    setupDesktopDrawerHover();
+
     // Setup keyboard scroll for list content
     setupKeyboardScroll();
 
