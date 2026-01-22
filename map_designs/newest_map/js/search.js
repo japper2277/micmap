@@ -354,6 +354,11 @@ const searchService = {
                 this.input.value = 'Current Location';
                 this.input.placeholder = 'Search address...';
 
+                // Collapse drawer so user can see the map
+                if (typeof toggleDrawer === 'function' && STATE.isDrawerOpen) {
+                    toggleDrawer(false);
+                }
+
                 // Zoom to location
                 if (typeof map !== 'undefined') {
                     map.flyTo([latitude, longitude], 14, { duration: 1 });

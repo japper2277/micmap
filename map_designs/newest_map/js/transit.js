@@ -227,7 +227,6 @@ const transitService = {
         STATE.isCalculatingTransit = false;
         render(STATE.currentMode);
 
-
         // Background preload: Calculate routes for other days
         this.preloadOtherDays(lat, lng);
     },

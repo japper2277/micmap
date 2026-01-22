@@ -265,19 +265,6 @@ function initDrawerState() {
     }
 }
 
-// Show drawer after initial load (called after location or timeout)
-function showDrawerAfterLoad() {
-    const isDesktop = window.matchMedia('(min-width: 768px)').matches;
-    if (isDesktop && STATE.drawerState === DRAWER_STATES.PEEK) {
-        setDrawerState(DRAWER_STATES.OPEN);
-    }
-}
-
-// Setup desktop drawer behavior (placeholder - no special behavior needed)
-function setupDesktopDrawerHover() {
-    // Desktop uses simple open/closed toggle via button
-}
-
 // Keyboard scroll support for list-content
 function setupKeyboardScroll() {
     const listContent = document.getElementById('list-content');

@@ -238,22 +238,15 @@ function createMultiVenuePin(venueData, dayAbbrev = null) {
     });
 }
 
-// Get user location - auto-activates transit mode on initial load if user accepts
+// Get user location
 function getUserLocation() {
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
             (position) => {
-                const { latitude, longitude } = position.coords;
-                STATE.userLocation = { lat: latitude, lng: longitude };
-
-                // Auto-activate transit mode on initial load
-                const searchInput = document.getElementById('search-input');
-                if (searchInput) searchInput.value = 'Current Location';
-
-                // Trigger transit calculations
-                if (typeof transitService !== 'undefined' && transitService.calculateFromOrigin) {
-                    transitService.calculateFromOrigin(latitude, longitude, 'My Location', null);
-                }
+                STATE.userLocation = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                };
             },
             () => {
                 // Geolocation error - silently ignore, user can manually enable later
@@ -353,10 +346,13 @@ map.on('moveend', () => {
     }
 });
 
-// Collapse drawer to peek on desktop when user drags the map
-map.on('dragstart', () => {
-    const isDesktop = window.matchMedia('(min-width: 768px)').matches;
-    if (isDesktop && STATE.drawerState === DRAWER_STATES.OPEN) {
+// Collapse drawer when user pans the map
+map.on('movestart', () => {
+    // Skip if this is a programmatic move (flyTo, setView, etc.)
+    if (STATE.isProgrammaticMove) return;
+
+    // Collapse drawer when open
+    if (STATE.isDrawerOpen && typeof setDrawerState === 'function') {
         setDrawerState(DRAWER_STATES.PEEK);
     }
 });
