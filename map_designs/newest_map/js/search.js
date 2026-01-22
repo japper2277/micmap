@@ -97,10 +97,13 @@ const searchService = {
         });
 
         this.input.addEventListener('focus', () => {
-            if (this.input.value.trim() === '') {
+            const val = this.input.value.trim();
+            if (val === '' || val === 'My Location' || val === 'Current Location' || val === 'Dropped Pin') {
+                // Show empty state for blank or location-based values
                 this.renderEmptyState();
-            } else if (this.input.value.length >= 2) {
-                this.showDropdown();
+            } else if (val.length >= 2) {
+                // Re-run search to populate dropdown with results
+                this.search(val);
             }
         });
 
