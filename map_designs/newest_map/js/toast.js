@@ -13,9 +13,12 @@ const toastService = {
         document.body.appendChild(this.container);
     },
 
-    show(message, type = 'info', duration = 3000) {
+    show(message, type = 'info', options = {}) {
+        const duration = typeof options === 'number' ? options : (options.duration || 3000);
+        const action = typeof options === 'object' ? options.action : null;
+
         const toast = document.createElement('div');
-        toast.className = `toast toast-${type}`;
+        toast.className = `toast toast-${type}${action ? ' toast-actionable' : ''}`;
 
         const icons = {
             success: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>',
@@ -29,12 +32,22 @@ const toastService = {
             <span class="toast-message">${message}</span>
         `;
 
+        // Add click handler if action provided
+        if (action) {
+            toast.style.cursor = 'pointer';
+            toast.addEventListener('click', () => {
+                action();
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            });
+        }
+
         this.container.appendChild(toast);
         requestAnimationFrame(() => toast.classList.add('show'));
 
         setTimeout(() => {
             toast.classList.remove('show');
             setTimeout(() => toast.remove(), 300);
-        }, duration);
+        }, action ? 5000 : duration); // Longer duration for actionable toasts
     }
 };

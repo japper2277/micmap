@@ -247,6 +247,44 @@ function getUserLocation() {
                     lat: position.coords.latitude,
                     lng: position.coords.longitude
                 };
+
+                // Add user marker (navigation arrow icon)
+                const navIcon = L.divIcon({
+                    className: 'user-location-marker',
+                    html: `<div class="nav-arrow-icon">
+                             <svg viewBox="0 0 24 24" fill="white" width="16" height="16">
+                               <path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/>
+                             </svg>
+                           </div>`,
+                    iconSize: [44, 44],
+                    iconAnchor: [22, 22]
+                });
+
+                if (STATE.userMarker) {
+                    STATE.userMarker.setLatLng([STATE.userLocation.lat, STATE.userLocation.lng]);
+                } else {
+                    STATE.userMarker = L.marker([STATE.userLocation.lat, STATE.userLocation.lng], {
+                        icon: navIcon
+                    }).addTo(map);
+                }
+
+                // Check how many mics are visible in current bounds
+                setTimeout(() => {
+                    const bounds = map.getBounds();
+                    const visibleMics = STATE.mics.filter(mic =>
+                        bounds.contains([mic.lat, mic.lng || mic.lon])
+                    );
+
+                    // If < 3 mics visible, show toast to guide user to mic-dense area
+                    if (visibleMics.length < 3 && typeof toastService !== 'undefined') {
+                        toastService.show('Most mics are in Manhattan — tap to explore', 'info', {
+                            action: () => {
+                                STATE.isProgrammaticMove = true;
+                                map.flyTo(CONFIG.mapCenter, CONFIG.mapZoom, { duration: 1.2 });
+                            }
+                        });
+                    }
+                }, 500);
             },
             () => {
                 // Geolocation error - silently ignore, user can manually enable later
@@ -265,16 +303,23 @@ function centerOnUser() {
         map.flyTo([STATE.userLocation.lat, STATE.userLocation.lng], 14, { duration: 1 });
         btn.classList.add('active');
 
-        // Add/update user marker
+        // Add/update user marker (navigation arrow icon)
+        const navIcon = L.divIcon({
+            className: 'user-location-marker',
+            html: `<div class="nav-arrow-icon">
+                     <svg viewBox="0 0 24 24" fill="white" width="16" height="16">
+                       <path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/>
+                     </svg>
+                   </div>`,
+            iconSize: [32, 32],
+            iconAnchor: [16, 16]
+        });
+
         if (STATE.userMarker) {
             STATE.userMarker.setLatLng([STATE.userLocation.lat, STATE.userLocation.lng]);
         } else {
-            STATE.userMarker = L.circleMarker([STATE.userLocation.lat, STATE.userLocation.lng], {
-                radius: 8,
-                fillColor: '#3b82f6',
-                fillOpacity: 1,
-                color: 'white',
-                weight: 3
+            STATE.userMarker = L.marker([STATE.userLocation.lat, STATE.userLocation.lng], {
+                icon: navIcon
             }).addTo(map);
         }
 
