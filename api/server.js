@@ -51,6 +51,10 @@ try {
   console.warn('⚠️ Could not load departure-index.json:', e.message);
 }
 
+// MTA real-time only reports arrivals up to 30 mins away.
+// Skip real-time when transfer is beyond this horizon.
+const REALTIME_HORIZON_MINS = 25;
+
 // Get next scheduled departure from GTFS (returns wait time in minutes)
 function getScheduledWait(stopId, line, arrivalMins) {
   // arrivalMins = minutes from midnight when user arrives at platform
@@ -1311,57 +1315,34 @@ app.get('/api/subway/routes', async (req, res) => {
             transferStopId = nextRide.fromId + direction;
           }
 
-          try {
-            const arrivals = await getArrivalsForLine(nextRide.line, transferStopId);
-            if (arrivals?.length > 0) {
-              // Find first train arriving after we reach the platform
-              const catchable = arrivals.filter(a => a.minsAway >= cumulativeTime);
-              if (catchable.length > 0) {
-                const transferWait = Math.max(0, catchable[0].minsAway - cumulativeTime);
-                totalWaitTime += transferWait;
-                transferWaits.push({
-                  at: leg.at,
-                  line: nextRide.line,
-                  wait: transferWait,
-                  estimated: false
-                });
-                cumulativeTime += transferWait;
-              } else {
-                // No real-time train after arrival - use GTFS scheduled departures
-                const now = new Date();
-                const currentMins = now.getHours() * 60 + now.getMinutes();
-                const arrivalMins = (currentMins + cumulativeTime) % (24 * 60);
-                const scheduledWait = getScheduledWait(transferStopId, nextRide.line, arrivalMins);
-                const estimatedWait = scheduledWait !== null ? scheduledWait : 5;
-                totalWaitTime += estimatedWait;
-                transferWaits.push({
-                  at: leg.at,
-                  line: nextRide.line,
-                  wait: estimatedWait,
-                  estimated: true,
-                  source: scheduledWait !== null ? 'gtfs' : 'fallback'
-                });
-                cumulativeTime += estimatedWait;
+          // Try real-time only if transfer is within MTA's 30-min reporting window
+          // (using 25-min threshold for safety buffer)
+          let foundRealtime = false;
+          if (cumulativeTime <= REALTIME_HORIZON_MINS) {
+            try {
+              const arrivals = await getArrivalsForLine(nextRide.line, transferStopId);
+              if (arrivals?.length > 0) {
+                // Find first train arriving after we reach the platform
+                // Both values are "minutes from NOW" so comparison is valid
+                const catchable = arrivals.filter(a => a.minsAway >= cumulativeTime);
+                if (catchable.length > 0) {
+                  const transferWait = Math.max(0, catchable[0].minsAway - cumulativeTime);
+                  totalWaitTime += transferWait;
+                  transferWaits.push({
+                    at: leg.at,
+                    line: nextRide.line,
+                    wait: transferWait,
+                    estimated: false
+                  });
+                  cumulativeTime += transferWait;
+                  foundRealtime = true;
+                }
               }
-            } else {
-              // No real-time arrivals data - use GTFS scheduled departures
-              const now = new Date();
-              const currentMins = now.getHours() * 60 + now.getMinutes();
-              const arrivalMins = (currentMins + cumulativeTime) % (24 * 60);
-              const scheduledWait = getScheduledWait(transferStopId, nextRide.line, arrivalMins);
-              const estimatedWait = scheduledWait !== null ? scheduledWait : 5;
-              totalWaitTime += estimatedWait;
-              transferWaits.push({
-                at: leg.at,
-                line: nextRide.line,
-                wait: estimatedWait,
-                estimated: true,
-                source: scheduledWait !== null ? 'gtfs' : 'fallback'
-              });
-              cumulativeTime += estimatedWait;
-            }
-          } catch (e) {
-            // Error fetching - use GTFS scheduled departures
+            } catch (e) { /* fall through to GTFS */ }
+          }
+
+          // GTFS fallback (or planned when transfer > 25 mins away)
+          if (!foundRealtime) {
             const now = new Date();
             const currentMins = now.getHours() * 60 + now.getMinutes();
             const arrivalMins = (currentMins + cumulativeTime) % (24 * 60);

@@ -193,6 +193,11 @@ const transitService = {
         STATE.isTransitMode = true;
         STATE.isCalculatingTransit = true;
 
+        // Collapse drawer on desktop so user can see the map
+        if (typeof setDrawerState !== 'undefined' && typeof DRAWER_STATES !== 'undefined') {
+            setDrawerState(DRAWER_STATES.PEEK);
+        }
+
         // Show commute filter button
         if (typeof updateTransitButtonUI === 'function') {
             updateTransitButtonUI(true);

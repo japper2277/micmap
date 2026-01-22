@@ -238,15 +238,22 @@ function createMultiVenuePin(venueData, dayAbbrev = null) {
     });
 }
 
-// Get user location
+// Get user location - auto-activates transit mode on initial load if user accepts
 function getUserLocation() {
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
             (position) => {
-                STATE.userLocation = {
-                    lat: position.coords.latitude,
-                    lng: position.coords.longitude
-                };
+                const { latitude, longitude } = position.coords;
+                STATE.userLocation = { lat: latitude, lng: longitude };
+
+                // Auto-activate transit mode on initial load
+                const searchInput = document.getElementById('search-input');
+                if (searchInput) searchInput.value = 'Current Location';
+
+                // Trigger transit calculations
+                if (typeof transitService !== 'undefined' && transitService.calculateFromOrigin) {
+                    transitService.calculateFromOrigin(latitude, longitude, 'My Location', null);
+                }
             },
             () => {
                 // Geolocation error - silently ignore, user can manually enable later
@@ -343,6 +350,14 @@ function locateMic(lat, lng, id) {
 map.on('moveend', () => {
     if (STATE.isProgrammaticMove) {
         STATE.isProgrammaticMove = false;
+    }
+});
+
+// Collapse drawer on desktop when user drags the map
+map.on('dragstart', () => {
+    const isDesktop = window.matchMedia('(min-width: 768px)').matches;
+    if (isDesktop && typeof setDrawerState !== 'undefined' && typeof DRAWER_STATES !== 'undefined') {
+        setDrawerState(DRAWER_STATES.PEEK);
     }
 });
 
