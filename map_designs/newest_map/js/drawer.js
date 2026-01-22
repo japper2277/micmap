@@ -61,7 +61,7 @@ function setDrawerState(newState) {
     const btn = document.getElementById('drawer-btn');
     const searchWrapper = document.querySelector('.search-wrapper');
     const backdrop = document.getElementById('drawer-backdrop');
-    const isDesktop = window.matchMedia('(min-width: 640px)').matches;
+    const isDesktop = window.matchMedia('(min-width: 768px)').matches;
     const isMobile = !isDesktop;
 
     // Remove all state classes
@@ -122,7 +122,7 @@ function setupMobileSwipe() {
     const VELOCITY_THRESHOLD = 0.5; // px/ms - fast flick wins
 
     function isMobile() {
-        return window.matchMedia('(max-width: 639px)').matches;
+        return window.matchMedia('(max-width: 767px)').matches;
     }
 
     function startSwipe(e) {
@@ -229,7 +229,7 @@ function fixDrawerStateForViewport() {
     const icon = document.getElementById('chevron-icon');
     const btn = document.getElementById('drawer-btn');
     const backdrop = document.getElementById('drawer-backdrop');
-    const isDesktop = window.matchMedia('(min-width: 640px)').matches;
+    const isDesktop = window.matchMedia('(min-width: 768px)').matches;
 
     // Remove all state classes first
     drawer.classList.remove('drawer-peek', 'drawer-open');
@@ -250,7 +250,7 @@ function fixDrawerStateForViewport() {
 // Initialize drawer state based on screen size
 function initDrawerState() {
     const drawer = document.getElementById('list-drawer');
-    const isDesktop = window.matchMedia('(min-width: 640px)').matches;
+    const isDesktop = window.matchMedia('(min-width: 768px)').matches;
 
     if (isDesktop) {
         // Desktop: start open

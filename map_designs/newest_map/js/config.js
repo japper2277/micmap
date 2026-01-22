@@ -12,6 +12,7 @@ const CONFIG = {
     apiBase: API_BASE,
     apiPath: `${API_BASE}/api/v1/mics`,
     mapCenter: [40.725, -73.985],
+    desktopMapCenter: [40.72, -74.02],  // Shifted for drawer offset
     mapZoom: 13,
     mobileMapZoom: 13,
     filterCycles: {

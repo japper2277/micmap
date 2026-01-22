@@ -3,11 +3,12 @@
    Leaflet map initialization, pins, geolocation
    ================================================================= */
 
-// Initialize map with mobile-appropriate zoom
-const isMobile = window.matchMedia('(max-width: 639px)').matches;
+// Initialize map with device-appropriate center and zoom
+const isMobile = window.matchMedia('(max-width: 767px)').matches;
+const initialCenter = isMobile ? CONFIG.mapCenter : CONFIG.desktopMapCenter;
 const initialZoom = isMobile ? CONFIG.mobileMapZoom : CONFIG.mapZoom;
 const map = L.map('map', { zoomControl: false, attributionControl: false })
-    .setView(CONFIG.mapCenter, initialZoom);
+    .setView(initialCenter, initialZoom);
 
 L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
     maxZoom: 20,
@@ -325,7 +326,7 @@ function locateMic(lat, lng, id) {
     map.flyTo([lat, lng], 15, { duration: 1.2, easeLinearity: 0.25 });
 
     // Minimize drawer on mobile so user can see the map
-    if (window.matchMedia('(max-width: 639px)').matches && STATE.isDrawerOpen) {
+    if (window.matchMedia('(max-width: 767px)').matches && STATE.isDrawerOpen) {
         toggleDrawer(false);
     }
 

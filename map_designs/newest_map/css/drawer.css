@@ -23,10 +23,10 @@
 }
 
 /* Desktop drawer states - fully hide/show via search bar toggle */
-@media (min-width: 640px) {
+@media (min-width: 768px) {
     #list-drawer {
         height: auto;
-        max-height: min(60vh, 550px);
+        max-height: calc(100vh - 100px);
     }
     /* Closed: fully hidden */
     #list-drawer.drawer-peek,
@@ -44,7 +44,7 @@
 }
 
 /* Mobile drawer states - 2 snap points: peek (1 card visible) and open */
-@media (max-width: 639px) {
+@media (max-width: 767px) {
     #list-drawer {
         height: calc(68 * var(--vh)) !important;
         max-height: none !important;
@@ -113,8 +113,8 @@
 #list-drawer {
     overflow-x: hidden;
 }
-@media (min-width: 640px) {
-    #list-content { max-height: min(50vh, 450px); }
+@media (min-width: 768px) {
+    #list-content { max-height: calc(100vh - 180px); }
 }
 
 /* Safe area insets for iPhone X+ */

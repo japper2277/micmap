@@ -10,7 +10,7 @@
     display: none; /* Hidden by default (desktop) */
 }
 
-@media (max-width: 639px) {
+@media (max-width: 767px) {
     /* Smaller map markers on mobile */
     .cluster-pill {
         padding: 6px 10px;
@@ -230,7 +230,7 @@
 /* =================================================================
    DESKTOP STYLES
    ================================================================= */
-@media (min-width: 640px) {
+@media (min-width: 768px) {
     .locate-btn {
         bottom: 24px;
         right: 24px;
