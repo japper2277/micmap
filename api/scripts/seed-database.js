@@ -1,5 +1,6 @@
 // Seed production database with mics from mics.json
 const mongoose = require('mongoose');
+const Redis = require('ioredis');
 const fs = require('fs');
 const path = require('path');
 
@@ -33,6 +34,24 @@ async function seed() {
 
     await mongoose.connection.close();
     console.log('✅ Database seeded successfully!');
+
+    // Invalidate Redis cache
+    const redisUrl = process.env.REDIS_URL;
+    if (redisUrl) {
+      console.log('Connecting to Redis...');
+      const redis = new Redis(redisUrl);
+      const keys = await redis.keys('micmap:mics:*');
+      if (keys.length > 0) {
+        await redis.del(...keys);
+        console.log(`🗑️  Cache invalidated: ${keys.length} entries deleted`);
+      } else {
+        console.log('ℹ️  No cache entries to invalidate');
+      }
+      await redis.quit();
+    } else {
+      console.log('⚠️  REDIS_URL not set - cache not invalidated');
+    }
+
     process.exit(0);
   } catch (error) {
     console.error('❌ Error seeding database:', error.message);

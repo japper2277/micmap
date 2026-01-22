@@ -801,7 +801,7 @@
   {
     "name": "Monday Night Mob",
     "day": "Monday",
-    "startTime": "7:00",
+    "startTime": "7:00 PM",
     "endTime": "9:00",
     "venueName": "Rodney\u2019s Comedy Club",
     "borough": "Manhattan",
@@ -818,7 +818,7 @@
   {
     "name": "Comedy Mob East",
     "day": "Sunday",
-    "startTime": "5:30",
+    "startTime": "5:30 PM",
     "endTime": "8:00",
     "venueName": "New York Comedy Club East 4th",
     "borough": "Manhattan",
@@ -835,7 +835,7 @@
   {
     "name": "Comedy Mob 24",
     "day": "Thursday",
-    "startTime": "6:00",
+    "startTime": "6:00 PM",
     "endTime": "8:00",
     "venueName": "New York Comedy Club 24th St",
     "borough": "Manhattan",
