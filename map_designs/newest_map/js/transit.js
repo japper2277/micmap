@@ -188,7 +188,9 @@ const transitService = {
         };
     },
 
-    async calculateFromOrigin(lat, lng, name, targetMic = null) {
+    async calculateFromOrigin(lat, lng, name, targetMic = null, options = {}) {
+        const { silent = false } = options;
+
         STATE.userOrigin = { lat, lng, name };
         STATE.isTransitMode = true;
         STATE.isCalculatingTransit = true;
@@ -198,9 +200,20 @@ const transitService = {
             updateTransitButtonUI(true);
         }
 
-        this.showLoadingState();
-        this.addOriginMarker(lat, lng, name);
-        map.flyTo([lat, lng], 14, { duration: 1.2 });
+        // Show commute loading indicator (for silent/background mode)
+        if (silent) {
+            this.showCommuteLoading();
+        }
+
+        // Only show loading state and fly if not silent (background) mode
+        if (!silent) {
+            this.showLoadingState();
+            this.addOriginMarker(lat, lng, name);
+            map.flyTo([lat, lng], 14, { duration: 1.2 });
+        } else {
+            // Silent mode: just add marker, no fly
+            this.addOriginMarker(lat, lng, name);
+        }
 
         // Check offline before starting
         if (this.isOffline()) {
@@ -215,7 +228,7 @@ const transitService = {
 
         try {
             // Calculate Dijkstra routes for all mics
-            await this.calculateAllRoutes(lat, lng);
+            await this.calculateAllRoutes(lat, lng, silent);
         } catch (error) {
             console.error('Transit calculation failed:', error);
             if (typeof toastService !== 'undefined') {
@@ -225,6 +238,12 @@ const transitService = {
         }
 
         STATE.isCalculatingTransit = false;
+
+        // Hide commute loading indicator
+        if (silent) {
+            this.hideCommuteLoading();
+        }
+
         render(STATE.currentMode);
 
         // Background preload: Calculate routes for other days
@@ -327,7 +346,7 @@ const transitService = {
     },
 
     // Calculate Dijkstra routes for all mics in batches
-    async calculateAllRoutes(userLat, userLng) {
+    async calculateAllRoutes(userLat, userLng, silent = false) {
         // BATCH_SIZE = 15 for progressive loading
         const BATCH_SIZE = 15;
 
@@ -384,8 +403,10 @@ const transitService = {
 
             const batch = mics.slice(i, i + BATCH_SIZE);
 
-            // Update progress
-            this.updateProgress(i, mics.length);
+            // Update progress (skip in silent mode)
+            if (!silent) {
+                this.updateProgress(i, mics.length);
+            }
 
             // Process batch in parallel
             await Promise.all(batch.map(async (mic) => {
@@ -535,5 +556,20 @@ const transitService = {
                 </div>
             `;
         }
+    },
+
+    showCommuteLoading() {
+        const el = document.getElementById('commute-loading');
+        const count = document.getElementById('mic-count');
+        if (el) el.classList.add('active');
+        // Only pulse count if mics haven't loaded yet
+        if (count && !count.textContent) {
+            count.classList.add('pulsing');
+        }
+    },
+
+    hideCommuteLoading() {
+        const el = document.getElementById('commute-loading');
+        if (el) el.classList.remove('active');
     }
 };

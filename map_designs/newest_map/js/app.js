@@ -31,6 +31,16 @@ async function loadData() {
         } else {
             render('today');
         }
+
+        // Check if transit calculation was pending (location arrived before mics loaded)
+        if (STATE.pendingTransitCalc && STATE.userLocation) {
+            STATE.pendingTransitCalc = false;
+            if (typeof transitService !== 'undefined' && transitService.calculateFromOrigin) {
+                const searchInput = document.getElementById('search-input');
+                if (searchInput) searchInput.value = 'My Location';
+                transitService.calculateFromOrigin(STATE.userLocation.lat, STATE.userLocation.lng, 'My Location', null, { silent: true });
+            }
+        }
     } catch (err) {
         // Failed to load mics - user will see empty list
         if (typeof toastService !== 'undefined') {

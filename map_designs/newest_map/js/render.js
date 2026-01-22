@@ -257,10 +257,10 @@ function render(mode) {
     baseMics = baseMics.map(m => ({ ...m, status: calcStatus(m) }));
     filtered = filtered.map(m => ({ ...m, status: calcStatus(m) }));
 
-    // Update mic count in header and hide loading spinner
-    document.getElementById('mic-count').textContent = filtered.length;
-    const spinner = document.getElementById('mic-count-spinner');
-    if (spinner) spinner.style.display = 'none';
+    // Update mic count in header and stop pulsing
+    const countEl = document.getElementById('mic-count');
+    countEl.textContent = filtered.length;
+    countEl.classList.remove('pulsing');
 
     // --- PROXIMITY CLUSTERING ---
     // Cluster nearby venues to prevent overlapping markers

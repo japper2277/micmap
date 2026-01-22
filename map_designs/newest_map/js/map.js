@@ -268,7 +268,20 @@ function getUserLocation() {
                     }).addTo(map);
                 }
 
-                // Check how many mics are visible in current bounds
+                // Automatically calculate transit times from user location (silent/background mode)
+                // Only if mics are already loaded; otherwise flag for later
+                if (STATE.mics && STATE.mics.length > 0) {
+                    if (typeof transitService !== 'undefined' && transitService.calculateFromOrigin) {
+                        const searchInput = document.getElementById('search-input');
+                        if (searchInput) searchInput.value = 'My Location';
+                        transitService.calculateFromOrigin(STATE.userLocation.lat, STATE.userLocation.lng, 'My Location', null, { silent: true });
+                    }
+                } else {
+                    // Mics not loaded yet - flag to calculate after loadData completes
+                    STATE.pendingTransitCalc = true;
+                }
+
+                // Check after 5 seconds if < 3 mics visible, show toast to guide user
                 setTimeout(() => {
                     const bounds = map.getBounds();
                     const visibleMics = STATE.mics.filter(mic =>
@@ -284,7 +297,7 @@ function getUserLocation() {
                             }
                         });
                     }
-                }, 500);
+                }, 5000);
             },
             () => {
                 // Geolocation error - silently ignore, user can manually enable later
