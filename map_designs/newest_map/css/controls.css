@@ -7,8 +7,7 @@
 .locate-btn {
     position: fixed;
     bottom: 140px; /* Above drawer peek height (120px) + spacing */
-    left: 16px; /* Mobile: left side */
-    right: auto;
+    right: 16px;
     width: 44px;
     height: 44px;
     border-radius: 50%;
@@ -30,12 +29,12 @@
 .locate-btn:active {
     transform: scale(0.95);
 }
-/* Tooltip - Google Maps style, top-right */
+/* Tooltip - Google Maps style, anchored to right */
 .locate-btn[data-tooltip]::before {
     content: attr(data-tooltip);
     position: absolute;
     bottom: calc(100% + 10px);
-    left: 0;
+    right: 0;
     padding: 6px 10px;
     background: #fff;
     color: #202124;
@@ -52,7 +51,7 @@
     content: '';
     position: absolute;
     bottom: calc(100% + 4px);
-    left: 12px;
+    right: 12px;
     border: 6px solid transparent;
     border-top-color: #fff;
     opacity: 0;
@@ -67,7 +66,6 @@
 @media (min-width: 640px) {
     .locate-btn {
         bottom: 24px;
-        left: auto;
         right: 24px;
     }
 }

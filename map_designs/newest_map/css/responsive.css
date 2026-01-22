@@ -217,38 +217,8 @@
         pointer-events: auto;
     }
 
-    #date-carousel .glass-panel {
-        background: rgba(20, 20, 20, 0.92);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        border-radius: 100px;
-    }
-
     #date-carousel #cal-grid {
         justify-content: center;
-    }
-
-    #date-carousel .date-capsule {
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 12px;
-    }
-
-    #date-carousel .date-capsule span {
-        color: rgba(255, 255, 255, 0.9);
-    }
-
-    #date-carousel .date-capsule.active-date {
-        background: white !important;
-        box-shadow:
-            0 0 20px rgba(255, 255, 255, 0.5),
-            0 0 40px rgba(255, 255, 255, 0.3),
-            0 4px 15px rgba(255, 255, 255, 0.25) !important;
-        animation: subtle-glow 3s ease-in-out infinite;
-    }
-
-    #date-carousel .date-capsule.active-date span {
-        color: #1D1D1F !important;
     }
 
     /* Adjust drawer header */
@@ -263,7 +233,26 @@
 @media (min-width: 640px) {
     .locate-btn {
         bottom: 24px;
-        left: 24px;
+        right: 24px;
+        top: auto;
+        left: auto;
+    }
+    /* Tooltip to top-left of button */
+    .locate-btn[data-tooltip]::before {
+        bottom: calc(100% + 10px);
+        right: 0;
+        left: auto;
+        top: auto;
+        transform: none;
+    }
+    .locate-btn[data-tooltip]::after {
+        bottom: calc(100% + 4px);
+        right: 12px;
+        left: auto;
+        top: auto;
+        transform: none;
+        border: 6px solid transparent;
+        border-top-color: #fff;
     }
 
     /* Desktop: filters stay inside drawer with original styling */

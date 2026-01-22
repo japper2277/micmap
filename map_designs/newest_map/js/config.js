@@ -11,7 +11,7 @@ const CONFIG = {
     dayNames: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
     apiBase: API_BASE,
     apiPath: `${API_BASE}/api/v1/mics`,
-    mapCenter: [40.72, -74.00],
+    mapCenter: [40.725, -73.985],
     mapZoom: 13,
     mobileMapZoom: 13,
     filterCycles: {
