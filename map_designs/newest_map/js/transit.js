@@ -471,7 +471,7 @@ const transitService = {
             iconAnchor: [18, 18]
         });
 
-        STATE.searchMarker = L.marker([lat, lng], { icon: originIcon, zIndexOffset: 2000 })
+        STATE.searchMarker = L.marker([lat, lng], { icon: originIcon, zIndexOffset: 50 })
             .addTo(map)
             .bindTooltip(name, { direction: 'top', offset: [0, -20], className: 'origin-tooltip' });
     },

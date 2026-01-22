@@ -470,6 +470,12 @@ async function displaySubwayRoutes(routes, mic, walkOption = null, schedule = nu
 
     // Subway route cards
     for (const route of routes) {
+        // Skip routes without ride legs (defensive - backend should filter these)
+        const rideLegs = (route.legs || []).filter(l => l.type === 'ride');
+        if (rideLegs.length === 0) {
+            continue;
+        }
+
         // Build icon flow from legs
         let iconFlow = '<span>' + walkIcon + route.walkToStation + 'm</span>';
         let firstLine = null;

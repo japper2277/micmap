@@ -1061,8 +1061,14 @@ app.get('/api/subway/routes', async (req, res) => {
     const validatedRoutes = [];
 
     for (const route of routes) {
+      // Skip routes with no legs - these aren't valid transit routes
       if (!route.legs || route.legs.length === 0) {
-        validatedRoutes.push(route);
+        continue;
+      }
+
+      // Skip routes with no ride legs (only transfers)
+      const hasRideLegs = route.legs.some(l => l.type === 'ride');
+      if (!hasRideLegs) {
         continue;
       }
 

@@ -1,6 +1,6 @@
 {
-  "appId": "com.micmap.app",
-  "appName": "MicMap",
+  "appId": "com.comedynyc.app",
+  "appName": "ComedyNYC",
   "webDir": "map_designs/newest_map",
   "ios": {
     "contentInset": "automatic",

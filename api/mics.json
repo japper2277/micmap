@@ -803,7 +803,7 @@
     "day": "Monday",
     "startTime": "7:00",
     "endTime": "9:00",
-    "venueName": "Rodney’s Comedy Club",
+    "venueName": "Rodney\u2019s Comedy Club",
     "borough": "Manhattan",
     "neighborhood": "Upper East Side",
     "address": "",
@@ -898,23 +898,6 @@
     "stageTime": "4min",
     "signUpDetails": "Sign up at 8:00",
     "host": "The Pit Midtown (@thepitnyc)",
-    "notes": null
-  },
-  {
-    "name": "Merkin mic",
-    "day": "Wednesday",
-    "startTime": "8:30 PM",
-    "endTime": "10:00 PM",
-    "venueName": "Merkin Comedy Hole",
-    "borough": "Brooklyn",
-    "neighborhood": "Bushwick",
-    "address": "Secret (text host)",
-    "lat": null,
-    "lon": null,
-    "cost": "Free",
-    "stageTime": "5min",
-    "signUpDetails": "https://slotted.co/merkinwednesdaymic",
-    "host": "@laramieflick (@textandthecity_)",
     "notes": null
   },
   {
@@ -3026,7 +3009,7 @@
     "notes": null
   },
   {
-    "name": "Secret 🤫 mic",
+    "name": "Secret \ud83e\udd2b mic",
     "day": "Wednesday",
     "startTime": "5:00 PM",
     "endTime": "6:30 PM",
@@ -3502,7 +3485,7 @@
     "notes": null
   },
   {
-    "name": "The Hump Day Soirée",
+    "name": "The Hump Day Soir\u00e9e",
     "day": "Wednesday",
     "startTime": "7:00 PM",
     "endTime": "9:00 PM",
@@ -4723,23 +4706,6 @@
     "stageTime": "5min",
     "signUpDetails": "https://slotted.co/seshopenmics in advance required, they often cancel the mic if under 5 sign ups. If you don't see a sign up slot available, they cancelled the mic",
     "host": "Sesh Comedy (@theflowstatemic)",
-    "notes": null
-  },
-  {
-    "name": "Merkin Comedy Hole",
-    "day": "Friday",
-    "startTime": "11:59 PM",
-    "endTime": "12:59 AM",
-    "venueName": "Merkin Comedy Hole",
-    "borough": "Brooklyn",
-    "neighborhood": "Bushwick",
-    "address": "Secret location",
-    "lat": null,
-    "lon": null,
-    "cost": "Free",
-    "stageTime": "5min",
-    "signUpDetails": "https://slotted.co/merkin/",
-    "host": "Laramie Flick and Taylor Drew (@merkincomedy)",
     "notes": null
   },
   {

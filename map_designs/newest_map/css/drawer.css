@@ -25,8 +25,8 @@
 /* Desktop drawer states - fully hide/show via search bar toggle */
 @media (min-width: 640px) {
     #list-drawer {
-        height: calc(100 * var(--vh) - 100px);
-        max-height: none;
+        height: auto;
+        max-height: min(60vh, 550px);
     }
     /* Closed: fully hidden */
     #list-drawer.drawer-peek,
@@ -57,9 +57,9 @@
         border-radius: 24px 24px 0 0 !important;
         transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
     }
-    /* Peek state: shows header + happening now + 1 mic card (~260px visible) */
+    /* Peek state: shows header + peek at first card (~120px visible) */
     #list-drawer.drawer-peek {
-        transform: translateY(calc(100% - 260px)) !important;
+        transform: translateY(calc(100% - 120px)) !important;
         pointer-events: auto !important;
     }
     /* Hide time headers in peek mode so mic cards are visible */
@@ -114,7 +114,7 @@
     overflow-x: hidden;
 }
 @media (min-width: 640px) {
-    #list-content { max-height: calc(100 * var(--vh) - 200px); }
+    #list-content { max-height: min(50vh, 450px); }
 }
 
 /* Safe area insets for iPhone X+ */

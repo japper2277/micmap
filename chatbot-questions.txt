@@ -511,3 +511,651 @@ Start with these 6 buttons (all ✓ ready):
 6. "Tomorrow"       → mode: tomorrow
 
 These cover ~80% of user needs with zero new code.
+
+
+===========================================
+MULTI-MIC PLANNING QUESTIONS
+===========================================
+
+LEGEND:
+  ✓ = Supported in planner-prototype.html
+  ⚠ = Needs implementation
+  📍 = Requires user location
+  🔧 = UI exists but algorithm doesn't use it
+
+
+-------------------------------------------
+BASIC ROUTE PLANNING                       ✓ ALL SUPPORTED
+-------------------------------------------
+
+General Planning
+----------------
+✓ Plan my night                            → Core feature
+✓ Plan a mic crawl                         → Core feature
+✓ Help me hit multiple mics tonight        → Core feature
+✓ What's the best route for tonight?       → Core feature
+✓ Build me a route                         → Core feature
+✓ Make me an itinerary                     → Core feature
+✓ I want to do a mic marathon              → Core feature
+✓ Create a mic schedule for tonight        → Core feature
+
+How Many Can I Hit?
+-------------------
+✓ How many mics can I hit tonight?         → Results show count
+✓ What's the most mics I can do?           → "Most Mics" optimization
+✓ Can I do 2 mics tonight?                 → Min mics filter
+✓ Can I do 3 mics tonight?                 → Min mics filter
+✓ Can I fit in 4 mics?                     → Min mics filter
+✓ Is it possible to hit 5 mics?            → Min mics filter (shows if possible)
+✓ What's realistic for tonight?            → Algorithm calculates
+✓ How many mics between 6pm and midnight?  → Time window filter
+
+Quick Planning
+--------------
+✓ Quick route for tonight                  → Default settings
+✓ Give me a simple 2-mic night             → Min mics = 2
+✓ Easy mic crawl                           → "Least Travel" optimization
+✓ Just pick 2 mics for me                  → Min mics = 2
+✓ Lazy mic night (minimal travel)          → "Least Travel" optimization
+
+
+-------------------------------------------
+ANCHORED PLANNING                          ✓ ALL SUPPORTED
+-------------------------------------------
+
+Start At Specific Mic
+---------------------
+✓ Start at [Venue], what else can I hit?   → "Start With" dropdown
+✓ I want to begin at [Venue]               → "Start With" dropdown
+✓ Plan my night starting at [Venue]        → "Start With" dropdown
+✓ [Venue] first, then what?                → "Start With" dropdown
+✓ After [Venue], where should I go?        → "Start With" dropdown
+✓ I'm committed to [Venue], plan around it → "Start With" dropdown
+
+End At Specific Mic
+-------------------
+✓ I want to end at [Venue]                 → "End With" dropdown
+✓ Plan my night ending at [Venue]          → "End With" dropdown
+✓ What can I hit before [Venue]?           → "End With" dropdown
+✓ I need to finish at [Venue]              → "End With" dropdown
+✓ Build a route that ends at [Venue]       → "End With" dropdown
+✓ Get me to [Venue] by 10pm after other mics → "End With" dropdown
+
+Both Start and End
+------------------
+✓ Start at [Venue A] and end at [Venue B]  → Both dropdowns
+✓ I want [Venue A] first and [Venue B] last → Both dropdowns
+✓ Plan between [Venue A] and [Venue B]     → Both dropdowns
+✓ What can I fit between [Venue A] and [Venue B]? → Both dropdowns
+
+Must-Include Mic (MIDDLE anchor)
+--------------------------------
+⚠ I have to hit [Venue], plan around it    → Only start/end anchors exist
+⚠ Include [Venue] in my route              → Need "must include" feature
+⚠ Make sure [Venue] is in the plan         → Need "must include" feature
+⚠ Build a route that includes [Venue]      → Need "must include" feature
+⚠ [Venue] is a must, what else?            → Need "must include" feature
+
+
+-------------------------------------------
+LOCATION CONSTRAINTS                       ✓ MOSTLY SUPPORTED
+-------------------------------------------
+
+Stay In Borough
+---------------
+✓ Plan my night staying in Brooklyn        → Area filter chips
+✓ Keep me in Manhattan                     → Area filter chips
+✓ Brooklyn-only mic crawl                  → Area filter chips
+✓ Don't leave Queens                       → Area filter chips
+✓ Manhattan mics only tonight              → Area filter chips
+✓ Stay in the Bronx                        → Area filter chips
+
+Stay In Neighborhood
+--------------------
+✓ Keep me in the East Village              → Area filter chips
+✓ Stay in Williamsburg                     → Area filter chips
+✓ Bushwick mic crawl                       → Area filter chips
+✓ LES only tonight                         → Area filter chips
+✓ Don't leave Greenwich Village            → Area filter chips
+✓ Hell's Kitchen route                     → Area filter chips
+⚠ Keep me in Astoria                       → Not in chip list (easy add)
+
+Stay On Subway Line
+-------------------
+✓ Keep me on the L train                   → Line filter chips
+✓ Stay on the G line                       → Line filter chips
+✓ Plan along the F train                   → Line filter chips
+✓ Mics on the A/C/E                        → Line filter chips
+✓ L train mic crawl                        → Line filter chips
+✓ Keep it on the 1/2/3                     → Line filter chips
+✓ J/M/Z route                              → Line filter chips
+✓ Stay on one subway line                  → Select one line chip
+✓ No transfers tonight                     → Select one line chip
+✓ Single line mic crawl                    → Select one line chip
+
+Starting Location
+-----------------
+📍⚠ Plan from where I am                   → Needs geolocation integration
+📍⚠ Start from my current location         → Needs geolocation integration
+✓ I'm starting in Bushwick                 → Origin select dropdown
+✓ Starting from East Village               → Origin select dropdown
+✓ I'm coming from Midtown                  → Origin select dropdown
+✓ Plan from [subway station]               → Map picker with stations
+✓ I'm at [address], plan from here         → Map picker custom location
+
+End Location (Where to End Up)
+------------------------------
+🔧 I need to end up near [subway station]  → UI exists, algorithm ignores
+🔧 Get me back to Brooklyn by the end      → UI exists, algorithm ignores
+🔧 End near the L train                    → UI exists, algorithm ignores
+🔧 I need to be near Penn Station after    → UI exists, algorithm ignores
+🔧 End the night in my neighborhood        → UI exists, algorithm ignores
+🔧 Finish near home                        → UI exists, algorithm ignores
+
+
+-------------------------------------------
+TIME CONSTRAINTS                           ✓ ALL SUPPORTED
+-------------------------------------------
+
+Time Window
+-----------
+✓ Plan between 6pm and 11pm                → Start/End time inputs
+✓ I'm free from 7pm to midnight            → Start/End time inputs
+✓ What can I do between 5pm and 9pm?       → Start/End time inputs
+✓ Evening only (6-10pm)                    → Start/End time inputs
+✓ Late night route (9pm+)                  → Start time = 21:00
+✓ Afternoon mic crawl                      → Start time = 12:00
+✓ I have until midnight                    → End time = 23:59
+✓ I need to be done by 11pm                → End time = 23:00
+
+Starting Time
+-------------
+✓ I can start at 6pm                       → Start time input
+✓ I'm free starting at 7pm                 → Start time input
+✓ Plan from 8pm onwards                    → Start time input
+✓ I won't be ready until 9pm               → Start time input
+✓ Starting late tonight (10pm)             → Start time input
+
+Duration Available
+------------------
+⚠ I have 3 hours                           → No duration input (only start/end)
+⚠ I have 4 hours tonight                   → Need to calculate end from duration
+⚠ Only have 2 hours                        → Need duration→end conversion
+⚠ I've got all night                       → Need preset "all night" option
+⚠ Short night - 2 hours max                → Need duration input
+⚠ Long night - 6+ hours                    → Need duration input
+
+Time At Each Mic
+----------------
+✓ I want to stay 45 min at each            → "Time at Each Mic" pills
+✓ Give me an hour at each mic              → "Time at Each Mic" pills
+✓ 90 minutes per mic                       → "Time at Each Mic" pills
+⚠ Quick stops - 30 min each                → 30min option not available
+⚠ I like to stay for the whole thing       → Need "full mic" option
+
+
+-------------------------------------------
+TRAVEL CONSTRAINTS                         ✓ MOSTLY SUPPORTED
+-------------------------------------------
+
+Max Commute Between Mics
+------------------------
+✓ Keep commutes under 15 minutes           → Max commute pills
+✓ No more than 20 min between mics         → Max commute pills
+✓ Max 30 minute commute                    → Max commute pills
+✓ Keep travel short                        → Max commute 15/20 min
+✓ I don't want to travel far between       → Max commute filter
+✓ Minimize subway time                     → "Least Travel" + max commute
+⚠ Walking distance between mics only       → No "walk only" filter
+✓ Keep it tight (short commutes)           → Max commute 15 min
+
+Travel Preferences
+------------------
+⚠ I prefer walking                         → No walking preference
+⚠ Subway is fine                           → Default behavior
+⚠ I'll take an Uber between                → No Uber/rideshare option
+⚠ No buses                                 → No transit mode filter
+⚠ Walking only                             → No walk-only mode
+⚠ I have a bike                            → No bike routing
+
+
+-------------------------------------------
+OPTIMIZATION PREFERENCES                   ✓ ALL SUPPORTED
+-------------------------------------------
+
+Most Mics
+---------
+✓ Maximize mics tonight                    → "Most Mics" optimization
+✓ I want to hit as many as possible        → "Most Mics" optimization
+✓ Pack in the most mics                    → "Most Mics" optimization
+✓ Quantity over quality                    → "Most Mics" optimization
+✓ Mic marathon mode                        → "Most Mics" optimization
+✓ How do I hit the most?                   → "Most Mics" optimization
+
+Least Travel
+------------
+✓ Minimize travel time                     → "Least Travel" optimization
+✓ Easiest route                            → "Least Travel" optimization
+✓ Lazy mic crawl                           → "Least Travel" optimization
+✓ Least walking                            → "Least Travel" optimization
+✓ Most convenient route                    → "Least Travel" optimization
+✓ I'm tired, keep it easy                  → "Least Travel" optimization
+✓ Efficient route                          → "Least Travel" optimization
+
+Best Timing
+-----------
+✓ Don't make me wait between mics          → "Best Timing" optimization
+✓ Minimize downtime                        → "Best Timing" optimization
+✓ Perfect timing                           → "Best Timing" optimization
+✓ No gaps between mics                     → "Best Timing" optimization
+✓ Seamless transitions                     → "Best Timing" optimization
+✓ Arrive right as each starts              → "Best Timing" optimization
+
+Balanced
+--------
+⚠ Balance mics and travel                  → No "balanced" option
+⚠ Reasonable route                         → Need weighted algorithm
+⚠ Good mix of mics and commute             → Need weighted algorithm
+⚠ Not too crazy                            → Need balanced mode
+
+
+-------------------------------------------
+COUNT-BASED PLANNING                       PARTIAL
+-------------------------------------------
+
+Specific Number
+---------------
+⚠ Plan exactly 2 mics                      → Only min, no exact count
+⚠ I want to do 3 mics tonight              → Only min, no exact count
+⚠ Give me a 4-mic route                    → Only min, no exact count
+⚠ 5 mics or bust                           → Only min, no exact count
+⚠ Just 2 mics, nothing crazy               → Need max mics option
+
+Minimum
+-------
+✓ At least 2 mics                          → Min mics filter
+✓ Minimum 3 mics                           → Min mics filter
+✓ I want 3+ mics                           → Min mics filter
+✓ No less than 2                           → Min mics filter
+
+Maximum
+-------
+⚠ No more than 3 mics                      → No max mics filter
+⚠ Max 4 mics                               → No max mics filter
+⚠ Keep it to 2 mics                        → No max mics filter
+⚠ Don't overdo it - 3 max                  → No max mics filter
+
+
+-------------------------------------------
+PRICE CONSTRAINTS                          ⚠ NOT SUPPORTED
+-------------------------------------------
+
+Free Only
+---------
+⚠ Plan a free mic crawl                    → No price filter
+⚠ Only free mics tonight                   → No price filter
+⚠ Keep it free                             → No price filter
+⚠ No cover charges                         → No price filter
+⚠ Budget mic night                         → No price filter
+
+Budget
+------
+⚠ Keep total cost under $20                → No cost tracking
+⚠ Cheap mic crawl                          → No cost optimization
+⚠ What's the cheapest route?               → No cost optimization
+⚠ Minimize cover charges                   → No cost optimization
+
+
+-------------------------------------------
+DISCOVERY / SURPRISE ME                    ⚠ NOT SUPPORTED
+-------------------------------------------
+
+Random Routes
+-------------
+⚠ Surprise me with a route                 → No random mode
+⚠ Pick a random mic crawl                  → No random mode
+⚠ Dealer's choice                          → No random mode
+⚠ You decide my night                      → No random mode
+⚠ Random 3-mic night                       → No random mode
+⚠ Just pick for me                         → No random mode
+
+New Venues
+----------
+⚠ Take me somewhere new                    → No history tracking
+⚠ Mics I haven't been to                   → No history tracking
+⚠ Discover new venues                      → No history tracking
+⚠ No repeats from last week                → No history tracking
+
+
+-------------------------------------------
+ROUTE MODIFICATIONS                        ⚠ NOT SUPPORTED
+-------------------------------------------
+
+Add/Remove Mics
+---------------
+⚠ Add another mic                          → No post-result editing
+⚠ Can I fit one more?                      → No post-result editing
+⚠ Remove the last one                      → No post-result editing
+⚠ Skip [Venue]                             → No post-result editing
+⚠ Drop the middle mic                      → No post-result editing
+⚠ Too many, cut one                        → No post-result editing
+
+Change Order
+------------
+⚠ Swap the order                           → No reordering
+⚠ Can I do [Venue] first instead?          → No reordering
+⚠ Reverse the route                        → No reordering
+⚠ Reorder to start with [Venue]            → No reordering
+
+Adjust Constraints
+------------------
+⚠ Actually, keep me in Brooklyn            → Must re-run planner
+⚠ Change end time to 11pm                  → Must re-run planner
+⚠ I can stay later now                     → Must re-run planner
+⚠ Shorter commutes please                  → Must re-run planner
+⚠ I changed my mind about [Venue]          → Must re-run planner
+
+Alternative Routes
+------------------
+⚠ Show me another option                   → Only shows 1 route
+⚠ What else you got?                       → No alternatives
+⚠ Different route                          → No alternatives
+⚠ Other options?                           → No alternatives
+⚠ Plan B?                                  → No alternatives
+⚠ Show me 3 different routes               → No alternatives
+
+
+-------------------------------------------
+REAL-TIME ADJUSTMENTS                      ⚠ NOT SUPPORTED
+-------------------------------------------
+
+Running Late
+------------
+📍⚠ I'm running late                       → No real-time recalc
+📍⚠ Recalculate, I'm behind schedule       → No real-time recalc
+📍⚠ I missed the first mic                 → No real-time recalc
+📍⚠ I'm 30 minutes behind                  → No real-time recalc
+📍⚠ Can I still make it?                   → No real-time recalc
+📍⚠ Update my route from here              → No real-time recalc
+
+Mic Cancelled/Changed
+---------------------
+⚠ [Venue] got cancelled                    → No live data updates
+⚠ This mic isn't happening                 → No exclusion feature
+⚠ Replace [Venue] with something else      → No replacement feature
+⚠ Find an alternative for [Venue]          → No replacement feature
+
+Staying Longer
+--------------
+⚠ I'm staying longer at this one           → No live adjustment
+⚠ Skip the next mic, I'm vibing            → No skip feature
+⚠ Recalculate, I want to stay              → No live recalc
+⚠ I'm not leaving yet                      → No live recalc
+
+Leaving Early
+-------------
+⚠ I'm leaving this mic early               → No live adjustment
+⚠ This one's not for me, what's next?      → No live recalc
+⚠ Can I catch the next one if I leave now? → No live recalc
+
+
+-------------------------------------------
+SAVING & SHARING ROUTES                    ⚠ NOT SUPPORTED
+-------------------------------------------
+
+Save Route
+----------
+⚠ Save this route                          → No localStorage
+⚠ Bookmark this plan                       → No localStorage
+⚠ Remember this for later                  → No localStorage
+⚠ Save to my routes                        → No localStorage
+
+Share Route
+-----------
+⚠ Share this route                         → No share feature
+⚠ Send this to a friend                    → No share feature
+⚠ Copy route link                          → No URL generation
+⚠ Text this to someone                     → No share feature
+⚠ Share on Instagram                       → No image export
+
+View Saved Routes
+-----------------
+⚠ Show my saved routes                     → No saved routes
+⚠ What routes did I save?                  → No saved routes
+⚠ My planned nights                        → No saved routes
+
+
+-------------------------------------------
+CALENDAR INTEGRATION                       ⚠ NOT SUPPORTED
+-------------------------------------------
+
+Add to Calendar
+---------------
+⚠ Add this to my calendar                  → No calendar export
+⚠ Put this on my Google Calendar           → No Google Calendar API
+⚠ Calendar invite                          → No .ics generation
+⚠ Schedule this                            → No calendar feature
+⚠ Add all mics to calendar                 → No calendar feature
+
+Planning Ahead
+--------------
+✓ Plan next Friday's route                 → Day selector works
+✓ Schedule a mic crawl for Saturday        → Day selector works
+✓ Plan my Tuesday night                    → Day selector works
+✓ What's the best route for tomorrow?      → Day selector works
+
+
+-------------------------------------------
+GROUP PLANNING                             ⚠ NOT SUPPORTED
+-------------------------------------------
+
+With Friends
+------------
+⚠ Plan for me and a friend                 → No multi-origin
+⚠ We're a group of 3                       → No group size
+⚠ Meeting someone at [Venue]               → Use anchor mic
+⚠ My friend is coming from [location]      → No multi-origin
+⚠ Plan for 2 people starting from different places → No multi-origin
+
+Meetup Planning
+---------------
+⚠ Where should we meet up?                 → No meetup optimization
+⚠ Best mic to meet at                      → No meetup optimization
+⚠ Central meeting point                    → No midpoint calc
+⚠ We're coming from different places       → No multi-origin
+
+
+-------------------------------------------
+CONTEXTUAL FOLLOW-UPS                      PARTIAL
+-------------------------------------------
+
+About the Route
+---------------
+✓ Tell me more about this route            → Shows in results
+✓ How long is the total commute?           → Shows transit times
+✓ What's the total time?                   → Shows in summary
+⚠ How much walking?                        → Not broken down
+✓ What subway lines?                       → Shows line badges
+
+About Specific Mics in Route
+----------------------------
+⚠ Tell me about the first one              → No detail expansion
+⚠ What's the second mic like?              → No detail expansion
+⚠ Info on [Venue] from the route           → No detail expansion
+⚠ How do I sign up for the first one?      → No signup info shown
+
+Directions
+----------
+✓ How do I get to the first mic?           → "Get Directions" button
+⚠ Directions between mic 1 and 2           → Only to venue, not between
+✓ Show the route on a map                  → Route map shown
+⚠ Walking directions                       → Opens Google Maps (transit)
+✓ Subway directions for the whole route    → "Get Directions" per mic
+
+Confirmation
+------------
+⚠ This looks good                          → No confirmation flow
+⚠ Let's do it                              → No confirmation flow
+⚠ Lock it in                               → No save/confirm
+⚠ Confirm this route                       → No confirmation flow
+⚠ I'm going with this one                  → No confirmation flow
+
+
+-------------------------------------------
+COMPARISON QUESTIONS                       ⚠ NOT SUPPORTED
+-------------------------------------------
+
+Compare Options
+---------------
+⚠ Which route is better?                   → Only 1 route shown
+⚠ Compare these two routes                 → No comparison view
+⚠ What's the difference between option A and B? → No alternatives
+⚠ Which one has less travel?               → No comparison
+⚠ Which hits more mics?                    → No comparison
+⚠ Pros and cons of each route              → No comparison
+
+
+-------------------------------------------
+EXPERIENCE LEVEL                           ⚠ NOT SUPPORTED
+-------------------------------------------
+
+First Timer
+-----------
+⚠ Best route for a beginner                → No preset configs
+⚠ Easy mic crawl for newbies               → No preset configs
+⚠ Beginner-friendly route                  → No preset configs
+⚠ I've never done multiple mics            → No onboarding
+
+Experienced
+-----------
+⚠ Challenge me                             → No preset configs
+⚠ Pro mode - max mics                      → Could use "Most Mics"
+⚠ I can handle anything                    → No preset configs
+⚠ Veteran mic runner route                 → No preset configs
+
+
+-------------------------------------------
+SPECIFIC SCENARIOS                         ⚠ NOT SUPPORTED
+-------------------------------------------
+
+Date Night
+----------
+⚠ Plan a mic date night                    → No scenario presets
+⚠ Route for two people                     → No group planning
+⚠ Fun mics for a date                      → No vibe filter
+⚠ Impressive mic crawl                     → No vibe filter
+
+After Work
+----------
+✓ Plan from Midtown after work             → Origin = Midtown
+✓ I'm leaving work at 6pm                  → Start time = 18:00
+⚠ Starting from office in FiDi             → FiDi not in presets
+⚠ Weeknight after work route               → No scenario presets
+
+Weekend
+-------
+✓ Saturday night mic crawl                 → Day = Saturday
+⚠ Full weekend mic marathon                → No multi-day planning
+✓ Friday night route                       → Day = Friday
+✓ Sunday funday mics                       → Day = Sunday
+
+Special Occasions
+-----------------
+⚠ Birthday mic crawl                       → No special features
+⚠ Celebrate with a mic night               → No special features
+⚠ Special night out                        → No special features
+
+
+-------------------------------------------
+ERROR HANDLING / EDGE CASES                ✓ PARTIAL
+-------------------------------------------
+
+No Routes Available
+-------------------
+✓ Why can't I hit multiple mics?           → Shows "no mics found"
+✓ Is there really nothing?                 → Shows count found
+⚠ Loosen the constraints                   → No auto-suggestions
+⚠ Try with different filters               → No auto-suggestions
+
+Impossible Requests
+-------------------
+✓ These mics are too far apart             → Max commute filters this
+✓ Not enough time for 5 mics               → Shows what's possible
+⚠ Can't do Brooklyn and Queens in one night → No helpful message
+⚠ The timing doesn't work                  → No specific feedback
+
+
+-------------------------------------------
+QUICK ACTION BUTTONS (RECOMMENDED)
+-------------------------------------------
+
+Primary:
+✓ 1. "Plan my night"                       → Core feature
+✓ 2. "2 mics tonight"                      → Min mics = 2
+✓ 3. "3 mics tonight"                      → Min mics = 3
+📍⚠ 4. "Plan from here"                    → Needs geolocation
+
+Secondary:
+✓ 5. "Stay in Brooklyn"                    → Area filter
+⚠ 6. "Free mics only"                      → Needs price filter
+✓ 7. "Minimize travel"                     → "Least Travel" opt
+✓ 8. "L train crawl"                       → Line filter
+
+After Results:
+⚠ 9. "Show alternatives"                   → Not implemented
+⚠ 10. "Add to calendar"                    → Not implemented
+⚠ 11. "Share route"                        → Not implemented
+⚠ 12. "Save route"                         → Not implemented
+
+
+===========================================
+SUMMARY - PLANNER PROTOTYPE STATUS
+===========================================
+
+FULLY SUPPORTED (✓): ~95 questions
+- Basic route planning
+- Anchored planning (start/end mics)
+- Borough & neighborhood filters
+- Subway line filters
+- Time window (start/end)
+- Time at each mic
+- Max commute between mics
+- Optimization (most mics, least travel, best timing)
+- Starting location (presets + map picker)
+- Minimum mics filter
+- Day selection (any day of week)
+- Results with map, timeline, directions
+
+PARTIALLY SUPPORTED: ~15 questions
+- Error handling (basic messages only)
+- Follow-up questions (some info shown)
+- Specific scenarios (some work with current filters)
+
+NOT YET SUPPORTED (⚠): ~90+ questions
+- Geolocation ("plan from here")
+- End location optimization (UI exists, algorithm ignores)
+- Duration input (only start/end times)
+- Price/cost filter
+- Max mics (only min exists)
+- Must-include middle mics
+- Travel mode preferences (walk only, bike, etc.)
+- Balanced optimization
+- Alternative routes
+- Route modifications after results
+- Real-time adjustments
+- Save/share routes
+- Calendar integration
+- Group planning
+- Comparison between routes
+- Scenario presets
+
+PRIORITY ADDITIONS:
+1. 🔧 Wire up "End Near" location to algorithm
+2. 📍 Add geolocation for "plan from here"
+3. ⚠ Add price/cost filter
+4. ⚠ Add max mics option
+5. ⚠ Show 2-3 alternative routes
+6. ⚠ Add share route (Web Share API - easy)
+7. ⚠ Add save route (localStorage - easy)
+8. ⚠ Add calendar export (.ics file - medium)
+
