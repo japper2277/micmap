@@ -108,6 +108,12 @@
     max-height: calc(52 * var(--vh));
     overflow-x: hidden; /* Prevent horizontal scroll/drag */
 }
+/* Mobile: add bottom padding so last items scroll fully into view */
+@media (max-width: 767px) {
+    #list-content {
+        padding-bottom: 80px;
+    }
+}
 
 /* Lock drawer to vertical only - no horizontal movement */
 #list-drawer {

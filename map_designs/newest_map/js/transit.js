@@ -189,7 +189,7 @@ const transitService = {
     },
 
     async calculateFromOrigin(lat, lng, name, targetMic = null, options = {}) {
-        const { silent = false } = options;
+        const { silent = false, skipOriginMarker = false } = options;
 
         STATE.userOrigin = { lat, lng, name };
         STATE.isTransitMode = true;
@@ -208,11 +208,11 @@ const transitService = {
         // Only show loading state and fly if not silent (background) mode
         if (!silent) {
             this.showLoadingState();
-            this.addOriginMarker(lat, lng, name);
+            if (!skipOriginMarker) this.addOriginMarker(lat, lng, name);
             map.flyTo([lat, lng], 14, { duration: 1.2 });
         } else {
-            // Silent mode: just add marker, no fly
-            this.addOriginMarker(lat, lng, name);
+            // Silent mode: add marker if not skipped, no fly
+            if (!skipOriginMarker) this.addOriginMarker(lat, lng, name);
         }
 
         // Check offline before starting

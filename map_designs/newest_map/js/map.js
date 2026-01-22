@@ -274,7 +274,7 @@ function getUserLocation() {
                     if (typeof transitService !== 'undefined' && transitService.calculateFromOrigin) {
                         const searchInput = document.getElementById('search-input');
                         if (searchInput) searchInput.value = 'My Location';
-                        transitService.calculateFromOrigin(STATE.userLocation.lat, STATE.userLocation.lng, 'My Location', null, { silent: true });
+                        transitService.calculateFromOrigin(STATE.userLocation.lat, STATE.userLocation.lng, 'My Location', null, { silent: true, skipOriginMarker: true });
                     }
                 } else {
                     // Mics not loaded yet - flag to calculate after loadData completes
@@ -299,9 +299,10 @@ function getUserLocation() {
                     }
                 }, 5000);
             },
-            () => {
-                // Geolocation error - silently ignore, user can manually enable later
-            }
+            (error) => {
+                console.warn('Geolocation error:', error.code, error.message);
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
         );
     }
 }
@@ -340,7 +341,7 @@ function centerOnUser() {
         if (typeof transitService !== 'undefined' && transitService.calculateFromOrigin) {
             const searchInput = document.getElementById('search-input');
             if (searchInput) searchInput.value = 'My Location';
-            transitService.calculateFromOrigin(STATE.userLocation.lat, STATE.userLocation.lng, 'My Location', null);
+            transitService.calculateFromOrigin(STATE.userLocation.lat, STATE.userLocation.lng, 'My Location', null, { skipOriginMarker: true });
         }
 
         // Remove active state after animation

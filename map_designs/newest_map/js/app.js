@@ -38,7 +38,7 @@ async function loadData() {
             if (typeof transitService !== 'undefined' && transitService.calculateFromOrigin) {
                 const searchInput = document.getElementById('search-input');
                 if (searchInput) searchInput.value = 'My Location';
-                transitService.calculateFromOrigin(STATE.userLocation.lat, STATE.userLocation.lng, 'My Location', null, { silent: true });
+                transitService.calculateFromOrigin(STATE.userLocation.lat, STATE.userLocation.lng, 'My Location', null, { silent: true, skipOriginMarker: true });
             }
         }
     } catch (err) {

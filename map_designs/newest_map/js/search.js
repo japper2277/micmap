@@ -364,7 +364,7 @@ const searchService = {
                     map.flyTo([latitude, longitude], 14, { duration: 1 });
                 }
 
-                transitService.calculateFromOrigin(latitude, longitude, 'My Location', null);
+                transitService.calculateFromOrigin(latitude, longitude, 'My Location', null, { skipOriginMarker: true });
             },
             (error) => {
                 // Error - stop animation

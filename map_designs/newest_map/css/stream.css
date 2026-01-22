@@ -10,12 +10,12 @@
     z-index: 50;
     background: rgba(0, 0, 0, 0.98);
     backdrop-filter: blur(10px);
-    padding: 8px 20px;
+    padding: var(--space-sm) var(--space-xl);
     font-family: 'Space Grotesk', sans-serif;
     font-weight: 700;
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: var(--space-md);
     touch-action: pan-y;
 }
 
@@ -24,11 +24,11 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px 16px;
-    margin: 8px 12px;
+    padding: var(--space-md) var(--space-lg);
+    margin: var(--space-sm) var(--space-md);
     background: rgba(255, 149, 0, 0.1);
     border: 1px solid rgba(255, 149, 0, 0.3);
-    border-radius: 12px;
+    border-radius: var(--radius-md);
     cursor: pointer;
     transition: all 0.2s;
 }
@@ -51,8 +51,8 @@
 .happening-now-dot {
     width: 8px;
     height: 8px;
-    background: #30d158;
-    border-radius: 50%;
+    background: var(--green);
+    border-radius: var(--radius-full);
     animation: pulse-green 2s infinite;
 }
 
@@ -64,13 +64,13 @@
 .happening-now-card-count {
     font-weight: 700;
     font-size: 15px;
-    color: #30d158;
+    color: var(--green);
 }
 
 .happening-now-card-label {
     font-size: 14px;
     font-weight: 600;
-    color: #30d158;
+    color: var(--green);
 }
 
 .happening-now-card-right {
@@ -97,15 +97,15 @@
 .happening-now-back {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 12px 16px;
-    margin: 8px 12px;
+    gap: var(--space-sm);
+    padding: var(--space-md) var(--space-lg);
+    margin: var(--space-sm) var(--space-md);
     background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
     cursor: pointer;
     transition: all 0.2s;
-    color: white;
+    color: var(--text-primary);
     font-size: 14px;
     font-weight: 500;
 }
@@ -133,8 +133,8 @@
 .stream-item {
     display: flex;
     align-items: center;
-    padding: 16px 20px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding: var(--space-lg) var(--space-xl);
+    border-bottom: 1px solid var(--border-subtle);
     scroll-margin-top: 50px;
     transition: all 0.2s ease;
     position: relative;
@@ -204,7 +204,7 @@
 .start-time {
     font-size: 19px;
     font-weight: 700;
-    color: #fff;
+    color: var(--text-primary);
     line-height: 1;
     font-variant-numeric: tabular-nums;
 }
@@ -214,10 +214,10 @@
     margin-top: 6px;
     font-size: 13px;
     font-weight: 600;
-    color: #98989D;
-    background: #1C1C1E;
+    color: var(--text-secondary);
+    background: var(--bg-card);
     padding: 2px 6px;
-    border-radius: 4px;
+    border-radius: var(--space-xs);
     width: fit-content;
 }
 
@@ -251,9 +251,9 @@
 }
 
 /* Status Colors */
-.is-live { color: #30d158; }      /* Green */
-.is-upcoming { color: #ff453a; }  /* Red */
-.is-future { color: #8e8e93; }    /* Gray */
+.is-live { color: var(--green); }
+.is-upcoming { color: var(--red); }
+.is-future { color: var(--text-secondary); }
 
 /* LIVE: Green Pulse Animation */
 .is-live .status-dot {
