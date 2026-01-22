@@ -281,13 +281,31 @@ function getUserLocation() {
                     STATE.pendingTransitCalc = true;
                 }
 
-                // Check every 5 seconds if < 3 mics visible AND user is outside NYC
                 // Clear any existing interval first
-                if (STATE.manhattanToastInterval) {
-                    clearInterval(STATE.manhattanToastInterval);
+                if (STATE.manhattanBtnInterval) {
+                    clearInterval(STATE.manhattanBtnInterval);
                 }
 
-                STATE.manhattanToastInterval = setInterval(() => {
+                // Set up Manhattan button click handler
+                const manhattanBtn = document.getElementById('manhattan-btn');
+                const manhattanNotice = document.getElementById('manhattan-notice');
+                if (manhattanBtn && manhattanNotice) {
+                    manhattanBtn.onclick = () => {
+                        STATE.isProgrammaticMove = true;
+                        map.flyTo(CONFIG.mapCenter, CONFIG.mapZoom, { duration: 1.2 });
+                        manhattanNotice.classList.remove('show');
+                        // Close drawer if open
+                        if (STATE.isDrawerOpen && typeof setDrawerState === 'function') {
+                            setDrawerState(DRAWER_STATES.PEEK);
+                        }
+                    };
+                }
+
+                // Check periodically if user is outside NYC with few mics
+                STATE.manhattanBtnInterval = setInterval(() => {
+                    const manhattanNotice = document.getElementById('manhattan-notice');
+                    if (!manhattanNotice) return;
+
                     // NYC borough bounding box (approximate)
                     const nycBounds = {
                         minLat: 40.4774,
@@ -296,7 +314,7 @@ function getUserLocation() {
                         maxLng: -73.7004
                     };
 
-                    // Check where the map is currently centered (not user's physical location)
+                    // Check where the map is currently centered
                     const mapCenter = map.getCenter();
                     const viewLat = mapCenter.lat;
                     const viewLng = mapCenter.lng;
@@ -305,24 +323,18 @@ function getUserLocation() {
                     const isViewingNYC = viewLat >= nycBounds.minLat && viewLat <= nycBounds.maxLat &&
                         viewLng >= nycBounds.minLng && viewLng <= nycBounds.maxLng;
 
-                    // Only show toast if map is NOT viewing NYC
-                    if (isViewingNYC) return;
-
                     const bounds = map.getBounds();
                     const visibleMics = STATE.mics.filter(mic =>
                         bounds.contains([mic.lat, mic.lng || mic.lon])
                     );
 
-                    // If < 3 mics visible, show toast to guide user to mic-dense area
-                    if (visibleMics.length < 3 && typeof toastService !== 'undefined') {
-                        toastService.show('Most mics are in Manhattan — tap to explore', 'info', {
-                            action: () => {
-                                STATE.isProgrammaticMove = true;
-                                map.flyTo(CONFIG.mapCenter, CONFIG.mapZoom, { duration: 1.2 });
-                            }
-                        });
+                    // Show notice if outside NYC OR < 3 mics visible
+                    if (!isViewingNYC && visibleMics.length < 3) {
+                        manhattanNotice.classList.add('show');
+                    } else {
+                        manhattanNotice.classList.remove('show');
                     }
-                }, 5000);
+                }, 2000);
             },
             (error) => {
                 console.warn('Geolocation error:', error.code, error.message);

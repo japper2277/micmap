@@ -18,17 +18,24 @@ const toastService = {
         const action = typeof options === 'object' ? options.action : null;
 
         const toast = document.createElement('div');
-        toast.className = `toast toast-${type}${action ? ' toast-actionable' : ''}`;
+        const pulsate = (typeof options === 'object' && options.pulsate) ? ' toast-pulsate' : '';
+        toast.className = `toast toast-${type}${action ? ' toast-actionable' : ''}${pulsate}`;
 
         const icons = {
             success: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>',
             error: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
             warning: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
-            info: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>'
+            info: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
+            location: '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>'
         };
 
+        // Use custom icon if provided in options, skip icon if message starts with emoji
+        const hasEmoji = /^[\u{1F300}-\u{1F9FF}]/u.test(message);
+        const iconType = (typeof options === 'object' && options.icon) ? options.icon : type;
+        const iconHtml = hasEmoji ? '' : `<span class="toast-icon">${icons[iconType] || icons.info}</span>`;
+
         toast.innerHTML = `
-            <span class="toast-icon">${icons[type] || icons.info}</span>
+            ${iconHtml}
             <span class="toast-message">${message}</span>
         `;
 
@@ -48,6 +55,6 @@ const toastService = {
         setTimeout(() => {
             toast.classList.remove('show');
             setTimeout(() => toast.remove(), 300);
-        }, action ? 5000 : duration); // Longer duration for actionable toasts
+        }, action ? 10000 : duration); // Longer duration for actionable toasts
     }
 };
