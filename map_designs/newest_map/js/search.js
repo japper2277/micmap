@@ -295,7 +295,7 @@ const searchService = {
 
             // Fly to venue on map
             if (typeof map !== 'undefined') {
-                map.flyTo([mic.lat, mic.lng], 15, { duration: 1 });
+                map.flyTo([mic.lat, mic.lng], 14, { duration: 1 });
             }
 
             // Open venue modal if available
@@ -318,9 +318,9 @@ const searchService = {
             toggleDrawer(false);
         }
 
-        // Fly to location at zoom 15 to show ticket markers
+        // Fly to location
         if (typeof map !== 'undefined') {
-            map.flyTo([lat, lng], 15, { duration: 1 });
+            map.flyTo([lat, lng], 14, { duration: 1 });
         }
     },
 
@@ -359,9 +359,9 @@ const searchService = {
                     toggleDrawer(false);
                 }
 
-                // Zoom to level 15 to show ticket markers
+                // Zoom to location
                 if (typeof map !== 'undefined') {
-                    map.flyTo([latitude, longitude], 15, { duration: 1 });
+                    map.flyTo([latitude, longitude], 14, { duration: 1 });
                 }
 
                 transitService.calculateFromOrigin(latitude, longitude, 'My Location', null);

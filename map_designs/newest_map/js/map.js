@@ -261,7 +261,7 @@ function centerOnUser() {
     if (STATE.userLocation) {
         // We have location - fly to it
         STATE.isProgrammaticMove = true;
-        map.flyTo([STATE.userLocation.lat, STATE.userLocation.lng], 15, { duration: 1 });
+        map.flyTo([STATE.userLocation.lat, STATE.userLocation.lng], 14, { duration: 1 });
         btn.classList.add('active');
 
         // Add/update user marker
@@ -408,8 +408,8 @@ function handleMapClick(e) {
         toggleDrawer(false);
     }
 
-    // Zoom to level 15 to show ticket markers
-    map.flyTo([lat, lng], 15, { duration: 1 });
+    // Zoom to location
+    map.flyTo([lat, lng], 14, { duration: 1 });
 
     // Calculate transit from this location
     if (typeof transitService !== 'undefined' && transitService.calculateFromOrigin) {

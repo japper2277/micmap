@@ -5,14 +5,15 @@
 
 // Always use production API (Railway)
 const API_BASE = 'https://micmap-production.up.railway.app';
+// const API_BASE = 'http://localhost:3001'; // LOCAL TESTING
 
 const CONFIG = {
     dayNames: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
     apiBase: API_BASE,
     apiPath: `${API_BASE}/api/v1/mics`,
     mapCenter: [40.72, -74.00],
-    mapZoom: 15,
-    mobileMapZoom: 17,
+    mapZoom: 13,
+    mobileMapZoom: 13,
     filterCycles: {
         price: ['All', 'Free', 'Paid'],
         time: ['All', 'morning', 'afternoon', 'evening', 'latenight'],

@@ -186,7 +186,7 @@ const transitService = {
 
         this.showLoadingState();
         this.addOriginMarker(lat, lng, name);
-        map.flyTo([lat, lng], 15, { duration: 1.2 });
+        map.flyTo([lat, lng], 14, { duration: 1.2 });
 
         // Check offline before starting
         if (this.isOffline()) {

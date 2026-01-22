@@ -3,9 +3,73 @@
    Header, toggle, filters, search, locate button
    ================================================================= */
 
-/* --- LOCATE ME BUTTON (hidden - using search bar location button instead) --- */
+/* --- LOCATE ME BUTTON --- */
 .locate-btn {
-    display: none;
+    position: fixed;
+    bottom: 140px; /* Above drawer peek height (120px) + spacing */
+    left: 16px; /* Mobile: left side */
+    right: auto;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(15, 15, 15, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 900;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    transition: all 0.2s;
+}
+.locate-btn:hover {
+    background: rgba(30, 30, 30, 0.95);
+    color: #fff;
+}
+.locate-btn:active {
+    transform: scale(0.95);
+}
+/* Tooltip - Google Maps style, top-right */
+.locate-btn[data-tooltip]::before {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 0;
+    padding: 6px 10px;
+    background: #fff;
+    color: #202124;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+    border-radius: 4px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s;
+}
+.locate-btn[data-tooltip]::after {
+    content: '';
+    position: absolute;
+    bottom: calc(100% + 4px);
+    left: 12px;
+    border: 6px solid transparent;
+    border-top-color: #fff;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s;
+}
+.locate-btn[data-tooltip]:hover::before,
+.locate-btn[data-tooltip]:hover::after {
+    opacity: 1;
+}
+/* Desktop: bottom right corner */
+@media (min-width: 640px) {
+    .locate-btn {
+        bottom: 24px;
+        left: auto;
+        right: 24px;
+    }
 }
 
 /* --- MICS HEADER ROW (New Sliding Toggle Design) --- */

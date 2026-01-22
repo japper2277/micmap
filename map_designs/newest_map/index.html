@@ -35,14 +35,14 @@
     <div id="map" class="absolute inset-0 z-0 bg-[#e8e4dc]"></div>
 
     <!-- LOCATE ME BUTTON -->
-    <button onclick="centerOnUser()" id="locate-btn" class="locate-btn" aria-label="Center map on my location">
+    <button onclick="centerOnUser()" id="locate-btn" class="locate-btn" aria-label="Center map on my location" data-tooltip="Current Location">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0013 3.06V1h-2v2.06A8.994 8.994 0 003.06 11H1v2h2.06A8.994 8.994 0 0011 20.94V23h2v-2.06A8.994 8.994 0 0020.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"></path>
         </svg>
     </button>
 
     <!-- COMMAND BAR -->
-    <div class="absolute top-4 left-3 right-3 md:left-auto md:right-4 md:w-[420px] z-[1000] flex flex-col pointer-events-none" role="search">
+    <div class="absolute top-4 left-3 right-3 md:left-4 md:right-auto md:w-[380px] z-[1000] flex flex-col pointer-events-none" role="search">
         <div class="search-wrapper pointer-events-auto relative z-20">
             <!-- Input section -->
             <div class="input-wrapper">
@@ -51,16 +51,6 @@
                 </svg>
                 <input type="text" id="search-input" class="search-input" placeholder="Search address..." autocomplete="off" maxlength="100" aria-label="Search venues or location">
             </div>
-
-            <!-- Current Location Button (Crosshairs) -->
-            <div class="loc-btn" id="geoBtn" onclick="searchService.useMyLocation()" title="Use Current Location">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0 0 13 3.06V1h-2v2.06A8.994 8.994 0 0 0 3.06 11H1v2h2.06A8.994 8.994 0 0 0 11 20.94V23h2v-2.06A8.994 8.994 0 0 0 20.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/>
-                </svg>
-            </div>
-
-            <!-- Divider -->
-            <div class="divider"></div>
 
             <!-- Set Location (Pin Drop) Button -->
             <div class="pin-btn" id="pinBtn" onclick="togglePinDropMode()">
@@ -103,7 +93,7 @@
     <!-- LIST DRAWER -->
     <div id="list-drawer" role="region" aria-label="Mic listings" class="glass-panel overflow-hidden flex flex-col
         fixed bottom-0 left-0 right-0 z-[900] rounded-t-3xl
-        md:rounded-3xl md:absolute md:top-[80px] md:left-auto md:right-4 md:w-[400px] md:bottom-auto md:z-[999]">
+        md:rounded-3xl md:absolute md:top-[80px] md:left-4 md:right-auto md:w-[380px] md:bottom-auto md:z-[999]">
 
         <!-- HEADER -->
         <div id="drawer-header" class="shrink-0 sticky top-0 z-30 overflow-visible">
