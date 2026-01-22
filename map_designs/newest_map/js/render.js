@@ -376,7 +376,10 @@ function render(mode) {
 
         // Determine which icon to use
         let markerIcon;
-        const isZoomedIn = map.getZoom() >= ZOOM_TICKET_THRESHOLD;
+        const currentZoom = map.getZoom();
+        // Large clusters (4+ venues) need deeper zoom to expand
+        const zoomThreshold = venueNames.length >= 4 ? 16 : ZOOM_TICKET_THRESHOLD;
+        const isZoomedIn = currentZoom >= zoomThreshold;
 
         if (isZoomedIn && isMultiVenue) {
             // Multi-venue stacked ticket: build venue data array

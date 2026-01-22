@@ -281,8 +281,33 @@ function getUserLocation() {
                     STATE.pendingTransitCalc = true;
                 }
 
-                // Check after 5 seconds if < 3 mics visible, show toast to guide user
-                setTimeout(() => {
+                // Check every 5 seconds if < 3 mics visible AND user is outside NYC
+                // Clear any existing interval first
+                if (STATE.manhattanToastInterval) {
+                    clearInterval(STATE.manhattanToastInterval);
+                }
+
+                STATE.manhattanToastInterval = setInterval(() => {
+                    // NYC borough bounding box (approximate)
+                    const nycBounds = {
+                        minLat: 40.4774,
+                        maxLat: 40.9176,
+                        minLng: -74.2591,
+                        maxLng: -73.7004
+                    };
+
+                    // Check where the map is currently centered (not user's physical location)
+                    const mapCenter = map.getCenter();
+                    const viewLat = mapCenter.lat;
+                    const viewLng = mapCenter.lng;
+
+                    // Check if map view is within NYC bounds
+                    const isViewingNYC = viewLat >= nycBounds.minLat && viewLat <= nycBounds.maxLat &&
+                        viewLng >= nycBounds.minLng && viewLng <= nycBounds.maxLng;
+
+                    // Only show toast if map is NOT viewing NYC
+                    if (isViewingNYC) return;
+
                     const bounds = map.getBounds();
                     const visibleMics = STATE.mics.filter(mic =>
                         bounds.contains([mic.lat, mic.lng || mic.lon])
@@ -418,12 +443,17 @@ map.on('movestart', () => {
 
 // Track zoom level for marker style switching
 let lastZoomWasTicket = map.getZoom() >= ZOOM_TICKET_THRESHOLD;
+let lastZoomWasLargeCluster = map.getZoom() >= 16; // Threshold for 4+ venue clusters
 
 map.on('zoomend', () => {
-    const isNowTicket = map.getZoom() >= ZOOM_TICKET_THRESHOLD;
-    // Only re-render if we crossed the threshold
-    if (isNowTicket !== lastZoomWasTicket) {
+    const currentZoom = map.getZoom();
+    const isNowTicket = currentZoom >= ZOOM_TICKET_THRESHOLD;
+    const isNowLargeCluster = currentZoom >= 16;
+
+    // Re-render if we crossed either threshold
+    if (isNowTicket !== lastZoomWasTicket || isNowLargeCluster !== lastZoomWasLargeCluster) {
         lastZoomWasTicket = isNowTicket;
+        lastZoomWasLargeCluster = isNowLargeCluster;
         // Re-render to swap marker styles
         if (typeof render === 'function') {
             render(STATE.currentMode);
