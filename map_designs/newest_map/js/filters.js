@@ -150,12 +150,16 @@ function toggleTimePopover() {
 function closeTimePopover() {
     const popover = document.getElementById('time-popover');
     const btn = document.getElementById('filter-time');
+    const mobileBtn = document.getElementById('mobile-filter-time');
     const chevron = btn?.querySelector('.filter-chevron');
     if (chevron) chevron.style.transform = '';
     popover.classList.remove('active');
 
     // Accessibility: Update aria-expanded
     if (btn) btn.setAttribute('aria-expanded', 'false');
+
+    // Remove popover-open class from mobile pill
+    if (mobileBtn) mobileBtn.classList.remove('popover-open');
 
     // Only remove listener if it was attached (could be desktop or mobile handler)
     if (popoverListenerAttached) {
@@ -245,8 +249,18 @@ function toggleBoroughPopover() {
     } else {
         // Position popover below the button
         const rect = btn.getBoundingClientRect();
+        const popoverWidth = 180; // min-width from CSS
+        const viewportWidth = window.innerWidth;
+        const padding = 12;
+
+        // Calculate left position, ensuring it doesn't go off-screen
+        let leftPos = rect.left;
+        if (leftPos + popoverWidth > viewportWidth - padding) {
+            leftPos = viewportWidth - popoverWidth - padding;
+        }
+
         popover.style.top = (rect.bottom + 8) + 'px';
-        popover.style.left = rect.left + 'px';
+        popover.style.left = leftPos + 'px';
 
         chevron.style.transform = 'rotate(180deg)';
         popover.classList.add('active');
@@ -263,11 +277,15 @@ function toggleBoroughPopover() {
 function closeBoroughPopover() {
     const popover = document.getElementById('borough-popover');
     const btn = document.getElementById('filter-borough');
+    const mobileBtn = document.getElementById('mobile-filter-borough');
     const chevron = btn?.querySelector('.filter-chevron');
     if (chevron) chevron.style.transform = '';
     popover.classList.remove('active');
 
     if (btn) btn.setAttribute('aria-expanded', 'false');
+
+    // Remove popover-open class from mobile pill
+    if (mobileBtn) mobileBtn.classList.remove('popover-open');
 
     if (boroughPopoverListenerAttached) {
         boroughPopoverListenerAttached = false;
@@ -283,6 +301,113 @@ function closeBoroughPopoverOnOutsideClick(e) {
     if (!popover.contains(e.target) && !btn?.contains(e.target) && !mobileBtn?.contains(e.target)) {
         closeBoroughPopover();
     }
+}
+
+/* =================================================================
+   PRICE FILTER POPOVER
+   ================================================================= */
+
+let pricePopoverListenerAttached = false;
+
+function togglePricePopover() {
+    const popover = document.getElementById('price-popover');
+    const btn = document.getElementById('filter-price');
+    const isOpen = popover.classList.contains('active');
+
+    if (isOpen) {
+        closePricePopover();
+    } else {
+        // Position popover below the button
+        const rect = btn.getBoundingClientRect();
+        popover.style.top = (rect.bottom + 8) + 'px';
+        popover.style.left = rect.left + 'px';
+
+        popover.classList.add('active');
+        btn.setAttribute('aria-expanded', 'true');
+
+        // Close on outside click
+        if (!pricePopoverListenerAttached) {
+            pricePopoverListenerAttached = true;
+            document.addEventListener('click', closePricePopoverOnOutsideClick);
+        }
+    }
+}
+
+function closePricePopover() {
+    const popover = document.getElementById('price-popover');
+    const btn = document.getElementById('filter-price');
+    const mobileBtn = document.getElementById('mobile-filter-price');
+
+    popover.classList.remove('active');
+    if (btn) btn.setAttribute('aria-expanded', 'false');
+
+    // Remove popover-open class from mobile pill
+    if (mobileBtn) mobileBtn.classList.remove('popover-open');
+
+    if (pricePopoverListenerAttached) {
+        pricePopoverListenerAttached = false;
+        document.removeEventListener('click', closePricePopoverOnOutsideClick);
+        document.removeEventListener('click', closeMobilePricePopoverOnOutsideClick);
+    }
+}
+
+function closePricePopoverOnOutsideClick(e) {
+    const popover = document.getElementById('price-popover');
+    const btn = document.getElementById('filter-price');
+    const mobileBtn = document.getElementById('mobile-filter-price');
+    if (!popover.contains(e.target) && !btn?.contains(e.target) && !mobileBtn?.contains(e.target)) {
+        closePricePopover();
+    }
+}
+
+function toggleMobilePricePopover(triggerBtn) {
+    const popover = document.getElementById('price-popover');
+    const isOpen = popover.classList.contains('active');
+
+    if (isOpen) {
+        closePricePopover();
+    } else {
+        // Position popover below the mobile pill
+        const rect = triggerBtn.getBoundingClientRect();
+        popover.style.top = (rect.bottom + 8) + 'px';
+        popover.style.left = rect.left + 'px';
+
+        popover.classList.add('active');
+        triggerBtn.classList.add('popover-open');
+
+        // Close on outside click
+        if (!pricePopoverListenerAttached) {
+            pricePopoverListenerAttached = true;
+            document.addEventListener('click', closeMobilePricePopoverOnOutsideClick);
+        }
+    }
+}
+
+function closeMobilePricePopoverOnOutsideClick(e) {
+    const popover = document.getElementById('price-popover');
+    const mobileBtn = document.getElementById('mobile-filter-price');
+    if (!popover.contains(e.target) && !mobileBtn?.contains(e.target)) {
+        closePricePopover();
+    }
+}
+
+function selectPriceFilter(value) {
+    STATE.activeFilters.price = value;
+
+    // Update popover option active states
+    const options = document.querySelectorAll('#price-popover .popover-option');
+    options.forEach(opt => {
+        const isSelected = opt.dataset.value === value;
+        opt.classList.toggle('active', isSelected);
+        opt.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+    });
+
+    // Update button UI
+    updateFilterPillUI('price', value);
+
+    // Close popover and re-render
+    closePricePopover();
+    render(STATE.currentMode);
 }
 
 /* =================================================================
@@ -303,6 +428,7 @@ function toggleMobileTimePopover(triggerBtn) {
         popover.style.left = rect.left + 'px';
 
         popover.classList.add('active');
+        triggerBtn.classList.add('popover-open');
 
         // Close on outside click
         if (!popoverListenerAttached) {
@@ -329,10 +455,21 @@ function toggleMobileBoroughPopover(triggerBtn) {
     } else {
         // Position popover below the mobile pill
         const rect = triggerBtn.getBoundingClientRect();
+        const popoverWidth = 180; // min-width from CSS
+        const viewportWidth = window.innerWidth;
+        const padding = 12;
+
+        // Calculate left position, ensuring it doesn't go off-screen
+        let leftPos = rect.left;
+        if (leftPos + popoverWidth > viewportWidth - padding) {
+            leftPos = viewportWidth - popoverWidth - padding;
+        }
+
         popover.style.top = (rect.bottom + 8) + 'px';
-        popover.style.left = rect.left + 'px';
+        popover.style.left = leftPos + 'px';
 
         popover.classList.add('active');
+        triggerBtn.classList.add('popover-open');
 
         // Close on outside click
         if (!boroughPopoverListenerAttached) {
@@ -452,6 +589,7 @@ function applyCustomTime() {
 function updateFilterPillUI(type, value) {
     const btn = document.getElementById(`filter-${type}`);
     const label = CONFIG.filterLabels[type][value] || value;
+    const hasFilter = value !== 'All';
 
     // Update desktop button if exists
     if (btn) {
@@ -466,14 +604,22 @@ function updateFilterPillUI(type, value) {
         } else {
             btn.textContent = label;
         }
-        btn.classList.toggle('active', value !== 'All');
+        btn.classList.toggle('active', hasFilter);
     }
 
     // Update mobile pill if exists
     const mobileBtn = document.getElementById(`mobile-filter-${type}`);
     if (mobileBtn) {
-        mobileBtn.textContent = label;
-        mobileBtn.classList.toggle('active', value !== 'All');
+        // Check if pill has new structure with .pill-text span
+        const pillText = mobileBtn.querySelector('.pill-text');
+        if (pillText) {
+            pillText.textContent = label;
+        } else {
+            mobileBtn.textContent = label;
+        }
+        // Use both classes for backwards compatibility
+        mobileBtn.classList.toggle('active', hasFilter);
+        mobileBtn.classList.toggle('has-filter', hasFilter);
     }
 
     // Update filter icon state - active when any filter is applied
@@ -490,6 +636,12 @@ function updateFilterPillUI(type, value) {
 function resetFilters() {
     STATE.activeFilters = { price: 'All', time: 'All', commute: 'All', borough: 'All' };
     ['price', 'time', 'commute', 'borough'].forEach(type => updateFilterPillUI(type, 'All'));
+
+    // Reset price popover option active states
+    const priceOptions = document.querySelectorAll('#price-popover .popover-option');
+    priceOptions.forEach(opt => {
+        opt.classList.toggle('active', opt.dataset.value === 'All');
+    });
 
     // Reset time popover option active states
     const timeOptions = document.querySelectorAll('#time-popover .popover-option');
@@ -549,8 +701,45 @@ function toggleSyncWithMap() {
     if (btn) {
         btn.classList.toggle('active', STATE.syncWithMap);
         btn.setAttribute('aria-pressed', STATE.syncWithMap);
+        // Dismiss tooltip if shown
+        const tooltip = btn.querySelector('.tooltip-hint');
+        if (tooltip) {
+            tooltip.remove();
+            localStorage.setItem('micfinder_mapview_hint_seen', 'true');
+        }
     }
     render(STATE.currentMode);
+}
+
+// Show first-time tooltip for Map view button
+function showMapViewHint() {
+    if (localStorage.getItem('micfinder_mapview_hint_seen')) return;
+
+    const btn = document.getElementById('btn-sync-map');
+    if (!btn || !window.matchMedia('(max-width: 640px)').matches) return;
+
+    const tooltip = document.createElement('div');
+    tooltip.className = 'tooltip-hint';
+    tooltip.innerHTML = `
+        Only show mics on screen
+        <span class="tooltip-hint-dismiss">Tap to dismiss</span>
+    `;
+    btn.appendChild(tooltip);
+
+    // Dismiss on tap anywhere
+    const dismiss = () => {
+        tooltip.remove();
+        localStorage.setItem('micfinder_mapview_hint_seen', 'true');
+        document.removeEventListener('click', dismiss);
+    };
+
+    // Delay adding listener to prevent immediate dismiss
+    setTimeout(() => document.addEventListener('click', dismiss), 100);
+
+    // Auto-dismiss after 6 seconds
+    setTimeout(() => {
+        if (tooltip.parentNode) dismiss();
+    }, 6000);
 }
 
 // Setup map move listener for sync with map

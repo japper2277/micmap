@@ -687,14 +687,22 @@ function render(mode) {
         updateCardDepartureTimes();
     }
 
-    // Show "tomorrow" notice if few mics left tonight
+    // Show sticky bottom banner if few mics left tonight
+    const bottomBanner = document.getElementById('drawer-bottom-banner');
+    const bannerCount = document.getElementById('banner-count');
+    if (bottomBanner) {
+        if (mode === 'today' && filtered.length > 0 && filtered.length <= 5) {
+            bannerCount.textContent = filtered.length;
+            bottomBanner.classList.add('show');
+        } else {
+            bottomBanner.classList.remove('show');
+        }
+    }
+
+    // Hide the old map-based tomorrow notice (deprecated)
     const tomorrowNotice = document.getElementById('tomorrow-notice');
     if (tomorrowNotice) {
-        if (mode === 'today' && filtered.length < 5) {
-            tomorrowNotice.classList.add('show');
-        } else {
-            tomorrowNotice.classList.remove('show');
-        }
+        tomorrowNotice.classList.remove('show');
     }
 }
 

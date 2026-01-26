@@ -233,6 +233,12 @@ function getUserLocation() {
                     lng: position.coords.longitude
                 };
 
+                // Clear any existing search/origin marker to prevent duplicates
+                if (STATE.searchMarker) {
+                    map.removeLayer(STATE.searchMarker);
+                    STATE.searchMarker = null;
+                }
+
                 // Add user marker (navigation arrow icon)
                 const navIcon = L.divIcon({
                     className: 'user-location-marker',
@@ -279,8 +285,9 @@ function getUserLocation() {
                         STATE.isProgrammaticMove = true;
                         map.flyTo(CONFIG.mapCenter, CONFIG.mapZoom, { duration: 1.2 });
                         manhattanNotice.classList.remove('show');
-                        // Close drawer if open
-                        if (STATE.isDrawerOpen && typeof setDrawerState === 'function') {
+                        // Close drawer if open (mobile only)
+                        const isMobile = window.matchMedia('(max-width: 767px)').matches;
+                        if (isMobile && STATE.isDrawerOpen && typeof setDrawerState === 'function') {
                             setDrawerState(DRAWER_STATES.PEEK);
                         }
                     };
@@ -338,6 +345,12 @@ function centerOnUser() {
         STATE.isProgrammaticMove = true;
         map.flyTo([STATE.userLocation.lat, STATE.userLocation.lng], 15, { duration: 1 });
         btn.classList.add('active');
+
+        // Clear any existing search/origin marker to prevent duplicates
+        if (STATE.searchMarker) {
+            map.removeLayer(STATE.searchMarker);
+            STATE.searchMarker = null;
+        }
 
         // Add/update user marker (navigation arrow icon)
         const navIcon = L.divIcon({
@@ -427,13 +440,14 @@ map.on('moveend', () => {
     }
 });
 
-// Collapse drawer when user pans the map
+// Collapse drawer when user pans the map (mobile only)
 map.on('movestart', () => {
     // Skip if this is a programmatic move (flyTo, setView, etc.)
     if (STATE.isProgrammaticMove) return;
 
-    // Collapse drawer when open
-    if (STATE.isDrawerOpen && typeof setDrawerState === 'function') {
+    // Collapse drawer when open (mobile only - desktop keeps drawer visible)
+    const isMobile = window.matchMedia('(max-width: 767px)').matches;
+    if (isMobile && STATE.isDrawerOpen && typeof setDrawerState === 'function') {
         setDrawerState(DRAWER_STATES.PEEK);
     }
 });
@@ -501,8 +515,9 @@ function handleMapClick(e) {
     input.placeholder = 'Search address...';
     input.value = 'Dropped Pin';
 
-    // Collapse drawer so user can see the map
-    if (typeof toggleDrawer === 'function' && STATE.isDrawerOpen) {
+    // Collapse drawer so user can see the map (mobile only)
+    const isMobile = window.matchMedia('(max-width: 767px)').matches;
+    if (isMobile && typeof toggleDrawer === 'function' && STATE.isDrawerOpen) {
         toggleDrawer(false);
     }
 

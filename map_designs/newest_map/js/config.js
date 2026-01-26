@@ -17,15 +17,15 @@ const CONFIG = {
     mobileMapZoom: 13,
     filterCycles: {
         price: ['All', 'Free', 'Paid'],
-        time: ['All', 'morning', 'afternoon', 'evening', 'latenight'],
+        time: ['All', 'afternoon', 'evening', 'latenight'],
         commute: ['All', 15, 30, 45, 60],
         borough: ['All', 'Manhattan', 'Brooklyn', 'Queens', 'Bronx']
     },
     filterLabels: {
-        price: { All: 'Price', Free: 'Free', Paid: '< $5' },
-        time: { All: 'Time', afternoon: '12-5pm', evening: '5-9pm', latenight: '9pm+', custom: 'Custom' },
+        price: { All: 'All Prices', Free: 'Free', Paid: 'Paid' },
+        time: { All: 'All Times', afternoon: '12-5pm', evening: '5-9pm', latenight: '9pm+', custom: 'Custom' },
         commute: { All: 'Commute', 15: '< 15m', 30: '< 30m', 45: '< 45m', 60: '< 1hr' },
-        borough: { All: 'Borough', Manhattan: 'Manhattan', Brooklyn: 'Brooklyn', Queens: 'Queens', Bronx: 'Bronx' }
+        borough: { All: 'Boroughs', Manhattan: 'Manhattan', Brooklyn: 'Brooklyn', Queens: 'Queens', Bronx: 'Bronx' }
     },
     timeRanges: {
         All: { start: 0, end: 24 },

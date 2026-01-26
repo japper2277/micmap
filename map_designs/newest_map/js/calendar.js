@@ -139,15 +139,12 @@ function setModeFromToggle(mode) {
 }
 
 function setMode(mode) {
-    // Reset filters when changing modes
-    resetFilters();
-
     const currentTime = new Date();
     const carousel = document.getElementById('date-carousel');
     const isCarouselOpen = carousel && carousel.classList.contains('active');
 
     if (mode === 'calendar') {
-        // Toggle calendar open/closed
+        // Toggle calendar open/closed - don't reset filters, just show/hide picker
         if (isCarouselOpen) {
             // Just close the carousel - keep the currently selected date/mode
             hideDateCarousel();
@@ -157,6 +154,8 @@ function setMode(mode) {
             STATE.currentMode = 'calendar';
         }
     } else {
+        // Only reset filters when actually changing to a different day mode
+        resetFilters();
         updateToggleUI(mode);
         hideDateCarousel();
         STATE.currentMode = mode;

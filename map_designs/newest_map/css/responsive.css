@@ -4,6 +4,17 @@
    ================================================================= */
 
 /* =================================================================
+   DATE CAROUSEL - Global pointer events fix
+   Prevent invisible carousel from receiving clicks
+   ================================================================= */
+#date-carousel .glass-panel {
+    pointer-events: none;
+}
+#date-carousel.active .glass-panel {
+    pointer-events: auto;
+}
+
+/* =================================================================
    MOBILE FILTER BAR - Pills below search bar
    ================================================================= */
 .mobile-filter-bar {
@@ -95,72 +106,56 @@
         }
     }
 
-    /* Mobile calendar date button - Original Remix */
-    .mobile-calendar-date-btn {
-        width: 44px;
-        height: 38px;
-        border-radius: 10px;
-        overflow: hidden;
-        flex-direction: column;
-        padding: 0;
-        background: #000000;
-        border: none;
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+    .mobile-calendar-pill .cal-icon {
+        width: 14px;
+        height: 14px;
+        stroke: rgba(255, 255, 255, 0.7);
+        flex-shrink: 0;
+    }
+
+    .mobile-calendar-pill .cal-text {
+        font-size: 14px;
+        font-weight: 500;
+        white-space: nowrap;
+    }
+
+    .mobile-calendar-pill .cal-chevron {
+        width: 10px;
+        height: 10px;
+        stroke: rgba(255, 255, 255, 0.6);
         transition: transform 0.2s ease;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        flex-shrink: 0;
     }
-    .mobile-calendar-date-btn .cal-header {
-        height: 33%;
-        width: 100%;
-        background: #d64545;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-    }
-    .mobile-calendar-date-btn .cal-header span {
-        font-size: 7px;
-        font-weight: 700;
-        color: #fff;
-        letter-spacing: 0.5px;
-        line-height: 1;
-    }
-    .mobile-calendar-date-btn .cal-chevron {
-        position: absolute;
-        right: 3px;
-        stroke: rgba(255,255,255,0.8);
-    }
-    .mobile-calendar-date-btn .cal-body {
-        flex: 1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 16px;
-        font-weight: 800;
-        color: #fff;
-        letter-spacing: -0.5px;
-    }
-    .mobile-calendar-date-btn:active {
+
+    .mobile-calendar-pill:active {
         transform: scale(0.96);
     }
-    .mobile-calendar-date-btn.active {
-        background: #000000;
-        border-color: #444;
+
+    /* Active state - calendar picker open */
+    .mobile-calendar-pill.active {
+        background: white;
+        color: black;
+        border-color: white;
+        box-shadow: 0 0 12px rgba(255, 255, 255, 0.25);
     }
-    .mobile-calendar-date-btn.active .cal-header {
-        background: #E63946;
+
+    .mobile-calendar-pill.active .cal-text {
+        color: black;
     }
-    .mobile-calendar-date-btn.active .cal-body {
-        color: #fff;
+
+    .mobile-calendar-pill.active .cal-chevron {
+        stroke: black;
+        transform: rotate(180deg);
     }
 
     /* Mobile filter pill style - Glass style */
     .mobile-filter-pill {
         flex-shrink: 0;
-        height: 34px;
-        padding: 0 16px;
+        height: 40px; /* Increased from 34px for better touch target */
+        padding: 0 14px 0 16px;
         border-radius: 100px;
-        background: rgba(20, 20, 20, 0.85);
+        background: rgba(20, 20, 20, 0.92);
         backdrop-filter: blur(20px) saturate(180%);
         -webkit-backdrop-filter: blur(20px) saturate(180%);
         border: 1px solid rgba(255, 255, 255, 0.15);
@@ -171,21 +166,58 @@
         white-space: nowrap;
         cursor: pointer;
         transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .mobile-filter-pill .pill-text {
+        white-space: nowrap;
+    }
+
+    .mobile-filter-pill .pill-chevron {
+        width: 10px;
+        height: 10px;
+        stroke: rgba(255, 255, 255, 0.5);
+        transition: transform 0.2s ease;
+        flex-shrink: 0;
     }
 
     .mobile-filter-pill:active {
         transform: scale(0.96);
     }
 
-    .mobile-filter-pill.active {
-        background: white;
-        color: black;
-        border-color: white;
+    /* Popover open state - white border, chevron rotated */
+    .mobile-filter-pill.popover-open {
+        border-color: rgba(255, 255, 255, 0.4);
+    }
+    .mobile-filter-pill.popover-open .pill-chevron {
+        transform: rotate(180deg);
+    }
+
+    /* Active filter applied state - Rose/pink background */
+    .mobile-filter-pill.has-filter {
+        background: var(--rose, #f43f5e);
+        border-color: var(--rose, #f43f5e);
+        color: white;
         box-shadow:
-            0 0 12px rgba(255, 255, 255, 0.25),
-            0 0 24px rgba(255, 255, 255, 0.15),
-            0 2px 8px rgba(255, 255, 255, 0.1);
-        animation: subtle-glow 3s ease-in-out infinite;
+            0 0 12px rgba(244, 63, 94, 0.4),
+            0 2px 8px rgba(244, 63, 94, 0.3);
+    }
+    .mobile-filter-pill.has-filter .pill-chevron {
+        stroke: rgba(255, 255, 255, 0.8);
+    }
+
+    /* Legacy .active class - keep for backwards compatibility but prefer .has-filter */
+    .mobile-filter-pill.active {
+        background: var(--rose, #f43f5e);
+        color: white;
+        border-color: var(--rose, #f43f5e);
+        box-shadow:
+            0 0 12px rgba(244, 63, 94, 0.4),
+            0 2px 8px rgba(244, 63, 94, 0.3);
+        animation: none; /* Remove distracting glow animation */
     }
 
     /* Hide drawer filters on mobile */
@@ -217,8 +249,16 @@
         pointer-events: auto;
     }
 
+    #date-carousel .glass-panel {
+        width: fit-content;
+        max-width: calc(100% - 24px);
+        margin-left: 0;
+        margin-right: auto;
+    }
+
     #date-carousel #cal-grid {
-        justify-content: center;
+        justify-content: flex-start;
+        padding: 0;
     }
 
     /* Adjust drawer header */

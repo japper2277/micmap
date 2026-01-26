@@ -8,8 +8,8 @@
     position: fixed;
     bottom: 170px; /* Above drawer peek height */
     right: 16px;
-    width: 48px;
-    height: 48px;
+    width: 56px;
+    height: 56px;
     border-radius: 50%;
     background: linear-gradient(180deg, #ffffff 0%, #f5f5f5 100%);
     border: 1px solid rgba(255, 255, 255, 0.8);
@@ -105,6 +105,8 @@
     display: flex;
     align-items: baseline;
     gap: 8px;
+    min-width: 0; /* Allow shrinking */
+    overflow: hidden;
 }
 
 .title-text {
@@ -126,18 +128,9 @@
     animation: loading-pulse 2s ease-in-out infinite;
 }
 
-/* Commute loading indicator */
+/* Commute loading indicator - hidden for now to save space */
 .commute-loading {
-    display: none;
-    margin-left: 16px;
-    font-size: 14px;
-    font-weight: 500;
-    color: rgba(255, 255, 255, 0.55);
-    animation: loading-pulse 2s ease-in-out infinite;
-}
-
-.commute-loading.active {
-    display: inline;
+    display: none !important;
 }
 
 @keyframes loading-pulse {
@@ -150,6 +143,7 @@
     display: flex;
     align-items: center;
     gap: 12px;
+    flex-shrink: 0; /* Don't let controls shrink */
 }
 @media (max-width: 639px) {
     .controls-group {
@@ -199,91 +193,55 @@
     color: var(--text-primary);
 }
 
-.calendar-icon-btn {
-    width: 44px;
-    height: 44px;
+/* Calendar pill button - Glass style (desktop) */
+.calendar-pill-btn {
+    height: 40px;
+    padding: 0 14px 0 18px;
     border-radius: var(--radius-full);
     background: var(--bg-card);
-    border: none;
+    border: 1px solid var(--border-default);
     color: var(--text-primary);
     display: flex;
     align-items: center;
-    justify-content: center;
+    gap: 8px;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: all 0.2s ease;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
 }
 
-.calendar-icon-btn:hover {
+.calendar-pill-btn .cal-text {
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.calendar-pill-btn .cal-chevron {
+    width: 12px;
+    height: 12px;
+    stroke: rgba(255, 255, 255, 0.5);
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+}
+
+.calendar-pill-btn:hover {
     background: var(--bg-hover);
+    border-color: var(--border-strong);
 }
 
-.calendar-icon-btn.active {
+.calendar-pill-btn:active {
+    transform: scale(0.97);
+}
+
+/* Active state - calendar picker is open */
+.calendar-pill-btn.active {
     background: var(--rose);
+    border-color: var(--rose);
     box-shadow: 0 0 15px var(--rose-glow);
 }
 
-/* Calendar Date Button - shows current date (Original Remix) */
-.calendar-date-btn {
-    width: 50px;
-    height: 44px;
-    border-radius: 12px;
-    padding: 0;
-    overflow: hidden;
-    flex-direction: column;
-    background: #000000;
-    border: none;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-}
-.calendar-date-btn .cal-header {
-    height: 33%;
-    width: 100%;
-    background: #d64545;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-}
-.calendar-date-btn .cal-chevron {
-    position: absolute;
-    right: 4px;
-    stroke: rgba(255,255,255,0.8);
-}
-.calendar-date-btn .cal-header span {
-    font-size: 8px;
-    font-weight: 700;
-    color: #fff;
-    letter-spacing: 1px;
-    line-height: 1;
-}
-.calendar-date-btn .cal-body {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    font-weight: 800;
-    color: #fff;
-    letter-spacing: -1px;
-}
-.calendar-date-btn:hover {
-    transform: translateY(-2px);
-    border-color: #444;
-}
-.calendar-date-btn:active {
-    transform: scale(0.96);
-}
-.calendar-date-btn.active {
-    background: #000000;
-    border-color: #444;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-}
-.calendar-date-btn.active .cal-header {
-    background: #E63946;
-}
-.calendar-date-btn.active .cal-body {
-    color: #fff;
+.calendar-pill-btn.active .cal-chevron {
+    stroke: white;
+    transform: rotate(180deg);
 }
 
 /* --- MOBILE ONLY UTILITY --- */
@@ -317,16 +275,115 @@
     color: #3b82f6;
 }
 
-/* --- MINIMIZE BUTTON (hidden on full desktop, shown only on mobile) --- */
+/* --- TOOLTIP HINT (first-time user) --- */
+.tooltip-hint {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a2e;
+    color: #fff;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 13px;
+    line-height: 1.4;
+    white-space: nowrap;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    animation: tooltipFadeIn 0.3s ease;
+}
+.tooltip-hint::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-bottom: 6px solid #1a1a2e;
+}
+.tooltip-hint-dismiss {
+    display: block;
+    margin-top: 6px;
+    font-size: 11px;
+    color: rgba(255,255,255,0.5);
+}
+@keyframes tooltipFadeIn {
+    from { opacity: 0; transform: translateX(-50%) translateY(-4px); }
+    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+.sync-map-btn {
+    position: relative;
+}
+
+/* --- SHOW LIST BUTTON (old separate button - now hidden) --- */
+.show-list-btn {
+    display: none !important;
+}
+
+/* --- LIST TOGGLE BUTTON (inside search bar, desktop only) --- */
+.list-toggle-btn {
+    display: none; /* Hidden on mobile */
+}
+@media (min-width: 768px) {
+    .list-toggle-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        margin-left: 8px;
+        background: rgba(255, 255, 255, 0.08);
+        border: none;
+        border-radius: 8px;
+        color: rgba(255, 255, 255, 0.6);
+        cursor: pointer;
+        transition: all 0.15s ease;
+        flex-shrink: 0;
+    }
+    .list-toggle-btn:hover {
+        background: rgba(255, 255, 255, 0.15);
+        color: white;
+    }
+    .list-toggle-btn:active {
+        transform: scale(0.95);
+    }
+    /* Active state when drawer is open */
+    body:has(#list-drawer.drawer-open) .list-toggle-btn {
+        background: rgba(244, 63, 94, 0.2);
+        color: #f43f5e;
+    }
+}
+
+/* --- MINIMIZE BUTTON (desktop only) --- */
 .minimize-btn {
-    display: none; /* Hidden everywhere - use search bar toggle instead */
+    display: none;
+}
+@media (min-width: 768px) {
+    .minimize-btn {
+        display: flex;
+        width: 36px;
+        height: 36px;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.08);
+        border: none;
+        border-radius: 50%;
+        color: rgba(255, 255, 255, 0.6);
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .minimize-btn:hover {
+        background: rgba(255, 255, 255, 0.15);
+        color: white;
+    }
 }
 
 /* --- DRAWER FILTER BUTTONS --- */
 .drawer-filter-btn {
     flex-shrink: 0;
-    height: 44px;
-    padding: 0 var(--space-lg);
+    height: 40px;
+    padding: 0 14px;
     background: transparent;
     border: 1px solid var(--border-default);
     border-radius: var(--radius-sm);
@@ -335,12 +392,12 @@
     font-family: 'Space Mono', monospace;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.04em;
     cursor: pointer;
     transition: all 0.2s;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
 }
 .drawer-filter-btn:hover {
     border-color: var(--border-strong);
@@ -486,6 +543,61 @@
     font-weight: 400;
 }
 
+/* Mobile: Compact time popover */
+@media (max-width: 640px) {
+    #time-popover {
+        width: 200px;
+        min-width: 200px;
+        max-width: 200px;
+        padding: 6px;
+    }
+    #time-popover .popover-option {
+        padding: 10px 12px;
+        border-radius: 8px;
+        margin-bottom: 1px;
+    }
+    #time-popover .popover-option .option-label {
+        font-size: 14px;
+    }
+    #time-popover .popover-option .option-detail {
+        font-size: 11px;
+    }
+    .custom-time-inputs {
+        padding: 8px;
+        margin: 4px 0;
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 8px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    .time-input-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 6px;
+    }
+    .time-input-row:last-of-type {
+        margin-bottom: 8px;
+    }
+    .time-input-row label {
+        font-size: 11px;
+        width: 28px;
+        flex-shrink: 0;
+    }
+    .time-input-row input[type="time"] {
+        flex: 1;
+        min-width: 0;
+        padding: 6px 6px;
+        font-size: 12px;
+        border-radius: 6px;
+    }
+    .custom-time-apply {
+        padding: 8px;
+        font-size: 12px;
+        border-radius: 6px;
+    }
+}
+
 /* Custom time inputs */
 .custom-time-inputs {
     padding: 16px;
@@ -561,22 +673,31 @@
     color: #F42B4E;
 }
 
-/* --- SEARCH BAR - Premium Dark Style --- */
+/* --- SEARCH BAR - Apple Liquid Glass Style --- */
 .search-wrapper {
-    background-color: var(--bg-elevated);
+    background: rgba(28, 28, 30, 0.72);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
     width: 100%;
-    height: 56px;
-    border-radius: var(--radius-lg);
+    height: 48px;
+    border-radius: 14px;
     display: flex;
     align-items: center;
-    padding: 0 var(--space-sm) 0 var(--space-lg);
-    border: 1px solid var(--border-default);
-    box-shadow: var(--shadow-lg);
-    transition: border-color 0.2s;
+    padding: 0 14px 0 16px;
+    border: 0.5px solid rgba(255, 255, 255, 0.18);
+    box-shadow:
+        0 4px 30px rgba(0, 0, 0, 0.15),
+        inset 0 0.5px 0 rgba(255, 255, 255, 0.05);
+    transition: all 0.2s ease;
 }
 
 .search-wrapper:focus-within {
-    border-color: var(--border-strong);
+    background: rgba(38, 38, 40, 0.82);
+    border-color: rgba(255, 255, 255, 0.28);
+    box-shadow:
+        0 4px 30px rgba(0, 0, 0, 0.2),
+        0 0 0 3px rgba(59, 130, 246, 0.15),
+        inset 0 0.5px 0 rgba(255, 255, 255, 0.08);
 }
 
 /* INPUT SECTION */
@@ -700,31 +821,46 @@
 }
 
 /* =================================================================
-   SEARCH DROPDOWN
+   SEARCH DROPDOWN - Liquid Glass Style with Spring Animation
    ================================================================= */
 .search-dropdown {
     position: absolute;
     top: calc(100% + 8px);
     left: 0;
     right: 0;
-    background: rgba(15, 15, 15, 0.95);
-    backdrop-filter: blur(20px);
-    border: 1px solid var(--border-default);
-    border-radius: var(--radius-lg);
+    background: rgba(28, 28, 30, 0.85);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border: 0.5px solid rgba(255, 255, 255, 0.15);
+    border-radius: 14px;
     max-height: 60vh;
     overflow-y: auto;
     opacity: 0;
     visibility: hidden;
-    transform: translateY(-8px);
-    transition: all 0.2s ease;
+    transform: translateY(-12px) scale(0.96);
     z-index: 1001;
     pointer-events: auto;
+    box-shadow:
+        0 10px 40px rgba(0, 0, 0, 0.3),
+        inset 0 0.5px 0 rgba(255, 255, 255, 0.05);
 }
 
 .search-dropdown.active {
     opacity: 1;
     visibility: visible;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
+    animation: dropdownSpring 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes dropdownSpring {
+    0% {
+        opacity: 0;
+        transform: translateY(-12px) scale(0.96);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
 
 .dropdown-section {
@@ -1070,6 +1206,40 @@
     font-size: 16px;
 }
 
+/* =================================================================
+   SEARCH CLEAR BUTTON - iOS/Google Maps Style
+   ================================================================= */
+.search-clear-btn {
+    display: none; /* Hidden by default */
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    margin-left: 8px;
+    background: transparent;
+    border: none;
+    border-radius: 50%;
+    color: rgba(142, 142, 147, 0.8);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+}
+
+.search-clear-btn:hover {
+    color: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.search-clear-btn:active {
+    transform: scale(0.9);
+}
+
+/* Show clear button when input has value */
+.search-wrapper.has-value .search-clear-btn {
+    display: flex;
+}
+
 /* Mobile Keyboard Fix */
 @media (max-width: 600px) {
     .search-dropdown {
@@ -1095,4 +1265,28 @@
 
 @keyframes spin {
     to { transform: rotate(360deg); }
+}
+
+/* Search Loading State */
+.search-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.search-loading .loading-spinner {
+    width: 20px;
+    height: 20px;
+    border-width: 2.5px;
+    border-color: rgba(255, 255, 255, 0.15);
+    border-top-color: rgba(255, 255, 255, 0.6);
+}
+
+/* Text highlighting in search results */
+.item-name mark,
+.item-text mark {
+    background: transparent;
+    color: inherit;
+    font-weight: 700;
 }

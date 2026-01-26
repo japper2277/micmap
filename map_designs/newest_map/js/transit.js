@@ -191,6 +191,25 @@ const transitService = {
     async calculateFromOrigin(lat, lng, name, targetMic = null, options = {}) {
         const { silent = false, skipOriginMarker = false } = options;
 
+        // NYC bounds check - don't call transit API if user is outside NYC
+        const NYC_BOUNDS = {
+            north: 40.92,  // Bronx
+            south: 40.49,  // Staten Island
+            east: -73.70,  // Queens
+            west: -74.26   // Staten Island
+        };
+
+        const isInNYC = lat >= NYC_BOUNDS.south && lat <= NYC_BOUNDS.north &&
+                        lng >= NYC_BOUNDS.west && lng <= NYC_BOUNDS.east;
+
+        if (!isInNYC) {
+            console.log('User outside NYC bounds, skipping transit calculations');
+            // Still set origin for UI purposes but don't calculate routes
+            STATE.userOrigin = { lat, lng, name };
+            STATE.isTransitMode = false;
+            return;
+        }
+
         STATE.userOrigin = { lat, lng, name };
         STATE.isTransitMode = true;
         STATE.isCalculatingTransit = true;
@@ -492,8 +511,15 @@ const transitService = {
     },
 
     addOriginMarker(lat, lng, name) {
+        // Clear any existing origin/search marker
         if (STATE.searchMarker) {
             map.removeLayer(STATE.searchMarker);
+            STATE.searchMarker = null;
+        }
+        // Also clear user location marker to prevent duplicates
+        if (STATE.userMarker) {
+            map.removeLayer(STATE.userMarker);
+            STATE.userMarker = null;
         }
 
         const originIcon = L.divIcon({
@@ -524,9 +550,14 @@ const transitService = {
             this.abortController = null;
         }
 
+        // Clear all origin-related markers
         if (STATE.searchMarker) {
             map.removeLayer(STATE.searchMarker);
             STATE.searchMarker = null;
+        }
+        if (STATE.userMarker) {
+            map.removeLayer(STATE.userMarker);
+            STATE.userMarker = null;
         }
 
         STATE.mics.forEach(mic => {
@@ -536,8 +567,12 @@ const transitService = {
             delete mic.route;
         });
 
+        // Reset search input
         const searchInput = document.getElementById('search-input');
-        if (searchInput) searchInput.value = '';
+        if (searchInput) {
+            searchInput.value = '';
+            searchInput.placeholder = 'Search venues or places';
+        }
         render(STATE.currentMode);
     },
 

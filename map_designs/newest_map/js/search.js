@@ -1,44 +1,107 @@
 /* =================================================================
    SEARCH SERVICE
-   Local venue search + Mapbox geocoding via backend proxy
+   Local venue search + NYC geocoding (neighborhoods + subway stations)
 
    KEY BEHAVIOR:
    - Auto-fires transit calculation on location select (no button)
-   - 500ms debounce on typing
+   - 150ms debounce on typing (Google Maps standard)
    - Keyboard navigation (ArrowUp/Down/Enter/Escape)
+   - Recent searches stored in localStorage
+   - Text highlighting on matching characters
+   - Venue deduplication (same venue won't show multiple times)
    ================================================================= */
 
 const searchService = {
     debounceTimer: null,
     dropdown: null,
     input: null,
+    clearBtn: null,
+    wrapper: null,
     selectedIndex: -1,
+    recentSearches: [],
+    MAX_RECENT_SEARCHES: 5,
 
     init() {
         this.input = document.getElementById('search-input');
+        this.clearBtn = document.getElementById('search-clear-btn');
+        this.wrapper = document.querySelector('.search-wrapper');
         this.searchIcon = document.querySelector('.search-icon');
         if (!this.input) {
             console.warn('Search input not found');
             return;
         }
+        this.loadRecentSearches();
         this.createDropdown();
         this.bindEvents();
-        this.setupBackButton();
+        this.setupClearButton();
     },
 
-    setupBackButton() {
-        if (!this.searchIcon) return;
+    // Recent searches - stored in localStorage
+    loadRecentSearches() {
+        try {
+            const stored = localStorage.getItem('micfinder_recent_searches');
+            this.recentSearches = stored ? JSON.parse(stored) : [];
+        } catch (e) {
+            this.recentSearches = [];
+        }
+    },
 
-        // Make search icon clickable
-        this.searchIcon.style.cursor = 'pointer';
-        this.searchIcon.addEventListener('click', (e) => {
+    saveRecentSearch(item) {
+        // item = { type: 'venue'|'location', name: string, lat?: number, lng?: number, id?: string }
+        if (!item || !item.name) return;
+
+        // Remove duplicate if exists
+        this.recentSearches = this.recentSearches.filter(r =>
+            !(r.name === item.name && r.type === item.type)
+        );
+
+        // Add to front
+        this.recentSearches.unshift(item);
+
+        // Keep only MAX_RECENT_SEARCHES
+        this.recentSearches = this.recentSearches.slice(0, this.MAX_RECENT_SEARCHES);
+
+        // Save to localStorage
+        try {
+            localStorage.setItem('micfinder_recent_searches', JSON.stringify(this.recentSearches));
+        } catch (e) {
+            // localStorage full or unavailable
+        }
+    },
+
+    clearRecentSearches() {
+        this.recentSearches = [];
+        try {
+            localStorage.removeItem('micfinder_recent_searches');
+        } catch (e) {}
+    },
+
+    setupClearButton() {
+        if (!this.clearBtn) return;
+
+        this.clearBtn.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            if (this.dropdown?.classList.contains('active')) {
-                this.hideDropdown();
-                this.input.blur();
-            }
+            this.clearSearch();
+            this.input.focus(); // Keep focus after clearing
         });
+    },
+
+    clearSearch() {
+        this.input.value = '';
+        this.input.placeholder = 'Search venues or places';
+        this.updateClearButtonVisibility();
+        this.hideDropdown();
+        // Clear transit mode if active
+        if (typeof transitService !== 'undefined') {
+            transitService.clearTransitMode();
+        }
+    },
+
+    updateClearButtonVisibility() {
+        if (!this.wrapper) return;
+        const hasValue = this.input.value.trim().length > 0;
+        this.wrapper.classList.toggle('has-value', hasValue);
     },
 
     createDropdown() {
@@ -61,17 +124,20 @@ const searchService = {
     },
 
     bindEvents() {
-        // Input handler with 500ms debounce
+        // Input handler with 150ms debounce (Google Maps uses ~150ms)
         this.input.addEventListener('input', (e) => {
             clearTimeout(this.debounceTimer);
             const query = e.target.value.trim();
+
+            // Update clear button visibility on every input
+            this.updateClearButtonVisibility();
 
             if (query.length < 2) {
                 this.hideDropdown();
                 return;
             }
 
-            this.debounceTimer = setTimeout(() => this.search(query), 500);
+            this.debounceTimer = setTimeout(() => this.search(query), 150);
         });
 
         // Keyboard navigation
@@ -146,19 +212,52 @@ const searchService = {
     ],
 
     renderEmptyState() {
-        let html = `
-            <div class="dropdown-item current-location" id="search-option-0" role="option" aria-selected="false" data-action="location">
+        let html = '';
+        let optionIndex = 0;
+
+        // "Use Current Location" option
+        html += `
+            <div class="dropdown-item current-location" id="search-option-${optionIndex++}" role="option" aria-selected="false" data-action="location">
                 <div class="item-icon" aria-hidden="true">${this.icons.nav}</div>
                 <div class="item-text">
                     <span class="item-name">Use Current Location</span>
                     <span class="item-sub">Show transit times from where you are</span>
                 </div>
-            </div>
-            <div class="section-header" role="presentation">Popular Neighborhoods</div>`;
+            </div>`;
 
-        this.popularHoods.forEach((hood, idx) => {
+        // Recent searches section (if any)
+        if (this.recentSearches.length > 0) {
+            html += `<div class="section-header" role="presentation">Recent</div>`;
+            this.recentSearches.forEach((recent) => {
+                const icon = recent.type === 'venue' ? this.icons.mic : this.icons.pin;
+                const iconClass = recent.type === 'venue' ? 'venue-type' : 'location-type';
+                if (recent.type === 'venue' && recent.id) {
+                    html += `
+                        <div class="dropdown-item ${iconClass}" id="search-option-${optionIndex++}" role="option" aria-selected="false" data-action="venue" data-id="${recent.id}">
+                            <div class="item-icon" aria-hidden="true">${icon}</div>
+                            <div class="item-text">
+                                <span class="item-name">${this.escapeHtml(recent.name)}</span>
+                            </div>
+                            ${recent.sub ? `<span class="item-subtext">${this.escapeHtml(recent.sub)}</span>` : ''}
+                        </div>`;
+                } else if (recent.lat && recent.lng) {
+                    html += `
+                        <div class="dropdown-item ${iconClass}" id="search-option-${optionIndex++}" role="option" aria-selected="false" data-action="geo" data-lat="${recent.lat}" data-lng="${recent.lng}" data-name="${this.escapeHtml(recent.name)}">
+                            <div class="item-icon" aria-hidden="true">${icon}</div>
+                            <div class="item-text">
+                                <span class="item-name">${this.escapeHtml(recent.name)}</span>
+                            </div>
+                            ${recent.sub ? `<span class="item-subtext">${this.escapeHtml(recent.sub)}</span>` : ''}
+                        </div>`;
+                }
+            });
+        }
+
+        // Popular neighborhoods section
+        html += `<div class="section-header" role="presentation">Popular Neighborhoods</div>`;
+        this.popularHoods.forEach((hood) => {
             html += `
-                <div class="dropdown-item location-type" id="search-option-${idx + 1}" role="option" aria-selected="false" data-action="geo" data-lat="${hood.lat}" data-lng="${hood.lng}" data-name="${this.escapeHtml(hood.name)}">
+                <div class="dropdown-item location-type" id="search-option-${optionIndex++}" role="option" aria-selected="false" data-action="geo" data-lat="${hood.lat}" data-lng="${hood.lng}" data-name="${this.escapeHtml(hood.name)}">
                     <div class="item-icon" aria-hidden="true">${this.icons.pin}</div>
                     <div class="item-text">
                         <span class="item-name">${this.escapeHtml(hood.name)}</span>
@@ -172,17 +271,39 @@ const searchService = {
         this.showDropdown();
     },
 
+    // Show loading state briefly
+    showLoading() {
+        this.dropdown.innerHTML = '<div class="search-loading"><div class="loading-spinner"></div></div>';
+        this.showDropdown();
+    },
+
+    // Highlight matching text in search results (bold the matched portion)
+    highlightMatch(text, query) {
+        if (!query || !text) return this.escapeHtml(text);
+        const escaped = this.escapeHtml(text);
+        const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+        return escaped.replace(regex, '<mark>$1</mark>');
+    },
+
     async search(query) {
         this.selectedIndex = -1;
+        this.currentQuery = query; // Store for highlighting
         const results = { venues: [], locations: [] };
 
-        // 1. Local venue search (your mic data)
+        // 1. Local venue search (your mic data) - deduplicate by venue name
         const q = query.toLowerCase();
+        const seenVenues = new Set();
         results.venues = STATE.mics
             .filter(m => {
                 const title = (m.title || m.venue || '').toLowerCase();
                 const hood = (m.hood || m.neighborhood || '').toLowerCase();
-                return title.includes(q) || hood.includes(q);
+                if (!title.includes(q) && !hood.includes(q)) return false;
+
+                // Deduplicate by venue name (same venue may have multiple mics on different days)
+                const venueName = (m.title || m.venue || '').toLowerCase().trim();
+                if (seenVenues.has(venueName)) return false;
+                seenVenues.add(venueName);
+                return true;
             })
             .slice(0, 3)
             .map(m => ({ ...m, type: 'venue' }));
@@ -200,10 +321,10 @@ const searchService = {
             }));
         }
 
-        this.renderDropdown(results);
+        this.renderDropdown(results, query);
     },
 
-    renderDropdown(results) {
+    renderDropdown(results, query = '') {
         let html = '';
         let optionIndex = 0;
 
@@ -223,13 +344,16 @@ const searchService = {
             results.venues.forEach(v => {
                 const title = v.title || v.venue || 'Unknown';
                 const hood = v.hood || v.neighborhood || '';
+                // Highlight matching text
+                const highlightedTitle = this.highlightMatch(title, query);
+                const highlightedHood = this.highlightMatch(hood, query);
                 html += `
                     <div class="dropdown-item venue-type" id="search-option-${optionIndex++}" role="option" aria-selected="false" data-action="venue" data-id="${v.id}">
                         <div class="item-icon" aria-hidden="true">${this.icons.mic}</div>
                         <div class="item-text">
-                            <span class="item-name">${this.escapeHtml(title)}</span>
+                            <span class="item-name">${highlightedTitle}</span>
                         </div>
-                        <span class="item-subtext">${this.escapeHtml(hood)}</span>
+                        <span class="item-subtext">${highlightedHood}</span>
                     </div>`;
             });
         }
@@ -242,13 +366,16 @@ const searchService = {
                 const icon = isSubway ? this.icons.subway : this.icons.pin;
                 const subtext = l.address || '';
                 const itemClass = isSubway ? 'location-type subway-type' : 'location-type';
+                // Highlight matching text
+                const highlightedName = this.highlightMatch(l.name, query);
+                const highlightedSubtext = this.highlightMatch(subtext, query);
                 html += `
                     <div class="dropdown-item ${itemClass}" id="search-option-${optionIndex++}" role="option" aria-selected="false" data-action="geo" data-lat="${l.lat}" data-lng="${l.lng}" data-name="${this.escapeHtml(l.name)}">
                         <div class="item-icon" aria-hidden="true">${icon}</div>
                         <div class="item-text">
-                            <span class="item-name">${this.escapeHtml(l.name)}</span>
+                            <span class="item-name">${highlightedName}</span>
                         </div>
-                        <span class="item-subtext">${this.escapeHtml(subtext)}</span>
+                        <span class="item-subtext">${highlightedSubtext}</span>
                     </div>`;
             });
         }
@@ -262,6 +389,13 @@ const searchService = {
         this.showDropdown();
     },
 
+    // Haptic feedback for selections (iOS/Android)
+    triggerHaptic() {
+        if (navigator.vibrate) {
+            navigator.vibrate(10);
+        }
+    },
+
     // Event delegation for dropdown clicks (more reliable than inline onclick)
     bindDropdownClicks() {
         this.dropdown.querySelectorAll('.dropdown-item').forEach(item => {
@@ -269,6 +403,9 @@ const searchService = {
                 e.preventDefault();
                 e.stopPropagation();
                 const action = item.dataset.action;
+
+                // Haptic feedback on selection
+                this.triggerHaptic();
 
                 if (action === 'location') {
                     this.useMyLocation();
@@ -289,10 +426,20 @@ const searchService = {
         if (mic) {
             this.hideDropdown();
             this.input.value = mic.title || mic.venue;
+            this.updateClearButtonVisibility();
             this.input.blur();
 
-            // Collapse drawer so user can see the map
-            if (typeof toggleDrawer === 'function' && STATE.isDrawerOpen) {
+            // Save to recent searches
+            this.saveRecentSearch({
+                type: 'venue',
+                name: mic.title || mic.venue,
+                id: mic.id,
+                sub: mic.hood || mic.neighborhood || ''
+            });
+
+            // Collapse drawer so user can see the map (mobile only)
+            const isMobile = window.matchMedia('(max-width: 767px)').matches;
+            if (isMobile && typeof toggleDrawer === 'function' && STATE.isDrawerOpen) {
                 toggleDrawer(false);
             }
 
@@ -307,23 +454,42 @@ const searchService = {
             }
 
             // Ghost Venue Fix: Pass mic so its neighborhood is always queried
-            transitService.calculateFromOrigin(mic.lat, mic.lng, mic.title || mic.venue, mic);
+            if (typeof transitService !== 'undefined') {
+                transitService.calculateFromOrigin(mic.lat, mic.lng, mic.title || mic.venue, mic);
+            }
         }
     },
 
     selectLocation(lat, lng, name) {
         this.hideDropdown();
-        this.input.value = name;
+        // Don't put location in search input - it confuses search vs location state
+        this.input.value = '';
+        this.input.placeholder = `From: ${name}`;
+        this.updateClearButtonVisibility();
         this.input.blur();
 
-        // Collapse drawer so user can see the map
-        if (typeof toggleDrawer === 'function' && STATE.isDrawerOpen) {
+        // Save to recent searches
+        this.saveRecentSearch({
+            type: 'location',
+            name: name,
+            lat: lat,
+            lng: lng
+        });
+
+        // Collapse drawer so user can see the map (mobile only)
+        const isMobile = window.matchMedia('(max-width: 767px)').matches;
+        if (isMobile && typeof toggleDrawer === 'function' && STATE.isDrawerOpen) {
             toggleDrawer(false);
         }
 
         // Fly to location
         if (typeof map !== 'undefined') {
             map.flyTo([lat, lng], 14, { duration: 1 });
+        }
+
+        // Trigger transit calculation from this location
+        if (typeof transitService !== 'undefined') {
+            transitService.calculateFromOrigin(lat, lng, name);
         }
     },
 
@@ -352,13 +518,41 @@ const searchService = {
                 const { latitude, longitude } = position.coords;
                 STATE.userLocation = { lat: latitude, lng: longitude };
 
-                // Success - stop animation, show result
+                // Success - stop animation, show location in placeholder (not input value)
                 if (geoBtn) geoBtn.classList.remove('finding');
-                this.input.value = 'Current Location';
-                this.input.placeholder = 'Search address...';
+                this.input.value = '';
+                this.input.placeholder = 'From: Current Location';
+                this.updateClearButtonVisibility();
 
-                // Collapse drawer so user can see the map
-                if (typeof toggleDrawer === 'function' && STATE.isDrawerOpen) {
+                // Clear any existing search/origin marker to prevent duplicates
+                if (STATE.searchMarker && typeof map !== 'undefined') {
+                    map.removeLayer(STATE.searchMarker);
+                    STATE.searchMarker = null;
+                }
+
+                // Add/update user location marker (navigation arrow style)
+                if (typeof map !== 'undefined' && typeof L !== 'undefined') {
+                    const navIcon = L.divIcon({
+                        className: 'user-location-marker',
+                        html: `<div class="nav-arrow-icon">
+                                 <svg viewBox="0 0 24 24" fill="white" width="16" height="16">
+                                   <path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/>
+                                 </svg>
+                               </div>`,
+                        iconSize: [32, 32],
+                        iconAnchor: [16, 16]
+                    });
+
+                    if (STATE.userMarker) {
+                        STATE.userMarker.setLatLng([latitude, longitude]);
+                    } else {
+                        STATE.userMarker = L.marker([latitude, longitude], { icon: navIcon }).addTo(map);
+                    }
+                }
+
+                // Collapse drawer so user can see the map (mobile only)
+                const isMobile = window.matchMedia('(max-width: 767px)').matches;
+                if (isMobile && typeof toggleDrawer === 'function' && STATE.isDrawerOpen) {
                     toggleDrawer(false);
                 }
 
@@ -373,7 +567,8 @@ const searchService = {
                 // Error - stop animation
                 if (geoBtn) geoBtn.classList.remove('finding');
                 this.input.value = '';
-                this.input.placeholder = 'Search address...';
+                this.input.placeholder = 'Search venues or places';
+                this.updateClearButtonVisibility();
 
                 if (error.code === error.PERMISSION_DENIED) {
                     if (typeof toastService !== 'undefined') {
@@ -397,11 +592,7 @@ const searchService = {
         if (this.dropdown) {
             this.dropdown.classList.add('active');
             this.input.setAttribute('aria-expanded', 'true');
-            // Swap to back arrow (filled style)
-            if (this.searchIcon) {
-                this.searchIcon.innerHTML = `<path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>`;
-                this.searchIcon.classList.add('is-back');
-            }
+            // Keep search icon static - no confusing icon swap
         }
     },
 
@@ -410,11 +601,7 @@ const searchService = {
             this.dropdown.classList.remove('active');
             this.input.setAttribute('aria-expanded', 'false');
             this.input.removeAttribute('aria-activedescendant');
-            // Swap back to magnifying glass (filled style)
-            if (this.searchIcon) {
-                this.searchIcon.innerHTML = `<path d="M10.5 4C6.9 4 4 6.9 4 10.5C4 14.1 6.9 17 10.5 17C12 17 13.4 16.5 14.5 15.6L18.4 19.5C18.8 19.9 19.4 19.9 19.8 19.5C20.2 19.1 20.2 18.5 19.8 18.1L15.9 14.2C16.6 13.1 17 11.9 17 10.5C17 6.9 14.1 4 10.5 4ZM6 10.5C6 8 8 6 10.5 6C13 6 15 8 15 10.5C15 13 13 15 10.5 15C8 15 6 13 6 10.5Z"/>`;
-                this.searchIcon.classList.remove('is-back');
-            }
+            // Keep search icon static - no confusing icon swap
         }
         this.selectedIndex = -1;
     },
@@ -422,9 +609,13 @@ const searchService = {
     clear() {
         if (this.input) {
             this.input.value = '';
+            this.input.placeholder = 'Search venues or places';
+            this.updateClearButtonVisibility();
         }
         this.hideDropdown();
-        transitService.clearTransitMode();
+        if (typeof transitService !== 'undefined') {
+            transitService.clearTransitMode();
+        }
     },
 
     escapeHtml(str) {
