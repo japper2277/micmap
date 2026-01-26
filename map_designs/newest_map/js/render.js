@@ -182,7 +182,6 @@ function render(mode) {
             const selectedDayName = CONFIG.dayNames[selectedDate.getDay()];
             if (m.day !== selectedDayName) return false;
         }
-        // 'allweek' mode shows all days - no filtering needed
 
         return true;
     });
@@ -368,12 +367,6 @@ function render(mode) {
         const extraType = 'venues';
         const venueName = firstMic.title || firstMic.venue || 'Venue';
 
-        // Day abbreviation for all-week mode (only on ticket/expanded view)
-        const dayAbbrevs = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-        const dayAbbrev = (mode === 'allweek' && firstMic.day)
-            ? dayAbbrevs[CONFIG.dayNames.indexOf(firstMic.day)]
-            : null;
-
         // Determine which icon to use
         let markerIcon;
         const currentZoom = map.getZoom();
@@ -401,10 +394,10 @@ function render(mode) {
                 status: v.status
             }));
 
-            markerIcon = createMultiVenuePin(venueData, dayAbbrev);
+            markerIcon = createMultiVenuePin(venueData);
         } else {
             // Single venue ticket OR pill (zoomed out)
-            markerIcon = createPin(bestStatus, displayTimes, extraCount, isMultiVenue ? null : venueName, extraType, dayAbbrev);
+            markerIcon = createPin(bestStatus, displayTimes, extraCount, isMultiVenue ? null : venueName, extraType);
         }
 
         const marker = L.marker([cluster.lat, cluster.lng], {
@@ -692,6 +685,16 @@ function render(mode) {
     // Fetch and update departure times for cards with routes
     if (STATE.isTransitMode) {
         updateCardDepartureTimes();
+    }
+
+    // Show "tomorrow" notice if few mics left tonight
+    const tomorrowNotice = document.getElementById('tomorrow-notice');
+    if (tomorrowNotice) {
+        if (mode === 'today' && filtered.length < 5) {
+            tomorrowNotice.classList.add('show');
+        } else {
+            tomorrowNotice.classList.remove('show');
+        }
     }
 }
 

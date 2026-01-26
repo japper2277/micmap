@@ -46,7 +46,7 @@ function selectDate(dateString) {
     STATE.currentMode = 'calendar';
     STATE.selectedCalendarDate = dateString;
 
-    // Update visual highlight - also clear allweek if it was active
+    // Update visual highlight
     document.querySelectorAll('.date-capsule').forEach(cap => {
         const isActive = cap.dataset.date === dateString;
         cap.classList.toggle('active-date', isActive);
@@ -56,16 +56,20 @@ function selectDate(dateString) {
     // Update the header calendar button to show selected date
     updateCalendarButtonDisplay(dateString);
 
+    // Close the date carousel
+    hideDateCarousel();
+
     // Render immediately with the selected date
     render('calendar');
 
-    // If transit mode is active, recalculate routes for new day's mics
+    // If transit mode is active, recalculate routes for new day's mics (silent = don't move map)
     if (STATE.isTransitMode && STATE.userOrigin) {
         transitService.calculateFromOrigin(
             STATE.userOrigin.lat,
             STATE.userOrigin.lng,
             STATE.userOrigin.name,
-            null
+            null,
+            { silent: true }
         );
     }
 }
@@ -73,21 +77,16 @@ function selectDate(dateString) {
 // Update the calendar button in header to show the selected date
 function updateCalendarButtonDisplay(dateString) {
     const date = new Date(dateString);
-    const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-    const day = days[date.getDay()];
-    const dateNum = date.getDate();
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const displayText = `${days[date.getDay()]} ${date.getDate()}`;
 
     // Desktop calendar button
-    const calDay = document.getElementById('cal-month');
-    const calDate = document.getElementById('cal-date-num');
-    if (calDay) calDay.textContent = day;
-    if (calDate) calDate.textContent = dateNum;
+    const calText = document.getElementById('cal-text');
+    if (calText) calText.textContent = displayText;
 
     // Mobile calendar button
-    const mobileCalDay = document.getElementById('mobile-cal-month');
-    const mobileCalDate = document.getElementById('mobile-cal-date-num');
-    if (mobileCalDay) mobileCalDay.textContent = day;
-    if (mobileCalDate) mobileCalDate.textContent = dateNum;
+    const mobileCalText = document.getElementById('mobile-cal-text');
+    if (mobileCalText) mobileCalText.textContent = displayText;
 }
 
 // Update the sliding toggle UI
@@ -164,13 +163,14 @@ function setMode(mode) {
         STATE.selectedCalendarDate = (mode === 'today') ? currentTime.toDateString() : addDays(currentTime, 1).toDateString();
         render(mode);
 
-        // If transit mode is active, recalculate routes for new day's mics
+        // If transit mode is active, recalculate routes for new day's mics (silent = don't move map)
         if (STATE.isTransitMode && STATE.userOrigin) {
             transitService.calculateFromOrigin(
                 STATE.userOrigin.lat,
                 STATE.userOrigin.lng,
                 STATE.userOrigin.name,
-                null
+                null,
+                { silent: true }
             );
         }
     }
@@ -184,12 +184,14 @@ function generateDateCarousel() {
     const days = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
     const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
+    const monthAbbrs = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+
     for (let i = 0; i < 7; i++) {
         const date = addDays(new Date(), i);
         const dayStr = days[date.getDay()];
         const dateNum = date.getDate();
         const dateString = date.toDateString();
-        const isActive = dateString === STATE.selectedCalendarDate && STATE.currentMode !== 'allweek';
+        const isActive = dateString === STATE.selectedCalendarDate;
 
         // Create accessible label: "Monday, December 16"
         const fullDayName = date.toLocaleDateString('en-US', { weekday: 'long' });
@@ -197,72 +199,46 @@ function generateDateCarousel() {
         const ariaLabel = `${fullDayName}, ${monthName} ${dateNum}`;
 
         const capsule = document.createElement('button');
-        capsule.className = `date-capsule flex-shrink-0 w-14 h-16 rounded-xl transition-all cursor-pointer flex flex-col items-center justify-center text-center text-neutral-400 font-bold bg-black/40 hover:bg-white/10 active:scale-95
+        capsule.className = `date-capsule flex-shrink-0 w-14 h-16 rounded-xl transition-all cursor-pointer flex flex-col items-center justify-center text-center text-neutral-400 font-bold bg-black/40
                              ${isActive ? 'active-date' : ''}`;
         capsule.dataset.date = dateString;
         capsule.setAttribute('role', 'option');
         capsule.setAttribute('aria-label', ariaLabel);
         capsule.setAttribute('aria-pressed', isActive ? 'true' : 'false');
         capsule.onclick = () => selectDate(dateString);
-        capsule.innerHTML = `<span class="text-xs uppercase" aria-hidden="true">${dayStr}</span><span class="text-2xl mt-0.5 leading-none text-white" aria-hidden="true">${dateNum}</span>`;
+
+        // Different labels: TODAY for first, month abbr for 1st of month, day name for others
+        if (i === 0) {
+            capsule.innerHTML = `<span class="text-[10px] uppercase text-rose-400 font-semibold tracking-wide" aria-hidden="true">TODAY</span><span class="text-2xl mt-0.5 leading-none text-white" aria-hidden="true">${dateNum}</span>`;
+        } else if (dateNum === 1) {
+            const monthAbbr = monthAbbrs[date.getMonth()];
+            capsule.innerHTML = `<span class="text-[10px] uppercase text-amber-400 font-semibold tracking-wide" aria-hidden="true">${monthAbbr}</span><span class="text-2xl mt-0.5 leading-none text-white" aria-hidden="true">${dateNum}</span>`;
+        } else {
+            capsule.innerHTML = `<span class="text-[11px] uppercase opacity-70 tracking-wide" aria-hidden="true">${dayStr}</span><span class="text-2xl mt-0.5 leading-none text-white" aria-hidden="true">${dateNum}</span>`;
+        }
         container.appendChild(capsule);
     }
 
-    // Add separator
-    const separator = document.createElement('div');
-    separator.className = 'date-separator';
-    container.appendChild(separator);
-
-    // Add "All Week" button
-    const isAllWeekActive = STATE.currentMode === 'allweek';
-    const allWeekBtn = document.createElement('button');
-    allWeekBtn.className = `date-capsule all-week-btn flex-shrink-0 w-16 h-16 rounded-xl transition-all cursor-pointer flex flex-col items-center justify-center text-center text-neutral-400 font-bold bg-black/40 hover:bg-white/10 active:scale-95
-                         ${isAllWeekActive ? 'active-date' : ''}`;
-    allWeekBtn.dataset.date = 'allweek';
-    allWeekBtn.setAttribute('role', 'option');
-    allWeekBtn.setAttribute('aria-label', 'View all week');
-    allWeekBtn.setAttribute('aria-pressed', isAllWeekActive ? 'true' : 'false');
-    allWeekBtn.onclick = () => selectAllWeek();
-    allWeekBtn.innerHTML = `<span class="text-xs uppercase" aria-hidden="true">ALL</span><span class="text-base mt-0.5 leading-none text-white font-bold" aria-hidden="true">WEEK</span>`;
-    container.appendChild(allWeekBtn);
-
-    // Add active date styles
+    // Add styles for active state, hover/press feedback
     const style = document.createElement('style');
-    style.innerHTML = `.date-capsule.active-date { background: var(--rose); color: white !important; box-shadow: 0 4px 15px var(--rose-glow); transform: scale(1.05); } .date-capsule.active-date span { color: white !important; } .date-separator { width: 1px; background: #333; margin: 5px 5px; flex-shrink: 0; }`;
+    style.innerHTML = `
+        .date-capsule.active-date {
+            background: rgba(244, 63, 94, 0.15);
+            border: 2px solid var(--rose);
+            box-shadow: 0 0 12px var(--rose-glow);
+        }
+        .date-capsule.active-date span {
+            color: white !important;
+        }
+        .date-capsule:hover {
+            background: rgba(255, 255, 255, 0.12);
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.1);
+        }
+        .date-capsule:active {
+            transform: scale(0.95);
+            background: rgba(255, 255, 255, 0.15);
+        }
+    `;
     document.head.appendChild(style);
 }
 
-function selectAllWeek() {
-    STATE.currentMode = 'allweek';
-
-    // Update highlights
-    document.querySelectorAll('.date-capsule').forEach(cap => {
-        const isAllWeek = cap.dataset.date === 'allweek';
-        cap.classList.toggle('active-date', isAllWeek);
-        cap.setAttribute('aria-pressed', isAllWeek ? 'true' : 'false');
-    });
-
-    // Update header calendar button to show "ALL WEEK"
-    const calDay = document.getElementById('cal-month');
-    const calDate = document.getElementById('cal-date-num');
-    if (calDay) calDay.textContent = 'ALL';
-    if (calDate) calDate.textContent = '7';
-
-    const mobileCalDay = document.getElementById('mobile-cal-month');
-    const mobileCalDate = document.getElementById('mobile-cal-date-num');
-    if (mobileCalDay) mobileCalDay.textContent = 'ALL';
-    if (mobileCalDate) mobileCalDate.textContent = '7';
-
-    // Render all week's mics
-    render('allweek');
-
-    // If transit mode is active, recalculate routes
-    if (STATE.isTransitMode && STATE.userOrigin) {
-        transitService.calculateFromOrigin(
-            STATE.userOrigin.lat,
-            STATE.userOrigin.lng,
-            STATE.userOrigin.name,
-            null
-        );
-    }
-}

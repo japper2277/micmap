@@ -188,21 +188,6 @@
     transition: transform 0.05s ease-out;
 }
 
-/* Side tab for day (30px wide, full height) */
-.ticket-day-tab {
-    width: 30px;
-    height: 44px;
-    background: #3a3f4b;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 10px;
-    font-weight: 700;
-    color: white;
-    flex-shrink: 0;
-    letter-spacing: 0.3px;
-}
-
 /* Content stack (time + venue) */
 .ticket-content {
     display: flex;
@@ -632,21 +617,6 @@
 .multi-venue-ticket:active {
     transform: scale(0.94);
     transition: transform 0.05s ease-out;
-}
-
-/* Day tab (30px, only in allweek mode) */
-.mv-day-tab {
-    width: 30px;
-    flex-shrink: 0;
-    background: linear-gradient(180deg, #3a4452 0%, #1c1f26 100%);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 8px;
-    font-weight: 900;
-    text-transform: uppercase;
-    border-right: 0.5px solid rgba(0, 0, 0, 0.5);
 }
 
 /* Content stack (rows of venues) */

@@ -18,7 +18,7 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r
 const markersGroup = L.featureGroup().addTo(map);
 
 // Zoom threshold for switching between pill and ticket styles
-const ZOOM_TICKET_THRESHOLD = 15;
+const ZOOM_TICKET_THRESHOLD = 14;
 
 // Shorten venue names for ticket display
 function shortenVenueName(name) {
@@ -117,8 +117,7 @@ function shortenVenueName(name) {
 
 // Create marker - pill style (zoomed out) or ticket style (zoomed in)
 // extraCount: number of additional items, extraType: 'mics' or 'venues'
-// dayAbbrev: optional day abbreviation for all-week mode (e.g., 'MON', 'TUE')
-function createPin(status, timeStr, extraCount, venueName, extraType = 'mics', dayAbbrev = null) {
+function createPin(status, timeStr, extraCount, venueName, extraType = 'mics') {
     const displayTime = timeStr || '?';
     const isZoomedIn = map.getZoom() >= ZOOM_TICKET_THRESHOLD;
 
@@ -136,24 +135,20 @@ function createPin(status, timeStr, extraCount, venueName, extraType = 'mics', d
         : (extraCount === 1 ? 'mic' : 'mics');
 
     if (isZoomedIn && venueName) {
-        // TICKET STYLE: Side tab for day, stacked time/venue
+        // TICKET STYLE: stacked time/venue
         const shortName = shortenVenueName(venueName);
         const displayName = shortName.length > 14 ? shortName.substring(0, 13) + '…' : shortName;
         const countBadge = extraCount > 0 ? `<span class="ticket-count">+${extraCount} ${countLabel}</span>` : '';
-
-        // Side tab for day (30px wide, only when day exists)
-        const dayTab = dayAbbrev ? `<div class="ticket-day-tab">${dayAbbrev}</div>` : '';
 
         // Dynamic width based on longer of: times or venue name
         const timeWidth = displayTime.length * 8 + 16;  // times are bigger font
         const nameWidth = displayName.length * 7 + 16;
         const contentWidth = Math.max(timeWidth, nameWidth);
-        const ticketWidth = Math.max(70, Math.min(contentWidth + (dayAbbrev ? 30 : 0), 180));
+        const ticketWidth = Math.max(70, Math.min(contentWidth, 180));
 
         return L.divIcon({
             className: 'bg-transparent',
             html: `<div class="mic-ticket ticket-${statusClass}">
-                    ${dayTab}
                     <div class="ticket-content">
                         <div class="ticket-time">${displayTime}${countBadge}</div>
                         <div class="ticket-venue">${displayName}</div>
@@ -195,16 +190,7 @@ function createPin(status, timeStr, extraCount, venueName, extraType = 'mics', d
 
 // Create multi-venue stacked ticket marker (for zoomed-in view of multi-venue clusters)
 // venueData: array of { name: string, times: string } objects
-// dayAbbrev: optional day abbreviation for all-week mode (e.g., 'WED')
-function createMultiVenuePin(venueData, dayAbbrev = null) {
-    const showDayTab = dayAbbrev !== null;
-    const noDayClass = showDayTab ? '' : 'no-day';
-
-    // Build day tab HTML (only if in allweek mode)
-    const dayTabHtml = showDayTab
-        ? `<div class="mv-day-tab">${dayAbbrev}</div>`
-        : '';
-
+function createMultiVenuePin(venueData) {
     // Build venue rows (max 4 to keep marker reasonable)
     const maxVenues = 4;
     const displayVenues = venueData.slice(0, maxVenues);
@@ -227,8 +213,7 @@ function createMultiVenuePin(venueData, dayAbbrev = null) {
 
     return L.divIcon({
         className: 'bg-transparent',
-        html: `<div class="multi-venue-ticket ${noDayClass}">
-                ${dayTabHtml}
+        html: `<div class="multi-venue-ticket no-day">
                 <div class="mv-content-stack">
                     ${rowsHtml}
                 </div>
@@ -349,9 +334,9 @@ function centerOnUser() {
     const btn = document.getElementById('locate-btn');
 
     if (STATE.userLocation) {
-        // We have location - fly to it
+        // We have location - fly to it (zoom 15 to show ticket/card view)
         STATE.isProgrammaticMove = true;
-        map.flyTo([STATE.userLocation.lat, STATE.userLocation.lng], 14, { duration: 1 });
+        map.flyTo([STATE.userLocation.lat, STATE.userLocation.lng], 15, { duration: 1 });
         btn.classList.add('active');
 
         // Add/update user marker (navigation arrow icon)
