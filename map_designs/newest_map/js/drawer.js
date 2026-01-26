@@ -79,16 +79,24 @@ function setDrawerState(newState) {
     STATE.drawerState = newState;
     STATE.isDrawerOpen = isOpen;
 
+    // Force scroll context recalculation (fixes scroll not working after state change)
+    const listContent = document.getElementById('list-content');
+    if (listContent) {
+        listContent.style.overflowY = 'hidden';
+        void listContent.offsetHeight; // Force reflow
+        listContent.style.overflowY = 'auto';
+    }
+
     // Backdrop for mobile full state
     if (backdrop && isMobile) {
         backdrop.classList.toggle('active', isOpen);
     }
 
-    // Update UI elements
-    icon.style.transform = isOpen ? 'rotate(180deg)' : 'rotate(0deg)';
-    btn.classList.toggle('bg-white/10', isOpen);
-    btn.classList.toggle('text-white', isOpen);
-    searchWrapper.classList.toggle('active', isOpen);
+    // Update UI elements (with null checks)
+    if (icon) icon.style.transform = isOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+    if (btn) btn.classList.toggle('bg-white/10', isOpen);
+    if (btn) btn.classList.toggle('text-white', isOpen);
+    if (searchWrapper) searchWrapper.classList.toggle('active', isOpen);
 
     // Close search dropdown when opening drawer
     if (isOpen && typeof searchService !== 'undefined' && searchService.hideDropdown) {
@@ -116,6 +124,7 @@ function setupMobileSwipe() {
     let startTime = 0;
     let currentY = 0;
     let isSwiping = false;
+    let swipeSource = null; // Track where the swipe started: 'header' or 'content'
 
     // Tuned for snappy feel
     const DRAG_THRESHOLD = 30;      // 20% of ~150px travel
@@ -125,29 +134,14 @@ function setupMobileSwipe() {
         return window.matchMedia('(max-width: 767px)').matches;
     }
 
-    function startSwipe(e) {
+    function startSwipe(e, source) {
         if (!isMobile()) return;
         startY = e.touches[0].clientY;
         currentY = startY;
         startTime = Date.now();
         isSwiping = true;
+        swipeSource = source;
     }
-
-    // Auto-expand drawer when user scrolls list content in peek mode
-    listContent.addEventListener('scroll', () => {
-        if (!isMobile()) return;
-        if (getDrawerState() === DRAWER_STATES.PEEK) {
-            setDrawerState(DRAWER_STATES.OPEN);
-        }
-    }, { passive: true });
-
-    // Also expand on touchmove (scroll attempt) in peek mode
-    listContent.addEventListener('touchmove', () => {
-        if (!isMobile()) return;
-        if (getDrawerState() === DRAWER_STATES.PEEK) {
-            setDrawerState(DRAWER_STATES.OPEN);
-        }
-    }, { passive: true });
 
     // Google Maps style: pull down at top to collapse
     let pullStartY = 0;
@@ -180,25 +174,30 @@ function setupMobileSwipe() {
         isPulling = false;
     }, { passive: true });
 
-    // Header/handle swipes - always work
-    header.addEventListener('touchstart', startSwipe, { passive: true });
+    // Header/handle swipes - always work for both directions
+    header.addEventListener('touchstart', (e) => startSwipe(e, 'header'), { passive: true });
 
     // List content swipes - only when scrolled to top (to collapse)
     listContent.addEventListener('touchstart', (e) => {
         if (!isMobile() || listContent.scrollTop > 0) return;
-        startSwipe(e);
+        startSwipe(e, 'content');
     }, { passive: true });
 
-    // Track movement
-    drawer.addEventListener('touchmove', (e) => {
-        if (!isSwiping || !isMobile()) return;
+    // Track movement - only on header, not drawer
+    header.addEventListener('touchmove', (e) => {
+        if (!isSwiping || !isMobile() || swipeSource !== 'header') return;
         currentY = e.touches[0].clientY;
     }, { passive: true });
 
-    // Handle swipe end - velocity beats distance
-    drawer.addEventListener('touchend', () => {
-        if (!isSwiping || !isMobile()) return;
+    // Handle swipe end on header only
+    header.addEventListener('touchend', () => {
+        if (!isSwiping || !isMobile() || swipeSource !== 'header') {
+            isSwiping = false;
+            swipeSource = null;
+            return;
+        }
         isSwiping = false;
+        swipeSource = null;
 
         const deltaY = currentY - startY;
         const deltaTime = Math.max(Date.now() - startTime, 1);
@@ -220,6 +219,15 @@ function setupMobileSwipe() {
             setDrawerState(DRAWER_STATES.PEEK);
         }
     });
+
+    // Reset swipe state if touchend happens elsewhere
+    listContent.addEventListener('touchend', () => {
+        // Content swipes only collapse (pull-down), handled above
+        if (swipeSource === 'content') {
+            isSwiping = false;
+            swipeSource = null;
+        }
+    }, { passive: true });
 }
 
 // Fix drawer state when viewport changes between mobile/desktop
@@ -241,10 +249,11 @@ function fixDrawerStateForViewport() {
     const isOpen = state === DRAWER_STATES.OPEN;
     if (backdrop) backdrop.classList.toggle('active', isOpen && !isDesktop);
 
-    icon.style.transform = isOpen ? 'rotate(180deg)' : 'rotate(0deg)';
-    btn.classList.toggle('bg-white/10', isOpen);
-    btn.classList.toggle('text-white', isOpen);
-    searchWrapper.classList.toggle('active', isOpen);
+    // Update UI elements (with null checks)
+    if (icon) icon.style.transform = isOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+    if (btn) btn.classList.toggle('bg-white/10', isOpen);
+    if (btn) btn.classList.toggle('text-white', isOpen);
+    if (searchWrapper) searchWrapper.classList.toggle('active', isOpen);
 }
 
 // Initialize drawer state based on screen size
