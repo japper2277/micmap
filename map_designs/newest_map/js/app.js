@@ -171,11 +171,6 @@ function init() {
 
     // Refresh statuses every minute
     setInterval(refreshStatuses, 60000);
-
-    // Show first-time hints after a short delay
-    setTimeout(() => {
-        if (typeof showMapViewHint === 'function') showMapViewHint();
-    }, 2000);
 }
 
 // Load transit station data for arrivals/fallback
