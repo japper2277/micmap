@@ -1724,9 +1724,10 @@ app.get('/api/subway/routes', async (req, res) => {
         const firstStopId = route.path?.[0]?.split('_')[0];
         const firstLine = route.lines?.[0];
         if (firstStopId && firstLine) {
-          // Calculate when user arrives at platform (walk time before scheduled departure)
+          // Calculate when user arrives at platform
+          // Use route.totalTime (without wait) to match the wait time calculation at line 1665
           const walkMins = route.walkToStation || 0;
-          const platformArrivalMins = (baseMins - totalMins + walkMins + 24 * 60) % (24 * 60);
+          const platformArrivalMins = (baseMins - route.totalTime + walkMins + 24 * 60) % (24 * 60);
           const gtfsDepartures = getScheduledDepartures(firstStopId, firstLine, platformArrivalMins, 3);
           if (gtfsDepartures && gtfsDepartures.length > 0) {
             // GTFS minutes are NYC local time (minutes from midnight)
