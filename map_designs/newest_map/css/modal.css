@@ -66,7 +66,7 @@
         height: 14px;
     }
     .note-text {
-        font-size: 11px;
+        font-size: 13px;
         margin-bottom: 10px;
     }
     .btn {
@@ -125,7 +125,25 @@
     opacity: 0.7;
 }
 
-.note-text { font-size: 12px; color: #8e8e93; line-height: 1.4; margin-bottom: 14px; font-weight: 400; }
+.note-text {
+    font-size: 15px;
+    color: #fff;
+    line-height: 1.4;
+    margin-bottom: 14px;
+    font-weight: 400;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+.note-text .separator {
+    color: #555;
+    font-weight: 400;
+}
+.price-badge {
+    color: #30D158;
+    font-weight: 600;
+}
 
 /* BUTTONS (Premium 3D Look) */
 .action-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
