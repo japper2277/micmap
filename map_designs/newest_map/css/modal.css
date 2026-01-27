@@ -61,9 +61,9 @@
     .address {
         font-size: 12px;
     }
-    .maps-link {
-        font-size: 11px;
-        padding: 3px 10px;
+    .maps-icon {
+        width: 14px;
+        height: 14px;
     }
     .note-text {
         font-size: 11px;
@@ -95,11 +95,34 @@
 .header-top h1 { margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.6px; color: #fff; }
 .time-display { font-size: 18px; font-weight: 700; color: #ffffff; letter-spacing: -0.5px; }
 
-.sub-header { display: flex; align-items: center; gap: 10px; margin-top: 4px; margin-bottom: 10px; }
-.address { font-size: 14px; color: #98989d; font-weight: 500; }
-.maps-link {
-    font-size: 13px; color: #64D2FF; font-weight: 700; text-decoration: none;
-    background: rgba(10, 132, 255, 0.2); padding: 4px 12px; border-radius: 100px;
+.sub-header {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 4px;
+    margin-bottom: 10px;
+    text-decoration: none;
+    transition: opacity 0.15s ease;
+}
+.sub-header:hover {
+    opacity: 0.7;
+}
+.maps-icon {
+    width: 16px;
+    height: 16px;
+    color: #64D2FF;
+    flex-shrink: 0;
+}
+.address {
+    font-size: 14px;
+    color: #64D2FF;
+    font-weight: 500;
+}
+.maps-arrow {
+    font-size: 12px;
+    color: #64D2FF;
+    margin-left: -4px;
+    opacity: 0.7;
 }
 
 .note-text { font-size: 12px; color: #8e8e93; line-height: 1.4; margin-bottom: 14px; font-weight: 400; }
