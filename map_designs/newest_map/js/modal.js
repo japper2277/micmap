@@ -691,13 +691,17 @@ async function displaySubwayRoutes(routes, mic, walkOption = null, schedule = nu
 
             try {
                 if (useGTFS) {
-                    // Use GTFS schedule data for departures
-                    const gtfsUrl = `${CONFIG.apiBase}/api/gtfs/departures?stopId=${originStationId}&line=${firstLine}&time=${platformArrivalTime.toISOString()}`;
-                    const gtfsRes = await fetch(gtfsUrl);
-                    const gtfsData = await gtfsRes.json();
+                    // Use GTFS schedule data - try both N and S directions
+                    const timeParam = platformArrivalTime.toISOString();
+                    const [gtfsN, gtfsS] = await Promise.all([
+                        fetch(`${CONFIG.apiBase}/api/gtfs/departures?stopId=${originStationId}N&line=${firstLine}&time=${timeParam}`).then(r => r.json()).catch(() => ({ departures: [] })),
+                        fetch(`${CONFIG.apiBase}/api/gtfs/departures?stopId=${originStationId}S&line=${firstLine}&time=${timeParam}`).then(r => r.json()).catch(() => ({ departures: [] }))
+                    ]);
+                    const allDepartures = [...(gtfsN.departures || []), ...(gtfsS.departures || [])];
+                    const uniqueDeps = [...new Set(allDepartures)].sort().slice(0, 3);
 
-                    if (gtfsData.departures && gtfsData.departures.length > 0) {
-                        depTimesStr = gtfsData.departures.map(iso => {
+                    if (uniqueDeps.length > 0) {
+                        depTimesStr = uniqueDeps.map(iso => {
                             const t = new Date(iso);
                             return t.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
                         }).join(', ');
