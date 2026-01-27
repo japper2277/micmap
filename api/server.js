@@ -161,6 +161,17 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Clear cache endpoint
+app.post('/admin/clear-cache', async (req, res) => {
+  try {
+    const { invalidateMicsCache } = require('./utils/cache-invalidation');
+    const count = await invalidateMicsCache();
+    res.json({ success: true, clearedKeys: count });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // Deep health check - tests actual database connectivity (< 2s)
 app.get('/health/deep', async (req, res) => {
   const startTime = Date.now();
