@@ -281,8 +281,8 @@
     #date-carousel {
         top: 128px; /* 80px filter bar + ~48px filter height */
         bottom: auto !important;
-        left: 12px;
-        right: 12px;
+        left: 110px;
+        right: auto;
         padding: 0;
         transform: translateY(-10px) !important;
         opacity: 0;
@@ -297,14 +297,15 @@
     }
 
     #date-carousel .glass-panel {
-        width: 100%;
+        width: fit-content;
         max-width: none;
         margin: 0;
         overflow: hidden;
     }
 
     #date-carousel #cal-grid {
-        justify-content: space-between;
+        justify-content: center;
+        gap: 14px;
         padding: 0;
         overflow: hidden !important;
         overflow-x: hidden !important;
@@ -376,5 +377,10 @@
     #drawer-filters {
         position: relative;
         background: #0f0f0f;
+    }
+
+    /* Desktop: increase gap between date capsules */
+    #date-carousel #cal-grid {
+        gap: 18px;
     }
 }

@@ -32,6 +32,10 @@ function hideDateCarousel() {
     // Deactivate mobile calendar button
     const mobileCalBtn = document.getElementById('mobile-calendar-btn');
     if (mobileCalBtn) mobileCalBtn.classList.remove('active');
+
+    // Deactivate desktop calendar button
+    const btnCalendar = document.getElementById('btn-calendar');
+    if (btnCalendar) btnCalendar.classList.remove('active');
 }
 
 function updateDateCarouselHighlight(dateString) {
@@ -198,7 +202,7 @@ function generateDateCarousel() {
         const ariaLabel = `${fullDayName}, ${monthName} ${dateNum}`;
 
         const capsule = document.createElement('button');
-        capsule.className = `date-capsule flex-shrink-0 w-14 h-16 rounded-xl transition-all cursor-pointer flex flex-col items-center justify-center text-center text-neutral-400 font-bold bg-black/40
+        capsule.className = `date-capsule flex-shrink-0 w-12 h-14 rounded-lg transition-all cursor-pointer flex flex-col items-center justify-center text-center text-neutral-400 font-bold bg-black/40
                              ${isActive ? 'active-date' : ''}`;
         capsule.dataset.date = dateString;
         capsule.setAttribute('role', 'option');

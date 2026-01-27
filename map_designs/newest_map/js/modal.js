@@ -4,7 +4,7 @@
 
 // DOM element references (initialized after DOM loads)
 let venueModal, modalVenueName, modalAddress, modalDirections;
-let modalMicTime, modalInstructions, modalActions, modalSignupBtn, modalIgBtn;
+let modalMicTime, modalInfoRow, modalInstructions, modalActions, modalSignupBtn, modalIgBtn;
 let modalTransit, modalTabs;
 
 // Focus trap state
@@ -22,6 +22,7 @@ function initModal() {
     modalAddress = document.getElementById('modal-address');
     modalDirections = document.getElementById('modal-directions');
     modalMicTime = document.getElementById('modal-mic-time');
+    modalInfoRow = document.getElementById('modal-info-row');
     modalInstructions = document.getElementById('modal-instructions');
     modalActions = document.getElementById('modal-actions');
     modalSignupBtn = document.getElementById('modal-signup-btn');
@@ -191,45 +192,53 @@ function populateModalContent(mic, allMicsAtVenue = null) {
     modalDirections.href = `https://www.google.com/maps/dir/?api=1&destination=${mic.lat},${mic.lng}`;
     modalDirections.target = '_blank';
 
-    // 3. NOTE TEXT - Format: "5min · $8.71 (includes drink or fries)"
+    // 3. INFO ROW - Time pill, Price badge, Signup type
     let instructions = mic.signupInstructions || '';
-    instructions = instructions.replace(/https?:\/\/[^\s]+/g, '').trim();
+    // Strip URLs (both https:// and www. formats)
+    instructions = instructions.replace(/https?:\/\/[^\s]+/gi, '').trim();
+    instructions = instructions.replace(/www\.[^\s]+/gi, '').trim();
     instructions = instructions.replace(/\s*(sign\s*up\s*)?(at|@)\s*$/i, '').trim();
     if (mic.signupEmail) {
         instructions = instructions.replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, '').trim();
         instructions = instructions.replace(/^email\s*/i, '').trim();
     }
 
-    // Build info: "5min · $cost · signup instructions"
-    const parts = [];
+    // Build info row with badges (matching demo design)
+    const infoParts = [];
+    const clockIcon = '<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>';
 
-    // 1. Set time
-    if (mic.setTime) parts.push(escapeHtml(formatSetTime(mic.setTime)));
+    // 1. Set time badge (neutral)
+    if (mic.setTime) {
+        infoParts.push(`<div class="info-badge info-badge-time">${clockIcon} ${escapeHtml(formatSetTime(mic.setTime))}</div>`);
+    }
 
-    // 2. Price - FREE or $amount
+    // 2. Price badge (money green)
     if (mic.price) {
         const priceLower = mic.price.toLowerCase();
         if (priceLower === 'free' || priceLower.includes('free')) {
-            parts.push(`<span class="price-badge">FREE</span>`);
+            infoParts.push(`<div class="info-badge info-badge-price">FREE</div>`);
         } else if (mic.price.includes('$')) {
-            const priceMatch = mic.price.match(/\$[\d.]+/);
-            const priceAmount = priceMatch ? priceMatch[0] : mic.price;
-            parts.push(`<span class="price-badge">${escapeHtml(priceAmount)}</span>`);
+            const priceMatch = mic.price.match(/\$[\d]+(?:\.\d{2})?/);
+            const priceAmount = priceMatch ? priceMatch[0] : mic.price.replace(/\.$/, '');
+            infoParts.push(`<div class="info-badge info-badge-price">${escapeHtml(priceAmount)}</div>`);
         }
     }
 
-    // 3. Signup instructions
-    let signup = instructions;
-    if (!signup || signup.length < 3) {
-        signup = mic.signupUrl ? 'Online signup' :
-                 mic.signupEmail ? 'Email to sign up' : 'Sign up in person';
-    }
-    if (signup) {
-        signup = signup.charAt(0).toUpperCase() + signup.slice(1);
-        parts.push(escapeHtml(signup));
-    }
+    // 3. Signup type badge (coral/red)
+    let signupType = mic.signupUrl ? 'Advance Sign-up' :
+                     mic.signupEmail ? 'Email Sign-up' : 'Sign up in person';
+    infoParts.push(`<div class="info-badge info-badge-signup">${escapeHtml(signupType)}</div>`);
 
-    modalInstructions.innerHTML = parts.join(' <span class="separator">·</span> ');
+    modalInfoRow.innerHTML = infoParts.join('');
+
+    // 4. NOTE TEXT - Description only (if there's meaningful content)
+    let noteText = instructions;
+    if (noteText && noteText.length >= 3) {
+        noteText = noteText.charAt(0).toUpperCase() + noteText.slice(1);
+        modalInstructions.textContent = noteText;
+    } else {
+        modalInstructions.textContent = '';
+    }
 
     // 4. ACTION BUTTONS
     const hasSignupUrl = !!mic.signupUrl;
@@ -295,10 +304,11 @@ function openVenueModal(mic) {
     modalDirections.href = `https://www.google.com/maps/dir/?api=1&destination=${mic.lat},${mic.lng}`;
     modalDirections.target = '_blank';
 
-    // 3. NOTE TEXT - Format: "5min · $8.71 (includes drink or fries)"
+    // 3. INFO ROW - Time pill, Price badge, Signup type
     let instructions = mic.signupInstructions || '';
-    // Remove URLs from display text (button will handle the link)
-    instructions = instructions.replace(/https?:\/\/[^\s]+/g, '').trim();
+    // Strip URLs (both https:// and www. formats)
+    instructions = instructions.replace(/https?:\/\/[^\s]+/gi, '').trim();
+    instructions = instructions.replace(/www\.[^\s]+/gi, '').trim();
     instructions = instructions.replace(/\s*(sign\s*up\s*)?(at|@)\s*$/i, '').trim();
     // Remove email addresses from display text (button will handle it)
     if (mic.signupEmail) {
@@ -306,38 +316,44 @@ function openVenueModal(mic) {
         instructions = instructions.replace(/^email\s*/i, '').trim();
     }
 
-    // Build info: "5min · $cost · signup instructions"
-    const parts = [];
+    // Build info row with badges (matching demo design)
+    const infoParts = [];
+    const clockIcon = '<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>';
 
-    // 1. Set time
-    if (mic.setTime) parts.push(escapeHtml(formatSetTime(mic.setTime)));
+    // 1. Set time badge (neutral)
+    if (mic.setTime) {
+        infoParts.push(`<div class="info-badge info-badge-time">${clockIcon} ${escapeHtml(formatSetTime(mic.setTime))}</div>`);
+    }
 
-    // 2. Price - FREE or $amount
+    // 2. Price badge (money green)
     if (mic.price) {
         const priceLower = mic.price.toLowerCase();
         if (priceLower === 'free' || priceLower.includes('free')) {
-            parts.push(`<span class="price-badge">FREE</span>`);
+            infoParts.push(`<div class="info-badge info-badge-price">FREE</div>`);
         } else if (mic.price.includes('$')) {
-            const priceMatch = mic.price.match(/\$[\d.]+/);
-            const priceAmount = priceMatch ? priceMatch[0] : mic.price;
-            parts.push(`<span class="price-badge">${escapeHtml(priceAmount)}</span>`);
+            const priceMatch = mic.price.match(/\$[\d]+(?:\.\d{2})?/);
+            const priceAmount = priceMatch ? priceMatch[0] : mic.price.replace(/\.$/, '');
+            infoParts.push(`<div class="info-badge info-badge-price">${escapeHtml(priceAmount)}</div>`);
         }
     }
 
-    // 3. Signup instructions
-    let signup = instructions;
-    if (!signup || signup.length < 3) {
-        signup = mic.signupUrl ? 'Online signup' :
-                 mic.signupEmail ? 'Email to sign up' : 'Sign up in person';
-    }
-    if (signup) {
-        signup = signup.charAt(0).toUpperCase() + signup.slice(1);
-        parts.push(escapeHtml(signup));
+    // 3. Signup type badge (coral/red)
+    let signupType = mic.signupUrl ? 'Advance Sign-up' :
+                     mic.signupEmail ? 'Email Sign-up' : 'Sign up in person';
+    infoParts.push(`<div class="info-badge info-badge-signup">${escapeHtml(signupType)}</div>`);
+
+    modalInfoRow.innerHTML = infoParts.join('');
+
+    // 4. NOTE TEXT - Description only (if there's meaningful content)
+    let noteText = instructions;
+    if (noteText && noteText.length >= 3) {
+        noteText = noteText.charAt(0).toUpperCase() + noteText.slice(1);
+        modalInstructions.textContent = noteText;
+    } else {
+        modalInstructions.textContent = '';
     }
 
-    modalInstructions.innerHTML = parts.join(' <span class="separator">·</span> ');
-
-    // 4. ACTION BUTTONS - Sign up and IG
+    // 5. ACTION BUTTONS - Sign up and IG
     const hasSignupUrl = !!mic.signupUrl;
     const hasSignupEmail = !!mic.signupEmail;
     const igHandle = mic.contact || mic.host || mic.hostIg;

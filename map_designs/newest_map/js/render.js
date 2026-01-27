@@ -3,14 +3,19 @@
    Main rendering function for list and map
    ================================================================= */
 
-// Format set time to always show "Xmin" (e.g., "5" -> "5min", "5min" -> "5min")
+// Format set time (e.g., "5" -> "5min", "3-5min" -> "3-5min", "5min" -> "5min")
 function formatSetTime(setTime) {
     if (!setTime) return '5min';
     const str = String(setTime).toLowerCase().trim();
-    // Extract just the number
-    const num = str.replace(/[^0-9]/g, '');
+    // Handle ranges like "3-5min" or "3-5"
+    const rangeMatch = str.match(/(\d+)\s*-\s*(\d+)/);
+    if (rangeMatch) {
+        return rangeMatch[1] + '-' + rangeMatch[2] + 'min';
+    }
+    // Extract single number
+    const num = str.match(/\d+/);
     if (!num) return '5min';
-    return num + 'min';
+    return num[0] + 'min';
 }
 
 // Show picker popup for clustered venues
@@ -578,7 +583,7 @@ function render(mode) {
                     const badges = lines.slice(0, 2).map(line =>
                         `<span class="commute-badge b-${escapeHtml(line)}">${escapeHtml(line)}</span>`
                     ).join('');
-                    commuteDisplay = `<div class="commute-live commute-transit">${badges}${mic.transitMins}m</div>`;
+                    commuteDisplay = `<div class="commute-live commute-transit">${badges}<span class="commute-time">${mic.transitMins}m</span></div>`;
                 } else {
                     // Fallback if no ride legs found
                     commuteDisplay = `<div class="commute-live commute-estimate">~${mic.transitMins}m</div>`;
@@ -601,6 +606,8 @@ function render(mode) {
         const safeHood = escapeHtml((mic.hood || 'NYC').toUpperCase());
         const safePrice = escapeHtml((mic.price || 'Free').toUpperCase());
         const safeBorough = escapeHtml((mic.borough || 'NYC').toUpperCase());
+        const boroughAbbrev = { 'MANHATTAN': 'MN', 'BROOKLYN': 'BK', 'QUEENS': 'QN', 'BRONX': 'BX', 'STATEN ISLAND': 'SI' };
+        const shortBorough = boroughAbbrev[safeBorough] || safeBorough;
         const safeSignupInstructions = escapeHtml(mic.signupInstructions || 'Sign up in person only');
         const safeContact = mic.contact ? escapeHtml(mic.contact.replace(/^@/, '')) : '';
         const safeSignupEmail = mic.signupEmail ? escapeHtml(mic.signupEmail) : '';
@@ -626,7 +633,7 @@ function render(mode) {
                         <span class="neighborhood">${safeHood}</span>
                         <span class="meta-dot">·</span>
                         <span class="tag-pill">${safePrice}</span>
-                        <span class="tag-pill">${safeBorough}</span>
+                        <span class="tag-pill borough-pill"><span class="borough-full">${safeBorough}</span><span class="borough-short">${shortBorough}</span></span>
                     </div>
                 </div>
 
