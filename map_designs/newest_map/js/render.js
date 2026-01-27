@@ -223,12 +223,6 @@ function render(mode) {
             if (micBorough !== filterBorough) return false;
         }
 
-        // Filter by map bounds (sync with map)
-        if (STATE.syncWithMap && typeof map !== 'undefined') {
-            const bounds = map.getBounds();
-            if (!bounds.contains([m.lat, m.lng])) return false;
-        }
-
         return true;
     });
 
@@ -737,11 +731,13 @@ function render(mode) {
     }
 
     // Show sticky bottom banner if few mics left tonight
+    // Use total mics (happening now + upcoming), not just current view
     const bottomBanner = document.getElementById('drawer-bottom-banner');
     const bannerCount = document.getElementById('banner-count');
     if (bottomBanner) {
-        if (mode === 'today' && filtered.length > 0 && filtered.length <= 5) {
-            bannerCount.textContent = filtered.length;
+        const totalTonightMics = happeningNowMics.length + upcomingMics.length;
+        if (mode === 'today' && totalTonightMics > 0 && totalTonightMics <= 5) {
+            bannerCount.textContent = totalTonightMics;
             bottomBanner.classList.add('show');
         } else {
             bottomBanner.classList.remove('show');
