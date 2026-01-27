@@ -22,10 +22,10 @@ const CONFIG = {
         borough: ['All', 'Manhattan', 'Brooklyn', 'Queens', 'Bronx']
     },
     filterLabels: {
-        price: { All: 'All Prices', Free: 'Free', Paid: 'Paid' },
-        time: { All: 'All Times', afternoon: '12-5pm', evening: '5-9pm', latenight: '9pm+', custom: 'Custom' },
+        price: { All: 'Price', Free: 'Free', Paid: 'Paid' },
+        time: { All: 'Time', afternoon: '12-5pm', evening: '5-9pm', latenight: '9pm+', custom: 'Custom' },
         commute: { All: 'Commute', 15: '< 15m', 30: '< 30m', 45: '< 45m', 60: '< 1hr' },
-        borough: { All: 'Boroughs', Manhattan: 'Manhattan', Brooklyn: 'Brooklyn', Queens: 'Queens', Bronx: 'Bronx' }
+        borough: { All: 'Borough', Manhattan: 'Manhattan', Brooklyn: 'Brooklyn', Queens: 'Queens', Bronx: 'Bronx' }
     },
     mobileFilterLabels: {
         price: { All: 'Price', Free: 'Free', Paid: 'Paid' },

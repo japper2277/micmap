@@ -219,12 +219,10 @@ const transitService = {
             updateTransitButtonUI(true);
         }
 
-        // Show commute loading indicator (for silent/background mode)
-        if (silent) {
-            this.showCommuteLoading();
-        }
+        // Show commute loading toast
+        this.showCommuteLoading();
 
-        // Only show loading state and fly if not silent (background) mode
+        // Only show loading state in list and fly if not silent (background) mode
         if (!silent) {
             this.showLoadingState();
             if (!skipOriginMarker) this.addOriginMarker(lat, lng, name);
@@ -258,10 +256,8 @@ const transitService = {
 
         STATE.isCalculatingTransit = false;
 
-        // Hide commute loading indicator
-        if (silent) {
-            this.hideCommuteLoading();
-        }
+        // Hide commute loading toast
+        this.hideCommuteLoading();
 
         render(STATE.currentMode);
 
@@ -422,7 +418,8 @@ const transitService = {
 
             const batch = mics.slice(i, i + BATCH_SIZE);
 
-            // Update progress (skip in silent mode)
+            // Update progress
+            this.updateToastProgress(Math.min(i + BATCH_SIZE, mics.length), mics.length);
             if (!silent) {
                 this.updateProgress(i, mics.length);
             }
@@ -594,17 +591,21 @@ const transitService = {
     },
 
     showCommuteLoading() {
-        const el = document.getElementById('commute-loading');
-        const count = document.getElementById('mic-count');
-        if (el) el.classList.add('active');
-        // Only pulse count if mics haven't loaded yet
-        if (count && !count.textContent) {
-            count.classList.add('pulsing');
-        }
+        const toast = document.getElementById('commute-toast');
+        if (toast) toast.classList.add('active');
     },
 
     hideCommuteLoading() {
-        const el = document.getElementById('commute-loading');
-        if (el) el.classList.remove('active');
+        const toast = document.getElementById('commute-toast');
+        const progress = document.getElementById('commute-toast-progress');
+        if (toast) toast.classList.remove('active');
+        if (progress) progress.textContent = '';
+    },
+
+    updateToastProgress(current, total) {
+        const progress = document.getElementById('commute-toast-progress');
+        if (progress) {
+            progress.textContent = `${current} of ${total} routes`;
+        }
     }
 };

@@ -128,16 +128,74 @@
     animation: loading-pulse 2s ease-in-out infinite;
 }
 
-/* Commute loading indicator */
+/* Commute loading indicator (old - hidden) */
 .commute-loading {
-    display: none;
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.5);
-    animation: loading-pulse 1.5s ease-in-out infinite;
+    display: none !important;
 }
 
-.commute-loading.active {
-    display: inline;
+/* Commute Loading Toast */
+.commute-toast {
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: rgba(28, 28, 30, 0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.commute-toast.active {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(-50%) translateY(0);
+}
+
+.commute-toast-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-top-color: #4da6ff;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.commute-toast-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.commute-toast-text {
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff;
+}
+
+.commute-toast-progress {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* Mobile: position above drawer */
+@media (max-width: 767px) {
+    .commute-toast {
+        bottom: calc(120px + env(safe-area-inset-bottom));
+    }
 }
 
 @keyframes loading-pulse {
@@ -386,33 +444,51 @@
     }
 }
 
-/* --- DRAWER FILTER BUTTONS --- */
+/* --- DRAWER FILTER BUTTONS (Desktop - Rectangle style) --- */
 .drawer-filter-btn {
     flex-shrink: 0;
-    height: 40px;
-    padding: 0 14px;
-    background: transparent;
-    border: 1px solid var(--border-default);
-    border-radius: var(--radius-sm);
-    color: var(--text-secondary);
+    height: 32px;
+    padding: 0 12px;
+    background-color: #1a1a1a;
+    border: 1.5px solid rgba(255, 255, 255, 0.35);
+    border-radius: 6px;
+    color: #FFF;
     font-size: 11px;
-    font-family: 'Space Mono', monospace;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.02em;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.2s ease;
     display: flex;
     align-items: center;
     gap: 5px;
 }
 .drawer-filter-btn:hover {
-    border-color: var(--border-strong);
+    background-color: #2a2a2a;
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-1px);
+}
+.drawer-filter-btn:active {
+    transform: scale(0.97);
 }
 .drawer-filter-btn.active {
-    background: var(--rose);
-    border-color: var(--rose);
-    color: var(--text-primary);
+    background: var(--rose, #f43f5e);
+    border-color: var(--rose, #f43f5e);
+    color: white;
+    box-shadow: 0 0 10px rgba(244, 63, 94, 0.3);
+}
+.drawer-filter-btn .chevron {
+    width: 10px;
+    height: 10px;
+    opacity: 0.6;
+    transition: transform 0.2s ease;
+}
+.drawer-filter-btn:hover .chevron {
+    opacity: 1;
+}
+.drawer-filter-btn.popover-open .chevron {
+    transform: rotate(180deg);
 }
 
 /* --- FILTER ROW BASE STYLES --- */

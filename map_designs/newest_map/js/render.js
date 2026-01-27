@@ -575,12 +575,12 @@ function render(mode) {
                 // Transit with route data - show line badge(s) + time
                 const rideLegs = mic.route.legs.filter(l => l.type === 'ride');
                 if (rideLegs.length > 0) {
-                    // Get unique lines (max 2 to save space)
+                    // Get unique lines (max 3 for 3-transfer routes)
                     const lines = [];
                     rideLegs.forEach(leg => {
                         if (leg.line && !lines.includes(leg.line)) lines.push(leg.line);
                     });
-                    const badges = lines.slice(0, 2).map(line =>
+                    const badges = lines.slice(0, 3).map(line =>
                         `<span class="commute-badge b-${escapeHtml(line)}">${escapeHtml(line)}</span>`
                     ).join('');
                     commuteDisplay = `<div class="commute-live commute-transit">${badges}<span class="commute-time">${mic.transitMins}m</span></div>`;
@@ -604,7 +604,12 @@ function render(mode) {
         // Safely escape user data for HTML
         const safeTitle = escapeHtml(mic.title || 'Unknown Venue');
         const safeHood = escapeHtml((mic.hood || 'NYC').toUpperCase());
-        const safePrice = escapeHtml((mic.price || 'Free').toUpperCase());
+        // Normalize price display - shorten "FREE (buy something...)" to "FREE (BUY SMTH)"
+        let priceDisplay = (mic.price || 'Free').toUpperCase();
+        if (priceDisplay.includes('FREE') && priceDisplay.includes('(') && priceDisplay.includes('BUY')) {
+            priceDisplay = 'FREE (BUY SMTH)';
+        }
+        const safePrice = escapeHtml(priceDisplay);
         const safeBorough = escapeHtml((mic.borough || 'NYC').toUpperCase());
         const boroughAbbrev = { 'MANHATTAN': 'MN', 'BROOKLYN': 'BK', 'QUEENS': 'QN', 'BRONX': 'BX', 'STATEN ISLAND': 'SI' };
         const shortBorough = boroughAbbrev[safeBorough] || safeBorough;
@@ -642,13 +647,13 @@ function render(mode) {
                     <div class="info-col">
                         <div class="venue-row">
                             <div class="venue-name">${safeTitle}</div>
-                            ${commuteDisplay}
+                            <span class="tag-pill borough-pill"><span class="borough-full">${safeBorough}</span><span class="borough-short">${shortBorough}</span></span>
                         </div>
                         <div class="meta-row">
                             <span class="neighborhood">${safeHood}</span>
                             <span class="meta-dot">·</span>
-                            <span class="tag-pill">${safePrice}</span>
-                            <span class="tag-pill borough-pill"><span class="borough-full">${safeBorough}</span><span class="borough-short">${shortBorough}</span></span>
+                            <span class="price-badge">${safePrice}</span>
+                            ${commuteDisplay}
                         </div>
                     </div>
                     <div class="action-col">
