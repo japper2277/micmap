@@ -129,6 +129,29 @@
     opacity: 0.85;
 }
 
+/* --- RESPONSIVE CARD LAYOUTS --- */
+/* Mobile: show mobile layout, hide desktop */
+.card-layout-mobile {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+.card-layout-desktop {
+    display: none;
+}
+
+/* Desktop: show desktop layout, hide mobile */
+@media (min-width: 768px) {
+    .card-layout-mobile {
+        display: none;
+    }
+    .card-layout-desktop {
+        display: flex;
+        align-items: center;
+        width: 100%;
+    }
+}
+
 /* --- STREAM ITEM (New Card Design) --- */
 .stream-item {
     display: flex;
@@ -203,6 +226,24 @@
     }
     .stream-item:hover .icon-btn svg {
         stroke: #000 !important;
+    }
+    /* Price badge on hover - darker green */
+    .stream-item:hover .price-badge {
+        background: rgba(22, 163, 74, 0.15) !important;
+        border-color: rgba(22, 163, 74, 0.4) !important;
+        color: #166534 !important;
+    }
+    /* Commute pill on hover - darker */
+    .stream-item:hover .commute-live {
+        background: rgba(0, 0, 0, 0.1) !important;
+        border-color: rgba(0, 0, 0, 0.2) !important;
+    }
+    .stream-item:hover .commute-time {
+        color: #333 !important;
+    }
+    /* Subway badges stay colorful on hover */
+    .stream-item:hover .commute-badge {
+        box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
     }
 }
 
@@ -522,7 +563,100 @@
 .dep-badge.b-N, .dep-badge.b-Q, .dep-badge.b-R, .dep-badge.b-W { background: #e8b800; color: #000; }
 .dep-badge.b-S { background: #6a6b6d; }
 
-/* --- RIGHT COLUMN: ACTIONS --- */
+/* --- ROW 3: COMMUTE + ACTIONS --- */
+.action-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 8px;
+    gap: 12px;
+}
+
+.action-btns {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+/* Small inline icon buttons */
+.icon-btn-sm {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #1C1C1E;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #A1A1A6;
+    transition: all 0.15s ease;
+    cursor: pointer;
+    text-decoration: none;
+    border: none;
+}
+
+.icon-btn-sm:hover {
+    background: #3A3A3C;
+    color: #FFF;
+    transform: scale(1.1);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+}
+
+.icon-btn-sm:active {
+    transform: scale(0.9);
+}
+
+.icon-btn-sm svg {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* Inline stage time and price */
+.stage-time-inline,
+.price-inline {
+    color: #8E8E93;
+    font-weight: 500;
+}
+
+/* Price badge - green style matching modal */
+.price-badge {
+    background: rgba(74, 222, 128, 0.1);
+    border: 1px solid rgba(74, 222, 128, 0.2);
+    border-radius: 6px;
+    color: #4ade80;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+/* Signup badge - coral/red style matching modal */
+.signup-badge {
+    background: rgba(248, 113, 113, 0.1);
+    border: 1px solid rgba(248, 113, 113, 0.2);
+    border-radius: 6px;
+    color: #f87171;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+/* Desktop layout adjustments */
+.card-layout-desktop .specs-col {
+    align-items: center;
+    text-align: center;
+    justify-content: flex-start;
+}
+
+.card-layout-desktop .meta-row {
+    margin-top: 4px;
+}
+
+/* --- OLD ACTION COLUMN (deprecated) --- */
 .action-col {
     margin-left: 10px;
     display: flex;
@@ -548,8 +682,10 @@
 }
 
 .icon-btn:hover {
-    background: #2C2C2E;
+    background: #3A3A3C;
     color: #FFF;
+    transform: scale(1.1);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
 }
 
 .icon-btn:active {

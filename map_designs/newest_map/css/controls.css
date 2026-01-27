@@ -128,9 +128,16 @@
     animation: loading-pulse 2s ease-in-out infinite;
 }
 
-/* Commute loading indicator - hidden for now to save space */
+/* Commute loading indicator */
 .commute-loading {
-    display: none !important;
+    display: none;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+    animation: loading-pulse 1.5s ease-in-out infinite;
+}
+
+.commute-loading.active {
+    display: inline;
 }
 
 @keyframes loading-pulse {
