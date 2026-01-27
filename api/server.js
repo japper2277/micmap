@@ -84,6 +84,44 @@ function getScheduledWait(stopId, line, arrivalMins) {
   return lineDepartures[0] + (24 * 60) - arrivalMins;
 }
 
+// Get next N scheduled departures from GTFS (returns array of minutes from midnight)
+function getScheduledDepartures(stopId, line, arrivalMins, count = 3) {
+  const stopDepartures = departureIndex[stopId];
+  if (!stopDepartures) return null;
+
+  const lineDepartures = stopDepartures[line.toUpperCase()];
+  if (!lineDepartures || lineDepartures.length === 0) return null;
+
+  // Binary search for first departure after arrivalMins
+  let left = 0, right = lineDepartures.length - 1;
+  while (left < right) {
+    const mid = Math.floor((left + right) / 2);
+    if (lineDepartures[mid] < arrivalMins) {
+      left = mid + 1;
+    } else {
+      right = mid;
+    }
+  }
+
+  // Collect next N departures
+  const departures = [];
+  let idx = left;
+  while (departures.length < count) {
+    if (idx < lineDepartures.length && lineDepartures[idx] >= arrivalMins) {
+      departures.push(lineDepartures[idx]);
+    } else if (idx >= lineDepartures.length) {
+      // Wrap to beginning of day
+      idx = 0;
+      arrivalMins = -1; // Accept all from start
+      continue;
+    }
+    idx++;
+    if (idx > lineDepartures.length + count) break; // Safety
+  }
+
+  return departures.length > 0 ? departures : null;
+}
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -1681,6 +1719,25 @@ app.get('/api/subway/routes', async (req, res) => {
         route.scheduledDeparture = new Date(departureMs).toISOString();
         route.scheduledArrival = targetArrival;
         route.useRealtime = false;
+
+        // Get exact GTFS departure times from origin station
+        const firstStopId = route.path?.[0]?.split('_')[0];
+        const firstLine = route.lines?.[0];
+        if (firstStopId && firstLine) {
+          // Calculate when user arrives at platform (walk time before scheduled departure)
+          const walkMins = route.walkToStation || 0;
+          const platformArrivalMins = (baseMins - totalMins + walkMins + 24 * 60) % (24 * 60);
+          const gtfsDepartures = getScheduledDepartures(firstStopId, firstLine, platformArrivalMins, 3);
+          if (gtfsDepartures && gtfsDepartures.length > 0) {
+            // Convert minutes from midnight to ISO timestamps on target date
+            const targetDateMidnight = new Date(targetDate);
+            targetDateMidnight.setHours(0, 0, 0, 0);
+            route.scheduledDepartureTimes = gtfsDepartures.map(mins => {
+              const depDate = new Date(targetDateMidnight.getTime() + mins * 60000);
+              return depDate.toISOString();
+            });
+          }
+        }
       }
     } else {
       // Real-time mode - mark routes accordingly

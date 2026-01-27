@@ -480,19 +480,28 @@ const walkIcon = '<svg class="walk-icon" width="14" height="14" fill="#8e8e93" v
 
 // Helper: Format time range (e.g., "11:15 AM - 11:36 AM")
 // If route has scheduledDeparture/scheduledArrival, use those (schedule-based)
+// If mic is provided, calculate based on mic start time (arrive 15 min early)
 // Otherwise fall back to "leave now" calculation
-function formatTimeRange(durationMins, route = null) {
+function formatTimeRange(durationMins, route = null, mic = null) {
     const formatTime = (d) => new Intl.DateTimeFormat('en-US', {
         hour: 'numeric',
         minute: '2-digit',
         hour12: true
     }).format(d);
 
-    // Use scheduled times if available (for future mics)
+    // Use scheduled times from route if available
     if (route?.scheduledDeparture && route?.scheduledArrival) {
         const dep = new Date(route.scheduledDeparture);
         const arr = new Date(route.scheduledArrival);
         return `${formatTime(dep)} - ${formatTime(arr)}`;
+    }
+
+    // Calculate based on mic start time (for walking or when route lacks scheduled times)
+    if (mic?.start instanceof Date) {
+        const mins = (typeof durationMins === 'number' && !isNaN(durationMins)) ? durationMins : 15;
+        const targetArrival = new Date(mic.start.getTime() - 15 * 60000); // Arrive 15 min early
+        const departure = new Date(targetArrival.getTime() - mins * 60000);
+        return `${formatTime(departure)} - ${formatTime(targetArrival)}`;
     }
 
     // Fallback: "leave now" calculation
@@ -571,7 +580,7 @@ async function displaySubwayRoutes(routes, mic, walkOption = null, schedule = nu
         transitHTML += `
             <div class="card-base">
                 <div class="card-top">
-                    <span class="time-main">${formatTimeRange(walkOption.walkMins)}</span>
+                    <span class="time-main">${formatTimeRange(walkOption.walkMins, null, mic)}</span>
                     <span class="duration-main">${walkOption.walkMins} min</span>
                 </div>
                 <div class="card-mid">
@@ -647,9 +656,23 @@ async function displaySubwayRoutes(routes, mic, walkOption = null, schedule = nu
         const waitTime = route.waitTime || 0;
         const adjustedTotalTime = route.adjustedTotalTime ?? route.totalTime ?? 15;
 
-        // Format departure times - fetch next 3 catchable departures from origin station
+        // Format departure times
+        // For schedule-based routes: show the scheduled departure time
+        // For real-time routes: fetch next 3 catchable departures from MTA
         let depTimesStr = 'Now';
-        if (firstLine && originStationId) {
+
+        if (route.scheduledDepartureTimes && route.scheduledDepartureTimes.length > 0) {
+            // Schedule-based: show exact GTFS departure times
+            depTimesStr = route.scheduledDepartureTimes.map(iso => {
+                const t = new Date(iso);
+                return t.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+            }).join(', ');
+        } else if (route.scheduledDeparture && route.useRealtime === false) {
+            // Fallback: single scheduled departure time
+            const depTime = new Date(route.scheduledDeparture);
+            depTimesStr = depTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+        } else if (firstLine && originStationId) {
+            // Real-time: fetch MTA arrivals
             try {
                 // Try both directions (N and S) since fromId doesn't include direction
                 const [arrivalsN, arrivalsS] = await Promise.all([
@@ -750,7 +773,7 @@ async function loadModalArrivals(mic) {
         modalTransit.innerHTML = `
             <div class="card-base">
                 <div class="card-top">
-                    <span class="time-main">${formatTimeRange(walkMins)}</span>
+                    <span class="time-main">${formatTimeRange(walkMins, null, mic)}</span>
                     <span class="duration-main">${walkMins} min</span>
                 </div>
                 <div class="card-mid">
@@ -797,7 +820,7 @@ async function loadModalArrivals(mic) {
         modalTransit.innerHTML = `
             <div class="card-base">
                 <div class="card-top">
-                    <span class="time-main">${formatTimeRange(walkMins)}</span>
+                    <span class="time-main">${formatTimeRange(walkMins, null, mic)}</span>
                     <span class="duration-main">${walkMins} min</span>
                 </div>
                 <div class="card-mid">
