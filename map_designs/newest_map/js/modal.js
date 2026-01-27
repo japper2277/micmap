@@ -499,7 +499,7 @@ function formatTimeRange(durationMins, route = null, mic = null) {
     // Calculate based on mic start time (for walking or when route lacks scheduled times)
     if (mic?.start instanceof Date) {
         const mins = (typeof durationMins === 'number' && !isNaN(durationMins)) ? durationMins : 15;
-        const targetArrival = new Date(mic.start.getTime() - 15 * 60000); // Arrive 15 min early
+        const targetArrival = new Date(mic.start.getTime() - 30 * 60000); // Arrive 30 min early
         const departure = new Date(targetArrival.getTime() - mins * 60000);
         return `${formatTime(departure)} - ${formatTime(targetArrival)}`;
     }

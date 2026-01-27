@@ -59,7 +59,7 @@ const transitService = {
 
             // Add target arrival time (15 min before mic start) for schedule-based calculation
             if (mic?.start instanceof Date) {
-                const target = new Date(mic.start.getTime() - 15 * 60000); // 15 min buffer
+                const target = new Date(mic.start.getTime() - 30 * 60000); // 30 min buffer
                 url += `&targetArrival=${encodeURIComponent(target.toISOString())}`;
             }
 
