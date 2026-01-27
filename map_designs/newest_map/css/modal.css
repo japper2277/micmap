@@ -338,7 +338,7 @@
     background: #000;
     border-bottom: 1px solid #2c2c2e;
     padding: 0;
-    overflow-x: auto;
+    overflow: visible;
     -webkit-overflow-scrolling: touch;
 }
 
@@ -383,4 +383,24 @@
     right: 0;
     height: 2px;
     background: #ef4444;
+}
+
+/* Tab tooltip (JS-controlled, appended to body) */
+.tab-tooltip {
+    position: fixed;
+    background: #fff;
+    color: #000;
+    padding: 8px 14px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+    z-index: 9999;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.1s;
+}
+.tab-tooltip.visible {
+    opacity: 1;
 }

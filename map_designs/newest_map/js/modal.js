@@ -94,14 +94,49 @@ function openVenueModalWithMics(mics) {
             ? shortenVenueName(venueName)
             : venueName;
         const displayName = shortName.length > 14 ? shortName.substring(0, 13) + '…' : shortName;
-        return `<button class="modal-tab ${idx === 0 ? 'active' : ''}" data-venue-name="${escapeHtml(venueName)}">${escapeHtml(displayName)}</button>`;
+        return `<button class="modal-tab ${idx === 0 ? 'active' : ''}" data-venue-name="${escapeHtml(venueName)}" data-tooltip="${escapeHtml(venueName)}">${escapeHtml(displayName)}</button>`;
     }).join('');
 
     modalTabs.innerHTML = tabsHtml;
     modalTabs.style.display = 'flex';
 
-    // Add tab click handlers
+    // Add tab hover tooltips and click handlers
     modalTabs.querySelectorAll('.modal-tab').forEach(tab => {
+        // Hover tooltip (only if text is truncated)
+        tab.addEventListener('mouseenter', (e) => {
+            const text = tab.dataset.tooltip;
+            if (!text) return;
+
+            // Only show if tab text differs from full name (i.e., truncated)
+            const tabText = tab.textContent.trim().toUpperCase();
+            const fullText = text.toUpperCase();
+            if (tabText === fullText) return;
+
+            // Create or reuse tooltip
+            let tooltip = document.getElementById('tab-tooltip');
+            if (!tooltip) {
+                tooltip = document.createElement('div');
+                tooltip.id = 'tab-tooltip';
+                tooltip.className = 'tab-tooltip';
+                document.body.appendChild(tooltip);
+            }
+
+            tooltip.textContent = text;
+
+            // Position above the tab
+            const rect = tab.getBoundingClientRect();
+            tooltip.style.left = (rect.left + rect.width / 2) + 'px';
+            tooltip.style.top = (rect.top - 8) + 'px';
+            tooltip.style.transform = 'translate(-50%, -100%)';
+            tooltip.classList.add('visible');
+        });
+
+        tab.addEventListener('mouseleave', () => {
+            const tooltip = document.getElementById('tab-tooltip');
+            if (tooltip) tooltip.classList.remove('visible');
+        });
+
+        // Click handler
         tab.addEventListener('click', (e) => {
             const venueName = e.target.dataset.venueName;
             if (!venueName) return;
@@ -147,13 +182,16 @@ function populateModalContent(mic, allMicsAtVenue = null) {
 
     // 2. SUB-HEADER - Address and Maps link
     let address = mic.address || '';
-    address = address.replace(/,?\s*NY\s*\d{5}(-\d{4})?/i, '').trim();
-    address = address.replace(/,\s*$/, '');
+    address = address.replace(/,?\s*NY\s*\d{5}(-\d{4})?/i, '').trim(); // Remove zip
+    address = address.replace(/,\s*$/, ''); // Remove trailing comma
+    address = address.replace(/\.,/g, ','); // Fix "St.," → "St,"
+    address = address.replace(/,?\s*New York(\s+City)?/gi, ', NY'); // "New York" → "NY"
+    address = address.replace(/,\s*,/g, ','); // Remove double commas
     modalAddress.innerText = address;
     modalDirections.href = `https://www.google.com/maps/dir/?api=1&destination=${mic.lat},${mic.lng}`;
     modalDirections.target = '_blank';
 
-    // 3. NOTE TEXT - Signup instructions
+    // 3. NOTE TEXT - Set time + Signup instructions
     let instructions = mic.signupInstructions || '';
     instructions = instructions.replace(/https?:\/\/[^\s]+/g, '').trim();
     instructions = instructions.replace(/\s*(sign\s*up\s*)?(at|@)\s*$/i, '').trim();
@@ -165,7 +203,9 @@ function populateModalContent(mic, allMicsAtVenue = null) {
         instructions = mic.signupUrl ? 'Online signup available' :
                        mic.signupEmail ? 'Email to sign up' : 'Sign up in person';
     }
-    modalInstructions.innerText = instructions;
+    // Prepend set time if available
+    const setTimePrefix = mic.setTime ? `${formatSetTime(mic.setTime)} set · ` : '';
+    modalInstructions.innerText = setTimePrefix + instructions;
 
     // 4. ACTION BUTTONS
     const hasSignupUrl = !!mic.signupUrl;
@@ -220,17 +260,18 @@ function openVenueModal(mic) {
     modalVenueName.innerText = mic.title || 'Unknown Venue';
     modalMicTime.innerText = mic.timeStr || '';
 
-    // 2. SUB-HEADER - Address and Maps link (format: "123 Street, Borough")
+    // 2. SUB-HEADER - Address and Maps link
     let address = mic.address || '';
-    // Remove ", NY" and zip code if present
-    address = address.replace(/,?\s*NY\s*\d{5}(-\d{4})?/i, '').trim();
-    // Remove trailing comma if any
-    address = address.replace(/,\s*$/, '');
+    address = address.replace(/,?\s*NY\s*\d{5}(-\d{4})?/i, '').trim(); // Remove zip
+    address = address.replace(/,\s*$/, ''); // Remove trailing comma
+    address = address.replace(/\.,/g, ','); // Fix "St.," → "St,"
+    address = address.replace(/,?\s*New York(\s+City)?/gi, ', NY'); // "New York" → "NY"
+    address = address.replace(/,\s*,/g, ','); // Remove double commas
     modalAddress.innerText = address;
     modalDirections.href = `https://www.google.com/maps/dir/?api=1&destination=${mic.lat},${mic.lng}`;
     modalDirections.target = '_blank';
 
-    // 3. NOTE TEXT - Signup instructions
+    // 3. NOTE TEXT - Set time + Signup instructions
     let instructions = mic.signupInstructions || '';
     // Remove URLs from display text (button will handle the link)
     instructions = instructions.replace(/https?:\/\/[^\s]+/g, '').trim();
@@ -244,7 +285,9 @@ function openVenueModal(mic) {
         instructions = mic.signupUrl ? 'Online signup available' :
                        mic.signupEmail ? 'Email to sign up' : 'Sign up in person';
     }
-    modalInstructions.innerText = instructions;
+    // Prepend set time if available
+    const setTimePrefix = mic.setTime ? `${formatSetTime(mic.setTime)} set · ` : '';
+    modalInstructions.innerText = setTimePrefix + instructions;
 
     // 4. ACTION BUTTONS - Sign up and IG
     const hasSignupUrl = !!mic.signupUrl;
