@@ -1729,12 +1729,25 @@ app.get('/api/subway/routes', async (req, res) => {
           const platformArrivalMins = (baseMins - totalMins + walkMins + 24 * 60) % (24 * 60);
           const gtfsDepartures = getScheduledDepartures(firstStopId, firstLine, platformArrivalMins, 3);
           if (gtfsDepartures && gtfsDepartures.length > 0) {
-            // Convert minutes from midnight to ISO timestamps on target date
-            const targetDateMidnight = new Date(targetDate);
-            targetDateMidnight.setHours(0, 0, 0, 0);
+            // GTFS minutes are NYC local time (minutes from midnight)
+            // Convert to UTC by finding midnight NYC time, then adding minutes
+
+            // Get target date string in NYC timezone (e.g., "1/27/2026")
+            const nycDateStr = targetDate.toLocaleDateString('en-US', { timeZone: 'America/New_York' });
+            const [month, day, year] = nycDateStr.split('/').map(Number);
+
+            // NYC timezone offset (EST = +5, EDT = +4 hours to add to get UTC)
+            const isJanOrFeb = month <= 2;
+            const isNovOrDec = month >= 11;
+            const isDST = !isJanOrFeb && !isNovOrDec; // Rough DST: Mar-Oct
+            const nycOffsetHours = isDST ? 4 : 5;
+
             route.scheduledDepartureTimes = gtfsDepartures.map(mins => {
-              const depDate = new Date(targetDateMidnight.getTime() + mins * 60000);
-              return depDate.toISOString();
+              const hours = Math.floor(mins / 60);
+              const minutes = mins % 60;
+              // Create UTC date: NYC midnight + GTFS mins + NYC offset
+              const utcDate = new Date(Date.UTC(year, month - 1, day, hours + nycOffsetHours, minutes, 0));
+              return utcDate.toISOString();
             });
           }
         }
