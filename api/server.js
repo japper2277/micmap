@@ -1023,7 +1023,7 @@ function findNearbyStations(lat, lng, radiusMiles, stationsData, excludeStationI
 // Subway Routes API - with real-time validation
 app.get('/api/subway/routes', async (req, res) => {
   try {
-    const { userLat, userLng, venueLat, venueLng, limit = 3 } = req.query;
+    const { userLat, userLng, venueLat, venueLng, limit = 3, targetArrival } = req.query;
 
     if (!userLat || !userLng || !venueLat || !venueLng) {
       return res.status(400).json({ error: 'Missing required params: userLat, userLng, venueLat, venueLng' });
@@ -1047,6 +1047,28 @@ app.get('/api/subway/routes', async (req, res) => {
     const isLateNight = nycHour >= 0 && nycHour < 6;
     const isWeekend = nycDay === 0 || nycDay === 6;
     const isRushHour = !isWeekend && ((nycHour >= 7 && nycHour <= 9) || (nycHour >= 17 && nycHour <= 19));
+
+    // Calculate base time for schedule lookups (schedule-based vs real-time)
+    let baseMins; // Minutes from midnight for GTFS lookups
+    let useRealtimeData = true;
+    let targetDate = null;
+    const nowMins = nycHour * 60 + new Date(nycDate).getMinutes();
+
+    if (targetArrival) {
+      targetDate = new Date(targetArrival);
+      if (!isNaN(targetDate.getTime())) {
+        // Convert target to NYC timezone
+        const targetNyc = new Date(targetDate.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+        baseMins = targetNyc.getHours() * 60 + targetNyc.getMinutes();
+        // Use schedule-based if target arrival is > 60 min from now
+        // (90 min buffer accounts for long commutes)
+        const timeTillTarget = baseMins - nowMins;
+        useRealtimeData = timeTillTarget < 90 && timeTillTarget >= 0;
+        console.log(`📅 Target arrival: ${targetArrival}, baseMins: ${baseMins}, nowMins: ${nowMins}, useRealtime: ${useRealtimeData}`);
+      }
+    } else {
+      baseMins = nowMins;
+    }
 
     // Late night: swap lines that don't run (midnight - 6am)
     const lateNightSwaps = {
@@ -1354,9 +1376,10 @@ app.get('/api/subway/routes', async (req, res) => {
 
           // GTFS fallback (or planned when transfer > 25 mins away)
           if (!foundRealtime) {
-            const now = new Date();
-            const currentMins = now.getHours() * 60 + now.getMinutes();
-            const arrivalMins = (currentMins + cumulativeTime) % (24 * 60);
+            // For schedule-based: work backwards from target arrival
+            // departureBase = target arrival - total route time
+            const departureBaseMins = useRealtimeData ? nowMins : (baseMins - route.totalTime + 24 * 60) % (24 * 60);
+            const arrivalMins = (departureBaseMins + cumulativeTime) % (24 * 60);
             const scheduledWait = getScheduledWait(transferStopId, nextRide.line, arrivalMins);
             const estimatedWait = scheduledWait !== null ? scheduledWait : 5;
             totalWaitTime += estimatedWait;
@@ -1594,13 +1617,14 @@ app.get('/api/subway/routes', async (req, res) => {
 
           let totalWaitTime = 0;
           const transferWaits = [];
-          const now = new Date();
-          const currentMins = now.getHours() * 60 + now.getMinutes();
+
+          // For schedule-based: work backwards from target arrival
+          const departureBaseMins = useRealtimeData ? nowMins : (baseMins - route.totalTime + 24 * 60) % (24 * 60);
 
           // First train wait from GTFS
           const firstLeg = rideLegs[0];
           const firstStopId = route.path[0]?.split('_')[0];
-          const arrivalMins = (currentMins + route.walkToStation) % (24 * 60);
+          const arrivalMins = (departureBaseMins + route.walkToStation) % (24 * 60);
           const firstWait = getScheduledWait(firstStopId, firstLeg.line, arrivalMins) || 3;
           totalWaitTime += firstWait;
           route.waitTime = firstWait;
@@ -1628,7 +1652,7 @@ app.get('/api/subway/routes', async (req, res) => {
               }
               if (!transferStopId) transferStopId = nextRide.fromId + 'N';
 
-              const transferArrival = (currentMins + cumulativeTime) % (24 * 60);
+              const transferArrival = (departureBaseMins + cumulativeTime) % (24 * 60);
               const transferWait = getScheduledWait(transferStopId, nextRide.line, transferArrival) || 3;
               totalWaitTime += transferWait;
               transferWaits.push({
@@ -1646,6 +1670,22 @@ app.get('/api/subway/routes', async (req, res) => {
           route.totalWaitTime = totalWaitTime;
           route.adjustedTotalTime = route.totalTime + totalWaitTime;
         }));
+      }
+    }
+
+    // Add scheduled departure/arrival times when using schedule-based calculation
+    if (targetArrival && targetDate && !useRealtimeData) {
+      for (const route of finalRoutes) {
+        const totalMins = route.adjustedTotalTime || route.totalTime;
+        const departureMs = targetDate.getTime() - (totalMins * 60000);
+        route.scheduledDeparture = new Date(departureMs).toISOString();
+        route.scheduledArrival = targetArrival;
+        route.useRealtime = false;
+      }
+    } else {
+      // Real-time mode - mark routes accordingly
+      for (const route of finalRoutes) {
+        route.useRealtime = true;
       }
     }
 

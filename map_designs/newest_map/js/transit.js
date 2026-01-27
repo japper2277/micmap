@@ -36,9 +36,11 @@ const transitService = {
     },
 
     // Call subway router API for accurate Dijkstra-based routing
-    async fetchSubwayRoute(userLat, userLng, venueLat, venueLng) {
-        // Cache key: round to 3 decimals (~111 meter precision, reduces API spam)
-        const cacheKey = `${userLat.toFixed(3)},${userLng.toFixed(3)}|${venueLat.toFixed(3)},${venueLng.toFixed(3)}`;
+    // mic parameter is optional - if provided, calculates schedule-based times for that mic's start time
+    async fetchSubwayRoute(userLat, userLng, venueLat, venueLng, mic = null) {
+        // Cache key: include mic start time if available (for schedule-based caching)
+        const targetKey = mic?.start instanceof Date ? mic.start.getTime() : 'now';
+        const cacheKey = `${userLat.toFixed(3)},${userLng.toFixed(3)}|${venueLat.toFixed(3)},${venueLng.toFixed(3)}|${targetKey}`;
 
         // Cache invalidation: clear after 5 minutes
         if (!this.cacheTimestamp) this.cacheTimestamp = Date.now();
@@ -53,7 +55,13 @@ const transitService = {
         }
 
         try {
-            const url = `${CONFIG.apiBase}/api/subway/routes?userLat=${userLat}&userLng=${userLng}&venueLat=${venueLat}&venueLng=${venueLng}`;
+            let url = `${CONFIG.apiBase}/api/subway/routes?userLat=${userLat}&userLng=${userLng}&venueLat=${venueLat}&venueLng=${venueLng}`;
+
+            // Add target arrival time (15 min before mic start) for schedule-based calculation
+            if (mic?.start instanceof Date) {
+                const target = new Date(mic.start.getTime() - 15 * 60000); // 15 min buffer
+                url += `&targetArrival=${encodeURIComponent(target.toISOString())}`;
+            }
 
             // 15-second timeout for Dijkstra calculation (production can be slower)
             const controller = new AbortController();
@@ -328,7 +336,7 @@ const transitService = {
                 }
 
                 try {
-                    const route = await this.fetchSubwayRoute(userLat, userLng, mic.lat, mic.lng);
+                    const route = await this.fetchSubwayRoute(userLat, userLng, mic.lat, mic.lng, mic);
 
                     if (route) {
                         // Use adjustedTotalTime (includes wait times) if available
@@ -444,7 +452,8 @@ const transitService = {
                 try {
                     const route = await this.fetchSubwayRoute(
                         userLat, userLng,
-                        mic.lat, mic.lng
+                        mic.lat, mic.lng,
+                        mic
                     );
 
                     if (route) {
