@@ -696,6 +696,61 @@ function extractArrivals(feed, stopId, requestedLine) {
 }
 
 // =================================================================
+// GTFS DEPARTURES - Get scheduled departures for a station/line/time
+// =================================================================
+app.get('/api/gtfs/departures', (req, res) => {
+  const { stopId, line, time } = req.query;
+
+  if (!stopId || !line) {
+    return res.status(400).json({ error: 'stopId and line required' });
+  }
+
+  // Parse time - accepts minutes from midnight or ISO string
+  let arrivalMins;
+  if (time) {
+    if (time.includes('T') || time.includes(':')) {
+      // ISO string or time string - convert to NYC minutes from midnight
+      const d = new Date(time);
+      const nycTime = new Date(d.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+      arrivalMins = nycTime.getHours() * 60 + nycTime.getMinutes();
+    } else {
+      arrivalMins = parseInt(time, 10);
+    }
+  } else {
+    // Default to current NYC time
+    const now = new Date();
+    const nycNow = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+    arrivalMins = nycNow.getHours() * 60 + nycNow.getMinutes();
+  }
+
+  const departures = getScheduledDepartures(stopId, line, arrivalMins, 3);
+
+  if (!departures || departures.length === 0) {
+    return res.json({ departures: [] });
+  }
+
+  // Convert minutes from midnight to ISO timestamps for today
+  const now = new Date();
+  const nycDateStr = now.toLocaleDateString('en-US', { timeZone: 'America/New_York' });
+  const [month, day, year] = nycDateStr.split('/').map(Number);
+
+  // NYC timezone offset (EST = +5, EDT = +4)
+  const isJanOrFeb = month <= 2;
+  const isNovOrDec = month >= 11;
+  const isDST = !isJanOrFeb && !isNovOrDec;
+  const nycOffsetHours = isDST ? 4 : 5;
+
+  const isoTimes = departures.map(mins => {
+    const hours = Math.floor(mins / 60);
+    const minutes = mins % 60;
+    const utcDate = new Date(Date.UTC(year, month - 1, day, hours + nycOffsetHours, minutes, 0));
+    return utcDate.toISOString();
+  });
+
+  res.json({ departures: isoTimes });
+});
+
+// =================================================================
 // GEOCODING PROXY - Mapbox (100k free/month, supports business names)
 // =================================================================
 app.get('/api/proxy/geocode', async (req, res) => {

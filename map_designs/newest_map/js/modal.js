@@ -673,54 +673,66 @@ async function displaySubwayRoutes(routes, mic, walkOption = null, schedule = nu
             depTimesStr = depTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
         } else if (firstLine && originStationId) {
             // Calculate target platform arrival time
-            // If mic exists, use scheduled departure (30 min before mic - transit time)
-            // Otherwise use "now"
             const walkTime = route.walkToStation || 0;
             let platformArrivalTime;
+            let useGTFS = false;
+
             if (mic?.start instanceof Date) {
                 const targetArrival = new Date(mic.start.getTime() - 30 * 60000);
                 const departureTime = new Date(targetArrival.getTime() - adjustedTotalTime * 60000);
                 platformArrivalTime = new Date(departureTime.getTime() + walkTime * 60000);
+
+                // Use GTFS if platform arrival is >30 min out or in the past
+                const minsUntilPlatform = (platformArrivalTime - Date.now()) / 60000;
+                useGTFS = minsUntilPlatform > 30 || minsUntilPlatform < 0;
             } else {
                 platformArrivalTime = new Date(Date.now() + walkTime * 60000);
             }
 
-            // Fetch MTA arrivals
             try {
-                const [arrivalsN, arrivalsS] = await Promise.all([
-                    mtaService.fetchArrivals(firstLine, originStationId + 'N').catch(() => []),
-                    mtaService.fetchArrivals(firstLine, originStationId + 'S').catch(() => [])
-                ]);
-                const allArrivals = [...(arrivalsN || []), ...(arrivalsS || [])];
-                const seenTimes = new Set();
-                const uniqueArrivals = allArrivals.filter(a => {
-                    if (seenTimes.has(a.minsAway)) return false;
-                    seenTimes.add(a.minsAway);
-                    return true;
-                });
-                uniqueArrivals.sort((a, b) => a.minsAway - b.minsAway);
+                if (useGTFS) {
+                    // Use GTFS schedule data for departures
+                    const gtfsUrl = `${CONFIG.apiBase}/api/gtfs/departures?stopId=${originStationId}&line=${firstLine}&time=${platformArrivalTime.toISOString()}`;
+                    const gtfsRes = await fetch(gtfsUrl);
+                    const gtfsData = await gtfsRes.json();
 
-                // Filter to trains departing after platform arrival time
-                const catchable = uniqueArrivals.filter(a => {
-                    const trainTime = new Date(Date.now() + a.minsAway * 60000);
-                    return trainTime >= platformArrivalTime;
-                });
+                    if (gtfsData.departures && gtfsData.departures.length > 0) {
+                        depTimesStr = gtfsData.departures.map(iso => {
+                            const t = new Date(iso);
+                            return t.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+                        }).join(', ');
+                    }
+                } else {
+                    // Use real-time MTA data
+                    const [arrivalsN, arrivalsS] = await Promise.all([
+                        mtaService.fetchArrivals(firstLine, originStationId + 'N').catch(() => []),
+                        mtaService.fetchArrivals(firstLine, originStationId + 'S').catch(() => [])
+                    ]);
+                    const allArrivals = [...(arrivalsN || []), ...(arrivalsS || [])];
+                    const seenTimes = new Set();
+                    const uniqueArrivals = allArrivals.filter(a => {
+                        if (seenTimes.has(a.minsAway)) return false;
+                        seenTimes.add(a.minsAway);
+                        return true;
+                    });
+                    uniqueArrivals.sort((a, b) => a.minsAway - b.minsAway);
 
-                if (catchable.length > 0) {
-                    const next3 = catchable.slice(0, 3);
-                    depTimesStr = next3.map(a => {
-                        const depTime = new Date(Date.now() + a.minsAway * 60000);
-                        return depTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-                    }).join(', ');
+                    // Filter to trains departing after platform arrival
+                    const catchable = uniqueArrivals.filter(a => {
+                        const trainTime = new Date(Date.now() + a.minsAway * 60000);
+                        return trainTime >= platformArrivalTime;
+                    });
+
+                    if (catchable.length > 0) {
+                        const next3 = catchable.slice(0, 3);
+                        depTimesStr = next3.map(a => {
+                            const depTime = new Date(Date.now() + a.minsAway * 60000);
+                            return depTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+                        }).join(', ');
+                    }
                 }
             } catch (e) {
-                // Fallback to scheduled time if MTA fetch fails
-                if (mic?.start instanceof Date) {
-                    const targetArrival = new Date(mic.start.getTime() - 30 * 60000);
-                    const departureTime = new Date(targetArrival.getTime() - adjustedTotalTime * 60000);
-                    const platformTime = new Date(departureTime.getTime() + walkTime * 60000);
-                    depTimesStr = platformTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-                }
+                console.warn('Failed to fetch departure times:', e);
             }
         }
 
