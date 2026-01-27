@@ -711,7 +711,7 @@ async function displaySubwayRoutes(routes, mic, walkOption = null, schedule = nu
         transitHTML += `
             <div class="card-base">
                 <div class="card-top">
-                    <span class="time-main">${formatTimeRange(adjustedTotalTime, route)}</span>
+                    <span class="time-main">${formatTimeRange(adjustedTotalTime, route, mic)}</span>
                     <span class="duration-main">${adjustedTotalTime} min</span>
                 </div>
                 <div class="card-mid">
