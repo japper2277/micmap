@@ -175,6 +175,20 @@
     .stream-item:hover .commute-live svg {
         fill: #000;
     }
+    /* Keep badge colors on hover */
+    .stream-item:hover .commute-badge {
+        color: #fff !important;
+    }
+    .stream-item:hover .commute-badge.b-N,
+    .stream-item:hover .commute-badge.b-Q,
+    .stream-item:hover .commute-badge.b-R,
+    .stream-item:hover .commute-badge.b-W {
+        color: #000 !important;
+    }
+    /* Darker pill on white hover background */
+    .stream-item:hover .commute-live {
+        background: rgba(0, 0, 0, 0.08);
+    }
     .stream-item:hover .tag-pill {
         color: #000 !important;
         border-color: #000 !important;
@@ -381,21 +395,52 @@
     font-size: 10px;
 }
 
-/* Commute Display (Blue) */
+/* Commute Display - dark pill */
 .commute-live {
-    color: #4da6ff;
     font-weight: 500;
     display: flex;
     align-items: center;
     flex-shrink: 0;
-    font-size: 13px;
+    font-size: 12px;
+    gap: 4px;
+    background: rgba(255, 255, 255, 0.12);
+    padding: 5px 12px 5px 8px;
+    border-radius: 14px;
 }
 
-.commute-live svg {
+/* Walking commute */
+.commute-walk {
+    color: #4da6ff;
+}
+.commute-walk svg {
     width: 14px;
     height: 14px;
-    margin-right: 4px;
     fill: currentColor;
+}
+
+/* Transit commute with line badges */
+.commute-transit {
+    color: #8e8e93;
+    gap: 5px;
+}
+
+/* Estimate commute (no route data) */
+.commute-estimate {
+    color: #8e8e93;
+}
+
+/* Line badge in commute display */
+.commute-badge {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0;
 }
 
 .commute-distance {
@@ -443,17 +488,17 @@
     }
 }
 
-/* Line badge colors (same as MTA) */
-.dep-badge.b-1, .dep-badge.b-2, .dep-badge.b-3 { background: #ee352e; }
-.dep-badge.b-4, .dep-badge.b-5, .dep-badge.b-6 { background: #00933c; }
-.dep-badge.b-7 { background: #b933ad; }
-.dep-badge.b-A, .dep-badge.b-C, .dep-badge.b-E { background: #2850ad; }
-.dep-badge.b-B, .dep-badge.b-D, .dep-badge.b-F, .dep-badge.b-M { background: #ff6319; }
-.dep-badge.b-G { background: #6cbe45; }
-.dep-badge.b-J, .dep-badge.b-Z { background: #996633; }
-.dep-badge.b-L { background: #a7a9ac; }
-.dep-badge.b-N, .dep-badge.b-Q, .dep-badge.b-R, .dep-badge.b-W { background: #fccc0a; color: #000; }
-.dep-badge.b-S { background: #808183; }
+/* Custom subway line colors - distinct from official MTA palette */
+.dep-badge.b-1, .dep-badge.b-2, .dep-badge.b-3 { background: #d42a2a; }
+.dep-badge.b-4, .dep-badge.b-5, .dep-badge.b-6 { background: #007a32; }
+.dep-badge.b-7 { background: #9c2a91; }
+.dep-badge.b-A, .dep-badge.b-C, .dep-badge.b-E { background: #003087; }
+.dep-badge.b-B, .dep-badge.b-D, .dep-badge.b-F, .dep-badge.b-M { background: #e85a10; }
+.dep-badge.b-G { background: #4a9e2f; }
+.dep-badge.b-J, .dep-badge.b-Z { background: #7a5229; }
+.dep-badge.b-L { background: #8a8c8f; }
+.dep-badge.b-N, .dep-badge.b-Q, .dep-badge.b-R, .dep-badge.b-W { background: #e8b800; color: #000; }
+.dep-badge.b-S { background: #6a6b6d; }
 
 /* --- RIGHT COLUMN: ACTIONS --- */
 .action-col {
@@ -702,17 +747,17 @@
     background: #666;
 }
 
-/* MTA Line Colors */
-.mta-line-1, .mta-line-2, .mta-line-3 { background: #ee352e; }
-.mta-line-4, .mta-line-5, .mta-line-6 { background: #00933c; }
-.mta-line-7 { background: #b933ad; }
-.mta-line-A, .mta-line-C, .mta-line-E { background: #2850ad; }
-.mta-line-B, .mta-line-D, .mta-line-F, .mta-line-M { background: #ff6319; }
-.mta-line-G { background: #6cbe45; }
-.mta-line-J, .mta-line-Z { background: #996633; }
-.mta-line-L { background: #a7a9ac; }
-.mta-line-N, .mta-line-Q, .mta-line-R, .mta-line-W { background: #fccc0a; color: #000; }
-.mta-line-S { background: #808183; }
+/* Custom subway line colors - distinct from official MTA palette */
+.mta-line-1, .mta-line-2, .mta-line-3 { background: #d42a2a; }
+.mta-line-4, .mta-line-5, .mta-line-6 { background: #007a32; }
+.mta-line-7 { background: #9c2a91; }
+.mta-line-A, .mta-line-C, .mta-line-E { background: #003087; }
+.mta-line-B, .mta-line-D, .mta-line-F, .mta-line-M { background: #e85a10; }
+.mta-line-G { background: #4a9e2f; }
+.mta-line-J, .mta-line-Z { background: #7a5229; }
+.mta-line-L { background: #8a8c8f; }
+.mta-line-N, .mta-line-Q, .mta-line-R, .mta-line-W { background: #e8b800; color: #000; }
+.mta-line-S { background: #6a6b6d; }
 
 .mta-alert-text {
     flex: 1;

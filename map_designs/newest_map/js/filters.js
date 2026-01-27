@@ -610,12 +610,14 @@ function updateFilterPillUI(type, value) {
     // Update mobile pill if exists
     const mobileBtn = document.getElementById(`mobile-filter-${type}`);
     if (mobileBtn) {
+        // Use mobile-specific labels (shorter)
+        const mobileLabel = CONFIG.mobileFilterLabels?.[type]?.[value] || label;
         // Check if pill has new structure with .pill-text span
         const pillText = mobileBtn.querySelector('.pill-text');
         if (pillText) {
-            pillText.textContent = label;
+            pillText.textContent = mobileLabel;
         } else {
-            mobileBtn.textContent = label;
+            mobileBtn.textContent = mobileLabel;
         }
         // Use both classes for backwards compatibility
         mobileBtn.classList.toggle('active', hasFilter);
