@@ -1137,15 +1137,14 @@ app.get('/api/subway/routes', async (req, res) => {
     const nycDate = new Date().toLocaleString('en-US', { timeZone: 'America/New_York' });
     const nycHour = new Date(nycDate).getHours();
     const nycDay = new Date(nycDate).getDay(); // 0=Sun, 6=Sat
-    const isLateNight = nycHour >= 0 && nycHour < 6;
-    const isWeekend = nycDay === 0 || nycDay === 6;
-    const isRushHour = !isWeekend && ((nycHour >= 7 && nycHour <= 9) || (nycHour >= 17 && nycHour <= 19));
+    const nowMins = nycHour * 60 + new Date(nycDate).getMinutes();
 
     // Calculate base time for schedule lookups (schedule-based vs real-time)
     let baseMins; // Minutes from midnight for GTFS lookups
     let useRealtimeData = true;
     let targetDate = null;
-    const nowMins = nycHour * 60 + new Date(nycDate).getMinutes();
+    let scheduleHour = nycHour; // Hour to use for schedule awareness (late night, rush hour)
+    let scheduleDay = nycDay;
 
     if (targetArrival) {
       targetDate = new Date(targetArrival);
@@ -1153,15 +1152,22 @@ app.get('/api/subway/routes', async (req, res) => {
         // Convert target to NYC timezone
         const targetNyc = new Date(targetDate.toLocaleString('en-US', { timeZone: 'America/New_York' }));
         baseMins = targetNyc.getHours() * 60 + targetNyc.getMinutes();
+        scheduleHour = targetNyc.getHours();
+        scheduleDay = targetNyc.getDay();
         // Use schedule-based if target arrival is > 60 min from now
         // (90 min buffer accounts for long commutes)
         const timeTillTarget = baseMins - nowMins;
         useRealtimeData = timeTillTarget < 90 && timeTillTarget >= 0;
-        console.log(`📅 Target arrival: ${targetArrival}, baseMins: ${baseMins}, nowMins: ${nowMins}, useRealtime: ${useRealtimeData}`);
+        console.log(`📅 Target arrival: ${targetArrival}, baseMins: ${baseMins}, nowMins: ${nowMins}, scheduleHour: ${scheduleHour}, useRealtime: ${useRealtimeData}`);
       }
     } else {
       baseMins = nowMins;
     }
+
+    // Use target time (not current time) for schedule awareness
+    const isLateNight = scheduleHour >= 0 && scheduleHour < 6;
+    const isWeekend = scheduleDay === 0 || scheduleDay === 6;
+    const isRushHour = !isWeekend && ((scheduleHour >= 7 && scheduleHour <= 9) || (scheduleHour >= 17 && scheduleHour <= 19));
 
     // Late night: swap lines that don't run (midnight - 6am)
     const lateNightSwaps = {
