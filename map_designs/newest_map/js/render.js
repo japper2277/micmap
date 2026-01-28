@@ -264,17 +264,6 @@ function render(mode) {
     countEl.textContent = filtered.length;
     countEl.classList.remove('pulsing');
 
-    // Show commute filter feedback if mics were hidden
-    const filterFeedback = document.getElementById('filter-feedback');
-    if (filterFeedback) {
-        if (commuteFilteredCount > 0 && STATE.activeFilters.commute !== 'All') {
-            filterFeedback.textContent = `(${commuteFilteredCount} hidden by commute filter)`;
-            filterFeedback.style.display = 'inline';
-        } else {
-            filterFeedback.style.display = 'none';
-        }
-    }
-
     // --- PROXIMITY CLUSTERING ---
     // Cluster nearby venues to prevent overlapping markers
     const isZoomedIn = map.getZoom() >= 16;
