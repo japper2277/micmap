@@ -669,13 +669,18 @@ async function displaySubwayRoutes(routes, mic, walkOption = null, schedule = nu
 
         // Priority 1: Use backend's scheduledDepartureTimes (trains before deadline for on-time arrival)
         if (route.scheduledDepartureTimes && route.scheduledDepartureTimes.length > 0) {
-            const trainDepartures = route.scheduledDepartureTimes;
+            // Filter to only trains the user can catch after walking to station
+            const now = new Date();
+            const walkBuffer = walkToStation <= 3 ? walkToStation : (walkToStation - 2);
+            const earliestCatchable = new Date(now.getTime() + walkBuffer * 60000);
+            const trainDepartures = route.scheduledDepartureTimes
+                .filter(iso => new Date(iso) >= earliestCatchable);
+            if (trainDepartures.length === 0) continue; // no catchable trains on this route
             // Use the LAST train (latest that arrives on time) for departure/arrival display
             const bestTrain = new Date(trainDepartures[trainDepartures.length - 1]);
             let departure = new Date(bestTrain.getTime() - walkToStation * 60000);
 
             // Don't show departure times in the past - use "now" if needed
-            const now = new Date();
             if (departure < now) {
                 departure = now;
             }
@@ -700,7 +705,10 @@ async function displaySubwayRoutes(routes, mic, walkOption = null, schedule = nu
                     const seen = new Set();
                     const unique = allArrivals.filter(a => seen.has(a.minsAway) ? false : seen.add(a.minsAway));
                     unique.sort((a, b) => a.minsAway - b.minsAway);
-                    const trainDepartures = unique.slice(0, 3).map(a => new Date(Date.now() + a.minsAway * 60000).toISOString());
+                    // Filter to only trains the user can catch after walking to station
+                    const walkBuffer = walkToStation <= 3 ? walkToStation : (walkToStation - 2);
+                    const catchable = unique.filter(a => a.minsAway >= walkBuffer);
+                    const trainDepartures = catchable.slice(0, 3).map(a => new Date(Date.now() + a.minsAway * 60000).toISOString());
 
                     if (trainDepartures.length > 0) {
                         const firstTrain = new Date(trainDepartures[0]);
@@ -751,6 +759,11 @@ async function displaySubwayRoutes(routes, mic, walkOption = null, schedule = nu
                 </div>
             </div>
         `;
+    }
+
+    // Safety net: if all route cards were skipped (no catchable trains), show fallback
+    if (!transitHTML && !walkOption) {
+        transitHTML = '<div class="empty-card">No catchable trains</div>';
     }
 
     modalTransit.innerHTML = transitHTML;
@@ -962,7 +975,7 @@ async function loadModalArrivals(mic) {
         transitHTML += `
             <div class="card-base">
                 <div class="card-top">
-                    <span class="time-main">${formatTimeRange(totalTime)}</span>
+                    <span class="time-main">${formatTimeRange(totalTime, null, mic)}</span>
                     <span class="duration-main">~${totalTime} min</span>
                 </div>
                 <div class="card-mid">

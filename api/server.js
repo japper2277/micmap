@@ -1294,18 +1294,28 @@ app.get('/api/subway/routes', async (req, res) => {
 
         if (!fromStationId || !toStationId) continue;
 
-        // Determine direction for this leg
-        const fromStation = stationsData?.[fromStationId];
-        const toStation = stationsData?.[toStationId];
-        let neededDirection = null;
-        if (fromStation?.lat && toStation?.lat) {
-          neededDirection = toStation.lat > fromStation.lat ? 'Uptown' : 'Downtown';
+        // Determine direction from Dijkstra path nodes (already correct)
+        // Path nodes like "M18N_M" encode direction: N=northbound, S=southbound
+        // This is more reliable than latitude comparison, which fails for lines
+        // like J/M/Z where "North" (toward Jamaica) goes geographically south
+        // through Brooklyn
+        let pathDirection = null;
+        for (const node of route.path) {
+          const [stopPart, nodeLine] = node.split('_');
+          const baseStop = stopPart.replace(/[NS]$/, '');
+          if (baseStop === fromStationId && nodeLine === leg.line) {
+            pathDirection = stopPart.endsWith('N') ? 'N' : 'S';
+            break;
+          }
         }
 
+        // Use directional stop IDs from path (bypasses MTA direction label issues)
+        const originDirStop = pathDirection ? fromStationId + pathDirection : fromStationId;
+        const destDirStop = pathDirection ? toStationId + pathDirection : toStationId;
+
         // Check if this line has real-time service at BOTH origin AND destination
-        // Direction filter is required - we need trains going the RIGHT way
-        const serviceAtOrigin = await getLinesWithService([leg.line], fromStationId, neededDirection);
-        const serviceAtDest = await getLinesWithService([leg.line], toStationId, neededDirection);
+        const serviceAtOrigin = await getLinesWithService([leg.line], originDirStop, null);
+        const serviceAtDest = await getLinesWithService([leg.line], destDirStop, null);
 
         const hasService = serviceAtOrigin.length > 0 && serviceAtDest.length > 0;
 
@@ -1322,7 +1332,7 @@ app.get('/api/subway/routes', async (req, res) => {
           const commonLines = [...originLines].filter(l => destLines.has(l));
 
           // Check which common lines have actual service
-          const alternativesAtOrigin = await getLinesWithService(commonLines, fromStationId, neededDirection);
+          const alternativesAtOrigin = await getLinesWithService(commonLines, originDirStop, null);
           const validAlternatives = [];
           for (const altLine of alternativesAtOrigin) {
             const altAtDest = await getLinesWithService([altLine], toStationId, null);
@@ -1618,15 +1628,23 @@ app.get('/api/subway/routes', async (req, res) => {
             const toStationId = leg.toId;
             if (!fromStationId || !toStationId) continue;
 
-            const fromStation = stationsData?.[fromStationId];
-            const toStation = stationsData?.[toStationId];
-            let neededDirection = null;
-            if (fromStation?.lat && toStation?.lat) {
-              neededDirection = toStation.lat > fromStation.lat ? 'Uptown' : 'Downtown';
+            // Determine direction from path nodes (same fix as primary validation)
+            let pathDir = null;
+            if (route.path) {
+              for (const node of route.path) {
+                const [stopPart, nodeLine] = node.split('_');
+                const baseStop = stopPart.replace(/[NS]$/, '');
+                if (baseStop === fromStationId && nodeLine === leg.line) {
+                  pathDir = stopPart.endsWith('N') ? 'N' : 'S';
+                  break;
+                }
+              }
             }
+            const origDirStop = pathDir ? fromStationId + pathDir : fromStationId;
+            const destDirStop = pathDir ? toStationId + pathDir : toStationId;
 
-            const serviceAtOrigin = await getLinesWithService([leg.line], fromStationId, neededDirection);
-            const serviceAtDest = await getLinesWithService([leg.line], toStationId, null);
+            const serviceAtOrigin = await getLinesWithService([leg.line], origDirStop, null);
+            const serviceAtDest = await getLinesWithService([leg.line], destDirStop, null);
 
             if (serviceAtOrigin.length === 0 || serviceAtDest.length === 0) {
               // Try to find alternative line
@@ -1636,7 +1654,7 @@ app.get('/api/subway/routes', async (req, res) => {
               const destLines = new Set(destNodes.map(n => n.match(/_([A-Z0-9]+)$/)?.[1]).filter(Boolean));
               const commonLines = [...originLines].filter(l => destLines.has(l));
 
-              const alternativesAtOrigin = await getLinesWithService(commonLines, fromStationId, neededDirection);
+              const alternativesAtOrigin = await getLinesWithService(commonLines, origDirStop, null);
               let foundAlt = false;
               for (const altLine of alternativesAtOrigin) {
                 const altAtDest = await getLinesWithService([altLine], toStationId, null);
