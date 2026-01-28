@@ -737,9 +737,20 @@ async function displaySubwayRoutes(routes, mic, walkOption = null, schedule = nu
             displayTimeRange = formatTimeRange(adjustedTotalTime, route, mic);
         }
         if (!depTimesStr) {
-            depTimesStr = route.scheduledDeparture
-                ? formatT(new Date(route.scheduledDeparture))
-                : 'Check schedule';
+            if (route.scheduledDeparture) {
+                const scheduledDep = new Date(route.scheduledDeparture);
+                const now = new Date();
+                const walkBuffer = walkToStation <= 3 ? walkToStation : (walkToStation - 2);
+                const earliestCatchable = new Date(now.getTime() + walkBuffer * 60000);
+
+                if (scheduledDep >= earliestCatchable) {
+                    depTimesStr = formatT(scheduledDep);
+                } else {
+                    depTimesStr = 'Check schedule';
+                }
+            } else {
+                depTimesStr = 'Check schedule';
+            }
         }
 
         transitHTML += `
