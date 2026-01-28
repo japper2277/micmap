@@ -3,6 +3,56 @@
    Main rendering function for list and map
    ================================================================= */
 
+// Show skeleton loading in list while data loads
+function showListSkeleton() {
+    const container = document.getElementById('list-content');
+    if (!container) return;
+
+    container.innerHTML = `
+        <div class="list-skeleton">
+            <div class="skeleton-card-item">
+                <div class="skeleton-avatar"></div>
+                <div class="skeleton-content">
+                    <div class="skeleton-title"></div>
+                    <div class="skeleton-subtitle"></div>
+                </div>
+                <div class="skeleton-time"></div>
+            </div>
+            <div class="skeleton-card-item">
+                <div class="skeleton-avatar"></div>
+                <div class="skeleton-content">
+                    <div class="skeleton-title"></div>
+                    <div class="skeleton-subtitle"></div>
+                </div>
+                <div class="skeleton-time"></div>
+            </div>
+            <div class="skeleton-card-item">
+                <div class="skeleton-avatar"></div>
+                <div class="skeleton-content">
+                    <div class="skeleton-title"></div>
+                    <div class="skeleton-subtitle"></div>
+                </div>
+                <div class="skeleton-time"></div>
+            </div>
+            <div class="skeleton-card-item">
+                <div class="skeleton-avatar"></div>
+                <div class="skeleton-content">
+                    <div class="skeleton-title"></div>
+                    <div class="skeleton-subtitle"></div>
+                </div>
+                <div class="skeleton-time"></div>
+            </div>
+            <div class="skeleton-card-item">
+                <div class="skeleton-avatar"></div>
+                <div class="skeleton-content">
+                    <div class="skeleton-title"></div>
+                    <div class="skeleton-subtitle"></div>
+                </div>
+                <div class="skeleton-time"></div>
+            </div>
+        </div>`;
+}
+
 // Format set time (e.g., "5" -> "5min", "3-5min" -> "3-5min", "5min" -> "5min")
 function formatSetTime(setTime) {
     if (!setTime) return '5min';
@@ -261,8 +311,20 @@ function render(mode) {
 
     // Update mic count in header and stop pulsing
     const countEl = document.getElementById('mic-count');
+    const previousCount = parseInt(countEl.textContent) || 0;
     countEl.textContent = filtered.length;
     countEl.classList.remove('pulsing');
+
+    // Announce filter changes to screen readers (only if count changed significantly)
+    if (Math.abs(filtered.length - previousCount) > 0 && previousCount > 0) {
+        const hasActiveFilters = STATE.activeFilters.price !== 'All' ||
+                                  STATE.activeFilters.time !== 'All' ||
+                                  STATE.activeFilters.borough !== 'All' ||
+                                  STATE.activeFilters.commute !== 'All';
+        if (hasActiveFilters && typeof announceToScreenReader === 'function') {
+            announceToScreenReader(`${filtered.length} mic${filtered.length !== 1 ? 's' : ''} match your filters`);
+        }
+    }
 
     // --- PROXIMITY CLUSTERING ---
     // Cluster nearby venues to prevent overlapping markers
@@ -408,6 +470,7 @@ function render(mode) {
             zIndexOffset: bestStatus === 'live' ? 1000 : (bestStatus === 'upcoming' ? 500 : 100)
         }).addTo(markersGroup);
 
+
         marker
         .on('click', () => {
             // If cluster has multiple venues OR multiple mics at same venue
@@ -426,7 +489,47 @@ function render(mode) {
     });
 
     if (filtered.length === 0) {
-        container.innerHTML = `<div class="text-center py-12 text-neutral-600 text-[10px] font-mono uppercase tracking-widest">No Signals Found</div>`;
+        // Check if filters are active
+        const hasActiveFilters = STATE.activeFilters.price !== 'All' ||
+                                  STATE.activeFilters.time !== 'All' ||
+                                  STATE.activeFilters.borough !== 'All' ||
+                                  STATE.activeFilters.commute !== 'All';
+
+        if (hasActiveFilters) {
+            // Filters are blocking results - show reset option
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <circle cx="11" cy="11" r="8"/>
+                            <path d="m21 21-4.35-4.35"/>
+                            <path d="M8 8l6 6M14 8l-6 6" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <div class="empty-state-title">No mics match your filters</div>
+                    <div class="empty-state-subtitle">Try adjusting your filters or browse all mics</div>
+                    <button class="empty-state-btn" onclick="resetFilters()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 6h18M6 6v14a2 2 0 002 2h8a2 2 0 002-2V6"/>
+                        </svg>
+                        Clear all filters
+                    </button>
+                </div>`;
+        } else {
+            // No mics at all for this day
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+                            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                            <line x1="12" x2="12" y1="19" y2="22"/>
+                        </svg>
+                    </div>
+                    <div class="empty-state-title">No mics scheduled</div>
+                    <div class="empty-state-subtitle">Check back tomorrow or pick a different day</div>
+                </div>`;
+        }
         return;
     }
 
@@ -642,13 +745,16 @@ function render(mode) {
                 : `<button onclick="event.stopPropagation(); flipCard(this);" class="icon-btn" title="Signup info"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></button>`;
         const igBtn = safeContact ? `<a href="https://instagram.com/${safeContact}" target="_blank" rel="noopener" onclick="event.stopPropagation();" class="icon-btn" title="@${safeContact}"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg></a>` : '';
 
+        // Add live indicator class for styling
+        const liveClass = mic.status === 'live' ? ' is-live-mic' : '';
+
         card.innerHTML = `
             <!-- FRONT: Card Content -->
             <div class="card-front">
                 <!-- MOBILE LAYOUT -->
                 <div class="card-layout-mobile">
-                    <div class="specs-col">
-                        <div class="start-time">${escapeHtml(mic.timeStr)}</div>
+                    <div class="specs-col${liveClass}">
+                        <div class="start-time">${mic.status === 'live' ? '<span class="live-dot"></span>' : ''}${escapeHtml(mic.timeStr)}</div>
                         <div class="stage-time">${escapeHtml(formatSetTime(mic.setTime))}</div>
                     </div>
                     <div class="info-col">
@@ -671,8 +777,8 @@ function render(mode) {
 
                 <!-- DESKTOP LAYOUT -->
                 <div class="card-layout-desktop">
-                    <div class="specs-col">
-                        <div class="start-time">${escapeHtml(mic.timeStr)}</div>
+                    <div class="specs-col${liveClass}">
+                        <div class="start-time">${mic.status === 'live' ? '<span class="live-dot"></span>' : ''}${escapeHtml(mic.timeStr)}</div>
                         <div class="stage-time">${escapeHtml(formatSetTime(mic.setTime))}</div>
                     </div>
                     <div class="info-col">
