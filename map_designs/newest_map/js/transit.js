@@ -37,7 +37,9 @@ const transitService = {
 
     // Call subway router API for accurate Dijkstra-based routing
     // mic parameter is optional - if provided, calculates schedule-based times for that mic's start time
-    async fetchSubwayRoute(userLat, userLng, venueLat, venueLng, mic = null) {
+    async fetchSubwayRoute(userLat, userLng, venueLat, venueLng, mic = null, retryCount = 0) {
+        const MAX_RETRIES = 1;
+
         // Cache key: include mic start time if available (for schedule-based caching)
         const targetKey = mic?.start instanceof Date ? mic.start.getTime() : 'now';
         const cacheKey = `${userLat.toFixed(3)},${userLng.toFixed(3)}|${venueLat.toFixed(3)},${venueLng.toFixed(3)}|${targetKey}`;
@@ -74,6 +76,12 @@ const transitService = {
 
             if (!response.ok) {
                 console.error(`Route API error: ${response.status}`);
+                // Retry once on server error
+                if (retryCount < MAX_RETRIES && response.status >= 500) {
+                    console.log(`Retrying route calculation (attempt ${retryCount + 2})`);
+                    await new Promise(r => setTimeout(r, 1000)); // Wait 1 second
+                    return this.fetchSubwayRoute(userLat, userLng, venueLat, venueLng, mic, retryCount + 1);
+                }
                 return null;
             }
 
@@ -87,6 +95,12 @@ const transitService = {
         } catch (error) {
             if (error.name === 'AbortError') {
                 console.error('Route calculation timeout (>15s)');
+                // Retry once on timeout
+                if (retryCount < MAX_RETRIES) {
+                    console.log(`Retrying after timeout (attempt ${retryCount + 2})`);
+                    await new Promise(r => setTimeout(r, 1000)); // Wait 1 second
+                    return this.fetchSubwayRoute(userLat, userLng, venueLat, venueLng, mic, retryCount + 1);
+                }
             } else {
                 console.error('Route fetch failed:', error.message);
             }
@@ -414,7 +428,29 @@ const transitService = {
             return true; // 'all' mode
         });
 
-        for (let i = 0; i < mics.length; i += BATCH_SIZE) {
+        // VENUE DEDUPLICATION: Group mics by venue coordinates to avoid duplicate API calls
+        // Key = lat,lng rounded to 4 decimal places (~11m precision)
+        const venueGroups = {};
+        mics.forEach(mic => {
+            const venueKey = `${mic.lat.toFixed(4)},${mic.lng.toFixed(4)}`;
+            if (!venueGroups[venueKey]) {
+                venueGroups[venueKey] = [];
+            }
+            venueGroups[venueKey].push(mic);
+        });
+
+        // Get unique venues (just take first mic from each group as representative)
+        const uniqueVenues = Object.entries(venueGroups).map(([key, groupMics]) => ({
+            key,
+            lat: groupMics[0].lat,
+            lng: groupMics[0].lng,
+            mics: groupMics,
+            representativeMic: groupMics[0]
+        }));
+
+        console.log(`Route optimization: ${mics.length} mics → ${uniqueVenues.length} unique venues`);
+
+        for (let i = 0; i < uniqueVenues.length; i += BATCH_SIZE) {
             // Check if aborted
             if (signal.aborted) {
                 return;
@@ -426,65 +462,73 @@ const transitService = {
                 return;
             }
 
-            const batch = mics.slice(i, i + BATCH_SIZE);
+            const batch = uniqueVenues.slice(i, i + BATCH_SIZE);
 
-            // Update progress
-            this.updateToastProgress(Math.min(i + BATCH_SIZE, mics.length), mics.length);
+            // Update progress (show unique venues count for accurate progress)
+            this.updateToastProgress(Math.min(i + BATCH_SIZE, uniqueVenues.length), uniqueVenues.length);
             if (!silent) {
-                this.updateProgress(i, mics.length);
+                this.updateProgress(i, uniqueVenues.length);
             }
 
             // Process batch in parallel
-            await Promise.all(batch.map(async (mic) => {
+            await Promise.all(batch.map(async (venue) => {
+                const { lat, lng, mics: venueMics, representativeMic } = venue;
+
                 // Check if walkable first (< 0.5 miles straight line)
-                const distance = calculateDistance(userLat, userLng, mic.lat, mic.lng);
+                const distance = calculateDistance(userLat, userLng, lat, lng);
                 if (distance < 0.5) {
                     // Get accurate walking time from OSRM
-                    const walkData = await this.getWalkingTime(userLat, userLng, mic.lat, mic.lng);
-                    mic.transitMins = walkData.mins;
-                    mic.transitSeconds = walkData.mins * 60;
-                    mic.transitType = 'walk';
-                    mic.walkData = walkData; // Store for display
-                    mic.route = null;
-                    mic.transitOrigin = { lat: userLat, lng: userLng }; // Cache origin
+                    const walkData = await this.getWalkingTime(userLat, userLng, lat, lng);
+                    // Apply to all mics at this venue
+                    venueMics.forEach(mic => {
+                        mic.transitMins = walkData.mins;
+                        mic.transitSeconds = walkData.mins * 60;
+                        mic.transitType = 'walk';
+                        mic.walkData = walkData;
+                        mic.route = null;
+                        mic.transitOrigin = { lat: userLat, lng: userLng };
+                    });
                     return;
                 }
 
-                // Get exact route via Dijkstra
+                // Get exact route via Dijkstra (use representative mic for schedule-based calculation)
                 try {
                     const route = await this.fetchSubwayRoute(
                         userLat, userLng,
-                        mic.lat, mic.lng,
-                        mic
+                        lat, lng,
+                        representativeMic
                     );
 
-                    if (route) {
-                        // Success - use exact time (adjustedTotalTime includes wait times)
-                        const totalMins = route.adjustedTotalTime || route.totalTime;
-                        mic.transitMins = totalMins;
-                        mic.transitSeconds = totalMins * 60;
-                        mic.transitType = 'transit';
-                        mic.route = route; // Store for modal detail view
-                    } else {
-                        // API returned null - use fallback
+                    // Apply result to all mics at this venue
+                    venueMics.forEach(mic => {
+                        if (route) {
+                            const totalMins = route.adjustedTotalTime || route.totalTime;
+                            mic.transitMins = totalMins;
+                            mic.transitSeconds = totalMins * 60;
+                            mic.transitType = 'transit';
+                            mic.route = route;
+                        } else {
+                            mic.transitMins = Math.round(distance * WALK_MINS_PER_MILE);
+                            mic.transitSeconds = mic.transitMins * 60;
+                            mic.transitType = 'estimate';
+                            mic.route = null;
+                        }
+                        mic.transitOrigin = { lat: userLat, lng: userLng };
+                    });
+                } catch (error) {
+                    // Network error, timeout, or server error - use fallback for all mics
+                    venueMics.forEach(mic => {
                         mic.transitMins = Math.round(distance * WALK_MINS_PER_MILE);
                         mic.transitSeconds = mic.transitMins * 60;
                         mic.transitType = 'estimate';
                         mic.route = null;
-                    }
-                    mic.transitOrigin = { lat: userLat, lng: userLng }; // Cache origin
-                } catch (error) {
-                    // Network error, timeout, or server error - use fallback
-                    mic.transitMins = Math.round(distance * WALK_MINS_PER_MILE);
-                    mic.transitSeconds = mic.transitMins * 60;
-                    mic.transitType = 'estimate';
-                    mic.route = null;
-                    mic.transitOrigin = { lat: userLat, lng: userLng }; // Cache origin
+                        mic.transitOrigin = { lat: userLat, lng: userLng };
+                    });
                 }
             }));
 
             // 10ms delay between batches (local OSRM is fast)
-            if (i + BATCH_SIZE < mics.length) {
+            if (i + BATCH_SIZE < uniqueVenues.length) {
                 await new Promise(r => setTimeout(r, 10));
             }
         }
@@ -586,6 +630,11 @@ const transitService = {
 
     expandNeighborhoods() {
         STATE.transitExpanded = true;
+        render(STATE.currentMode);
+    },
+
+    collapseNeighborhoods() {
+        STATE.transitExpanded = false;
         render(STATE.currentMode);
     },
 

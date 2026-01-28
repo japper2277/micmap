@@ -192,6 +192,8 @@ function render(mode) {
     });
 
     // Additional filters for the LIST only (price, time)
+    // Track mics filtered by commute for user feedback
+    let commuteFilteredCount = 0;
     let filtered = baseMics.filter(m => {
         // Filter by price
         if (STATE.activeFilters.price !== 'All') {
@@ -211,9 +213,11 @@ function render(mode) {
         // Filter by commute (only when transit mode active)
         if (STATE.activeFilters.commute !== 'All' && STATE.isTransitMode) {
             const maxMins = STATE.activeFilters.commute;
-            // If no transit data, hide when commute filter is active
-            if (!m.transitMins) return false;
-            if (m.transitMins > maxMins) return false;
+            // Track mics filtered out by commute
+            if (!m.transitMins || m.transitMins > maxMins) {
+                commuteFilteredCount++;
+                return false;
+            }
         }
 
         // Filter by borough
@@ -259,6 +263,17 @@ function render(mode) {
     const countEl = document.getElementById('mic-count');
     countEl.textContent = filtered.length;
     countEl.classList.remove('pulsing');
+
+    // Show commute filter feedback if mics were hidden
+    const filterFeedback = document.getElementById('filter-feedback');
+    if (filterFeedback) {
+        if (commuteFilteredCount > 0 && STATE.activeFilters.commute !== 'All') {
+            filterFeedback.textContent = `(${commuteFilteredCount} hidden by commute filter)`;
+            filterFeedback.style.display = 'inline';
+        } else {
+            filterFeedback.style.display = 'none';
+        }
+    }
 
     // --- PROXIMITY CLUSTERING ---
     // Cluster nearby venues to prevent overlapping markers
@@ -500,9 +515,9 @@ function render(mode) {
     let visibleMics = filtered;
     let hiddenMics = [];
 
-    if (STATE.isTransitMode && !STATE.transitExpanded) {
-        visibleMics = [];
-        hiddenMics = [];
+    if (STATE.isTransitMode) {
+        const wouldBeVisible = [];
+        const wouldBeHidden = [];
 
         // filtered is already sorted by transitMins at this point
         filtered.forEach((mic, index) => {
@@ -513,11 +528,20 @@ function render(mode) {
 
             // Show if: search target OR top 5 OR has live data
             if (isSearchTarget || isTop5 || hasBlueOrGreenBadge) {
-                visibleMics.push(mic);
+                wouldBeVisible.push(mic);
             } else {
-                hiddenMics.push(mic);
+                wouldBeHidden.push(mic);
             }
         });
+
+        // Only hide distant venues when not expanded
+        if (!STATE.transitExpanded) {
+            visibleMics = wouldBeVisible;
+            hiddenMics = wouldBeHidden;
+        } else {
+            visibleMics = filtered;
+            hiddenMics = wouldBeHidden; // Keep track of count for "Show fewer" button
+        }
     }
 
     // Group by Hour with Sticky Headers
@@ -713,15 +737,23 @@ function render(mode) {
         container.appendChild(card);
     });
 
-    // Add "Show more" button if there are hidden mics
-    if (STATE.isTransitMode && !STATE.transitExpanded && hiddenMics.length > 0) {
+    // Add "Show more" / "Show fewer" button for transit mode
+    if (STATE.isTransitMode && hiddenMics.length > 0) {
         const showMoreContainer = document.createElement('div');
         showMoreContainer.className = 'show-more-container';
-        showMoreContainer.innerHTML = `
-            <button class="show-more-btn" onclick="transitService.expandNeighborhoods()">
-                + ${hiddenMics.length} more venues further away
-            </button>
-        `;
+        if (!STATE.transitExpanded) {
+            showMoreContainer.innerHTML = `
+                <button class="show-more-btn" onclick="transitService.expandNeighborhoods()">
+                    + ${hiddenMics.length} more venues further away
+                </button>
+            `;
+        } else {
+            showMoreContainer.innerHTML = `
+                <button class="show-more-btn" onclick="transitService.collapseNeighborhoods()">
+                    Show fewer venues
+                </button>
+            `;
+        }
         container.appendChild(showMoreContainer);
     }
 

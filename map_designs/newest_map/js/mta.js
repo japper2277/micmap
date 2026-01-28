@@ -54,45 +54,9 @@ const mtaService = {
         return Array.from(lines);
     },
 
-    // Render alerts banner at top of list (disabled - user preference)
+    // Render alerts banner - disabled, kept as stub for future use
     renderAlertsBanner() {
-        return; // Alerts disabled in drawer
-        const container = document.getElementById('mta-alerts');
-        if (!container) return;
-
-        const allLines = this.getAllLines();
-        let alerts = this.getAlertsForLines(allLines);
-
-        // Filter for important alerts only (delays, suspensions, service changes)
-        const importantKeywords = ['delay', 'suspend', 'no service', 'running with', 'expect longer'];
-        alerts = alerts.filter(a =>
-            importantKeywords.some(kw => a.text.toLowerCase().includes(kw))
-        );
-
-        // Limit to max 3 alerts
-        alerts = alerts.slice(0, 3);
-
-        if (alerts.length === 0) {
-            container.innerHTML = '';
-            container.style.display = 'none';
-            return;
-        }
-
-        container.style.display = 'block';
-        container.innerHTML = alerts.map(alert => `
-            <div class="mta-alert ${alert.type}" data-id="${alert.id}">
-                <div class="mta-alert-lines">
-                    ${alert.lines.map(l => `<span class="mta-line mta-line-${l}">${l}</span>`).join('')}
-                </div>
-                <div class="mta-alert-text">${alert.text}</div>
-                <button class="mta-alert-dismiss" onclick="mtaService.dismissAlert('${alert.id}')" aria-label="Dismiss alert">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                </button>
-            </div>
-        `).join('');
+        // Alerts banner disabled - kept for future use
     },
 
     // Fetch arrivals for a station

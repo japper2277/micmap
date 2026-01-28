@@ -55,6 +55,23 @@ try {
 // Skip real-time when transfer is beyond this horizon.
 const REALTIME_HORIZON_MINS = 25;
 
+// Helper: fetch with timeout (10s default)
+async function fetchWithTimeout(url, options = {}, timeoutMs = 10000) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, { ...options, signal: controller.signal });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      throw new Error(`Request timeout after ${timeoutMs}ms`);
+    }
+    throw error;
+  }
+}
+
 // Get next scheduled departure from GTFS (returns wait time in minutes)
 function getScheduledWait(stopId, line, arrivalMins) {
   // arrivalMins = minutes from midnight when user arrives at platform
@@ -438,7 +455,7 @@ app.post('/api/proxy/transit', async (req, res) => {
     });
 
     const url = `https://maps.googleapis.com/maps/api/distancematrix/json?${params}`;
-    const response = await fetch(url);
+    const response = await fetchWithTimeout(url, {}, 10000);
     const data = await response.json();
 
     if (data.status !== 'OK') {
@@ -502,8 +519,8 @@ app.get('/api/mta/alerts', async (req, res) => {
       return res.json(mtaCache.alerts.data);
     }
 
-    // Fetch from MTA
-    const response = await fetch(MTA_ALERTS_URL);
+    // Fetch from MTA with timeout
+    const response = await fetchWithTimeout(MTA_ALERTS_URL, {}, 10000);
     if (!response.ok) throw new Error(`MTA status: ${response.status}`);
 
     // Decode Protobuf
@@ -561,9 +578,9 @@ app.get('/api/mta/arrivals/:line/:stopId', async (req, res) => {
       return res.json(arrivals);
     }
 
-    // Fetch fresh data
+    // Fetch fresh data with timeout
     const feedUrl = `${MTA_BASE}/${feedSuffix}`;
-    const response = await fetch(feedUrl);
+    const response = await fetchWithTimeout(feedUrl, {}, 10000);
     if (!response.ok) throw new Error(`MTA status: ${response.status}`);
 
     const buffer = await response.arrayBuffer();
@@ -775,7 +792,7 @@ app.get('/api/proxy/geocode', async (req, res) => {
     const bbox = '-74.3,40.45,-73.6,40.95';
     const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(sanitized)}.json?access_token=${mapboxToken}&bbox=${bbox}&limit=5&types=poi,address,neighborhood,place`;
 
-    const response = await fetch(url);
+    const response = await fetchWithTimeout(url, {}, 10000);
     const data = await response.json();
 
     if (data.message) {
@@ -877,7 +894,7 @@ app.get('/api/proxy/here/geocode', hereRateLimitMiddleware, async (req, res) => 
     // at= biases results toward NYC
     const url = `https://discover.search.hereapi.com/v1/discover?q=${encodeURIComponent(sanitized)}&at=40.7128,-74.0060&limit=5&apiKey=${hereApiKey}`;
 
-    const response = await fetch(url);
+    const response = await fetchWithTimeout(url, {}, 10000);
     const data = await response.json();
 
     if (data.error) {
@@ -920,7 +937,7 @@ app.get('/api/proxy/here/walk', hereRateLimitMiddleware, async (req, res) => {
   try {
     const url = `https://router.hereapi.com/v8/routes?transportMode=pedestrian&origin=${originLat},${originLng}&destination=${destLat},${destLng}&return=summary&apiKey=${hereApiKey}`;
 
-    const response = await fetch(url);
+    const response = await fetchWithTimeout(url, {}, 10000);
     const data = await response.json();
 
     if (data.error || !data.routes?.length) {
@@ -966,9 +983,6 @@ app.post('/api/proxy/here/walk-batch', async (req, res) => {
     });
   }
 
-  // Reserve the calls upfront
-  hereRateLimit.dailyCalls += destinations.length;
-
   const hereApiKey = process.env.HERE_API_KEY;
   if (!hereApiKey) {
     console.error('❌ HERE_API_KEY not configured');
@@ -979,25 +993,30 @@ app.post('/api/proxy/here/walk-batch', async (req, res) => {
     // Fetch all routes in parallel (up to 10 at a time to be safe)
     const batchSize = 10;
     const results = [];
+    let successCount = 0;
 
     for (let i = 0; i < destinations.length; i += batchSize) {
       const batch = destinations.slice(i, i + batchSize);
       const promises = batch.map(async (dest) => {
         try {
           const url = `https://router.hereapi.com/v8/routes?transportMode=pedestrian&origin=${originLat},${originLng}&destination=${dest.lat},${dest.lng}&return=summary&apiKey=${hereApiKey}`;
-          const response = await fetch(url);
+          const response = await fetchWithTimeout(url, {}, 10000);
           const data = await response.json();
 
           if (data.routes?.length) {
             const summary = data.routes[0].sections[0].summary;
+            successCount++;
             return {
               id: dest.id,
               durationMins: Math.round(summary.duration / 60),
               distanceMiles: Math.round(summary.length / 1609.34 * 100) / 100
             };
           }
+          // No route found but API worked - still count as call
+          successCount++;
           return { id: dest.id, durationMins: null, error: 'No route' };
         } catch (e) {
+          // API call failed - don't count toward quota
           return { id: dest.id, durationMins: null, error: e.message };
         }
       });
@@ -1006,8 +1025,11 @@ app.post('/api/proxy/here/walk-batch', async (req, res) => {
       results.push(...batchResults);
     }
 
-    console.log(`✅ HERE batch walk: ${results.length} routes calculated`);
-    res.json({ results });
+    // Only count successful API calls toward quota
+    hereRateLimit.dailyCalls += successCount;
+
+    console.log(`✅ HERE batch walk: ${successCount}/${results.length} routes calculated`);
+    res.json({ results, successCount });
 
   } catch (error) {
     console.error('❌ HERE batch walk error:', error);
@@ -1028,9 +1050,9 @@ async function getArrivalsForLine(line, stopId) {
       return extractArrivals(mtaCache.feeds[lineUpper].data, stopId, lineUpper);
     }
 
-    // Fetch fresh data
+    // Fetch fresh data with timeout
     const feedUrl = `${MTA_BASE}/${feedSuffix}`;
-    const response = await fetch(feedUrl);
+    const response = await fetchWithTimeout(feedUrl, {}, 10000);
     if (!response.ok) return [];
 
     const buffer = await response.arrayBuffer();
@@ -1327,7 +1349,7 @@ app.get('/api/subway/routes', async (req, res) => {
       if (mtaCache.alerts.data && Date.now() - mtaCache.alerts.timestamp < MTA_CACHE_TTL.alerts) {
         alerts = mtaCache.alerts.data;
       } else {
-        const alertRes = await fetch(MTA_ALERTS_URL);
+        const alertRes = await fetchWithTimeout(MTA_ALERTS_URL, {}, 10000);
         if (alertRes.ok) {
           const buffer = await alertRes.arrayBuffer();
           const feed = GtfsRealtimeBindings.transit_realtime.FeedMessage.decode(new Uint8Array(buffer));

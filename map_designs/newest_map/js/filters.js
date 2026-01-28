@@ -663,10 +663,15 @@ function updateCommuteFilterVisibility(show) {
     const commuteBtn = document.getElementById('filter-commute');
     if (commuteBtn) {
         commuteBtn.style.display = show ? '' : 'none';
-        // Reset commute filter when hiding
+        // Reset commute filter when hiding and notify user
         if (!show && STATE.activeFilters.commute !== 'All') {
+            const prevFilter = CONFIG.filterLabels.commute[STATE.activeFilters.commute];
             STATE.activeFilters.commute = 'All';
             updateFilterPillUI('commute', 'All');
+            // Notify user that filter was reset
+            if (typeof toastService !== 'undefined') {
+                toastService.show(`Commute filter (${prevFilter}) cleared`, 'info');
+            }
         }
     }
 }
@@ -692,70 +697,3 @@ function updateTransitButtonUI(isActive) {
     updateCommuteFilterVisibility(isActive);
 }
 
-/* =================================================================
-   SYNC WITH MAP
-   Filter list to only show mics visible in current map bounds
-   ================================================================= */
-
-function toggleSyncWithMap() {
-    STATE.syncWithMap = !STATE.syncWithMap;
-    const btn = document.getElementById('btn-sync-map');
-    if (btn) {
-        btn.classList.toggle('active', STATE.syncWithMap);
-        btn.setAttribute('aria-pressed', STATE.syncWithMap);
-        // Dismiss tooltip if shown
-        const tooltip = btn.querySelector('.tooltip-hint');
-        if (tooltip) {
-            tooltip.remove();
-            localStorage.setItem('micfinder_mapview_hint_seen', 'true');
-        }
-    }
-    render(STATE.currentMode);
-}
-
-// Show first-time tooltip for Map view button
-function showMapViewHint() {
-    if (localStorage.getItem('micfinder_mapview_hint_seen')) return;
-
-    const btn = document.getElementById('btn-sync-map');
-    if (!btn || !window.matchMedia('(max-width: 640px)').matches) return;
-
-    const tooltip = document.createElement('div');
-    tooltip.className = 'tooltip-hint';
-    tooltip.innerHTML = `
-        Only show mics on screen
-        <span class="tooltip-hint-dismiss">Tap to dismiss</span>
-    `;
-    btn.appendChild(tooltip);
-
-    // Dismiss on tap anywhere
-    const dismiss = () => {
-        tooltip.remove();
-        localStorage.setItem('micfinder_mapview_hint_seen', 'true');
-        document.removeEventListener('click', dismiss);
-    };
-
-    // Delay adding listener to prevent immediate dismiss
-    setTimeout(() => document.addEventListener('click', dismiss), 100);
-
-    // Auto-dismiss after 6 seconds
-    setTimeout(() => {
-        if (tooltip.parentNode) dismiss();
-    }, 6000);
-}
-
-// Setup map move listener for sync with map
-function setupSyncWithMapListener() {
-    if (typeof map === 'undefined') return;
-
-    map.on('moveend', () => {
-        if (STATE.syncWithMap) {
-            render(STATE.currentMode);
-        }
-    });
-}
-
-// Call on init (after map is ready)
-document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(setupSyncWithMapListener, 100);
-});

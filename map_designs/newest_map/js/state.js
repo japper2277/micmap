@@ -32,18 +32,13 @@ const STATE = {
 
     // Transit Search State
     userOrigin: null,           // { lat, lng, name }
-    transitTimes: {},           // { clusterId: seconds, ... }
     searchMarker: null,         // Leaflet marker for origin
     isTransitMode: false,       // True when sorted by transit
-    transitCache: {},           // { 'lat,lng': { clusterId: seconds, ... } }
     isCalculatingTransit: false, // Loading state
     transitExpanded: false,     // Has user clicked "Show more"?
     targetVenueHood: null,      // Neighborhood of explicitly searched venue
     isWaitingForMapClick: false, // Waiting for user to tap map (geolocation fallback)
 
     // User Preferences (persisted to localStorage)
-    walkPreference: localStorage.getItem('walkPref') || '15min',
-
-    // Sync with map (filter list to visible bounds)
-    syncWithMap: false
+    walkPreference: localStorage.getItem('walkPref') || '15min'
 };
