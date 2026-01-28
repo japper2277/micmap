@@ -499,7 +499,7 @@ function formatTimeRange(durationMins, route = null, mic = null) {
     // Calculate based on mic start time (for walking or when route lacks scheduled times)
     if (mic?.start instanceof Date) {
         const mins = (typeof durationMins === 'number' && !isNaN(durationMins)) ? durationMins : 15;
-        const targetArrival = new Date(mic.start.getTime() - 30 * 60000); // Arrive 30 min early
+        const targetArrival = new Date(mic.start.getTime() - 15 * 60000); // Arrive 15 min early
         const departure = new Date(targetArrival.getTime() - mins * 60000);
         return `${formatTime(departure)} - ${formatTime(targetArrival)}`;
     }
@@ -656,109 +656,70 @@ async function displaySubwayRoutes(routes, mic, walkOption = null, schedule = nu
         const waitTime = route.waitTime || 0;
         const adjustedTotalTime = route.adjustedTotalTime ?? route.totalTime ?? 15;
 
-        // Format departure times
-        // For schedule-based routes: show the scheduled departure time
-        // For real-time routes: fetch next 3 catchable departures from MTA
-        let depTimesStr = 'Now';
-        let actualTimeRange = null;
-        let actualDuration = null;
+        // SIMPLIFIED: Get train times and calculate departure/arrival
+        const walkToStation = route.walkToStation || 0;
+        const walkFromStation = route.walkToVenue || 0;
+        const rideTime = Math.max(0, (route.totalTime || adjustedTotalTime) - walkToStation - walkFromStation);
 
-        if (route.scheduledDepartureTimes && route.scheduledDepartureTimes.length > 0) {
-            // Schedule-based: show exact GTFS departure times
-            depTimesStr = route.scheduledDepartureTimes.map(iso => {
-                const t = new Date(iso);
-                return t.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-            }).join(', ');
-        } else if (route.scheduledDeparture && route.useRealtime === false) {
-            // Fallback: single scheduled departure time
-            const depTime = new Date(route.scheduledDeparture);
-            depTimesStr = depTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-        } else if (firstLine && originStationId) {
-            // Calculate platform arrival time based on target arrival (30 min before mic)
-            const walkToStation = route.walkToStation || 0;
-            const walkFromStation = route.walkToVenue || 0;
-            const rideTime = (route.totalTime || adjustedTotalTime) - walkToStation - walkFromStation;
+        let depTimesStr = '';
+        let displayTimeRange = '';
+        let displayDuration = adjustedTotalTime;
 
-            let platformArrivalTime;
-            let useGTFS = false;
-            let firstTrainTime = null;
+        const formatT = (d) => d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
 
-            if (mic?.start instanceof Date) {
-                const targetArrival = new Date(mic.start.getTime() - 30 * 60000);
-                const estDepartureTime = new Date(targetArrival.getTime() - adjustedTotalTime * 60000);
-                platformArrivalTime = new Date(estDepartureTime.getTime() + walkToStation * 60000);
+        if (firstLine && originStationId && mic?.start instanceof Date) {
+            const minsToMic = (mic.start - Date.now()) / 60000;
+            const useGTFS = minsToMic > 30;
 
-                const minsUntilPlatform = (platformArrivalTime - Date.now()) / 60000;
-                useGTFS = minsUntilPlatform > 30 || minsUntilPlatform < 0;
-            } else {
-                platformArrivalTime = new Date(Date.now() + walkToStation * 60000);
-            }
+            // Target: arrive 15 min before mic
+            // Platform arrival = mic start - 15 min - rideTime - walkFromStation
+            const targetPlatformTime = new Date(mic.start.getTime() - (15 + rideTime + walkFromStation) * 60000);
 
             try {
                 let trainDepartures = [];
 
                 if (useGTFS) {
-                    // Use GTFS schedule data - try both N and S directions
-                    const timeParam = platformArrivalTime.toISOString();
+                    // > 30 min to mic: Use GTFS schedule
                     const [gtfsN, gtfsS] = await Promise.all([
-                        fetch(`${CONFIG.apiBase}/api/gtfs/departures?stopId=${originStationId}N&line=${firstLine}&time=${timeParam}`).then(r => r.json()).catch(() => ({ departures: [] })),
-                        fetch(`${CONFIG.apiBase}/api/gtfs/departures?stopId=${originStationId}S&line=${firstLine}&time=${timeParam}`).then(r => r.json()).catch(() => ({ departures: [] }))
+                        fetch(`${CONFIG.apiBase}/api/gtfs/departures?stopId=${originStationId}N&line=${firstLine}&time=${targetPlatformTime.toISOString()}`).then(r => r.json()).catch(() => ({ departures: [] })),
+                        fetch(`${CONFIG.apiBase}/api/gtfs/departures?stopId=${originStationId}S&line=${firstLine}&time=${targetPlatformTime.toISOString()}`).then(r => r.json()).catch(() => ({ departures: [] }))
                     ]);
-                    const allDepartures = [...(gtfsN.departures || []), ...(gtfsS.departures || [])];
-                    trainDepartures = [...new Set(allDepartures)].sort().slice(0, 3);
+                    trainDepartures = [...new Set([...(gtfsN.departures || []), ...(gtfsS.departures || [])])].sort().slice(0, 3);
                 } else {
-                    // Use real-time MTA data
+                    // < 30 min to mic: Use real-time MTA
                     const [arrivalsN, arrivalsS] = await Promise.all([
                         mtaService.fetchArrivals(firstLine, originStationId + 'N').catch(() => []),
                         mtaService.fetchArrivals(firstLine, originStationId + 'S').catch(() => [])
                     ]);
                     const allArrivals = [...(arrivalsN || []), ...(arrivalsS || [])];
-                    const seenTimes = new Set();
-                    const uniqueArrivals = allArrivals.filter(a => {
-                        if (seenTimes.has(a.minsAway)) return false;
-                        seenTimes.add(a.minsAway);
-                        return true;
-                    });
-                    uniqueArrivals.sort((a, b) => a.minsAway - b.minsAway);
-
-                    const catchable = uniqueArrivals.filter(a => {
-                        const trainTime = new Date(Date.now() + a.minsAway * 60000);
-                        return trainTime >= platformArrivalTime;
-                    });
-
-                    trainDepartures = catchable.slice(0, 3).map(a =>
-                        new Date(Date.now() + a.minsAway * 60000).toISOString()
-                    );
+                    const seen = new Set();
+                    const unique = allArrivals.filter(a => seen.has(a.minsAway) ? false : seen.add(a.minsAway));
+                    unique.sort((a, b) => a.minsAway - b.minsAway);
+                    trainDepartures = unique.slice(0, 3).map(a => new Date(Date.now() + a.minsAway * 60000).toISOString());
                 }
 
                 if (trainDepartures.length > 0) {
-                    // Use first train to calculate actual times
-                    firstTrainTime = new Date(trainDepartures[0]);
+                    // Calculate times from first train
+                    const firstTrain = new Date(trainDepartures[0]);
+                    const departure = new Date(firstTrain.getTime() - walkToStation * 60000);
+                    const arrival = new Date(firstTrain.getTime() + (rideTime + walkFromStation) * 60000);
 
-                    depTimesStr = trainDepartures.map(iso => {
-                        const t = new Date(iso);
-                        return t.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-                    }).join(', ');
+                    displayTimeRange = `${formatT(departure)} - ${formatT(arrival)}`;
+                    displayDuration = Math.round((arrival - departure) / 60000);
+                    depTimesStr = trainDepartures.map(iso => formatT(new Date(iso))).join(', ');
                 }
             } catch (e) {
-                console.warn('Failed to fetch departure times:', e);
-            }
-
-            // Calculate actual departure/arrival based on first train
-            if (firstTrainTime) {
-                const actualDeparture = new Date(firstTrainTime.getTime() - walkToStation * 60000);
-                const actualArrival = new Date(firstTrainTime.getTime() + (rideTime + walkFromStation) * 60000);
-                const actualTotalMins = Math.round((actualArrival - actualDeparture) / 60000);
-
-                const formatT = (d) => d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-                actualTimeRange = `${formatT(actualDeparture)} - ${formatT(actualArrival)}`;
-                actualDuration = actualTotalMins;
+                console.warn('Failed to fetch train times:', e);
             }
         }
 
-        // Use actual times if calculated, otherwise fall back to estimates
-        const displayTimeRange = actualTimeRange || formatTimeRange(adjustedTotalTime, route, mic);
-        const displayDuration = actualDuration || adjustedTotalTime;
+        // Fallback if no trains found
+        if (!displayTimeRange) {
+            displayTimeRange = formatTimeRange(adjustedTotalTime, route, mic);
+        }
+        if (!depTimesStr) {
+            depTimesStr = 'Check schedule';
+        }
 
         transitHTML += `
             <div class="card-base">
