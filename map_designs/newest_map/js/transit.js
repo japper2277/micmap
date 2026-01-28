@@ -57,11 +57,13 @@ const transitService = {
         try {
             let url = `${CONFIG.apiBase}/api/subway/routes?userLat=${userLat}&userLng=${userLng}&venueLat=${venueLat}&venueLng=${venueLng}`;
 
-            // Add target arrival time (15 min before mic start) for schedule-based calculation
-            if (mic?.start instanceof Date) {
+            // Add target arrival time for schedule-based calculation
+            // Only use schedule-based if mic hasn't started yet
+            if (mic?.start instanceof Date && mic.start.getTime() > Date.now()) {
                 const target = new Date(mic.start.getTime() - 15 * 60000); // 15 min buffer
                 url += `&targetArrival=${encodeURIComponent(target.toISOString())}`;
             }
+            // If mic already started, don't pass targetArrival - backend will use real-time
 
             // 15-second timeout for Dijkstra calculation (production can be slower)
             const controller = new AbortController();
