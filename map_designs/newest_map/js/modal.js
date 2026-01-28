@@ -667,11 +667,12 @@ async function displaySubwayRoutes(routes, mic, walkOption = null, schedule = nu
 
         const formatT = (d) => d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
 
-        // Priority 1: Use backend's scheduledDepartureTimes (handles late night line changes)
+        // Priority 1: Use backend's scheduledDepartureTimes (trains before deadline for on-time arrival)
         if (route.scheduledDepartureTimes && route.scheduledDepartureTimes.length > 0) {
             const trainDepartures = route.scheduledDepartureTimes;
-            const firstTrain = new Date(trainDepartures[0]);
-            let departure = new Date(firstTrain.getTime() - walkToStation * 60000);
+            // Use the LAST train (latest that arrives on time) for departure/arrival display
+            const bestTrain = new Date(trainDepartures[trainDepartures.length - 1]);
+            let departure = new Date(bestTrain.getTime() - walkToStation * 60000);
 
             // Don't show departure times in the past - use "now" if needed
             const now = new Date();
@@ -679,7 +680,7 @@ async function displaySubwayRoutes(routes, mic, walkOption = null, schedule = nu
                 departure = now;
             }
 
-            const arrival = new Date(firstTrain.getTime() + (rideTime + walkFromStation) * 60000);
+            const arrival = new Date(bestTrain.getTime() + (rideTime + walkFromStation) * 60000);
 
             displayTimeRange = `${formatT(departure)} - ${formatT(arrival)}`;
             displayDuration = Math.round((arrival - departure) / 60000);
