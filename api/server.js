@@ -141,12 +141,16 @@ function getScheduledDepartures(stopId, line, arrivalMins, count = 3) {
 
 // Get N scheduled departures AT or BEFORE deadline (for on-time arrival)
 // Returns latest trains that work, in ascending order
+// Only considers trains within 60 mins of deadline (not morning trains for evening travel)
 function getScheduledDeparturesBefore(stopId, line, deadlineMins, count = 3) {
   const stopDepartures = departureIndex[stopId];
   if (!stopDepartures) return null;
 
   const lineDepartures = stopDepartures[line.toUpperCase()];
   if (!lineDepartures || lineDepartures.length === 0) return null;
+
+  // Only consider trains within 60 mins before deadline
+  const minAcceptable = deadlineMins - 60;
 
   // Binary search for last departure AT or BEFORE deadline
   let left = 0, right = lineDepartures.length - 1;
@@ -159,32 +163,27 @@ function getScheduledDeparturesBefore(stopId, line, deadlineMins, count = 3) {
     }
   }
 
-  // Collect N departures ending at the deadline (work backwards)
-  const departures = [];
-  let idx = left;
-
-  // Check if the found index is valid (at or before deadline)
-  if (lineDepartures[idx] > deadlineMins) {
-    // No train before deadline - fall back to next available train
+  // Check if found train is within acceptable window (not morning train for evening deadline)
+  if (lineDepartures[left] > deadlineMins || lineDepartures[left] < minAcceptable) {
+    // No train within window - fall back to next available train after deadline
     return getScheduledDepartures(stopId, line, deadlineMins, count);
   }
 
-  // Collect trains working backwards from deadline
-  while (departures.length < count && idx >= 0) {
+  // Collect trains working backwards from deadline, within 60 min window
+  const departures = [];
+  let idx = left;
+
+  while (departures.length < count && idx >= 0 && lineDepartures[idx] >= minAcceptable) {
     departures.unshift(lineDepartures[idx]);
     idx--;
   }
 
-  // If we need more trains, wrap to end of previous day
-  if (departures.length < count) {
-    idx = lineDepartures.length - 1;
-    while (departures.length < count && idx >= 0 && lineDepartures[idx] > deadlineMins) {
-      departures.unshift(lineDepartures[idx]);
-      idx--;
-    }
+  // If no valid departures, fall back to next available
+  if (departures.length === 0) {
+    return getScheduledDepartures(stopId, line, deadlineMins, count);
   }
 
-  return departures.length > 0 ? departures : null;
+  return departures;
 }
 
 const app = express();
@@ -1852,8 +1851,10 @@ app.get('/api/subway/routes', async (req, res) => {
         route.useRealtime = false;
 
         // Get exact GTFS departure times from origin station
+        // Use line from path (e.g., "R22N_N" -> "N"), not lines array
+        // lines array can be wrong after real-time validation swaps (N->Q, R->W, etc.)
         const firstStopId = route.path?.[0]?.split('_')[0];
-        const firstLine = route.lines?.[0];
+        const firstLine = route.path?.[0]?.split('_')[1] || route.lines?.[0];
         if (firstStopId && firstLine) {
           // Calculate the LATEST acceptable train to arrive on time
           // deadline = target - walkFromStation - rideTime
