@@ -1154,10 +1154,10 @@ app.get('/api/subway/routes', async (req, res) => {
         baseMins = targetNyc.getHours() * 60 + targetNyc.getMinutes();
         scheduleHour = targetNyc.getHours();
         scheduleDay = targetNyc.getDay();
-        // Use schedule-based if target arrival is > 60 min from now
-        // (90 min buffer accounts for long commutes)
+        // Use real-time MTA data only when target is < 30 min away
+        // (MTA real-time feed only shows ~30 min of departures)
         const timeTillTarget = baseMins - nowMins;
-        useRealtimeData = timeTillTarget < 90 && timeTillTarget >= 0;
+        useRealtimeData = timeTillTarget < 30 && timeTillTarget >= 0;
         console.log(`📅 Target arrival: ${targetArrival}, baseMins: ${baseMins}, nowMins: ${nowMins}, scheduleHour: ${scheduleHour}, useRealtime: ${useRealtimeData}`);
       }
     } else {
