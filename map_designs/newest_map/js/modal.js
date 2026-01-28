@@ -660,6 +660,8 @@ async function displaySubwayRoutes(routes, mic, walkOption = null, schedule = nu
         // For schedule-based routes: show the scheduled departure time
         // For real-time routes: fetch next 3 catchable departures from MTA
         let depTimesStr = 'Now';
+        let actualTimeRange = null;
+        let actualDuration = null;
 
         if (route.scheduledDepartureTimes && route.scheduledDepartureTimes.length > 0) {
             // Schedule-based: show exact GTFS departure times
@@ -672,24 +674,29 @@ async function displaySubwayRoutes(routes, mic, walkOption = null, schedule = nu
             const depTime = new Date(route.scheduledDeparture);
             depTimesStr = depTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
         } else if (firstLine && originStationId) {
-            // Calculate target platform arrival time
-            const walkTime = route.walkToStation || 0;
+            // Calculate platform arrival time based on target arrival (30 min before mic)
+            const walkToStation = route.walkToStation || 0;
+            const walkFromStation = route.walkToVenue || 0;
+            const rideTime = (route.totalTime || adjustedTotalTime) - walkToStation - walkFromStation;
+
             let platformArrivalTime;
             let useGTFS = false;
+            let firstTrainTime = null;
 
             if (mic?.start instanceof Date) {
                 const targetArrival = new Date(mic.start.getTime() - 30 * 60000);
-                const departureTime = new Date(targetArrival.getTime() - adjustedTotalTime * 60000);
-                platformArrivalTime = new Date(departureTime.getTime() + walkTime * 60000);
+                const estDepartureTime = new Date(targetArrival.getTime() - adjustedTotalTime * 60000);
+                platformArrivalTime = new Date(estDepartureTime.getTime() + walkToStation * 60000);
 
-                // Use GTFS if platform arrival is >30 min out or in the past
                 const minsUntilPlatform = (platformArrivalTime - Date.now()) / 60000;
                 useGTFS = minsUntilPlatform > 30 || minsUntilPlatform < 0;
             } else {
-                platformArrivalTime = new Date(Date.now() + walkTime * 60000);
+                platformArrivalTime = new Date(Date.now() + walkToStation * 60000);
             }
 
             try {
+                let trainDepartures = [];
+
                 if (useGTFS) {
                     // Use GTFS schedule data - try both N and S directions
                     const timeParam = platformArrivalTime.toISOString();
@@ -698,14 +705,7 @@ async function displaySubwayRoutes(routes, mic, walkOption = null, schedule = nu
                         fetch(`${CONFIG.apiBase}/api/gtfs/departures?stopId=${originStationId}S&line=${firstLine}&time=${timeParam}`).then(r => r.json()).catch(() => ({ departures: [] }))
                     ]);
                     const allDepartures = [...(gtfsN.departures || []), ...(gtfsS.departures || [])];
-                    const uniqueDeps = [...new Set(allDepartures)].sort().slice(0, 3);
-
-                    if (uniqueDeps.length > 0) {
-                        depTimesStr = uniqueDeps.map(iso => {
-                            const t = new Date(iso);
-                            return t.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-                        }).join(', ');
-                    }
+                    trainDepartures = [...new Set(allDepartures)].sort().slice(0, 3);
                 } else {
                     // Use real-time MTA data
                     const [arrivalsN, arrivalsS] = await Promise.all([
@@ -721,30 +721,50 @@ async function displaySubwayRoutes(routes, mic, walkOption = null, schedule = nu
                     });
                     uniqueArrivals.sort((a, b) => a.minsAway - b.minsAway);
 
-                    // Filter to trains departing after platform arrival
                     const catchable = uniqueArrivals.filter(a => {
                         const trainTime = new Date(Date.now() + a.minsAway * 60000);
                         return trainTime >= platformArrivalTime;
                     });
 
-                    if (catchable.length > 0) {
-                        const next3 = catchable.slice(0, 3);
-                        depTimesStr = next3.map(a => {
-                            const depTime = new Date(Date.now() + a.minsAway * 60000);
-                            return depTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-                        }).join(', ');
-                    }
+                    trainDepartures = catchable.slice(0, 3).map(a =>
+                        new Date(Date.now() + a.minsAway * 60000).toISOString()
+                    );
+                }
+
+                if (trainDepartures.length > 0) {
+                    // Use first train to calculate actual times
+                    firstTrainTime = new Date(trainDepartures[0]);
+
+                    depTimesStr = trainDepartures.map(iso => {
+                        const t = new Date(iso);
+                        return t.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+                    }).join(', ');
                 }
             } catch (e) {
                 console.warn('Failed to fetch departure times:', e);
             }
+
+            // Calculate actual departure/arrival based on first train
+            if (firstTrainTime) {
+                const actualDeparture = new Date(firstTrainTime.getTime() - walkToStation * 60000);
+                const actualArrival = new Date(firstTrainTime.getTime() + (rideTime + walkFromStation) * 60000);
+                const actualTotalMins = Math.round((actualArrival - actualDeparture) / 60000);
+
+                const formatT = (d) => d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+                actualTimeRange = `${formatT(actualDeparture)} - ${formatT(actualArrival)}`;
+                actualDuration = actualTotalMins;
+            }
         }
+
+        // Use actual times if calculated, otherwise fall back to estimates
+        const displayTimeRange = actualTimeRange || formatTimeRange(adjustedTotalTime, route, mic);
+        const displayDuration = actualDuration || adjustedTotalTime;
 
         transitHTML += `
             <div class="card-base">
                 <div class="card-top">
-                    <span class="time-main">${formatTimeRange(adjustedTotalTime, route, mic)}</span>
-                    <span class="duration-main">${adjustedTotalTime} min</span>
+                    <span class="time-main">${displayTimeRange}</span>
+                    <span class="duration-main">${displayDuration} min</span>
                 </div>
                 <div class="card-mid">
                     ${iconFlow}
