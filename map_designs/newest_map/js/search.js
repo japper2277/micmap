@@ -225,25 +225,33 @@ const searchService = {
                 </div>
             </div>`;
 
-        // Recent searches section (if any)
-        if (this.recentSearches.length > 0) {
-            html += `<div class="section-header" role="presentation">Recent</div>`;
-            this.recentSearches.forEach((recent) => {
-                const icon = recent.type === 'venue' ? this.icons.mic : this.icons.pin;
-                const iconClass = recent.type === 'venue' ? 'venue-type' : 'location-type';
-                if (recent.type === 'venue' && recent.id) {
+        // Recent venues section (clicking navigates to venue, doesn't change origin)
+        const recentVenues = this.recentSearches.filter(r => r.type === 'venue');
+        if (recentVenues.length > 0) {
+            html += `<div class="section-header" role="presentation">Recent Venues</div>`;
+            recentVenues.forEach((recent) => {
+                if (recent.id) {
                     html += `
-                        <div class="dropdown-item ${iconClass}" id="search-option-${optionIndex++}" role="option" aria-selected="false" data-action="venue" data-id="${recent.id}">
-                            <div class="item-icon" aria-hidden="true">${icon}</div>
+                        <div class="dropdown-item venue-type" id="search-option-${optionIndex++}" role="option" aria-selected="false" data-action="venue" data-id="${recent.id}">
+                            <div class="item-icon" aria-hidden="true">${this.icons.mic}</div>
                             <div class="item-text">
                                 <span class="item-name">${this.escapeHtml(recent.name)}</span>
                             </div>
                             ${recent.sub ? `<span class="item-subtext">${this.escapeHtml(recent.sub)}</span>` : ''}
                         </div>`;
-                } else if (recent.lat && recent.lng) {
+                }
+            });
+        }
+
+        // Recent locations section (for setting transit origin)
+        const recentLocations = this.recentSearches.filter(r => r.type === 'location');
+        if (recentLocations.length > 0) {
+            html += `<div class="section-header" role="presentation">Recent Locations</div>`;
+            recentLocations.forEach((recent) => {
+                if (recent.lat && recent.lng) {
                     html += `
-                        <div class="dropdown-item ${iconClass}" id="search-option-${optionIndex++}" role="option" aria-selected="false" data-action="geo" data-lat="${recent.lat}" data-lng="${recent.lng}" data-name="${this.escapeHtml(recent.name)}">
-                            <div class="item-icon" aria-hidden="true">${icon}</div>
+                        <div class="dropdown-item location-type" id="search-option-${optionIndex++}" role="option" aria-selected="false" data-action="geo" data-lat="${recent.lat}" data-lng="${recent.lng}" data-name="${this.escapeHtml(recent.name)}">
+                            <div class="item-icon" aria-hidden="true">${this.icons.pin}</div>
                             <div class="item-text">
                                 <span class="item-name">${this.escapeHtml(recent.name)}</span>
                             </div>
@@ -452,11 +460,8 @@ const searchService = {
             if (typeof openVenueModal === 'function') {
                 openVenueModal(mic);
             }
-
-            // Ghost Venue Fix: Pass mic so its neighborhood is always queried
-            if (typeof transitService !== 'undefined') {
-                transitService.calculateFromOrigin(mic.lat, mic.lng, mic.title || mic.venue, mic);
-            }
+            // Note: We don't call transitService.calculateFromOrigin here
+            // Venues are destinations, not origins. The user's current origin stays unchanged.
         }
     },
 
