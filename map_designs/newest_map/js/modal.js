@@ -671,7 +671,14 @@ async function displaySubwayRoutes(routes, mic, walkOption = null, schedule = nu
         if (route.scheduledDepartureTimes && route.scheduledDepartureTimes.length > 0) {
             const trainDepartures = route.scheduledDepartureTimes;
             const firstTrain = new Date(trainDepartures[0]);
-            const departure = new Date(firstTrain.getTime() - walkToStation * 60000);
+            let departure = new Date(firstTrain.getTime() - walkToStation * 60000);
+
+            // Don't show departure times in the past - use "now" if needed
+            const now = new Date();
+            if (departure < now) {
+                departure = now;
+            }
+
             const arrival = new Date(firstTrain.getTime() + (rideTime + walkFromStation) * 60000);
 
             displayTimeRange = `${formatT(departure)} - ${formatT(arrival)}`;
@@ -696,7 +703,14 @@ async function displaySubwayRoutes(routes, mic, walkOption = null, schedule = nu
 
                     if (trainDepartures.length > 0) {
                         const firstTrain = new Date(trainDepartures[0]);
-                        const departure = new Date(firstTrain.getTime() - walkToStation * 60000);
+                        let departure = new Date(firstTrain.getTime() - walkToStation * 60000);
+
+                        // Don't show departure times in the past
+                        const now = new Date();
+                        if (departure < now) {
+                            departure = now;
+                        }
+
                         const arrival = new Date(firstTrain.getTime() + (rideTime + walkFromStation) * 60000);
 
                         displayTimeRange = `${formatT(departure)} - ${formatT(arrival)}`;
