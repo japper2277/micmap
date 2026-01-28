@@ -1789,9 +1789,7 @@ app.get('/api/subway/routes', async (req, res) => {
           // Use route.totalTime (without wait) to match the wait time calculation at line 1665
           const walkMins = route.walkToStation || 0;
           const platformArrivalMins = (baseMins - route.totalTime + walkMins + 24 * 60) % (24 * 60);
-          console.log(`🚇 GTFS lookup: stopId=${firstStopId}, line=${firstLine}, baseMins=${baseMins}, totalTime=${route.totalTime}, walkMins=${walkMins}, platformArrivalMins=${platformArrivalMins}`);
           const gtfsDepartures = getScheduledDepartures(firstStopId, firstLine, platformArrivalMins, 3);
-          console.log(`🚇 GTFS departures: ${gtfsDepartures ? gtfsDepartures.join(', ') : 'null'}`);
           if (gtfsDepartures && gtfsDepartures.length > 0) {
             // GTFS minutes are NYC local time (minutes from midnight)
             // Convert to UTC by finding midnight NYC time, then adding minutes
