@@ -669,23 +669,28 @@ async function displaySubwayRoutes(routes, mic, walkOption = null, schedule = nu
 
         // Priority 1: Use backend's scheduledDepartureTimes (trains before deadline for on-time arrival)
         if (route.scheduledDepartureTimes && route.scheduledDepartureTimes.length > 0) {
-            // Filter to only trains the user can catch after walking to station
             const now = new Date();
+
+            // First filter: remove trains that have already left (based on current time + walk)
             const walkBuffer = walkToStation <= 3 ? walkToStation : (walkToStation - 2);
-            const earliestCatchable = new Date(now.getTime() + walkBuffer * 60000);
+            const earliestCatchableNow = new Date(now.getTime() + walkBuffer * 60000);
             const trainDepartures = route.scheduledDepartureTimes
-                .filter(iso => new Date(iso) >= earliestCatchable);
+                .filter(iso => new Date(iso) >= earliestCatchableNow);
+
             if (trainDepartures.length === 0) continue; // no catchable trains on this route
-            // Use the LAST train (latest that arrives on time) for departure/arrival display
-            const bestTrain = new Date(trainDepartures[trainDepartures.length - 1]);
-            let departure = new Date(bestTrain.getTime() - walkToStation * 60000);
+
+            // Use FIRST catchable train for departure time (earliest the user can leave)
+            const firstTrain = new Date(trainDepartures[0]);
+            let departure = new Date(firstTrain.getTime() - walkToStation * 60000);
 
             // Don't show departure times in the past - use "now" if needed
             if (departure < now) {
                 departure = now;
             }
 
-            const arrival = new Date(bestTrain.getTime() + (rideTime + walkFromStation) * 60000);
+            // Use LAST train for arrival calculation (latest arrival on time)
+            const lastTrain = new Date(trainDepartures[trainDepartures.length - 1]);
+            const arrival = new Date(lastTrain.getTime() + (rideTime + walkFromStation) * 60000);
 
             displayTimeRange = `${formatT(departure)} - ${formatT(arrival)}`;
             displayDuration = Math.round((arrival - departure) / 60000);
