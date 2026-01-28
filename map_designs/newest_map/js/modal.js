@@ -2,6 +2,68 @@
    MODAL - Updated for 12_11_25_venue_card.html design
    ================================================================= */
 
+// Swipe-to-dismiss functionality for mobile
+function setupModalSwipeToDismiss() {
+    const card = document.querySelector('.venue-card');
+    if (!card) return;
+
+    let startY = 0;
+    let currentY = 0;
+    let isDragging = false;
+
+    function isMobile() {
+        return window.matchMedia('(max-width: 639px)').matches;
+    }
+
+    card.addEventListener('touchstart', (e) => {
+        if (!isMobile()) return;
+        // Only start if at top of scroll
+        if (card.scrollTop > 0) return;
+        startY = e.touches[0].clientY;
+        currentY = startY;
+        isDragging = true;
+        card.style.transition = 'none';
+    }, { passive: true });
+
+    card.addEventListener('touchmove', (e) => {
+        if (!isDragging || !isMobile()) return;
+        currentY = e.touches[0].clientY;
+        const deltaY = currentY - startY;
+
+        // Only allow dragging down
+        if (deltaY > 0) {
+            const dampedDelta = deltaY * 0.6; // Resistance
+            card.style.transform = `scale(1) translateY(${dampedDelta}px)`;
+            card.style.opacity = 1 - (deltaY / 400);
+        }
+    }, { passive: true });
+
+    card.addEventListener('touchend', () => {
+        if (!isDragging || !isMobile()) return;
+        isDragging = false;
+
+        const deltaY = currentY - startY;
+        card.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+
+        // If dragged more than 100px down, dismiss
+        if (deltaY > 100) {
+            card.style.transform = `scale(0.9) translateY(100px)`;
+            card.style.opacity = 0;
+            setTimeout(() => {
+                closeVenueModal();
+                // Reset card styles after close
+                card.style.transform = '';
+                card.style.opacity = '';
+                card.style.transition = '';
+            }, 200);
+        } else {
+            // Snap back
+            card.style.transform = 'scale(1) translateY(0)';
+            card.style.opacity = 1;
+        }
+    }, { passive: true });
+}
+
 // DOM element references (initialized after DOM loads)
 let venueModal, modalVenueName, modalAddress, modalDirections;
 let modalMicTime, modalInfoRow, modalInstructions, modalActions, modalSignupBtn, modalIgBtn;
@@ -41,6 +103,9 @@ function initModal() {
             closeVenueModal();
         }
     });
+
+    // Swipe-to-dismiss on mobile
+    setupModalSwipeToDismiss();
 
     // Event delegation for alert triggers (avoids inline onclick XSS)
     document.addEventListener('click', (e) => {
@@ -499,8 +564,16 @@ function formatTimeRange(durationMins, route = null, mic = null) {
     // Calculate based on mic start time (for walking or when route lacks scheduled times)
     if (mic?.start instanceof Date) {
         const mins = (typeof durationMins === 'number' && !isNaN(durationMins)) ? durationMins : 15;
+        const now = new Date();
         const targetArrival = new Date(mic.start.getTime() - 15 * 60000); // Arrive 15 min early
-        const departure = new Date(targetArrival.getTime() - mins * 60000);
+        let departure = new Date(targetArrival.getTime() - mins * 60000);
+
+        // Don't show departure times in the past - use "now" and recalculate arrival
+        if (departure < now) {
+            departure = now;
+            const arrival = new Date(now.getTime() + mins * 60000);
+            return `${formatTime(departure)} - ${formatTime(arrival)}`;
+        }
         return `${formatTime(departure)} - ${formatTime(targetArrival)}`;
     }
 
@@ -696,11 +769,13 @@ async function displaySubwayRoutes(routes, mic, walkOption = null, schedule = nu
             displayDuration = Math.round((arrival - departure) / 60000);
             depTimesStr = trainDepartures.map(iso => formatT(new Date(iso))).join(', ');
         }
-        // Priority 2: < 30 min to mic - use real-time MTA
+        // Priority 2: Need to leave within 30 min - use real-time MTA
+        // Departure = mic start - 15 min early - transit time
         else if (firstLine && originStationId && mic?.start instanceof Date) {
-            const minsToMic = (mic.start - Date.now()) / 60000;
+            const departureTime = mic.start.getTime() - 15 * 60000 - adjustedTotalTime * 60000;
+            const minsToDepart = (departureTime - Date.now()) / 60000;
 
-            if (minsToMic <= 30) {
+            if (minsToDepart <= 30) {
                 try {
                     const [arrivalsN, arrivalsS] = await Promise.all([
                         mtaService.fetchArrivals(firstLine, originStationId + 'N').catch(() => []),
@@ -796,8 +871,25 @@ async function loadModalArrivals(mic) {
         return;
     }
 
-    // Show loading state
-    modalTransit.innerHTML = '<div class="loading-card">Loading transit info...</div>';
+    // Show skeleton loading state
+    modalTransit.innerHTML = `
+        <div class="transit-skeleton">
+            <div class="skeleton-card">
+                <div class="skeleton-row">
+                    <div class="skeleton-line medium"></div>
+                    <div class="skeleton-line short"></div>
+                </div>
+                <div class="skeleton-row">
+                    <div class="skeleton-badges">
+                        <div class="skeleton-badge"></div>
+                        <div class="skeleton-badge"></div>
+                    </div>
+                </div>
+                <div class="skeleton-row">
+                    <div class="skeleton-line long"></div>
+                </div>
+            </div>
+        </div>`;
 
     const originLat = STATE.userOrigin.lat;
     const originLng = STATE.userOrigin.lng;
