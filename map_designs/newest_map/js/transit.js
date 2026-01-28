@@ -60,12 +60,18 @@ const transitService = {
             let url = `${CONFIG.apiBase}/api/subway/routes?userLat=${userLat}&userLng=${userLng}&venueLat=${venueLat}&venueLng=${venueLng}`;
 
             // Add target arrival time for schedule-based calculation
-            // Only use schedule-based if mic hasn't started yet
-            if (mic?.start instanceof Date && mic.start.getTime() > Date.now()) {
-                const target = new Date(mic.start.getTime() - 15 * 60000); // 15 min buffer
-                url += `&targetArrival=${encodeURIComponent(target.toISOString())}`;
+            // Target = mic start - 15 min (arrive 15 min early)
+            // Use GTFS only if target is > 30 min away (MTA real-time only shows ~30 min)
+            if (mic?.start instanceof Date) {
+                const target = new Date(mic.start.getTime() - 15 * 60000);
+                const minsToTarget = (target.getTime() - Date.now()) / 60000;
+
+                if (minsToTarget > 30) {
+                    // Target is far enough out - use GTFS schedule
+                    url += `&targetArrival=${encodeURIComponent(target.toISOString())}`;
+                }
+                // Otherwise: target is within 30 min or past - backend uses real-time MTA
             }
-            // If mic already started, don't pass targetArrival - backend will use real-time
 
             // 15-second timeout for Dijkstra calculation (production can be slower)
             const controller = new AbortController();
