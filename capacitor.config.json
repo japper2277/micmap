@@ -1,6 +1,6 @@
 {
   "appId": "com.comedynyc.app",
-  "appName": "ComedyNYC",
+  "appName": "MicFinder",
   "webDir": "map_designs/newest_map",
   "ios": {
     "contentInset": "automatic",
