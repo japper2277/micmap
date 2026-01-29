@@ -28,7 +28,7 @@ async function fetchWithRetry(url, options = {}, retries = 2) {
             const isNetworkError = error.message.includes('Failed to fetch') ||
                                    error.message.includes('NetworkError');
 
-            console.warn(`Fetch attempt ${i + 1}/${retries + 1} failed:`, error.message);
+            // Retry silently - user will see final error if all attempts fail
 
             if (isLastAttempt) {
                 if (isTimeout) {
@@ -57,19 +57,25 @@ function isOnline() {
 // Announce message to screen readers
 function announceToScreenReader(message, priority = 'polite') {
     const announcer = document.getElementById('sr-announcer');
-    if (!announcer) {
-        console.warn('Screen reader announcer element not found');
-        return;
-    }
+    if (!announcer) return;
 
-    // Set priority (polite or assertive)
+    // Set priority and atomic for reliable announcement
     announcer.setAttribute('aria-live', priority);
+    announcer.setAttribute('aria-atomic', 'true');
 
-    // Clear and set message (triggers announcement)
-    announcer.textContent = '';
-    setTimeout(() => {
-        announcer.textContent = message;
-    }, 50);
+    // Use a more reliable announcement pattern:
+    // 1. Temporarily hide from accessibility tree
+    // 2. Update content
+    // 3. Re-expose to trigger announcement
+    announcer.setAttribute('aria-hidden', 'true');
+    announcer.textContent = message;
+
+    // Use requestAnimationFrame for smoother timing
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            announcer.removeAttribute('aria-hidden');
+        });
+    });
 }
 
 // Focus management helper
@@ -94,9 +100,23 @@ function trapFocus(container) {
 }
 
 // --- UI HELPERS ---
+let toastTimeout = null;
+
 function showToast(msg, type = 'info') {
     const t = document.getElementById('toast');
-    t.textContent = msg;
+
+    // Clear any existing timeout
+    if (toastTimeout) {
+        clearTimeout(toastTimeout);
+        toastTimeout = null;
+    }
+
+    // Build toast content with dismiss button
+    t.innerHTML = `
+        <span class="toast-message">${escapeHtml(msg)}</span>
+        <button class="toast-dismiss" onclick="dismissToast()" aria-label="Dismiss notification">&times;</button>
+    `;
+
     t.classList.remove('toast-success', 'toast-error');
 
     // Set appropriate aria-live based on type for accessibility
@@ -108,8 +128,18 @@ function showToast(msg, type = 'info') {
     if (type === 'error') t.classList.add('toast-error');
     t.classList.add('show');
 
-    // Clear after delay
-    setTimeout(() => t.classList.remove('show'), 3000);
+    // Auto-dismiss after delay (longer for errors)
+    const delay = type === 'error' ? 5000 : 3000;
+    toastTimeout = setTimeout(() => dismissToast(), delay);
+}
+
+function dismissToast() {
+    const t = document.getElementById('toast');
+    t.classList.remove('show');
+    if (toastTimeout) {
+        clearTimeout(toastTimeout);
+        toastTimeout = null;
+    }
 }
 
 // Haptic feedback for button interactions (mobile)
@@ -209,6 +239,21 @@ function isFree(mic) {
 function escapeHtml(str) {
     if (!str) return '';
     return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// Highlight matching text in a string (XSS-safe)
+function highlightMatch(text, query, className = 'font-bold') {
+    if (!query || !text) return escapeHtml(text);
+    const escaped = escapeHtml(text);
+    const q = query.toLowerCase();
+    const idx = text.toLowerCase().indexOf(q);
+    if (idx < 0) return escaped;
+
+    // Find the actual position in escaped string (may differ due to entity encoding)
+    const before = escapeHtml(text.slice(0, idx));
+    const match = escapeHtml(text.slice(idx, idx + query.length));
+    const after = escapeHtml(text.slice(idx + query.length));
+    return `${before}<strong class="${className}">${match}</strong>${after}`;
 }
 
 // Debounce function
@@ -347,11 +392,7 @@ function validateTimeInputs() {
     const startMins = hours * 60 + mins;
     const durationMins = parseInt(durationSelect?.value || '180');
 
-    // Validate reasonable start time (not too early)
-    if (startMins < 720 && startMins > 180) { // Between 3am and 12pm
-        // Just a warning, don't block
-        console.log('Early start time selected:', startTime);
-    }
+    // Note: Early start times (3am-12pm) are allowed but unusual
 
     // Validate end time doesn't go too far into next day
     const endMins = durationMins === 999 ? 1439 : startMins + durationMins;
@@ -476,16 +517,37 @@ function resetFiltersAndRetry() {
     if (btn) btn.focus();
 }
 
-// Try searching for the next day
+// Try searching for the next day that has mics
 function tryDifferentDay() {
     haptic('medium');
 
     const daySelect = document.getElementById('day-select');
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const currentIndex = days.indexOf(daySelect.value);
-    const nextIndex = (currentIndex + 1) % 7;
 
-    daySelect.value = days[nextIndex];
+    // Find next day that has mics (check up to 7 days)
+    let nextDay = null;
+    let nextDayMicCount = 0;
+    for (let offset = 1; offset <= 7; offset++) {
+        const checkIndex = (currentIndex + offset) % 7;
+        const checkDay = days[checkIndex];
+        const micCount = typeof allMics !== 'undefined'
+            ? allMics.filter(m => m.day === checkDay).length
+            : 0;
+
+        if (micCount > 0) {
+            nextDay = checkDay;
+            nextDayMicCount = micCount;
+            break;
+        }
+    }
+
+    // Fall back to next calendar day if no mics found on any day
+    if (!nextDay) {
+        nextDay = days[(currentIndex + 1) % 7];
+    }
+
+    daySelect.value = nextDay;
 
     // Hide no-results
     document.getElementById('no-results').classList.add('hidden');
@@ -493,7 +555,11 @@ function tryDifferentDay() {
     // Update anchor options for new day
     if (typeof updateAnchorOptions === 'function') updateAnchorOptions();
 
-    showToast(`Switched to ${days[nextIndex]}`, 'info');
+    if (nextDayMicCount > 0) {
+        showToast(`Switched to ${nextDay} (${nextDayMicCount} mics)`, 'success');
+    } else {
+        showToast(`Switched to ${nextDay}`, 'info');
+    }
 
     // Auto-trigger search
     planMyNight();

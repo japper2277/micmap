@@ -87,16 +87,8 @@ function renderAnchorResults(query) {
         const price = costStr && costStr.toLowerCase() !== 'free' ? costStr : '';
         const meta = [time, hood, price].filter(Boolean).join(' · ');
 
-        // Highlight matching text in name
-        let displayName = escapeHtml(name);
-        if (q) {
-            const idx = name.toLowerCase().indexOf(q);
-            if (idx >= 0) {
-                displayName = escapeHtml(name.slice(0, idx)) +
-                    '<span class="match-highlight">' + escapeHtml(name.slice(idx, idx + q.length)) + '</span>' +
-                    escapeHtml(name.slice(idx + q.length));
-            }
-        }
+        // Highlight matching text in name (uses shared highlightMatch from utils.js)
+        const displayName = highlightMatch(name, q, 'match-highlight');
 
         // Determine which role buttons are selected for this mic
         const isStart = startId === mic.id;
@@ -231,9 +223,10 @@ function setupAnchorDropdown() {
             }, 200);
         });
 
-        // Search as you type
+        // Search as you type (debounced for performance)
+        const debouncedRender = debounce((value) => renderAnchorResults(value), 100);
         searchInput.addEventListener('input', (e) => {
-            renderAnchorResults(e.target.value);
+            debouncedRender(e.target.value);
             // Show/hide clear button
             if (clearBtn) {
                 clearBtn.classList.toggle('visible', e.target.value.length > 0);

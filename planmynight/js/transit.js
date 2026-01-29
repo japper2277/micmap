@@ -96,13 +96,7 @@ function focusOriginSearch() {
     }
 }
 
-// Screen reader announcement helper
-function announceToScreenReader(message) {
-    const announcer = document.getElementById('sr-announcer');
-    if (announcer) {
-        announcer.textContent = message;
-    }
-}
+// Note: announceToScreenReader() is defined in utils.js
 
 // --- FETCH SUBWAY ROUTE DETAILS ---
 async function fetchSubwayRoute(fromLat, fromLng, toLat, toLng) {
@@ -113,7 +107,7 @@ async function fetchSubwayRoute(fromLat, fromLng, toLat, toLng) {
         const data = await res.json();
         return data.routes && data.routes.length > 0 ? data.routes[0] : null;
     } catch (e) {
-        console.warn('Subway route fetch error:', e);
+        // API error - return null to trigger fallback estimate
         return null;
     }
 }
@@ -146,7 +140,7 @@ async function getTransitTime(fromLat, fromLng, toLat, toLng) {
             };
         }
     } catch (e) {
-        console.warn('Transit API failed, using fallback estimate:', e);
+        // API failed - will use fallback estimate below
     }
 
     // Fallback: estimate based on distance
@@ -174,7 +168,7 @@ async function fetchMTAArrivals(line, stopId) {
         const data = await res.json();
         return data.arrivals || [];
     } catch (e) {
-        console.warn('MTA arrivals fetch error:', e);
+        // API error - return empty array
         return [];
     }
 }
@@ -188,7 +182,7 @@ async function fetchMTAAlerts() {
         const data = await res.json();
         return data || [];
     } catch (e) {
-        console.warn('MTA alerts fetch error:', e);
+        // API error - return empty array
         return [];
     }
 }
@@ -250,7 +244,6 @@ async function showLiveArrivals(line, stopId, legId) {
         container.innerHTML = times;
     } catch (e) {
         container.innerHTML = '<span class="text-red-400">Unable to fetch arrivals</span>';
-        console.error('Arrivals error:', e);
     }
 }
 

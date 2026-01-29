@@ -89,8 +89,8 @@ async function shareRoute() {
         `);
         showToast('Route shared!');
     } catch (err) {
+        // User cancelled or share failed - fall back to clipboard
         if (err.name !== 'AbortError') {
-            console.error('Share failed:', err);
             copyRouteToClipboard();
         }
     }
@@ -167,7 +167,13 @@ function saveRoute() {
     }
 
     try {
-        const saved = JSON.parse(localStorage.getItem('savedRoutes') || '[]');
+        let saved = [];
+        try {
+            saved = JSON.parse(localStorage.getItem('savedRoutes') || '[]');
+        } catch (parseErr) {
+            // Corrupted data - start fresh
+            saved = [];
+        }
 
         const routeToSave = {
             id: Date.now(),
@@ -187,11 +193,31 @@ function saveRoute() {
 
         saved.push(routeToSave);
 
+        // Keep only last 10 routes
         if (saved.length > 10) {
             saved.shift();
         }
 
-        localStorage.setItem('savedRoutes', JSON.stringify(saved));
+        // Try to save, handle quota exceeded
+        try {
+            localStorage.setItem('savedRoutes', JSON.stringify(saved));
+        } catch (quotaErr) {
+            // Storage quota exceeded - remove oldest routes and retry
+            while (saved.length > 1) {
+                saved.shift();
+                try {
+                    localStorage.setItem('savedRoutes', JSON.stringify(saved));
+                    break;
+                } catch (e) {
+                    // Keep removing until it fits
+                }
+            }
+            if (saved.length === 1) {
+                // Last resort - clear and save just this one
+                localStorage.removeItem('savedRoutes');
+                localStorage.setItem('savedRoutes', JSON.stringify(saved));
+            }
+        }
 
         // Show success animation on button
         const saveBtn = document.querySelector('button[onclick="saveRoute()"]');
@@ -202,7 +228,6 @@ function saveRoute() {
         showToast('Route saved to history!');
 
     } catch (err) {
-        console.error('Save failed:', err);
-        showToast('Could not save route');
+        showToast('Could not save route. Storage may be full.');
     }
 }

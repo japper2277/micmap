@@ -97,15 +97,9 @@ async function loadMics() {
             throw new Error('No mic data received from server');
         }
 
-        // Debug: log first mic's cost
-        if (data.mics[0]) {
-            console.log('Sample mic from API:', data.mics[0].name, 'cost:', data.mics[0].cost);
-        }
-
         return processMics(data.mics);
 
     } catch (error) {
-        console.error('Failed to load mics:', error);
         // Re-throw with user-friendly message
         throw new Error(error.message || 'Failed to load mic data. Please try again.');
     }
@@ -137,11 +131,9 @@ async function loadSubwayStations() {
             };
         });
 
-        console.log('Loaded', stations.length, 'subway stations');
         return stations;
 
     } catch (error) {
-        console.warn('Failed to load subway stations:', error.message);
         // Stations are optional - return empty array on failure
         return [];
     }

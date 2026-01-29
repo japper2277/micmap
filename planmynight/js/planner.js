@@ -1,6 +1,25 @@
 // Plan My Night - Main Planning Algorithm
 
+// Abort controller for cancelling in-progress planning
+let planningAbortController = null;
+
+// Cancel any in-progress planning
+function cancelPlanning() {
+    if (planningAbortController) {
+        planningAbortController.abort();
+        planningAbortController = null;
+        showToast('Planning cancelled', 'info');
+    }
+}
+
 async function planMyNight() {
+    // Cancel any in-progress planning
+    if (planningAbortController) {
+        planningAbortController.abort();
+    }
+    planningAbortController = new AbortController();
+    const signal = planningAbortController.signal;
+
     haptic('medium');
 
     // Validate origin is selected
@@ -152,6 +171,11 @@ async function planMyNight() {
         // Batch fetch transit times from origin to all eligible mics
         const BATCH_SIZE = 10;
         for (let i = 0; i < eligible.length; i += BATCH_SIZE) {
+            // Check if cancelled
+            if (signal.aborted) {
+                throw new DOMException('Planning was cancelled', 'AbortError');
+            }
+
             const batch = eligible.slice(i, i + BATCH_SIZE);
 
             await Promise.all(batch.map(async (mic) => {
@@ -175,7 +199,7 @@ async function planMyNight() {
                         return;
                     }
                 } catch (e) {
-                    console.warn('Transit fetch failed for', mic.venueName || mic.venue);
+                    // API failed - will use fallback estimate
                 }
 
                 // Fallback estimate only on API failure
@@ -232,9 +256,18 @@ async function planMyNight() {
         // Helper: Get transit time between two points
         // Uses cache, then API, then falls back to estimate
         const transitCache = {};
+        const CACHE_MAX_SIZE = 100; // Prevent memory bloat
+
         async function getTransitTime(fromLat, fromLng, toLat, toLng) {
             const cacheKey = `${fromLat.toFixed(3)},${fromLng.toFixed(3)}|${toLat.toFixed(3)},${toLng.toFixed(3)}`;
             if (transitCache[cacheKey]) return transitCache[cacheKey];
+
+            // Limit cache size to prevent memory issues
+            const cacheKeys = Object.keys(transitCache);
+            if (cacheKeys.length >= CACHE_MAX_SIZE) {
+                // Remove oldest entries (first 20%)
+                cacheKeys.slice(0, Math.floor(CACHE_MAX_SIZE * 0.2)).forEach(k => delete transitCache[k]);
+            }
 
             const distance = haversine(fromLat, fromLng, toLat, toLng);
 
@@ -258,7 +291,7 @@ async function planMyNight() {
                     return result;
                 }
             } catch (e) {
-                console.warn('Transit API failed, using estimate');
+                // API failed - using estimate
             }
 
             // Fallback: smarter estimate (5 min overhead + ~20mph transit)
@@ -419,14 +452,22 @@ async function planMyNight() {
         }
 
     } catch (e) {
-        console.error(e);
-        // Show user-friendly error message
-        const userMessage = e.message && e.message.length < 200
-            ? e.message
-            : "Something went wrong while planning your route. Try adjusting your filters or refreshing the page.";
+        // Show user-friendly error message with helpful suggestions
+        let userMessage = "Something went wrong. ";
+        if (e.message && e.message.length < 200) {
+            userMessage = e.message;
+        } else if (e.name === 'AbortError') {
+            userMessage = "Request was cancelled. Try again.";
+        } else if (e.message?.includes('network') || e.message?.includes('fetch')) {
+            userMessage = "Network error. Check your connection and try again.";
+        } else {
+            userMessage = "Unable to plan route. Try different filters or refresh the page.";
+        }
         showToast(userMessage, 'error');
+        haptic('error');
     } finally {
         document.getElementById('loading').classList.add('hidden');
         resetButtons();
+        planningAbortController = null;
     }
 }

@@ -152,53 +152,8 @@ function initBoroughChips() {
     });
 }
 
-// --- NO RESULTS RECOVERY ACTIONS ---
-function resetFiltersAndRetry() {
-    haptic('medium');
-    // Reset all filter pills to "All"
-    document.querySelectorAll('.radio-pills').forEach(group => {
-        const allPill = group.querySelector('[data-value="all"], [data-value="All"]') ||
-            group.querySelector('.radio-pill:first-child');
-        if (allPill) {
-            group.querySelectorAll('.radio-pill').forEach(p => p.classList.remove('active'));
-            allPill.classList.add('active');
-        }
-    });
-
-    // Clear borough selections
-    selectedAreas.clear();
-    expandedBorough = null;
-    document.querySelectorAll('.borough-chip').forEach(c => c.classList.remove('selected', 'expanded'));
-    document.getElementById('neighborhood-row').classList.add('hidden');
-
-    // Hide no results
-    document.getElementById('no-results').classList.add('hidden');
-
-    showToast('Filters reset! Try searching again', 'success');
-}
-
-function tryDifferentDay() {
-    haptic('light');
-    const daySelect = document.getElementById('day-select');
-    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const currentDay = daySelect.value;
-    const currentIndex = days.indexOf(currentDay);
-    const nextIndex = (currentIndex + 1) % 7;
-
-    daySelect.value = days[nextIndex];
-
-    // Hide no results
-    document.getElementById('no-results').classList.add('hidden');
-
-    showToast(`Switched to ${days[nextIndex]}`, 'success');
-
-    // Auto-trigger search if origin is set
-    if (selectedOrigin) {
-        document.getElementById('find-btn')?.click();
-    }
-}
-
 // --- FILTER COUNT BADGE ---
+// Note: resetFiltersAndRetry() and tryDifferentDay() are defined in utils.js
 function updateFilterCountBadge() {
     let count = 0;
 

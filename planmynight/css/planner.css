@@ -1958,6 +1958,29 @@ details[open] summary {
 .skeleton-connector:nth-child(2) { animation-delay: 50ms; }
 .skeleton-connector:nth-child(4) { animation-delay: 150ms; }
 
+/* --- FOCUS VISIBLE STYLES --- */
+/* Universal focus-visible styles for keyboard navigation */
+:focus-visible {
+    outline: 2px solid var(--rose);
+    outline-offset: 2px;
+}
+
+/* Suppress outline for mouse users */
+:focus:not(:focus-visible) {
+    outline: none;
+}
+
+/* Specific element focus states */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+[tabindex]:focus-visible {
+    outline: 2px solid var(--rose);
+    outline-offset: 2px;
+    box-shadow: var(--focus-ring);
+}
+
 /* Toast */
 .toast {
     position: fixed;
@@ -1990,6 +2013,29 @@ details[open] summary {
 .toast.toast-error {
     background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%);
     border-color: #ef4444;
+}
+
+/* Toast dismiss button */
+.toast-dismiss {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    padding: 0 0 0 12px;
+    margin-left: 8px;
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+    transition: color 0.15s ease;
+}
+
+.toast-dismiss:hover {
+    color: white;
+}
+
+/* Toast with dismiss button layout */
+.toast.show {
+    display: flex;
+    align-items: center;
 }
 
 /* --- MOBILE RESPONSIVE --- */

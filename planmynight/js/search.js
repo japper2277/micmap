@@ -89,7 +89,7 @@ function saveRecentSearch(item) {
         recents = recents.slice(0, 5);
         localStorage.setItem('recentSearches', JSON.stringify(recents));
     } catch (e) {
-        console.warn('Failed to save recent search:', e);
+        // localStorage may be full or unavailable - fail silently
     }
 }
 
@@ -102,12 +102,7 @@ function getRecentSearches() {
     }
 }
 
-// Highlight matched text
-function highlightMatch(text, query) {
-    if (!query) return text;
-    const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-    return text.replace(regex, '<strong class="font-bold">$1</strong>');
-}
+// Note: highlightMatch() is defined in utils.js
 
 // Render single search item
 function renderSearchItem(item, index) {
@@ -239,7 +234,7 @@ function initSearch() {
         }
 
         if (!fuse) {
-            console.warn('Search index not ready');
+            // Search index not ready yet - wait for data load
             return;
         }
 

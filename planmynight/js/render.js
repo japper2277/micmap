@@ -1,8 +1,36 @@
 // Plan My Night - Results Rendering
 
+// Cache DOM elements for performance
+const DOM = {
+    timeline: null,
+    summary: null,
+
+    init() {
+        this.timeline = document.getElementById('timeline');
+        this.summary = document.getElementById('summary');
+    },
+
+    getTimeline() {
+        if (!this.timeline) this.timeline = document.getElementById('timeline');
+        return this.timeline;
+    },
+
+    getSummary() {
+        if (!this.summary) this.summary = document.getElementById('summary');
+        return this.summary;
+    }
+};
+
+// Initialize DOM cache when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => DOM.init());
+} else {
+    DOM.init();
+}
+
 // Show skeleton loading state for timeline
 function showTimelineSkeleton(count = 3) {
-    const tl = document.getElementById('timeline');
+    const tl = DOM.getTimeline();
     if (!tl) return;
 
     let skeletonHtml = `
@@ -80,24 +108,27 @@ async function renderResults(sequence, origin, timePerVenue = 60) {
     const totalVenueTime = sequence.length * timePerVenue;
     const totalTripMins = totalTransitMins + totalVenueTime;
 
-    // Calculate total distance
+    // Calculate total distance (with coordinate validation)
     let totalDistanceMiles = 0;
     let prevLat = origin.lat;
     let prevLng = origin.lng;
-    sequence.forEach(entry => {
-        if (entry.mic.lat && entry.mic.lng) {
-            totalDistanceMiles += haversine(prevLat, prevLng, entry.mic.lat, entry.mic.lng);
-            prevLat = entry.mic.lat;
-            prevLng = entry.mic.lng;
-        }
-    });
+    if (prevLat && prevLng) {
+        sequence.forEach(entry => {
+            const mic = entry.mic;
+            if (mic && typeof mic.lat === 'number' && typeof mic.lng === 'number') {
+                totalDistanceMiles += haversine(prevLat, prevLng, mic.lat, mic.lng);
+                prevLat = mic.lat;
+                prevLng = mic.lng;
+            }
+        });
+    }
 
     // Calculate end time
     const firstMicStartMins = sequence[0]?.mic.startMins || 0;
     const endMins = firstMicStartMins + totalTripMins;
     const endTime = minsToTime(endMins);
 
-    const tl = document.getElementById('timeline');
+    const tl = DOM.getTimeline();
 
     // Fetch MTA alerts
     const mtaAlerts = await fetchMTAAlerts();
@@ -352,6 +383,6 @@ async function renderResults(sequence, origin, timePerVenue = 60) {
     tl.innerHTML = html;
 
     // Update summary
-    const summary = document.getElementById('summary');
-    summary.textContent = `${sequence.length} stop${sequence.length > 1 ? 's' : ''}`;
+    const summary = DOM.getSummary();
+    if (summary) summary.textContent = `${sequence.length} stop${sequence.length > 1 ? 's' : ''}`;
 }

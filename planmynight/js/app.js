@@ -35,7 +35,6 @@ async function initializeData() {
         syncGlobalsToState();
     }
 
-    console.log('Data loaded:', allMics.length, 'mics,', stationsData.length, 'stations');
 }
 
 // Update loading overlay message
@@ -108,10 +107,7 @@ async function init() {
         // 4. Hide loading overlay
         hideLoadingOverlay();
 
-        console.log('Plan My Night initialized');
-
     } catch (error) {
-        console.error('Initialization failed:', error);
         showLoadingError(error.message || 'Unable to connect to server');
     }
 }
