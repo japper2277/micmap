@@ -265,16 +265,15 @@ function renderActiveFilterChips() {
         });
     }
 
-    // Time range - use consistent 12h format
+    // Time range - show start to end
     const startTimeEl = document.getElementById('start-time');
-    const durationEl = document.getElementById('duration-select');
-    if (startTimeEl && startTimeEl.value) {
+    const endTimeEl = document.getElementById('end-time-select');
+    if (startTimeEl && startTimeEl.value && endTimeEl && endTimeEl.value) {
         const startTime = formatTimeInput(startTimeEl.value);
-        const duration = durationEl?.value;
-        const durationLabel = duration === '999' ? 'All Night' : `${parseInt(duration) / 60}h`;
+        const endTime = formatTimeInput(endTimeEl.value);
         chips.push({
             id: 'time',
-            label: `${startTime} · ${durationLabel}`,
+            label: `${startTime} - ${endTime}`,
             removable: false,
             icon: '🕐'
         });
@@ -440,18 +439,6 @@ function clearAllFilters() {
     // Reset time per venue to "60"
     const timeDefault = document.querySelector('input[name="time-per-venue"][value="60"]');
     if (timeDefault) timeDefault.click();
-
-    // Reset max walk to "10"
-    const maxWalkDefault = document.querySelector('input[name="max-walk"][value="10"]');
-    if (maxWalkDefault) maxWalkDefault.click();
-
-    // Reset transit accuracy to allow estimates
-    const accuracyDefault = document.querySelector('input[name="transit-accuracy"][value="allow_estimates"]');
-    if (accuracyDefault) accuracyDefault.click();
-
-    // Reset alternatives per stop to 2
-    const altsDefault = document.querySelector('input[name="alts-per-stop"][value="2"]');
-    if (altsDefault) altsDefault.click();
 
     // Collapse expanded state
     CHIP_CONFIG.expandedState = false;

@@ -372,30 +372,30 @@ function showAreaSuggestion(text) {
     }
 }
 
-// --- END TIME PREVIEW ---
-function updateEndTimePreview() {
-    const startTime = document.getElementById('start-time').value;
-    const durationMins = parseInt(document.getElementById('duration-select').value);
-    if (!startTime || !durationMins) return;
+// --- DURATION CALCULATION ---
+// Calculate duration in minutes from start and end time inputs
+function getDurationMins() {
+    const startTime = document.getElementById('start-time')?.value || '19:00';
+    const endTime = document.getElementById('end-time-select')?.value || '22:00';
 
-    const [hours, mins] = startTime.split(':').map(Number);
-    const startTotalMins = hours * 60 + mins;
-    const endMins = durationMins === 999 ? 1439 : startTotalMins + durationMins;
+    const [startH, startM] = startTime.split(':').map(Number);
+    const [endH, endM] = endTime.split(':').map(Number);
 
-    const endHours = Math.floor(endMins / 60) % 24;
-    const endMinutes = endMins % 60;
-    const period = endHours >= 12 ? 'PM' : 'AM';
-    const displayHours = endHours === 0 ? 12 : endHours > 12 ? endHours - 12 : endHours;
+    let startMins = startH * 60 + startM;
+    let endMins = endH * 60 + endM;
 
-    const endTimeStr = durationMins === 999 ? 'Late night / next day' : `Ends ~${displayHours}:${String(endMinutes).padStart(2, '0')} ${period}`;
-    const preview = document.getElementById('end-time-preview');
-    if (preview) preview.textContent = endTimeStr;
+    // Handle crossing midnight (e.g., 10pm to 1am)
+    if (endMins <= startMins) {
+        endMins += 24 * 60;
+    }
+
+    return endMins - startMins;
 }
 
 // --- INPUT VALIDATION ---
 function validateTimeInputs() {
     const startTimeInput = document.getElementById('start-time');
-    const durationSelect = document.getElementById('duration-select');
+    const endTimeSelect = document.getElementById('end-time-select');
 
     if (!startTimeInput || !startTimeInput.value) {
         startTimeInput?.classList.add('error-shake');
@@ -403,19 +403,22 @@ function validateTimeInputs() {
         return { valid: false, message: 'Please select a start time' };
     }
 
-    const startTime = startTimeInput.value;
-    const [hours, mins] = startTime.split(':').map(Number);
-    const startMins = hours * 60 + mins;
-    const durationMins = parseInt(durationSelect?.value || '180');
+    const [startH, startM] = startTimeInput.value.split(':').map(Number);
+    const startMins = startH * 60 + startM;
+    const durationMins = getDurationMins();
 
-    // Note: Early start times (3am-12pm) are allowed but unusual
-
-    // Validate end time doesn't go too far into next day
-    const endMins = durationMins === 999 ? 1439 : startMins + durationMins;
-    if (endMins > 1680) { // Past 4am next day
+    // Validate duration is reasonable
+    if (durationMins < 60) {
         return {
             valid: false,
-            message: 'Your route would end very late. Try a shorter duration or earlier start.'
+            message: 'Your time window is too short. Pick a later end time.'
+        };
+    }
+
+    if (durationMins > 480) { // More than 8 hours
+        return {
+            valid: false,
+            message: 'Your route would be very long. Try an earlier end time.'
         };
     }
 
@@ -533,22 +536,11 @@ function resetFiltersAndRetry() {
         });
     }
 
-    // Reset goal/stops/priority
-    document.querySelector('input[name="goal"][value="crawl"]')?.closest('.radio-pill')?.click();
-    document.querySelector('input[name="stops"][value="flexible"]')?.closest('.radio-pill')?.click();
+    // Reset priority
     document.querySelector('input[name="priority"][value="most_mics"]')?.closest('.radio-pill')?.click();
 
     // Reset time per venue
     document.querySelector('input[name="time-per-venue"][value="60"]')?.closest('.radio-pill')?.click();
-
-    // Reset max walk
-    document.querySelector('input[name="max-walk"][value="10"]')?.closest('.radio-pill')?.click();
-
-    // Reset transit accuracy
-    document.querySelector('input[name="transit-accuracy"][value="allow_estimates"]')?.closest('.radio-pill')?.click();
-
-    // Reset alternatives per stop
-    document.querySelector('input[name="alts-per-stop"][value="2"]')?.closest('.radio-pill')?.click();
 
     // Clear pinned anchors
     const anchorIds = ['anchor-start-id', 'anchor-must-id', 'anchor-end-id'];

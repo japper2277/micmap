@@ -92,7 +92,6 @@ function filterMics(mics, filters) {
         startMins,
         endMins,
         priceFilter,
-        signupFilter,
         selectedAreasArr,
         maxCommuteMins,
         origin
@@ -114,13 +113,6 @@ function filterMics(mics, filters) {
             if (typeof cost === 'string' && cost.toLowerCase() !== 'free') return false;
         }
 
-        // Signup filter
-        if (signupFilter === 'walk-in') {
-            if (m.requiresAdvanceSignup) return false;
-        } else if (signupFilter === 'advance') {
-            if (!m.requiresAdvanceSignup) return false;
-        }
-
         // Area filter
         if (selectedAreasArr && selectedAreasArr.length > 0) {
             const matchesBorough = m.borough && selectedAreasArr.includes(m.borough);
@@ -136,7 +128,7 @@ function filterMics(mics, filters) {
 function getCurrentFilterState() {
     const day = document.getElementById('day-select')?.value;
     const startTimeEl = document.getElementById('start-time');
-    const durationEl = document.getElementById('duration-select');
+    const endTimeEl = document.getElementById('end-time-select');
 
     let startMins = 0;
     let endMins = 1439;
@@ -146,13 +138,16 @@ function getCurrentFilterState() {
         startMins = parseInt(parts[0]) * 60 + parseInt(parts[1]);
     }
 
-    if (durationEl && durationEl.value) {
-        const durationMins = parseInt(durationEl.value);
-        endMins = durationMins === 999 ? 1439 : startMins + durationMins;
+    if (endTimeEl && endTimeEl.value) {
+        const parts = endTimeEl.value.split(':');
+        endMins = parseInt(parts[0]) * 60 + parseInt(parts[1]);
+        // Handle crossing midnight
+        if (endMins <= startMins) {
+            endMins += 24 * 60;
+        }
     }
 
     const priceFilter = document.querySelector('input[name="price"]:checked')?.value || 'all';
-    const signupFilter = document.querySelector('input[name="signup"]:checked')?.value || 'all';
     const selectedAreasArr = Array.from(document.querySelectorAll('.area-checkbox:checked')).map(cb => cb.value);
     const maxCommuteMins = parseInt(document.querySelector('input[name="max-commute"]:checked')?.value || '999');
 
@@ -161,7 +156,6 @@ function getCurrentFilterState() {
         startMins,
         endMins,
         priceFilter,
-        signupFilter,
         selectedAreasArr,
         maxCommuteMins,
         origin: selectedOrigin

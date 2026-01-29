@@ -47,35 +47,13 @@ async function selectRouteTab(priority) {
 window.selectRouteTab = selectRouteTab;
 
 window.recalculateWithRealTransit = () => {
-    const realOnly = document.querySelector('input[name="transit-accuracy"][value="real_only"]');
-    if (realOnly) {
-        realOnly.checked = true;
-        const pill = realOnly.closest('.radio-pill');
-        const group = pill?.closest('.radio-pills');
-        if (group) group.querySelectorAll('.radio-pill').forEach(p => p.classList.remove('active'));
-        if (pill) pill.classList.add('active');
-    }
-    showToast('Recalculating with real transit times...', 'info');
+    showToast('Recalculating route...', 'info');
     planMyNight();
 };
 
-function getStopsRangeFromUI(goal, stopsValue) {
-    if (goal === 'single') {
-        return { minMics: 1, maxMics: 1 };
-    }
-
-    switch (stopsValue) {
-        case '1':
-            return { minMics: 1, maxMics: 1 };
-        case '2-3':
-            return { minMics: 2, maxMics: 3 };
-        case '3-5':
-            return { minMics: 3, maxMics: 5 };
-        case 'flexible':
-        default:
-            // Goal is crawl, so default to multiple stops
-            return { minMics: 2, maxMics: 5 };
-    }
+function getStopsRange() {
+    // Default: flexible crawl mode (2-5 stops)
+    return { minMics: 2, maxMics: 5 };
 }
 
 function scoreCandidate({
@@ -395,32 +373,28 @@ async function planMyNight() {
         const startTime = document.getElementById('start-time').value;
         const startMins = parseInt(startTime.split(':')[0]) * 60 + parseInt(startTime.split(':')[1]);
 
-        const durationMins = parseInt(document.getElementById('duration-select').value);
-        const endMins = durationMins === 999 ? 1439 : startMins + durationMins;
+        const durationMins = getDurationMins();
+        const endMins = startMins + durationMins;
 
-        const timePerVenue = parseInt(document.querySelector('input[name="time-per-venue"]:checked').value);
-        const priceFilter = document.querySelector('input[name="price"]:checked').value;
-        const signupFilter = document.querySelector('input[name="signup"]:checked').value;
+        const timePerVenue = parseInt(document.querySelector('input[name="time-per-venue"]:checked')?.value || '60');
+        const priceFilter = document.querySelector('input[name="price"]:checked')?.value || 'all';
         const selectedAreasArr = Array.from(document.querySelectorAll('.area-checkbox:checked')).map(cb => cb.value);
-        const maxCommuteMins = parseInt(document.querySelector('input[name="max-commute"]:checked').value);
-
-        const goal = document.querySelector('input[name="goal"]:checked')?.value || 'crawl';
-        const stopsValue = document.querySelector('input[name="stops"]:checked')?.value || 'flexible';
-        const { minMics, maxMics } = getStopsRangeFromUI(goal, stopsValue);
+        const maxCommuteMins = parseInt(document.querySelector('input[name="max-commute"]:checked')?.value || '999');
 
         const priority = document.querySelector('input[name="priority"]:checked')?.value || 'most_mics';
         activeRoutePriority = priority;
         setActiveRouteTab(priority);
 
-        // Travel prefs
+        // Travel prefs (using sensible defaults)
         const walkableMiles = typeof getWalkableMilesFromUI === 'function' ? getWalkableMilesFromUI() : 0.5;
-        const accuracy = typeof getTransitAccuracyFromUI === 'function' ? getTransitAccuracyFromUI() : 'allow_estimates';
-        const requireRealOnly = accuracy === 'real_only';
+        const requireRealOnly = false; // Always allow estimates as fallback
 
-        // Alternatives
-        const altsPerStop = parseInt(document.querySelector('input[name="alts-per-stop"]:checked')?.value || '2', 10);
+        // Stops range
+        const { minMics, maxMics } = getStopsRange();
+
+        // Alternatives (default: 3)
         if (typeof PlannerState?.setAlternativesConfig === 'function') {
-            PlannerState.setAlternativesConfig({ maxResults: altsPerStop });
+            PlannerState.setAlternativesConfig({ maxResults: 3 });
         }
 
         const exactMics = null;
@@ -442,13 +416,6 @@ async function planMyNight() {
             if (priceFilter === 'free') {
                 const cost = m.cost || m.price || 0;
                 if (cost > 0) return false;
-            }
-
-            // Signup Filter
-            if (signupFilter === 'walk-in') {
-                if (m.requiresAdvanceSignup) return false;
-            } else if (signupFilter === 'advance') {
-                if (!m.requiresAdvanceSignup) return false;
             }
 
             // Area Filter

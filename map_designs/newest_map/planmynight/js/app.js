@@ -302,11 +302,11 @@ function applyMicMapSharedStateToUI(shared) {
         }
     }
 
-    if (lastFilters.duration) {
-        const durationSelect = document.getElementById('duration-select');
-        if (durationSelect) {
-            durationSelect.value = String(lastFilters.duration);
-            applied.duration = true;
+    if (lastFilters.endTime) {
+        const endTimeSelect = document.getElementById('end-time-select');
+        if (endTimeSelect) {
+            endTimeSelect.value = lastFilters.endTime;
+            applied.endTime = true;
         }
     }
 
@@ -334,17 +334,10 @@ function savePlannerPrefs() {
             lastUsedAt: Date.now(),
             day: document.getElementById('day-select')?.value,
             startTime: document.getElementById('start-time')?.value,
-            duration: document.getElementById('duration-select')?.value,
-            goal: document.querySelector('input[name="goal"]:checked')?.value,
-            stops: document.querySelector('input[name="stops"]:checked')?.value,
+            endTime: document.getElementById('end-time-select')?.value,
             priority: document.querySelector('input[name="priority"]:checked')?.value,
-            price: document.querySelector('input[name="price"]:checked')?.value,
-            signup: document.querySelector('input[name="signup"]:checked')?.value,
             maxCommute: document.querySelector('input[name="max-commute"]:checked')?.value,
             timePerVenue: document.querySelector('input[name="time-per-venue"]:checked')?.value,
-            maxWalk: document.querySelector('input[name="max-walk"]:checked')?.value,
-            transitAccuracy: document.querySelector('input[name="transit-accuracy"]:checked')?.value,
-            altsPerStop: document.querySelector('input[name="alts-per-stop"]:checked')?.value,
             areas: typeof getSelectedAreas === 'function' ? getSelectedAreas() : [],
             origin: selectedOrigin ? { lat: selectedOrigin.lat, lng: selectedOrigin.lng, name: selectedOrigin.name } : null
         };
@@ -370,7 +363,6 @@ function loadPlannerPrefs() {
             : { day: false, startTime: false, duration: false, origin: false };
 
         if (!prefs || typeof prefs !== 'object') {
-            if (typeof updateEndTimePreview === 'function') updateEndTimePreview();
             if (typeof updateFilterCountBadge === 'function') updateFilterCountBadge();
             return;
         }
@@ -387,22 +379,15 @@ function loadPlannerPrefs() {
             const startTime = document.getElementById('start-time');
             if (startTime) startTime.value = prefs.startTime;
         }
-        if (!sharedApplied.duration && isRecent && prefs.duration) {
-            const duration = document.getElementById('duration-select');
-            if (duration) duration.value = prefs.duration;
+        if (!sharedApplied.endTime && isRecent && prefs.endTime) {
+            const endTime = document.getElementById('end-time-select');
+            if (endTime) endTime.value = prefs.endTime;
         }
 
         const radioMap = [
-            ['goal', prefs.goal],
-            ['stops', prefs.stops],
             ['priority', prefs.priority],
-            ['price', prefs.price],
-            ['signup', prefs.signup],
             ['max-commute', prefs.maxCommute],
-            ['time-per-venue', prefs.timePerVenue],
-            ['max-walk', prefs.maxWalk],
-            ['transit-accuracy', prefs.transitAccuracy],
-            ['alts-per-stop', prefs.altsPerStop]
+            ['time-per-venue', prefs.timePerVenue]
         ];
 
         radioMap.forEach(([name, value]) => {
@@ -437,7 +422,6 @@ function loadPlannerPrefs() {
             if (typeof selectOriginUI === 'function') selectOriginUI(selectedOrigin);
         }
 
-        if (typeof updateEndTimePreview === 'function') updateEndTimePreview();
         if (typeof updateFilterCountBadge === 'function') updateFilterCountBadge();
     } catch (_) {
         // ignore
@@ -572,9 +556,9 @@ function setupRealTimeFilters() {
         startTime.addEventListener('input', debouncedUpdatePreview);
     }
 
-    const durationSelect = document.getElementById('duration-select');
-    if (durationSelect) {
-        durationSelect.addEventListener('change', debouncedUpdatePreview);
+    const endTimeSelect = document.getElementById('end-time-select');
+    if (endTimeSelect) {
+        endTimeSelect.addEventListener('change', debouncedUpdatePreview);
     }
 
     // Radio pills - use event delegation
@@ -706,22 +690,11 @@ async function init() {
             autoUseMyLocationOnLoad();
         }
         setupAnchorDropdown();
-        updateEndTimePreview();
 
         // 2. Event listeners
         const daySelect = document.getElementById('day-select');
         if (daySelect) {
             daySelect.addEventListener('change', updateAnchorOptions);
-        }
-
-        const startTime = document.getElementById('start-time');
-        if (startTime) {
-            startTime.addEventListener('change', updateEndTimePreview);
-        }
-
-        const durationSelect = document.getElementById('duration-select');
-        if (durationSelect) {
-            durationSelect.addEventListener('change', updateEndTimePreview);
         }
 
         // 3. Load data (async - AWAIT this)
