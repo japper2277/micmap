@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plan My Night - MicFinder NYC</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap">
+    <link rel="stylesheet" href="css/planner.css">
+</head>
+<body class="px-4 py-4 md:px-8 md:py-8 flex justify-center" style="padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));">
+    <!-- Loading Overlay -->
+    <div id="app-loading" class="fixed inset-0 bg-black/95 flex items-center justify-center z-[9999]">
+        <div class="text-center">
+            <div class="loader mx-auto mb-4"></div>
+            <div id="app-loading-text" class="text-white font-medium">Loading...</div>
+        </div>
+    </div>
+
+    <!-- Skip Link for Accessibility -->
+    <a href="#plan-btn" class="skip-link">Skip to Plan button</a>
+
+    <main class="w-full max-w-full sm:max-w-lg" role="main">
+        <!-- Header -->
+        <div class="mb-8 pt-4">
+            <a href="../index.html" class="inline-flex items-center text-sm text-zinc-400 hover:text-white transition-colors underline underline-offset-4" aria-label="Back to MicMap">
+                &larr; Back to MicMap
+            </a>
+            <div class="text-center mt-4">
+                <h1 class="text-4xl font-extrabold mb-1 tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-rose-400 to-orange-300">Plan My Night</h1>
+                <p class="text-zinc-500 font-medium text-sm">MicFinder Intelligent Routing</p>
+            </div>
+        </div>
+
+        <!-- Main Card -->
+        <div class="card p-6 md:p-8 mb-6 relative overflow-visible form-card-mobile-padding">
+            <!-- Glow Effect -->
+            <div class="absolute top-0 right-0 w-64 h-64 bg-rose-500 rounded-full mix-blend-overlay filter blur-[100px] opacity-10 pointer-events-none"></div>
+
+            <!-- MICS HEADER ROW -->
+            <div class="mics-header-row">
+                <div class="title-group">
+                    <h2 class="title-text">Mics</h2>
+                    <span class="count-text" id="form-mic-count">--</span>
+                </div>
+                <button class="calendar-pill-btn" id="form-calendar-btn" onclick="toggleFormDayPopover()">
+                    <svg class="cal-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    <span class="cal-text" id="form-cal-text">Thu 29</span>
+                    <svg class="cal-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </button>
+
+                <!-- DAY POPOVER -->
+                <div id="form-day-popover" class="form-day-popover hidden" role="dialog" aria-label="Select day">
+                    <button class="day-option" data-day="Monday" onclick="selectFormDay('Monday')">Mon</button>
+                    <button class="day-option" data-day="Tuesday" onclick="selectFormDay('Tuesday')">Tue</button>
+                    <button class="day-option" data-day="Wednesday" onclick="selectFormDay('Wednesday')">Wed</button>
+                    <button class="day-option" data-day="Thursday" onclick="selectFormDay('Thursday')">Thu</button>
+                    <button class="day-option" data-day="Friday" onclick="selectFormDay('Friday')">Fri</button>
+                    <button class="day-option" data-day="Saturday" onclick="selectFormDay('Saturday')">Sat</button>
+                    <button class="day-option" data-day="Sunday" onclick="selectFormDay('Sunday')">Sun</button>
+                </div>
+            </div>
+
+            <!-- TOP FILTER PILLS (PRICE, TIME, BOROUGH, COMMUTE) -->
+            <div class="form-filter-bar" role="group" aria-label="Quick filters">
+                <button class="form-filter-pill" id="form-filter-price" onclick="cycleFormFilter('price')" aria-label="Filter by price">
+                    <span class="pill-text">PRICE</span>
+                </button>
+                <button class="form-filter-pill has-dropdown" id="form-filter-time" onclick="toggleFormTimePopover(this)" aria-expanded="false">
+                    <span class="pill-text">TIME</span>
+                    <svg class="pill-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </button>
+                <button class="form-filter-pill has-dropdown" id="form-filter-borough" onclick="toggleFormBoroughPopover(this)" aria-expanded="false">
+                    <span class="pill-text">BOROUGH</span>
+                    <svg class="pill-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </button>
+                <button class="form-filter-pill" id="form-filter-commute" onclick="cycleFormFilter('commute')" aria-label="Filter by commute">
+                    <span class="pill-text">COMMUTE</span>
+                </button>
+            </div>
+
+            <!-- TIME POPOVER -->
+            <div id="form-time-popover" class="form-filter-popover hidden" role="dialog" aria-label="Time filter options">
+                <button class="popover-option active" data-value="all" onclick="selectFormTimeFilter('all')">All Times</button>
+                <button class="popover-option" data-value="afternoon" onclick="selectFormTimeFilter('afternoon')">Afternoon (12-5pm)</button>
+                <button class="popover-option" data-value="evening" onclick="selectFormTimeFilter('evening')">Evening (5-9pm)</button>
+                <button class="popover-option" data-value="latenight" onclick="selectFormTimeFilter('latenight')">Late Night (9pm+)</button>
+                <div class="popover-divider"></div>
+                <div class="popover-custom-time">
+                    <label class="custom-time-label">Custom</label>
+                    <div class="custom-time-inputs">
+                        <input type="time" id="custom-start-time" class="custom-time-input" value="19:00">
+                        <span class="custom-time-separator">to</span>
+                        <input type="time" id="custom-end-time" class="custom-time-input" value="23:00">
+                    </div>
+                    <button class="popover-option custom-apply-btn" onclick="applyCustomTime()">Apply</button>
+                </div>
+            </div>
+
+            <!-- BOROUGH POPOVER -->
+            <div id="form-borough-popover" class="form-filter-popover borough-popover hidden" role="dialog" aria-label="Borough filter options">
+                <button class="popover-option active" data-value="all" onclick="selectFormBoroughFilter('all')">All NYC</button>
+
+                <!-- Manhattan -->
+                <div class="borough-section">
+                    <div class="borough-row">
+                        <button class="borough-name" data-borough="Manhattan" onclick="selectFormBoroughFilter('Manhattan')">Manhattan</button>
+                        <button class="borough-expand" data-borough="Manhattan" onclick="toggleBoroughNeighborhoods('Manhattan')" aria-label="Show Manhattan neighborhoods">
+                            <svg class="borough-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </button>
+                    </div>
+                    <div class="neighborhood-grid hidden" id="neighborhoods-Manhattan">
+                        <button class="neighborhood-option" onclick="selectFormNeighborhood('Manhattan', 'East Village')">East Village</button>
+                        <button class="neighborhood-option" onclick="selectFormNeighborhood('Manhattan', 'LES')">LES</button>
+                        <button class="neighborhood-option" onclick="selectFormNeighborhood('Manhattan', 'West Village')">West Village</button>
+                        <button class="neighborhood-option" onclick="selectFormNeighborhood('Manhattan', 'Chelsea')">Chelsea</button>
+                        <button class="neighborhood-option" onclick="selectFormNeighborhood('Manhattan', 'Midtown')">Midtown</button>
+                        <button class="neighborhood-option" onclick="selectFormNeighborhood('Manhattan', 'Harlem')">Harlem</button>
+                        <button class="neighborhood-option" onclick="selectFormNeighborhood('Manhattan', 'UWS')">UWS</button>
+                        <button class="neighborhood-option" onclick="selectFormNeighborhood('Manhattan', 'UES')">UES</button>
+                        <button class="neighborhood-option" onclick="selectFormNeighborhood('Manhattan', 'FiDi')">FiDi</button>
+                        <button class="neighborhood-option" onclick="selectFormNeighborhood('Manhattan', 'Tribeca')">Tribeca</button>
+                        <button class="neighborhood-option" onclick="selectFormNeighborhood('Manhattan', 'SoHo')">SoHo</button>
+                    </div>
+                </div>
+
+                <!-- Brooklyn -->
+                <div class="borough-section">
+                    <div class="borough-row">
+                        <button class="borough-name" data-borough="Brooklyn" onclick="selectFormBoroughFilter('Brooklyn')">Brooklyn</button>
+                        <button class="borough-expand" data-borough="Brooklyn" onclick="toggleBoroughNeighborhoods('Brooklyn')" aria-label="Show Brooklyn neighborhoods">
+                            <svg class="borough-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </button>
+                    </div>
+                    <div class="neighborhood-grid hidden" id="neighborhoods-Brooklyn">
+                        <button class="neighborhood-option" onclick="selectFormNeighborhood('Brooklyn', 'Williamsburg')">Williamsburg</button>
+                        <button class="neighborhood-option" onclick="selectFormNeighborhood('Brooklyn', 'Bushwick')">Bushwick</button>
+                        <button class="neighborhood-option" onclick="selectFormNeighborhood('Brooklyn', 'Park Slope')">Park Slope</button>
+                        <button class="neighborhood-option" onclick="selectFormNeighborhood('Brooklyn', 'DUMBO')">DUMBO</button>
+                        <button class="neighborhood-option" onclick="selectFormNeighborhood('Brooklyn', 'Crown Heights')">Crown Heights</button>
+                        <button class="neighborhood-option" onclick="selectFormNeighborhood('Brooklyn', 'Bed-Stuy')">Bed-Stuy</button>
+                        <button class="neighborhood-option" onclick="selectFormNeighborhood('Brooklyn', 'Greenpoint')">Greenpoint</button>
+                    </div>
+                </div>
+
+                <!-- Queens -->
+                <div class="borough-section">
+                    <div class="borough-row">
+                        <button class="borough-name" data-borough="Queens" onclick="selectFormBoroughFilter('Queens')">Queens</button>
+                        <button class="borough-expand" data-borough="Queens" onclick="toggleBoroughNeighborhoods('Queens')" aria-label="Show Queens neighborhoods">
+                            <svg class="borough-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </button>
+                    </div>
+                    <div class="neighborhood-grid hidden" id="neighborhoods-Queens">
+                        <button class="neighborhood-option" onclick="selectFormNeighborhood('Queens', 'Astoria')">Astoria</button>
+                        <button class="neighborhood-option" onclick="selectFormNeighborhood('Queens', 'LIC')">LIC</button>
+                        <button class="neighborhood-option" onclick="selectFormNeighborhood('Queens', 'Flushing')">Flushing</button>
+                        <button class="neighborhood-option" onclick="selectFormNeighborhood('Queens', 'Jackson Heights')">Jackson Heights</button>
+                    </div>
+                </div>
+
+                <!-- Bronx -->
+                <div class="borough-section">
+                    <div class="borough-row">
+                        <button class="borough-name" data-borough="Bronx" onclick="selectFormBoroughFilter('Bronx')">Bronx</button>
+                        <button class="borough-expand" data-borough="Bronx" onclick="toggleBoroughNeighborhoods('Bronx')" aria-label="Show Bronx neighborhoods">
+                            <svg class="borough-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </button>
+                    </div>
+                    <div class="neighborhood-grid hidden" id="neighborhoods-Bronx">
+                        <button class="neighborhood-option" onclick="selectFormNeighborhood('Bronx', 'South Bronx')">South Bronx</button>
+                        <button class="neighborhood-option" onclick="selectFormNeighborhood('Bronx', 'Fordham')">Fordham</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hidden day/time selects (needed for logic) -->
+            <select id="day-select" class="hidden" aria-hidden="true">
+                <option value="Monday">Monday</option>
+                <option value="Tuesday">Tuesday</option>
+                <option value="Wednesday">Wednesday</option>
+                <option value="Thursday">Thursday</option>
+                <option value="Friday">Friday</option>
+                <option value="Saturday">Saturday</option>
+                <option value="Sunday">Sunday</option>
+            </select>
+            <input type="hidden" id="start-time" value="19:00">
+
+            <!-- Duration -->
+            <div class="mb-6">
+                <label for="duration-select" class="form-label" id="duration-label">Duration</label>
+                <select id="duration-select" class="input-field font-semibold" aria-labelledby="duration-label">
+                    <option value="120">2 hours</option>
+                    <option value="180" selected>3 hours</option>
+                    <option value="240">4 hours</option>
+                    <option value="300">5 hours</option>
+                    <option value="360">6 hours</option>
+                    <option value="999">All Night</option>
+                </select>
+                <span id="end-time-preview" class="form-helper"></span>
+            </div>
+
+            <!-- 2. LOCATION (Where) -->
+            <div class="mb-6">
+                <label for="origin-search" class="form-label" id="origin-label">Starting From <span class="text-rose-400" aria-hidden="true">*</span><span class="sr-only">(required)</span></label>
+
+                <button onclick="useMyLocation()" class="geo-btn-primary mb-3" id="geo-btn" aria-label="Use my current location" aria-live="polite">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0013 3.06V1h-2v2.06A8.994 8.994 0 003.06 11H1v2h2.06A8.994 8.994 0 0011 20.94V23h2v-2.06A8.994 8.994 0 0020.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg>
+                    <span id="geo-btn-text">Use My Location</span>
+                </button>
+
+                <div class="form-helper">Privacy: your location stays on your device.</div>
+
+                <div class="relative dropdown-container">
+                    <div class="search-input-wrapper">
+                        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"/>
+                            <path d="m21 21-4.35-4.35"/>
+                        </svg>
+                        <input type="text" id="origin-search" class="input-field" placeholder="Neighborhood, mic, or subway station" autocomplete="off" role="combobox" aria-labelledby="origin-label" aria-expanded="false" aria-autocomplete="list" aria-controls="origin-dropdown" aria-haspopup="listbox">
+                        <button id="search-clear-btn" class="clear-btn" aria-label="Clear search">&times;</button>
+                    </div>
+                    <div id="origin-dropdown" class="dropdown-list" role="listbox" aria-label="Search results"></div>
+                </div>
+
+                <div class="form-helper">Tip: you can use <strong>Use My Location</strong>, or search a <strong>subway station</strong> / <strong>neighborhood</strong>.</div>
+
+                <!-- Hidden Selected Origin State -->
+                <div id="selected-origin" class="hidden mt-3 p-3 rounded-xl bg-zinc-800/50 border border-zinc-700 flex items-center justify-between" role="status" aria-live="polite">
+                    <span id="selected-origin-text" class="text-sm font-medium text-rose-200"></span>
+                    <button onclick="clearOrigin()" class="text-zinc-400 hover:text-white w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors" aria-label="Clear selected location" title="Clear selected location">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                    </button>
+                </div>
+                <select id="origin-select" class="hidden"><option value="custom">Custom</option></select>
+            </div>
+
+            <!-- 3. QUICK FILTER PILLS (Like main app) -->
+            <div class="quick-filter-bar" role="group" aria-label="Quick filters">
+                <details class="pill-filter">
+                    <summary>
+                        <span>Priority</span>
+                        <svg class="pill-caret" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+                    </summary>
+                    <div class="pill-panel" role="dialog" aria-label="Priority">
+                        <div class="radio-pills">
+                            <label class="radio-pill active"><input type="radio" name="priority" value="most_mics" checked> More Stops</label>
+                            <label class="radio-pill"><input type="radio" name="priority" value="least_travel"> Less Travel</label>
+                            <label class="radio-pill"><input type="radio" name="priority" value="best_timing"> Safer Timing</label>
+                        </div>
+                        <div class="form-helper">Controls how we pick between similar options.</div>
+                    </div>
+                </details>
+
+                <details class="pill-filter">
+                    <summary>
+                        <span>Commute</span>
+                        <svg class="pill-caret" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+                    </summary>
+                    <div class="pill-panel" role="dialog" aria-label="Max commute">
+                        <div class="radio-pills">
+                            <label class="radio-pill active"><input type="radio" name="max-commute" value="999" checked>Any</label>
+                            <label class="radio-pill"><input type="radio" name="max-commute" value="20">20m</label>
+                            <label class="radio-pill"><input type="radio" name="max-commute" value="40">40m</label>
+                            <label class="radio-pill"><input type="radio" name="max-commute" value="60">60m+</label>
+                        </div>
+                    </div>
+                </details>
+
+                <details class="pill-filter">
+                    <summary>
+                        <span>Venue time</span>
+                        <svg class="pill-caret" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+                    </summary>
+                    <div class="pill-panel" role="dialog" aria-label="Time per venue">
+                        <div class="radio-pills">
+                            <label class="radio-pill"><input type="radio" name="time-per-venue" value="30">30m</label>
+                            <label class="radio-pill"><input type="radio" name="time-per-venue" value="45">45m</label>
+                            <label class="radio-pill active"><input type="radio" name="time-per-venue" value="60" checked>60m</label>
+                            <label class="radio-pill"><input type="radio" name="time-per-venue" value="90">90m</label>
+                        </div>
+                    </div>
+                </details>
+            </div>
+
+            <!-- 4. COLLAPSIBLE FILTERS (Advanced) -->
+            <details class="mb-8 group" id="filters-details">
+                <summary>More Filters <span id="filter-count-badge" class="ml-2 px-2 py-0.5 rounded-full text-xs font-bold bg-rose-500/20 text-rose-400 hidden"></span></summary>
+
+                <div class="space-y-6 pt-2 pl-1 animate-in slide-in-from-top-2 duration-200">
+
+                    <!-- Areas - Hierarchical Borough/Neighborhood -->
+                    <div class="area-filter">
+                        <div class="text-xs text-zinc-500 uppercase font-bold mb-2">Areas</div>
+                        <div id="area-suggestion" class="hidden text-xs text-rose-400 mb-2"></div>
+
+                        <!-- Borough Row -->
+                        <div class="flex flex-wrap gap-2 mb-2" role="group" aria-label="Filter by borough">
+                            <button type="button" class="borough-chip selected" data-borough="all" id="all-areas-chip" aria-label="Show all NYC areas" aria-pressed="true">All NYC</button>
+                            <button type="button" class="borough-chip" data-borough="Manhattan" aria-expanded="false" aria-controls="neighborhood-row" aria-label="Filter by Manhattan" aria-pressed="false">Manhattan</button>
+                            <button type="button" class="borough-chip" data-borough="Brooklyn" aria-expanded="false" aria-controls="neighborhood-row" aria-label="Filter by Brooklyn" aria-pressed="false">Brooklyn</button>
+                            <button type="button" class="borough-chip" data-borough="Queens" aria-expanded="false" aria-controls="neighborhood-row" aria-label="Filter by Queens" aria-pressed="false">Queens</button>
+                            <button type="button" class="borough-chip" data-borough="Bronx" aria-expanded="false" aria-controls="neighborhood-row" aria-label="Filter by Bronx" aria-pressed="false">Bronx</button>
+                        </div>
+
+                        <!-- Neighborhood Row (populated dynamically) -->
+                        <div id="neighborhood-row" class="flex flex-wrap gap-1.5 hidden" role="group" aria-label="Filter by neighborhood"></div>
+
+                        <!-- Hidden checkboxes for form submission -->
+                        <div id="area-checkboxes" class="hidden"></div>
+                    </div>
+
+                    <!-- Pin Specific Mics -->
+                    <div>
+                        <div class="text-xs text-zinc-500 uppercase font-bold mb-2">Pin Specific Mics</div>
+
+                        <div class="anchor-role-selector" role="group" aria-label="Choose which pin role you are setting">
+                            <button type="button" class="anchor-role-btn active" data-role="start" aria-pressed="true">
+                                <span class="anchor-role-top">
+                                    <span class="icon" aria-hidden="true">🎯</span>
+                                    <span class="anchor-role-label">Start</span>
+                                </span>
+                                <span class="anchor-role-summary" id="anchor-role-summary-start">Not set</span>
+                            </button>
+                            <button type="button" class="anchor-role-btn" data-role="must" aria-pressed="false">
+                                <span class="anchor-role-top">
+                                    <span class="icon" aria-hidden="true">📌</span>
+                                    <span class="anchor-role-label">Must-hit</span>
+                                </span>
+                                <span class="anchor-role-summary" id="anchor-role-summary-must">Not set</span>
+                            </button>
+                            <button type="button" class="anchor-role-btn" data-role="end" aria-pressed="false">
+                                <span class="anchor-role-top">
+                                    <span class="icon" aria-hidden="true">🏁</span>
+                                    <span class="anchor-role-label">End</span>
+                                </span>
+                                <span class="anchor-role-summary" id="anchor-role-summary-end">Not set</span>
+                            </button>
+                        </div>
+
+                        <div class="form-helper">Choose a role, then tap a mic below to pin it. Tap again to unpin.</div>
+                        <div class="relative dropdown-container" id="anchor-dropdown-container">
+                            <div class="search-input-wrapper">
+                                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="11" cy="11" r="8"/>
+                                    <path d="m21 21-4.35-4.35"/>
+                                </svg>
+                                <input type="text" id="anchor-search-input" class="input-field" placeholder="Search mics to pin..." autocomplete="off" aria-label="Search for mics to pin as start, must-visit, or end stops" role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="anchor-dropdown">
+                                <button id="anchor-clear-btn" class="clear-btn" aria-label="Clear anchor search">&times;</button>
+                            </div>
+                            <div id="anchor-dropdown" class="dropdown-list" role="listbox" aria-label="Mic search results"></div>
+                        </div>
+                        <!-- Selected anchors display as chips -->
+                        <div id="anchor-chips" class="anchor-chips-container"></div>
+                        <!-- Hidden inputs for form submission -->
+                        <div class="anchor-hidden-inputs">
+                            <input type="hidden" id="anchor-start-id" value="">
+                            <input type="hidden" id="anchor-must-id" value="">
+                            <input type="hidden" id="anchor-end-id" value="">
+                        </div>
+                    </div>
+
+                    <!-- (Signup / Commute / Time-per-venue moved to the quick pill bar above) -->
+
+                </div>
+            </details>
+
+            <!-- 4. ACTION (hidden on mobile - using sticky footer instead) -->
+            <div class="hidden sm:block">
+                <button id="plan-btn-desktop" onclick="planMyNight()" class="btn-primary">
+                    Find Open Mics
+                </button>
+                <div class="form-helper">Step 1: pick day/time • Step 2: choose your start • Step 3: tap Plan</div>
+                <div class="form-helper">After you plan: Copy • Share • Save</div>
+            </div>
+        </div>
+
+        <!-- Active Filter Chips (shows current filter state) -->
+        <div id="active-filter-chips" class="active-filter-chips hidden" role="region" aria-label="Active filters"></div>
+
+        <!-- Mobile Sticky Submit Button -->
+        <div class="sticky-submit-wrapper sm:hidden">
+            <button id="plan-btn" onclick="planMyNight()" class="btn-primary">
+                Find Open Mics
+            </button>
+            <div class="form-helper">Step 1: pick day/time • Step 2: choose your start • Step 3: tap Plan</div>
+            <div class="form-helper">After you plan: Copy • Share • Save</div>
+        </div>
+
+        <!-- LOADING STATE -->
+        <div id="loading" class="hidden card p-12 text-center mb-6" role="status" aria-live="polite" aria-label="Loading route">
+            <div class="loader mx-auto mb-6" aria-hidden="true"></div>
+            <div class="text-xl font-semibold mb-2">Routing your night</div>
+            <div id="loading-detail" class="text-zinc-500 text-sm" aria-live="polite">Calculating transit...</div>
+        </div>
+
+        <!-- RESULTS SECTION -->
+        <div id="results" class="hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div class="flex items-center justify-between mb-4 px-2">
+                <h2 class="text-xl font-bold">Your Itinerary</h2>
+                <div id="summary" class="text-zinc-400 font-mono text-sm"></div>
+            </div>
+
+            <!-- Route Options (tabs) -->
+            <div class="mb-4 px-2" role="tablist" aria-label="Route options">
+                <div class="radio-pills" id="route-tabs">
+                    <button type="button" class="radio-pill active" data-priority="most_mics" role="tab" aria-selected="true" onclick="selectRouteTab('most_mics')">More Stops</button>
+                    <button type="button" class="radio-pill" data-priority="least_travel" role="tab" aria-selected="false" onclick="selectRouteTab('least_travel')">Less Travel</button>
+                    <button type="button" class="radio-pill" data-priority="best_timing" role="tab" aria-selected="false" onclick="selectRouteTab('best_timing')">Safer Timing</button>
+                </div>
+                <div class="form-helper">Switch tabs to compare different route styles.</div>
+            </div>
+
+            <!-- TIMELINE -->
+            <div id="timeline" class="space-y-0"></div>
+
+            <!-- Action Buttons -->
+            <div class="grid grid-cols-3 gap-3 mt-6" role="group" aria-label="Route actions">
+                <button onclick="quickCopyRoute()" class="h-12 rounded-xl bg-zinc-800/60 border border-zinc-700 hover:bg-zinc-700 active:scale-[0.98] font-semibold text-sm transition-all flex items-center justify-center gap-2" aria-label="Copy route to clipboard">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                    <span>Copy</span>
+                </button>
+                <button onclick="shareRoute()" class="h-12 rounded-xl bg-zinc-800/60 border border-zinc-700 hover:bg-zinc-700 active:scale-[0.98] font-semibold text-sm transition-all flex items-center justify-center gap-2" aria-label="Share route">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                    <span>Share</span>
+                </button>
+                <button onclick="saveRoute()" class="h-12 rounded-xl bg-rose-600 hover:bg-rose-500 text-white border border-rose-600 active:scale-[0.98] font-semibold text-sm transition-all flex items-center justify-center gap-2" aria-label="Save route to history">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                    <span>Save</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- NO RESULTS -->
+        <div id="no-results" class="hidden card p-8 sm:p-10 text-center card-enter" role="alert" aria-labelledby="no-results-title">
+            <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-zinc-800/50 flex items-center justify-center">
+                <svg class="w-8 h-8 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+            </div>
+            <h3 id="no-results-title" class="text-xl font-bold mb-2">No Mics Found</h3>
+            <p id="no-results-detail" class="text-zinc-400 mb-6 max-w-sm mx-auto">We couldn't find any mics matching your filters for this time and location.</p>
+
+            <!-- Dynamic suggestion based on context -->
+            <div id="no-results-suggestion" class="hidden mb-6 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                <p class="text-sm text-emerald-300" id="suggestion-text"></p>
+            </div>
+
+            <div class="text-left max-w-xs mx-auto mb-6">
+                <div class="text-xs uppercase font-semibold text-zinc-500 mb-3">Suggestions</div>
+                <ul class="space-y-3 text-sm text-zinc-400">
+                    <li class="flex items-start gap-3">
+                        <span class="text-rose-400 mt-0.5">→</span>
+                        <span>Pick a different day — <button onclick="tryDifferentDay()" class="text-rose-400 hover:text-rose-300 underline underline-offset-2">try tomorrow</button></span>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="text-rose-400 mt-0.5">→</span>
+                        <span>Expand to all NYC areas</span>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="text-rose-400 mt-0.5">→</span>
+                        <span>Widen your time window (start earlier or allow more duration)</span>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="text-rose-400 mt-0.5">→</span>
+                        <span>Include paid mics in your search</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                <button onclick="resetFiltersAndRetry()" class="h-12 px-6 rounded-xl bg-rose-500/20 text-rose-300 border border-rose-500/30 hover:bg-rose-500/30 active:scale-[0.98] transition-all font-semibold text-sm flex items-center justify-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    Reset Filters & Retry
+                </button>
+                <button onclick="tryDifferentDay()" class="h-12 px-6 rounded-xl bg-zinc-700 text-zinc-200 border border-zinc-600 hover:bg-zinc-600 active:scale-[0.98] transition-all font-semibold text-sm flex items-center justify-center gap-2" id="try-tomorrow-btn">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    <span id="try-tomorrow-text">Try Tomorrow</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- TOAST -->
+        <div id="toast" class="toast" role="alert" aria-live="polite" aria-atomic="true"></div>
+
+        <!-- Screen Reader Announcer (visually hidden) -->
+        <div id="sr-announcer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+
+    </main>
+
+    <!-- SCRIPTS (Order matters!) -->
+    <script src="js/config.js"></script>
+    <script src="js/state.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/filters.js"></script>
+    <script src="js/search.js"></script>
+    <script src="js/anchors.js"></script>
+    <script src="js/transit.js"></script>
+    <script src="js/render.js"></script>
+    <script src="js/planner.js"></script>
+    <script src="js/share.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Plan My Night</title>
+    <meta http-equiv="refresh" content="0; url=./planner.html" />
+    <script>
+        // Preserve query + hash for future deep-linking
+        try {
+            const target = `./planner.html${window.location.search || ''}${window.location.hash || ''}`;
+            window.location.replace(target);
+        } catch (_) {
+            // fallback to meta refresh
+        }
+    </script>
+</head>
+<body>
+    <a href="./planner.html">Continue to Plan My Night</a>
+</body>
+</html>
