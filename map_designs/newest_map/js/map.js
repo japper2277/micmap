@@ -374,8 +374,10 @@ function centerOnUser() {
 
         // Trigger transit calculations from user location
         if (typeof transitService !== 'undefined' && transitService.calculateFromOrigin) {
-            const searchInput = document.getElementById('search-input');
-            if (searchInput) searchInput.value = 'My Location';
+            // Show origin chip instead of polluting search input
+            if (typeof searchService !== 'undefined' && searchService.showOriginChip) {
+                searchService.showOriginChip('Current Location');
+            }
             transitService.calculateFromOrigin(STATE.userLocation.lat, STATE.userLocation.lng, 'My Location', null, { skipOriginMarker: true });
         }
 
@@ -479,17 +481,12 @@ map.on('zoomend', () => {
 
 function togglePinDropMode() {
     const btn = document.getElementById('pinBtn');
-    const input = document.getElementById('search-input');
 
     btn.classList.toggle('active');
     STATE.isWaitingForMapClick = btn.classList.contains('active');
 
     if (STATE.isWaitingForMapClick) {
-        // Entering pin drop mode
-        input.value = '';
-        input.placeholder = 'Tap map to place pin...';
-
-        // Add one-time map click listener
+        // Entering pin drop mode - add one-time map click listener
         map.once('click', handleMapClick);
 
         // Show toast feedback
@@ -498,7 +495,6 @@ function togglePinDropMode() {
         }
     } else {
         // Exiting pin drop mode
-        input.placeholder = 'Search address...';
         map.off('click', handleMapClick);
     }
 }
@@ -508,12 +504,13 @@ function handleMapClick(e) {
 
     // Deactivate pin mode
     const btn = document.getElementById('pinBtn');
-    const input = document.getElementById('search-input');
-
     btn.classList.remove('active');
     STATE.isWaitingForMapClick = false;
-    input.placeholder = 'Search address...';
-    input.value = 'Dropped Pin';
+
+    // Show origin chip
+    if (typeof searchService !== 'undefined' && searchService.showOriginChip) {
+        searchService.showOriginChip('Dropped Pin');
+    }
 
     // Collapse drawer so user can see the map (mobile only)
     const isMobile = window.matchMedia('(max-width: 767px)').matches;

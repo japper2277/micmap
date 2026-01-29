@@ -225,6 +225,10 @@ function generateDateCarousel() {
     // Add styles for active state, hover/press feedback
     const style = document.createElement('style');
     style.innerHTML = `
+        .date-capsule {
+            border: 2px solid transparent;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
         .date-capsule.active-date {
             background: rgba(244, 63, 94, 0.15);
             border: 2px solid var(--rose);
@@ -233,13 +237,20 @@ function generateDateCarousel() {
         .date-capsule.active-date span {
             color: white !important;
         }
-        .date-capsule:hover {
-            background: rgba(255, 255, 255, 0.12);
-            box-shadow: 0 0 8px rgba(255, 255, 255, 0.1);
+        @media (hover: hover) {
+            .date-capsule:hover:not(.active-date) {
+                background: rgba(255, 255, 255, 0.12);
+                border-color: rgba(255, 255, 255, 0.2);
+                transform: translateY(-2px);
+            }
         }
         .date-capsule:active {
-            transform: scale(0.95);
+            transform: scale(0.95) !important;
             background: rgba(255, 255, 255, 0.15);
+        }
+        .date-capsule:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 2px var(--rose), 0 0 0 4px rgba(244, 63, 94, 0.3);
         }
     `;
     document.head.appendChild(style);

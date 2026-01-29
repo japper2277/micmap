@@ -24,8 +24,12 @@ const searchService = {
     init() {
         this.input = document.getElementById('search-input');
         this.clearBtn = document.getElementById('search-clear-btn');
+        this.voiceBtn = document.getElementById('voice-search-btn');
         this.wrapper = document.querySelector('.search-wrapper');
         this.searchIcon = document.querySelector('.search-icon');
+        this.originChip = document.getElementById('origin-chip');
+        this.originChipName = document.getElementById('origin-chip-name');
+        this.originChipClear = document.getElementById('origin-chip-clear');
         if (!this.input) {
             console.warn('Search input not found');
             return;
@@ -34,6 +38,94 @@ const searchService = {
         this.createDropdown();
         this.bindEvents();
         this.setupClearButton();
+        this.setupOriginChip();
+        this.setupVoiceSearch();
+    },
+
+    // Voice search using Web Speech API
+    setupVoiceSearch() {
+        if (!this.voiceBtn) return;
+
+        // Check for browser support
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            this.voiceBtn.style.display = 'none';
+            return;
+        }
+
+        this.recognition = new SpeechRecognition();
+        this.recognition.continuous = false;
+        this.recognition.interimResults = true;
+        this.recognition.lang = 'en-US';
+        this.isListening = false;
+
+        this.recognition.onstart = () => {
+            this.isListening = true;
+            this.voiceBtn.classList.add('listening');
+            this.input.placeholder = 'Listening...';
+        };
+
+        this.recognition.onresult = (event) => {
+            const transcript = Array.from(event.results)
+                .map(result => result[0].transcript)
+                .join('');
+            this.input.value = transcript;
+            this.updateClearButtonVisibility();
+
+            // If final result, trigger search
+            if (event.results[0].isFinal) {
+                this.search(transcript);
+            }
+        };
+
+        this.recognition.onend = () => {
+            this.isListening = false;
+            this.voiceBtn.classList.remove('listening');
+            this.input.placeholder = 'Search venues';
+        };
+
+        this.recognition.onerror = (event) => {
+            this.isListening = false;
+            this.voiceBtn.classList.remove('listening');
+            this.input.placeholder = 'Search venues';
+            if (event.error === 'not-allowed') {
+                if (typeof toastService !== 'undefined') {
+                    toastService.show('Microphone access denied', 'error');
+                }
+            }
+        };
+
+        this.voiceBtn.addEventListener('click', () => {
+            if (this.isListening) {
+                this.recognition.stop();
+            } else {
+                this.recognition.start();
+            }
+        });
+    },
+
+    // Origin chip - shows current transit origin
+    setupOriginChip() {
+        if (!this.originChipClear) return;
+        this.originChipClear.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this.hideOriginChip();
+            if (typeof transitService !== 'undefined') {
+                transitService.clearTransitMode();
+            }
+        });
+    },
+
+    showOriginChip(name) {
+        if (!this.originChip || !this.originChipName) return;
+        this.originChipName.textContent = name;
+        this.originChip.classList.add('active');
+    },
+
+    hideOriginChip() {
+        if (!this.originChip) return;
+        this.originChip.classList.remove('active');
     },
 
     // Recent searches - stored in localStorage
@@ -55,6 +147,9 @@ const searchService = {
             !(r.name === item.name && r.type === item.type)
         );
 
+        // Add timestamp
+        item.timestamp = Date.now();
+
         // Add to front
         this.recentSearches.unshift(item);
 
@@ -67,6 +162,23 @@ const searchService = {
         } catch (e) {
             // localStorage full or unavailable
         }
+    },
+
+    // Format relative time (e.g., "2h ago", "Yesterday", "3d ago")
+    formatRelativeTime(timestamp) {
+        if (!timestamp) return '';
+        const now = Date.now();
+        const diff = now - timestamp;
+        const minutes = Math.floor(diff / 60000);
+        const hours = Math.floor(diff / 3600000);
+        const days = Math.floor(diff / 86400000);
+
+        if (minutes < 1) return 'Just now';
+        if (minutes < 60) return `${minutes}m ago`;
+        if (hours < 24) return `${hours}h ago`;
+        if (days === 1) return 'Yesterday';
+        if (days < 7) return `${days}d ago`;
+        return '';
     },
 
     clearRecentSearches() {
@@ -89,9 +201,9 @@ const searchService = {
 
     clearSearch() {
         this.input.value = '';
-        this.input.placeholder = 'Search venues or places';
         this.updateClearButtonVisibility();
         this.hideDropdown();
+        this.hideOriginChip();
         // Clear transit mode if active
         if (typeof transitService !== 'undefined') {
             transitService.clearTransitMode();
@@ -124,6 +236,17 @@ const searchService = {
     },
 
     bindEvents() {
+        // Keyboard shortcut: "/" or Cmd+K to focus search
+        document.addEventListener('keydown', (e) => {
+            // "/" key (not in input) or Cmd/Ctrl+K
+            if ((e.key === '/' && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) ||
+                ((e.metaKey || e.ctrlKey) && e.key === 'k')) {
+                e.preventDefault();
+                this.input.focus();
+                this.input.select();
+            }
+        });
+
         // Input handler with 150ms debounce (Google Maps uses ~150ms)
         this.input.addEventListener('input', (e) => {
             clearTimeout(this.debounceTimer);
@@ -157,8 +280,15 @@ const searchService = {
                 e.preventDefault();
                 items[this.selectedIndex].click();
             } else if (e.key === 'Escape') {
-                this.hideDropdown();
-                this.input.blur();
+                if (this.input.value.trim() === '') {
+                    this.hideDropdown();
+                    this.input.blur();
+                } else {
+                    // Clear input first, then blur on second Escape
+                    this.input.value = '';
+                    this.updateClearButtonVisibility();
+                    this.hideDropdown();
+                }
             }
         });
 
@@ -200,7 +330,8 @@ const searchService = {
         nav: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>`,
         mic: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line></svg>`,
         pin: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>`,
-        subway: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="14" rx="2"></rect><path d="M4 11h16"></path><path d="M12 3v8"></path><circle cx="8" cy="19" r="2"></circle><circle cx="16" cy="19" r="2"></circle><path d="M8 17v-2"></path><path d="M16 17v-2"></path></svg>`
+        subway: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="14" rx="2"></rect><path d="M4 11h16"></path><circle cx="8" cy="19" r="2"></circle><circle cx="16" cy="19" r="2"></circle></svg>`,
+        walk: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4" r="2"></circle><path d="M15 22l-3-8-2 3-3 1"></path><path d="M9 14l1-4 4-1 2 4"></path></svg>`
     },
 
     // Popular neighborhoods for empty state (with coordinates to avoid geocoding)
@@ -215,118 +346,170 @@ const searchService = {
         let html = '';
         let optionIndex = 0;
 
-        // "Use Current Location" option
-        html += `
-            <div class="dropdown-item current-location" id="search-option-${optionIndex++}" role="option" aria-selected="false" data-action="location">
-                <div class="item-icon" aria-hidden="true">${this.icons.nav}</div>
-                <div class="item-text">
-                    <span class="item-name">Use Current Location</span>
-                    <span class="item-sub">Show transit times from where you are</span>
-                </div>
-            </div>`;
-
-        // Recent venues section (clicking navigates to venue, doesn't change origin)
+        // Recent venues only (search is now venue-only, location set via GPS/pin drop)
         const recentVenues = this.recentSearches.filter(r => r.type === 'venue');
         if (recentVenues.length > 0) {
-            html += `<div class="section-header" role="presentation">Recent Venues</div>`;
+            html += `<div class="section-header with-action" role="presentation">Recent <button class="section-clear" data-action="clear-recents">Clear</button></div>`;
             recentVenues.forEach((recent) => {
                 if (recent.id) {
+                    const timeAgo = this.formatRelativeTime(recent.timestamp);
                     html += `
                         <div class="dropdown-item venue-type" id="search-option-${optionIndex++}" role="option" aria-selected="false" data-action="venue" data-id="${recent.id}">
                             <div class="item-icon" aria-hidden="true">${this.icons.mic}</div>
                             <div class="item-text">
                                 <span class="item-name">${this.escapeHtml(recent.name)}</span>
+                                ${timeAgo ? `<span class="item-time-ago">${timeAgo}</span>` : ''}
                             </div>
                             ${recent.sub ? `<span class="item-subtext">${this.escapeHtml(recent.sub)}</span>` : ''}
                         </div>`;
                 }
             });
-        }
+        } else {
+            // No recent venues - show mics near user's location with commute times
+            if (STATE.userLocation && STATE.mics.length > 0) {
+                const { lat: userLat, lng: userLng } = STATE.userLocation;
 
-        // Recent locations section (for setting transit origin)
-        const recentLocations = this.recentSearches.filter(r => r.type === 'location');
-        if (recentLocations.length > 0) {
-            html += `<div class="section-header" role="presentation">Recent Locations</div>`;
-            recentLocations.forEach((recent) => {
-                if (recent.lat && recent.lng) {
-                    html += `
-                        <div class="dropdown-item location-type" id="search-option-${optionIndex++}" role="option" aria-selected="false" data-action="geo" data-lat="${recent.lat}" data-lng="${recent.lng}" data-name="${this.escapeHtml(recent.name)}">
-                            <div class="item-icon" aria-hidden="true">${this.icons.pin}</div>
-                            <div class="item-text">
-                                <span class="item-name">${this.escapeHtml(recent.name)}</span>
-                            </div>
-                            ${recent.sub ? `<span class="item-subtext">${this.escapeHtml(recent.sub)}</span>` : ''}
-                        </div>`;
+                // Get mics with real transit times (from mic.transitMins)
+                const nearbyMics = STATE.mics
+                    .filter(m => m.transitMins !== undefined) // Only mics with calculated transit
+                    .map(m => ({
+                        ...m,
+                        commuteMin: m.transitMins,
+                        isWalk: m.transitType === 'walk',
+                        isTransit: m.transitType === 'transit'
+                    }))
+                    .filter((m, i, arr) => arr.findIndex(v => (v.title || v.venue) === (m.title || m.venue)) === i)
+                    .sort((a, b) => a.commuteMin - b.commuteMin)
+                    .slice(0, 5);
+
+                if (nearbyMics.length > 0) {
+                    html += `<div class="section-header" role="presentation">Near You</div>`;
+                    nearbyMics.forEach((m) => {
+                        const timeIcon = m.isWalk ? this.icons.walk : this.icons.subway;
+                        const timeLabel = `${m.commuteMin} min`;
+                        html += `
+                            <div class="dropdown-item venue-type" id="search-option-${optionIndex++}" role="option" aria-selected="false" data-action="venue" data-id="${m.id}">
+                                <div class="item-icon" aria-hidden="true">${this.icons.mic}</div>
+                                <div class="item-text">
+                                    <span class="item-name">${this.escapeHtml(m.title || m.venue)}</span>
+                                </div>
+                                <span class="item-subtext commute-time"><span class="time-icon">${timeIcon}</span>${timeLabel}</span>
+                            </div>`;
+                    });
+                } else {
+                    html += `<div class="dropdown-empty"><span>Type to search venues</span></div>`;
                 }
-            });
+            } else {
+                html += `<div class="dropdown-empty"><span>Type to search venues</span></div>`;
+            }
         }
-
-        // Popular neighborhoods section
-        html += `<div class="section-header" role="presentation">Popular Neighborhoods</div>`;
-        this.popularHoods.forEach((hood) => {
-            html += `
-                <div class="dropdown-item location-type" id="search-option-${optionIndex++}" role="option" aria-selected="false" data-action="geo" data-lat="${hood.lat}" data-lng="${hood.lng}" data-name="${this.escapeHtml(hood.name)}">
-                    <div class="item-icon" aria-hidden="true">${this.icons.pin}</div>
-                    <div class="item-text">
-                        <span class="item-name">${this.escapeHtml(hood.name)}</span>
-                    </div>
-                    <span class="item-subtext">${this.escapeHtml(hood.sub)}</span>
-                </div>`;
-        });
 
         this.dropdown.innerHTML = html;
         this.bindDropdownClicks();
         this.showDropdown();
     },
 
-    // Show loading state briefly
+    // Show shimmer loading state
     showLoading() {
-        this.dropdown.innerHTML = '<div class="search-loading"><div class="loading-spinner"></div></div>';
+        this.dropdown.innerHTML = `
+            <div class="search-shimmer">
+                <div class="shimmer-item"><div class="shimmer-icon"></div><div class="shimmer-text"><div class="shimmer-line medium"></div><div class="shimmer-line short"></div></div></div>
+                <div class="shimmer-item"><div class="shimmer-icon"></div><div class="shimmer-text"><div class="shimmer-line medium"></div><div class="shimmer-line short"></div></div></div>
+            </div>`;
         this.showDropdown();
     },
 
-    // Highlight matching text in search results (bold the matched portion)
+    // Highlight matching text in search results (supports fuzzy matching)
     highlightMatch(text, query) {
         if (!query || !text) return this.escapeHtml(text);
+
         const escaped = this.escapeHtml(text);
-        const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-        return escaped.replace(regex, '<mark>$1</mark>');
+        const lowerText = text.toLowerCase();
+        const lowerQuery = query.toLowerCase();
+
+        // Try exact substring match first
+        if (lowerText.includes(lowerQuery)) {
+            const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+            return escaped.replace(regex, '<mark>$1</mark>');
+        }
+
+        // Fuzzy highlight: mark each matched character
+        let result = '';
+        let qi = 0;
+        for (let i = 0; i < text.length; i++) {
+            const char = this.escapeHtml(text[i]);
+            if (qi < lowerQuery.length && lowerText[i] === lowerQuery[qi]) {
+                result += `<mark>${char}</mark>`;
+                qi++;
+            } else {
+                result += char;
+            }
+        }
+        return result;
+    },
+
+    // Fuzzy match score - higher is better match
+    fuzzyMatch(text, query) {
+        if (!text || !query) return 0;
+        text = text.toLowerCase();
+        query = query.toLowerCase();
+
+        // Exact match
+        if (text.includes(query)) return 100;
+
+        // Fuzzy: check if all chars appear in order
+        let ti = 0, qi = 0, score = 0;
+        while (ti < text.length && qi < query.length) {
+            if (text[ti] === query[qi]) {
+                score += 10;
+                // Bonus for consecutive matches
+                if (ti > 0 && text[ti-1] === query[qi-1]) score += 5;
+                qi++;
+            }
+            ti++;
+        }
+        // All query chars found?
+        return qi === query.length ? score : 0;
     },
 
     async search(query) {
+        this.showLoading(); // Show shimmer while searching
         this.selectedIndex = -1;
         this.currentQuery = query; // Store for highlighting
-        const results = { venues: [], locations: [] };
+        const results = { venues: [], suggestions: [] };
 
-        // 1. Local venue search (your mic data) - deduplicate by venue name
+        // Venue search with fuzzy matching
         const q = query.toLowerCase();
         const seenVenues = new Set();
-        results.venues = STATE.mics
-            .filter(m => {
+        const scored = STATE.mics
+            .map(m => {
                 const title = (m.title || m.venue || '').toLowerCase();
                 const hood = (m.hood || m.neighborhood || '').toLowerCase();
-                if (!title.includes(q) && !hood.includes(q)) return false;
-
-                // Deduplicate by venue name (same venue may have multiple mics on different days)
+                const titleScore = this.fuzzyMatch(title, q);
+                const hoodScore = this.fuzzyMatch(hood, q) * 0.5; // Hood match worth less
+                return { ...m, score: Math.max(titleScore, hoodScore) };
+            })
+            .filter(m => {
+                if (m.score === 0) return false;
+                // Deduplicate by venue name
                 const venueName = (m.title || m.venue || '').toLowerCase().trim();
                 if (seenVenues.has(venueName)) return false;
                 seenVenues.add(venueName);
                 return true;
             })
-            .slice(0, 3)
-            .map(m => ({ ...m, type: 'venue' }));
+            .sort((a, b) => b.score - a.score);
 
-        // 2. Local NYC geocoder (neighborhoods + subway stations) - ZERO API CALLS
-        if (query.length >= 2 && typeof nycGeocoder !== 'undefined') {
-            const localResults = nycGeocoder.search(query);
-            results.locations = localResults.map(r => ({
-                name: r.name,
-                address: r.sub,
-                lat: r.lat,
-                lng: r.lng,
-                type: 'location',
-                locationType: r.type // 'neighborhood' or 'subway'
-            }));
+        results.venues = scored.slice(0, 6).map(m => ({ ...m, type: 'venue' }));
+
+        // If no results, find suggestions (close matches for "Did you mean?")
+        if (results.venues.length === 0) {
+            const allVenues = [...new Set(STATE.mics.map(m => m.title || m.venue))];
+            results.suggestions = allVenues
+                .map(name => ({ name, score: this.fuzzyMatch(name, q) }))
+                .filter(v => v.score > 20) // Weak matches
+                .sort((a, b) => b.score - a.score)
+                .slice(0, 2)
+                .map(v => v.name);
         }
 
         this.renderDropdown(results, query);
@@ -336,65 +519,68 @@ const searchService = {
         let html = '';
         let optionIndex = 0;
 
-        // "Use My Location" option (always show) - with subtitle for clarity
-        html += `
-            <div class="dropdown-item current-location" id="search-option-${optionIndex++}" role="option" aria-selected="false" data-action="location">
-                <div class="item-icon" aria-hidden="true">${this.icons.nav}</div>
-                <div class="item-text">
-                    <span class="item-name">Use Current Location</span>
-                    <span class="item-sub">Show transit times from where you are</span>
-                </div>
-            </div>`;
-
-        // Venues section
+        // Venues only (location set via GPS button or pin drop)
         if (results.venues.length > 0) {
-            html += `<div class="section-header" role="presentation">Venues</div>`;
             results.venues.forEach(v => {
                 const title = v.title || v.venue || 'Unknown';
                 const hood = v.hood || v.neighborhood || '';
                 // Highlight matching text
                 const highlightedTitle = this.highlightMatch(title, query);
                 const highlightedHood = this.highlightMatch(hood, query);
+
+                // Show real transit time if available (from mic.transitMins)
+                let rightContent = hood ? `<span class="item-subtext">${highlightedHood}</span>` : '';
+
+                if (v.transitMins !== undefined) {
+                    const isWalk = v.transitType === 'walk';
+                    const timeIcon = isWalk ? this.icons.walk : this.icons.subway;
+                    rightContent = `<span class="item-subtext commute-time"><span class="time-icon">${timeIcon}</span>${v.transitMins} min</span>`;
+                }
+
                 html += `
                     <div class="dropdown-item venue-type" id="search-option-${optionIndex++}" role="option" aria-selected="false" data-action="venue" data-id="${v.id}">
                         <div class="item-icon" aria-hidden="true">${this.icons.mic}</div>
                         <div class="item-text">
                             <span class="item-name">${highlightedTitle}</span>
                         </div>
-                        <span class="item-subtext">${highlightedHood}</span>
+                        ${rightContent}
                     </div>`;
             });
-        }
 
-        // Locations section (neighborhoods + subway stations)
-        if (results.locations.length > 0) {
-            html += `<div class="section-header" role="presentation">Locations</div>`;
-            results.locations.forEach(l => {
-                const isSubway = l.locationType === 'subway';
-                const icon = isSubway ? this.icons.subway : this.icons.pin;
-                const subtext = l.address || '';
-                const itemClass = isSubway ? 'location-type subway-type' : 'location-type';
-                // Highlight matching text
-                const highlightedName = this.highlightMatch(l.name, query);
-                const highlightedSubtext = this.highlightMatch(subtext, query);
-                html += `
-                    <div class="dropdown-item ${itemClass}" id="search-option-${optionIndex++}" role="option" aria-selected="false" data-action="geo" data-lat="${l.lat}" data-lng="${l.lng}" data-name="${this.escapeHtml(l.name)}">
-                        <div class="item-icon" aria-hidden="true">${icon}</div>
-                        <div class="item-text">
-                            <span class="item-name">${highlightedName}</span>
-                        </div>
-                        <span class="item-subtext">${highlightedSubtext}</span>
-                    </div>`;
-            });
-        }
-
-        if (results.venues.length === 0 && results.locations.length === 0) {
-            html += '<div class="dropdown-empty" role="status">No results found</div>';
+            // Screen reader announcement
+            this.announceResults(`${results.venues.length} venue${results.venues.length === 1 ? '' : 's'} found`);
+        } else {
+            // No results - show suggestions if available
+            if (results.suggestions && results.suggestions.length > 0) {
+                html += `<div class="dropdown-empty" role="status">
+                    <span>No venues found</span>
+                    <div class="did-you-mean">Did you mean: ${results.suggestions.map(s =>
+                        `<button class="suggestion-link" data-suggestion="${this.escapeHtml(s)}">${this.escapeHtml(s)}</button>`
+                    ).join(' or ')}</div>
+                </div>`;
+            } else {
+                html += '<div class="dropdown-empty" role="status">No venues found</div>';
+            }
+            this.announceResults('No venues found');
         }
 
         this.dropdown.innerHTML = html;
         this.bindDropdownClicks();
         this.showDropdown();
+    },
+
+    // Screen reader announcements
+    announceResults(message) {
+        let announcer = document.getElementById('search-announcer');
+        if (!announcer) {
+            announcer = document.createElement('div');
+            announcer.id = 'search-announcer';
+            announcer.setAttribute('aria-live', 'polite');
+            announcer.setAttribute('aria-atomic', 'true');
+            announcer.className = 'sr-only';
+            document.body.appendChild(announcer);
+        }
+        announcer.textContent = message;
     },
 
     // Haptic feedback for selections (iOS/Android)
@@ -404,27 +590,43 @@ const searchService = {
         }
     },
 
-    // Event delegation for dropdown clicks (more reliable than inline onclick)
+    // Event delegation for dropdown clicks
     bindDropdownClicks() {
         this.dropdown.querySelectorAll('.dropdown-item').forEach(item => {
             item.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                const action = item.dataset.action;
 
                 // Haptic feedback on selection
                 this.triggerHaptic();
 
-                if (action === 'location') {
-                    this.useMyLocation();
-                } else if (action === 'venue') {
+                // Venues only (location set via GPS button or map pin drop)
+                if (item.dataset.action === 'venue') {
                     this.selectVenue(item.dataset.id);
-                } else if (action === 'geo') {
-                    const lat = parseFloat(item.dataset.lat);
-                    const lng = parseFloat(item.dataset.lng);
-                    const name = item.dataset.name;
-                    this.selectLocation(lat, lng, name);
                 }
+            });
+        });
+
+        // Clear recents button
+        const clearBtn = this.dropdown.querySelector('[data-action="clear-recents"]');
+        if (clearBtn) {
+            clearBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                this.clearRecentSearches();
+                this.renderEmptyState(); // Re-render to show "Near You" or empty
+            });
+        }
+
+        // "Did you mean" suggestion links
+        this.dropdown.querySelectorAll('.suggestion-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const suggestion = link.dataset.suggestion;
+                this.input.value = suggestion;
+                this.updateClearButtonVisibility();
+                this.search(suggestion);
             });
         });
     },
@@ -467,11 +669,12 @@ const searchService = {
 
     selectLocation(lat, lng, name) {
         this.hideDropdown();
-        // Don't put location in search input - it confuses search vs location state
         this.input.value = '';
-        this.input.placeholder = `From: ${name}`;
         this.updateClearButtonVisibility();
         this.input.blur();
+
+        // Show origin chip instead of polluting placeholder
+        this.showOriginChip(name);
 
         // Save to recent searches
         this.saveRecentSearch({
@@ -512,8 +715,9 @@ const searchService = {
         // Visual feedback - pulse animation
         if (geoBtn) geoBtn.classList.add('finding');
         this.input.value = '';
-        this.input.placeholder = 'Locating you...';
         this.hideDropdown();
+        // Show temporary loading state in chip
+        this.showOriginChip('Locating...');
 
         // Reset pin button if it was active
         document.getElementById('pinBtn')?.classList.remove('active');
@@ -523,11 +727,11 @@ const searchService = {
                 const { latitude, longitude } = position.coords;
                 STATE.userLocation = { lat: latitude, lng: longitude };
 
-                // Success - stop animation, show location in placeholder (not input value)
+                // Success - stop animation, show origin chip
                 if (geoBtn) geoBtn.classList.remove('finding');
                 this.input.value = '';
-                this.input.placeholder = 'From: Current Location';
                 this.updateClearButtonVisibility();
+                this.showOriginChip('Current Location');
 
                 // Clear any existing search/origin marker to prevent duplicates
                 if (STATE.searchMarker && typeof map !== 'undefined') {
@@ -569,11 +773,11 @@ const searchService = {
                 transitService.calculateFromOrigin(latitude, longitude, 'My Location', null, { skipOriginMarker: true });
             },
             (error) => {
-                // Error - stop animation
+                // Error - stop animation, hide chip
                 if (geoBtn) geoBtn.classList.remove('finding');
                 this.input.value = '';
-                this.input.placeholder = 'Search venues or places';
                 this.updateClearButtonVisibility();
+                this.hideOriginChip();
 
                 if (error.code === error.PERMISSION_DENIED) {
                     if (typeof toastService !== 'undefined') {
@@ -614,10 +818,10 @@ const searchService = {
     clear() {
         if (this.input) {
             this.input.value = '';
-            this.input.placeholder = 'Search venues or places';
             this.updateClearButtonVisibility();
         }
         this.hideDropdown();
+        this.hideOriginChip();
         if (typeof transitService !== 'undefined') {
             transitService.clearTransitMode();
         }

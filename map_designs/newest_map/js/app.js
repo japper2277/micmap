@@ -5,6 +5,11 @@
 
 // Load JSON and initialize
 async function loadData() {
+    // Show skeleton loading while fetching
+    if (typeof showListSkeleton === 'function') {
+        showListSkeleton();
+    }
+
     try {
         const response = await fetch(CONFIG.apiPath);
         const data = await response.json();

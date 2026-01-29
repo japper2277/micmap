@@ -152,21 +152,11 @@
     /* 48px minimum touch target (WCAG AAA compliant) */
     min-width: 48px;
     min-height: 48px;
-    /* Visual feedback on drag */
-    transition: transform 0.1s ease-out;
-}
-
-.drag-handle:active {
-    transform: translateX(-50%) scale(1.05);
-}
-
-.drag-handle span {
-    transition: background-color 0.15s ease, transform 0.15s ease;
+    cursor: pointer;
 }
 
 .drag-handle:active span {
-    background-color: rgba(255, 255, 255, 0.7);
-    transform: scaleX(1.1);
+    background-color: rgba(255, 255, 255, 0.6);
 }
 
 /* --- DRAWER BOTTOM BANNER --- */

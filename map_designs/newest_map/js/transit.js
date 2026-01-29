@@ -625,11 +625,14 @@ const transitService = {
             delete mic.route;
         });
 
-        // Reset search input
+        // Reset search input and hide origin chip
         const searchInput = document.getElementById('search-input');
         if (searchInput) {
             searchInput.value = '';
-            searchInput.placeholder = 'Search venues or places';
+        }
+        // Hide origin chip if searchService is available
+        if (typeof searchService !== 'undefined' && searchService.hideOriginChip) {
+            searchService.hideOriginChip();
         }
         render(STATE.currentMode);
     },

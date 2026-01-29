@@ -93,15 +93,79 @@ function setupFilterScrollIndicators() {
     window.addEventListener('resize', updateScrollIndicators, { passive: true });
 }
 
+// Flash animation for filter buttons + haptic feedback
+function flashFilterButton(type) {
+    const btn = document.getElementById(`filter-${type}`) ||
+                document.getElementById(`mobile-filter-${type}`);
+    if (btn) {
+        btn.classList.remove('filter-flash');
+        void btn.offsetWidth; // Force reflow
+        btn.classList.add('filter-flash');
+        setTimeout(() => btn.classList.remove('filter-flash'), 300);
+    }
+
+    // Haptic feedback on mobile
+    if ('vibrate' in navigator) {
+        navigator.vibrate(10);
+    }
+}
+
+// Store previous filter state for undo
+let lastFilterState = null;
+let undoTimeout = null;
+
+function storeFilterStateForUndo() {
+    lastFilterState = { ...STATE.activeFilters };
+}
+
+function showUndoToast() {
+    if (!lastFilterState || typeof toastService === 'undefined') return;
+
+    // Clear any existing undo timeout
+    if (undoTimeout) clearTimeout(undoTimeout);
+
+    toastService.show('Filter applied', 'info', {
+        action: {
+            label: 'Undo',
+            callback: () => {
+                if (lastFilterState) {
+                    STATE.activeFilters = { ...lastFilterState };
+                    updateFilterPillUI('price', STATE.activeFilters.price);
+                    updateFilterPillUI('time', STATE.activeFilters.time);
+                    updateFilterPillUI('borough', STATE.activeFilters.borough);
+                    updateFilterPillUI('commute', STATE.activeFilters.commute);
+                    render(STATE.currentMode);
+                    lastFilterState = null;
+                }
+            }
+        },
+        duration: 4000
+    });
+
+    // Clear undo state after timeout
+    undoTimeout = setTimeout(() => {
+        lastFilterState = null;
+    }, 4000);
+}
+
 // Cycle through filter states (for Price toggle and mobile borough)
 function cycleFilter(type) {
+    // Store state for undo before changing
+    storeFilterStateForUndo();
+
     const cycle = CONFIG.filterCycles[type];
     const currentIndex = cycle.indexOf(STATE.activeFilters[type]);
     const nextIndex = (currentIndex + 1) % cycle.length;
     const newValue = cycle[nextIndex];
     STATE.activeFilters[type] = newValue;
     updateFilterPillUI(type, newValue);
+    flashFilterButton(type);
     render(STATE.currentMode);
+
+    // Show undo toast only when filter is active (not resetting to All)
+    if (newValue !== 'All') {
+        showUndoToast();
+    }
 
     // Zoom map when borough filter changes (defer to ensure markers are registered)
     if (type === 'borough') {
@@ -536,6 +600,7 @@ function selectTimeFilter(value) {
 
     // Update button UI
     updateFilterPillUI('time', value);
+    flashFilterButton('time');
 
     // Close popover and re-render
     closeTimePopover();
@@ -582,6 +647,7 @@ function applyCustomTime() {
     // Apply the filter
     STATE.activeFilters.time = 'custom';
     updateFilterPillUI('time', 'custom');
+    flashFilterButton('time');
     closeTimePopover();
     render(STATE.currentMode);
 }

@@ -23,13 +23,7 @@ function announceToScreenReader(message) {
 }
 
 function toggleDrawer(forceOpen) {
-    // If calendar is open, close it first
-    if (STATE.currentMode === 'calendar') {
-        hideDateCarousel();
-        render('calendar');
-    }
-
-    // Simple binary toggle - peek or open
+    // Simple toggle between peek and open - no drag animation
     const currentState = getDrawerState();
     let targetState;
 
@@ -114,120 +108,9 @@ function setDrawerState(newState) {
     announceToScreenReader(isOpen ? 'Mic list expanded' : 'Mic list minimized');
 }
 
-// Mobile swipe with velocity detection - simple two-state snapping
+// Mobile swipe disabled - tap only
 function setupMobileSwipe() {
-    const drawer = document.getElementById('list-drawer');
-    const header = document.getElementById('drawer-header');
-    const listContent = document.getElementById('list-content');
-
-    let startY = 0;
-    let startTime = 0;
-    let currentY = 0;
-    let isSwiping = false;
-    let swipeSource = null; // Track where the swipe started: 'header' or 'content'
-
-    // Tuned for snappy feel
-    const DRAG_THRESHOLD = 30;      // 20% of ~150px travel
-    const VELOCITY_THRESHOLD = 0.5; // px/ms - fast flick wins
-
-    function isMobile() {
-        return window.matchMedia('(max-width: 767px)').matches;
-    }
-
-    function startSwipe(e, source) {
-        if (!isMobile()) return;
-        startY = e.touches[0].clientY;
-        currentY = startY;
-        startTime = Date.now();
-        isSwiping = true;
-        swipeSource = source;
-    }
-
-    // Google Maps style: pull down at top to collapse
-    let pullStartY = 0;
-    let isPulling = false;
-
-    listContent.addEventListener('touchstart', (e) => {
-        if (!isMobile()) return;
-        // Only track if at top and drawer is open
-        if (listContent.scrollTop <= 0 && getDrawerState() === DRAWER_STATES.OPEN) {
-            pullStartY = e.touches[0].clientY;
-            isPulling = true;
-        }
-    }, { passive: true });
-
-    listContent.addEventListener('touchmove', (e) => {
-        if (!isMobile() || !isPulling) return;
-        if (listContent.scrollTop > 0) {
-            isPulling = false;
-            return;
-        }
-        const pullDistance = e.touches[0].clientY - pullStartY;
-        // If pulled down more than 50px while at top, collapse
-        if (pullDistance > 50) {
-            setDrawerState(DRAWER_STATES.PEEK);
-            isPulling = false;
-        }
-    }, { passive: true });
-
-    listContent.addEventListener('touchend', () => {
-        isPulling = false;
-    }, { passive: true });
-
-    // Header/handle swipes - always work for both directions
-    header.addEventListener('touchstart', (e) => startSwipe(e, 'header'), { passive: true });
-
-    // List content swipes - only when scrolled to top (to collapse)
-    listContent.addEventListener('touchstart', (e) => {
-        if (!isMobile() || listContent.scrollTop > 0) return;
-        startSwipe(e, 'content');
-    }, { passive: true });
-
-    // Track movement - only on header, not drawer
-    header.addEventListener('touchmove', (e) => {
-        if (!isSwiping || !isMobile() || swipeSource !== 'header') return;
-        currentY = e.touches[0].clientY;
-    }, { passive: true });
-
-    // Handle swipe end on header only
-    header.addEventListener('touchend', () => {
-        if (!isSwiping || !isMobile() || swipeSource !== 'header') {
-            isSwiping = false;
-            swipeSource = null;
-            return;
-        }
-        isSwiping = false;
-        swipeSource = null;
-
-        const deltaY = currentY - startY;
-        const deltaTime = Math.max(Date.now() - startTime, 1);
-        const velocity = Math.abs(deltaY) / deltaTime;
-        const currentState = getDrawerState();
-
-        // Velocity wins: fast flick in either direction snaps immediately
-        if (velocity > VELOCITY_THRESHOLD) {
-            setDrawerState(deltaY > 0 ? DRAWER_STATES.PEEK : DRAWER_STATES.OPEN);
-            return;
-        }
-
-        // Slow drag: use threshold
-        if (Math.abs(deltaY) < DRAG_THRESHOLD) return; // Too small, ignore
-
-        if (deltaY < 0 && currentState === DRAWER_STATES.PEEK) {
-            setDrawerState(DRAWER_STATES.OPEN);
-        } else if (deltaY > 0 && currentState === DRAWER_STATES.OPEN) {
-            setDrawerState(DRAWER_STATES.PEEK);
-        }
-    });
-
-    // Reset swipe state if touchend happens elsewhere
-    listContent.addEventListener('touchend', () => {
-        // Content swipes only collapse (pull-down), handled above
-        if (swipeSource === 'content') {
-            isSwiping = false;
-            swipeSource = null;
-        }
-    }, { passive: true });
+    // Swipe/drag disabled - drawer toggles via tap on handle only
 }
 
 // Fix drawer state when viewport changes between mobile/desktop
