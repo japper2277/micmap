@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plan My Night - MicFinder NYC</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap">
+    <link rel="stylesheet" href="css/planner.css">
+</head>
+<body class="px-4 py-4 md:px-8 md:py-8 flex justify-center" style="padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));">
+    <!-- Loading Overlay -->
+    <div id="app-loading" class="fixed inset-0 bg-black/95 flex items-center justify-center z-[9999]">
+        <div class="text-center">
+            <div class="loader mx-auto mb-4"></div>
+            <div id="app-loading-text" class="text-white font-medium">Loading...</div>
+        </div>
+    </div>
+
+    <!-- Skip Link for Accessibility -->
+    <a href="#day-select" class="skip-link">Skip to main content</a>
+
+    <main class="w-full max-w-full sm:max-w-lg" role="main">
+        <!-- Header -->
+        <div class="text-center mb-8 pt-4">
+            <h1 class="text-4xl font-extrabold mb-1 tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-rose-400 to-orange-300">Plan My Night</h1>
+            <p class="text-zinc-500 font-medium text-sm">MicFinder Intelligent Routing</p>
+        </div>
+
+        <!-- Main Card -->
+        <div class="card p-6 md:p-8 mb-6 relative overflow-visible form-card-mobile-padding">
+            <!-- Glow Effect -->
+            <div class="absolute top-0 right-0 w-64 h-64 bg-rose-500 rounded-full mix-blend-overlay filter blur-[100px] opacity-10 pointer-events-none"></div>
+
+            <!-- 1. HERO INPUTS (When) -->
+            <div class="grid grid-cols-2 gap-x-4 gap-y-5 mb-6">
+                <div class="col-span-2">
+                    <label for="day-select" class="form-label" id="day-label">Day of Week</label>
+                    <select id="day-select" class="input-field font-semibold text-lg" aria-labelledby="day-label">
+                        <option value="Monday">Monday</option>
+                        <option value="Tuesday">Tuesday</option>
+                        <option value="Wednesday">Wednesday</option>
+                        <option value="Thursday">Thursday</option>
+                        <option value="Friday">Friday</option>
+                        <option value="Saturday">Saturday</option>
+                        <option value="Sunday">Sunday</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="start-time" class="form-label" id="start-time-label">Start Time</label>
+                    <input type="time" id="start-time" value="19:00" class="input-field" aria-labelledby="start-time-label" aria-describedby="end-time-preview">
+                </div>
+                <div>
+                    <label for="duration-select" class="form-label" id="duration-label">Duration</label>
+                    <select id="duration-select" class="input-field font-semibold" aria-labelledby="duration-label">
+                        <option value="120">2 hours</option>
+                        <option value="180" selected>3 hours</option>
+                        <option value="240">4 hours</option>
+                        <option value="300">5 hours</option>
+                        <option value="360">6 hours</option>
+                        <option value="999">All Night</option>
+                    </select>
+                    <span id="end-time-preview" class="form-helper"></span>
+                </div>
+            </div>
+
+            <!-- 2. LOCATION (Where) -->
+            <div class="mb-6">
+                <label for="origin-search" class="form-label" id="origin-label">Starting From <span class="text-rose-400" aria-hidden="true">*</span><span class="sr-only">(required)</span></label>
+
+                <button onclick="useMyLocation()" class="geo-btn-primary mb-3" id="geo-btn" aria-label="Use my current location" aria-live="polite">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0013 3.06V1h-2v2.06A8.994 8.994 0 003.06 11H1v2h2.06A8.994 8.994 0 0011 20.94V23h2v-2.06A8.994 8.994 0 0020.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg>
+                    <span id="geo-btn-text">Use My Location</span>
+                </button>
+
+                <div class="relative dropdown-container">
+                    <div class="search-input-wrapper">
+                        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"/>
+                            <path d="m21 21-4.35-4.35"/>
+                        </svg>
+                        <input type="text" id="origin-search" class="input-field" placeholder="Address or subway station" autocomplete="off" role="combobox" aria-labelledby="origin-label" aria-expanded="false" aria-autocomplete="list" aria-controls="origin-dropdown" aria-haspopup="listbox">
+                        <button id="search-clear-btn" class="clear-btn" aria-label="Clear search">&times;</button>
+                    </div>
+                    <div id="origin-dropdown" class="dropdown-list" role="listbox" aria-label="Search results"></div>
+                </div>
+
+                <!-- Hidden Selected Origin State -->
+                <div id="selected-origin" class="hidden mt-3 p-3 rounded-xl bg-zinc-800/50 border border-zinc-700 flex items-center justify-between" role="status" aria-live="polite">
+                    <span id="selected-origin-text" class="text-sm font-medium text-rose-200"></span>
+                    <button onclick="clearOrigin()" class="text-zinc-400 hover:text-white w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors" aria-label="Clear selected location" title="Clear selected location">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                    </button>
+                </div>
+                <select id="origin-select" class="hidden"><option value="custom">Custom</option></select>
+            </div>
+
+            <!-- 3. COLLAPSIBLE FILTERS -->
+            <details class="mb-8 group" id="filters-details">
+                <summary>Filters & Preferences <span id="filter-count-badge" class="ml-2 px-2 py-0.5 rounded-full text-xs font-bold bg-rose-500/20 text-rose-400 hidden"></span></summary>
+
+                <div class="space-y-6 pt-2 pl-1 animate-in slide-in-from-top-2 duration-200">
+
+                    <!-- Optimize For -->
+                    <div>
+                        <div class="text-xs text-zinc-500 uppercase font-bold mb-2">Priority</div>
+                        <div class="radio-pills">
+                            <label class="radio-pill active"><input type="radio" name="priority" value="most_mics" checked> Most Mics</label>
+                            <label class="radio-pill"><input type="radio" name="priority" value="least_travel"> Less Travel</label>
+                            <label class="radio-pill"><input type="radio" name="priority" value="best_timing"> Best Timing</label>
+                        </div>
+                    </div>
+
+                    <!-- Areas - Hierarchical Borough/Neighborhood -->
+                    <div class="area-filter">
+                        <div class="text-xs text-zinc-500 uppercase font-bold mb-2">Areas</div>
+                        <div id="area-suggestion" class="hidden text-xs text-rose-400 mb-2"></div>
+
+                        <!-- Borough Row -->
+                        <div class="flex flex-wrap gap-2 mb-2" role="group" aria-label="Filter by borough">
+                            <button type="button" class="borough-chip selected" data-borough="all" id="all-areas-chip" onclick="clearAllAreas()" aria-label="Show all NYC areas" aria-pressed="true">All NYC</button>
+                            <button type="button" class="borough-chip" data-borough="Manhattan" aria-expanded="false" aria-controls="neighborhood-row" aria-label="Filter by Manhattan" aria-pressed="false">Manhattan</button>
+                            <button type="button" class="borough-chip" data-borough="Brooklyn" aria-expanded="false" aria-controls="neighborhood-row" aria-label="Filter by Brooklyn" aria-pressed="false">Brooklyn</button>
+                            <button type="button" class="borough-chip" data-borough="Queens" aria-expanded="false" aria-controls="neighborhood-row" aria-label="Filter by Queens" aria-pressed="false">Queens</button>
+                            <button type="button" class="borough-chip" data-borough="Bronx" aria-expanded="false" aria-controls="neighborhood-row" aria-label="Filter by Bronx" aria-pressed="false">Bronx</button>
+                        </div>
+
+                        <!-- Neighborhood Row (populated dynamically) -->
+                        <div id="neighborhood-row" class="flex flex-wrap gap-1.5 hidden" role="group" aria-label="Filter by neighborhood"></div>
+
+                        <!-- Hidden checkboxes for form submission -->
+                        <div id="area-checkboxes" class="hidden"></div>
+                    </div>
+
+                    <!-- Price Filter -->
+                    <div>
+                        <div class="text-xs text-zinc-500 uppercase font-bold mb-2">Price</div>
+                        <div class="radio-pills">
+                            <label class="radio-pill active"><input type="radio" name="price" value="all" checked>All Mics</label>
+                            <label class="radio-pill"><input type="radio" name="price" value="free">Free Only</label>
+                        </div>
+                    </div>
+
+                    <!-- Signup Filter -->
+                    <div>
+                        <div class="text-xs text-zinc-500 uppercase font-bold mb-2">Signup Method</div>
+                        <div class="radio-pills">
+                            <label class="radio-pill active"><input type="radio" name="signup" value="all" checked>All Mics</label>
+                            <label class="radio-pill"><input type="radio" name="signup" value="walk-in">Walk-In</label>
+                            <label class="radio-pill"><input type="radio" name="signup" value="advance">Advance Signup</label>
+                        </div>
+                    </div>
+
+                    <!-- Pin Specific Mics -->
+                    <div>
+                        <div class="text-xs text-zinc-500 uppercase font-bold mb-2">Pin Specific Mics</div>
+                        <div class="relative dropdown-container" id="anchor-dropdown-container">
+                            <div class="search-input-wrapper">
+                                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="11" cy="11" r="8"/>
+                                    <path d="m21 21-4.35-4.35"/>
+                                </svg>
+                                <input type="text" id="anchor-search-input" class="input-field" placeholder="Search mics to pin..." autocomplete="off" aria-label="Search for mics to pin as start, must-visit, or end stops" role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="anchor-dropdown">
+                                <button id="anchor-clear-btn" class="clear-btn" aria-label="Clear anchor search">&times;</button>
+                            </div>
+                            <div id="anchor-dropdown" class="dropdown-list" role="listbox" aria-label="Mic search results"></div>
+                        </div>
+                        <!-- Selected anchors display as chips -->
+                        <div id="anchor-chips" class="anchor-chips-container"></div>
+                        <!-- Hidden inputs for form submission -->
+                        <div class="anchor-hidden-inputs">
+                            <input type="hidden" id="anchor-start-id" value="">
+                            <input type="hidden" id="anchor-must-id" value="">
+                            <input type="hidden" id="anchor-end-id" value="">
+                        </div>
+                    </div>
+
+                    <!-- Mic Count Controls -->
+                    <div>
+                        <div class="text-xs text-zinc-500 uppercase font-bold mb-2">Number of Mics</div>
+                        <div class="radio-pills">
+                            <label class="radio-pill active"><input type="radio" name="mic-count" value="flexible" checked>Flexible</label>
+                            <label class="radio-pill"><input type="radio" name="mic-count" value="min-2">At least 2</label>
+                            <label class="radio-pill"><input type="radio" name="mic-count" value="min-3">At least 3</label>
+                        </div>
+                    </div>
+
+                    <!-- Commute & Time -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <div class="text-xs text-zinc-500 uppercase font-bold mb-2">Max Commute</div>
+                            <div class="radio-pills">
+                                <label class="radio-pill active"><input type="radio" name="max-commute" value="999" checked>Any</label>
+                                <label class="radio-pill"><input type="radio" name="max-commute" value="20">20m</label>
+                                <label class="radio-pill"><input type="radio" name="max-commute" value="40">40m</label>
+                                <label class="radio-pill"><input type="radio" name="max-commute" value="60">60m+</label>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-zinc-500 uppercase font-bold mb-2">Time per Venue</div>
+                            <div class="radio-pills">
+                                <label class="radio-pill"><input type="radio" name="time-per-venue" value="30">30m</label>
+                                <label class="radio-pill"><input type="radio" name="time-per-venue" value="45">45m</label>
+                                <label class="radio-pill active"><input type="radio" name="time-per-venue" value="60" checked>60m</label>
+                                <label class="radio-pill"><input type="radio" name="time-per-venue" value="90">90m</label>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </details>
+
+            <!-- 4. ACTION (hidden on mobile - using sticky footer instead) -->
+            <div class="hidden sm:block">
+                <button id="plan-btn-desktop" onclick="planMyNight()" class="btn-primary">
+                    Find Open Mics
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Sticky Submit Button -->
+        <div class="sticky-submit-wrapper sm:hidden">
+            <button id="plan-btn" onclick="planMyNight()" class="btn-primary">
+                Find Open Mics
+            </button>
+        </div>
+
+        <!-- LOADING STATE -->
+        <div id="loading" class="hidden card p-12 text-center mb-6" role="status" aria-live="polite" aria-label="Loading route">
+            <div class="loader mx-auto mb-6" aria-hidden="true"></div>
+            <div class="text-xl font-semibold mb-2">Routing your night</div>
+            <div id="loading-detail" class="text-zinc-500 text-sm" aria-live="polite">Calculating transit...</div>
+        </div>
+
+        <!-- RESULTS SECTION -->
+        <div id="results" class="hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div class="flex items-center justify-between mb-4 px-2">
+                <h2 class="text-xl font-bold">Your Itinerary</h2>
+                <div id="summary" class="text-zinc-400 font-mono text-sm"></div>
+            </div>
+
+            <!-- TIMELINE -->
+            <div id="timeline" class="space-y-0"></div>
+
+            <!-- Action Buttons -->
+            <div class="grid grid-cols-3 gap-3 mt-6" role="group" aria-label="Route actions">
+                <button onclick="quickCopyRoute()" class="h-12 rounded-xl bg-zinc-800 border border-zinc-700 hover:bg-zinc-700 active:scale-[0.98] font-semibold text-sm transition-all flex items-center justify-center gap-2" aria-label="Copy route to clipboard">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                    <span>Copy</span>
+                </button>
+                <button onclick="shareRoute()" class="h-12 rounded-xl bg-zinc-800 border border-zinc-700 hover:bg-zinc-700 active:scale-[0.98] font-semibold text-sm transition-all flex items-center justify-center gap-2" aria-label="Share route">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                    <span>Share</span>
+                </button>
+                <button onclick="saveRoute()" class="h-12 rounded-xl bg-zinc-800 border border-zinc-700 hover:bg-zinc-700 active:scale-[0.98] font-semibold text-sm transition-all flex items-center justify-center gap-2" aria-label="Save route to history">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                    <span>Save</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- NO RESULTS -->
+        <div id="no-results" class="hidden card p-8 sm:p-10 text-center card-enter" role="alert" aria-labelledby="no-results-title">
+            <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-zinc-800/50 flex items-center justify-center">
+                <svg class="w-8 h-8 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+            </div>
+            <h3 id="no-results-title" class="text-xl font-bold mb-2">No Mics Found</h3>
+            <p id="no-results-detail" class="text-zinc-400 mb-6 max-w-sm mx-auto">We couldn't find any mics matching your filters for this time and location.</p>
+
+            <!-- Dynamic suggestion based on context -->
+            <div id="no-results-suggestion" class="hidden mb-6 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                <p class="text-sm text-emerald-300" id="suggestion-text"></p>
+            </div>
+
+            <div class="text-left max-w-xs mx-auto mb-6">
+                <div class="text-xs uppercase font-semibold text-zinc-500 mb-3">Suggestions</div>
+                <ul class="space-y-3 text-sm text-zinc-400">
+                    <li class="flex items-start gap-3">
+                        <span class="text-rose-400 mt-0.5">→</span>
+                        <span>Pick a different day — <button onclick="tryDifferentDay()" class="text-rose-400 hover:text-rose-300 underline underline-offset-2">try tomorrow</button></span>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="text-rose-400 mt-0.5">→</span>
+                        <span>Expand to all NYC areas</span>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="text-rose-400 mt-0.5">→</span>
+                        <span>Widen your time window (start earlier or allow more duration)</span>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="text-rose-400 mt-0.5">→</span>
+                        <span>Include paid mics in your search</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                <button onclick="resetFiltersAndRetry()" class="h-12 px-6 rounded-xl bg-rose-500/20 text-rose-300 border border-rose-500/30 hover:bg-rose-500/30 active:scale-[0.98] transition-all font-semibold text-sm flex items-center justify-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    Reset Filters & Retry
+                </button>
+                <button onclick="tryDifferentDay()" class="h-12 px-6 rounded-xl bg-zinc-700 text-zinc-200 border border-zinc-600 hover:bg-zinc-600 active:scale-[0.98] transition-all font-semibold text-sm flex items-center justify-center gap-2" id="try-tomorrow-btn">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    <span id="try-tomorrow-text">Try Tomorrow</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- TOAST -->
+        <div id="toast" class="toast" role="alert" aria-live="polite" aria-atomic="true"></div>
+
+        <!-- Screen Reader Announcer (visually hidden) -->
+        <div id="sr-announcer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+
+    </main>
+
+    <!-- SCRIPTS (Order matters!) -->
+    <script src="js/config.js"></script>
+    <script src="js/state.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/filters.js"></script>
+    <script src="js/search.js"></script>
+    <script src="js/anchors.js"></script>
+    <script src="js/transit.js"></script>
+    <script src="js/render.js"></script>
+    <script src="js/planner.js"></script>
+    <script src="js/share.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
