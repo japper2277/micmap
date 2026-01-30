@@ -176,6 +176,9 @@ function init() {
 
     // Refresh statuses every minute
     setInterval(refreshStatuses, 60000);
+
+    // Plan mode button
+    document.getElementById('plan-btn')?.addEventListener('click', togglePlanMode);
 }
 
 // Load transit station data for arrivals/fallback
