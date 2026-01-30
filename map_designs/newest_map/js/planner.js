@@ -3,6 +3,11 @@
    Map-first route planning - click markers to build route
    ================================================================= */
 
+// Update body class based on route state (for overlay visibility)
+function updateRouteClass() {
+    document.body.classList.toggle('has-route', STATE.route.length > 0);
+}
+
 // Add mic to route
 function addToRoute(micId) {
     if (STATE.route.includes(micId)) return;
@@ -17,6 +22,7 @@ function addToRoute(micId) {
         return micA.start - micB.start;
     });
 
+    updateRouteClass();
     updateMarkerStates();
     updateRouteLine();
     renderPlanDrawer();
@@ -25,6 +31,7 @@ function addToRoute(micId) {
 // Remove mic from route
 function removeFromRoute(micId) {
     STATE.route = STATE.route.filter(id => id !== micId);
+    updateRouteClass();
     updateMarkerStates();
     updateRouteLine();
     renderPlanDrawer();
@@ -60,9 +67,8 @@ function renderPlanDrawer() {
 
     if (STATE.route.length === 0) {
         container.innerHTML = `
-            <div style="padding: 40px 20px; text-align: center; color: rgba(255,255,255,0.6);">
-                <p style="font-size: 16px; font-weight: 600; margin-bottom: 8px; color: rgba(255,255,255,0.8);">Tap markers to build your route</p>
-                <p style="font-size: 13px;">Glowing markers have perfect timing</p>
+            <div style="padding: 24px 16px; text-align: center; color: rgba(255,255,255,0.4);">
+                <p style="font-size: 14px;">0 stops</p>
             </div>
         `;
         return;

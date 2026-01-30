@@ -332,7 +332,7 @@ function exitPlanMode() {
     STATE.planMode = false;
     STATE.route = [];
     document.getElementById('plan-btn').classList.remove('active');
-    document.body.classList.remove('plan-mode');
+    document.body.classList.remove('plan-mode', 'has-route');
     updateMarkerStates(); // Clear marker states
     render(STATE.currentMode); // Restore normal drawer
 }

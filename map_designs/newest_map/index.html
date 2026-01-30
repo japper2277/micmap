@@ -50,6 +50,14 @@
     <!-- MAP LAYER -->
     <div id="map" class="absolute inset-0 z-0 bg-[#e8e4dc]"></div>
 
+    <!-- PLAN MODE OVERLAY (instruction on map) -->
+    <div id="plan-overlay" class="plan-overlay">
+        <div class="plan-overlay-content">
+            <div class="plan-overlay-title">Tap markers to build your route</div>
+            <div class="plan-overlay-sub">Glowing markers have perfect timing</div>
+        </div>
+    </div>
+
     <!-- LOCATE ME BUTTON -->
     <button onclick="centerOnUser()" id="locate-btn" class="locate-btn" aria-label="Center map on my location" data-tooltip="Current Location">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

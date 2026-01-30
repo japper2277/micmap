@@ -248,6 +248,48 @@ body.plan-mode .mics-header-row {
     width: 60px;
 }
 
+/* --- PLAN MODE MAP OVERLAY --- */
+.plan-overlay {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 500;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+body.plan-mode .plan-overlay {
+    opacity: 1;
+}
+
+body.plan-mode.has-route .plan-overlay {
+    opacity: 0;
+}
+
+.plan-overlay-content {
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    padding: 20px 28px;
+    border-radius: 16px;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.plan-overlay-title {
+    font-size: 17px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 6px;
+}
+
+.plan-overlay-sub {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.6);
+}
+
 /* --- MICS HEADER ROW (New Sliding Toggle Design) --- */
 .mics-header-row {
     background-color: var(--bg-elevated);
