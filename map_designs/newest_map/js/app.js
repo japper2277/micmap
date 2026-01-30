@@ -321,6 +321,7 @@ function togglePlanMode() {
     document.body.classList.toggle('plan-mode', STATE.planMode);
 
     if (STATE.planMode) {
+        updateMarkerStates(); // Show commute labels on markers
         renderPlanDrawer();
     } else {
         exitPlanMode();
