@@ -800,14 +800,13 @@
 /* Commute label - shows travel time above marker in plan mode */
 .marker-commute-label {
     position: absolute;
-    top: -20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.75);
+    top: -8px;
+    right: -8px;
+    background: rgba(0, 0, 0, 0.85);
     color: #fff;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 600;
-    padding: 2px 6px;
+    padding: 2px 5px;
     border-radius: 4px;
     white-space: nowrap;
     pointer-events: none;
