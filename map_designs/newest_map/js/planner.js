@@ -164,7 +164,18 @@ function removeCommuteLabel(el) {
 
 // Calculate commute from user location to a mic
 function getCommuteFromUser(mic) {
-    if (!STATE.userLocation || !mic || !mic.lat) return 15; // Default
+    // Prefer walking time if available (matches modal's first option for walkable venues)
+    if (mic.walkMins !== undefined) {
+        return Math.round(mic.walkMins);
+    }
+
+    // Use transit time if available
+    if (mic.transitMins !== undefined) {
+        return Math.round(mic.transitMins);
+    }
+
+    // Fallback to distance estimate
+    if (!STATE.userLocation || !mic || !mic.lat) return 15;
 
     const R = 6371;
     const dLat = (mic.lat - STATE.userLocation.lat) * Math.PI / 180;
@@ -204,9 +215,18 @@ function updateMarkerStates() {
 
     // In plan mode with empty route - show commute from user location
     if (STATE.route.length === 0) {
-        todayMics.forEach(mic => {
+        // Sort by start time so earliest mic is processed first
+        const sortedMics = [...todayMics].sort((a, b) => (a.start || 0) - (b.start || 0));
+        const labeledMarkers = new Set();
+
+        sortedMics.forEach(mic => {
             const marker = STATE.markerLookup[mic.id];
             if (!marker) return;
+
+            // Only label each marker once (use earliest mic's time)
+            if (labeledMarkers.has(marker)) return;
+            labeledMarkers.add(marker);
+
             const el = marker.getElement();
             if (el) {
                 el.classList.remove('marker-selected', 'marker-glow', 'marker-suggested', 'marker-dimmed');
@@ -223,13 +243,21 @@ function updateMarkerStates() {
     const lastMicId = STATE.route[STATE.route.length - 1];
     const lastMic = STATE.mics.find(m => m.id === lastMicId);
 
+    // Sort by start time so earliest mic is processed first
+    const sortedMics = [...todayMics].sort((a, b) => (a.start || 0) - (b.start || 0));
+    const processedMarkers = new Set();
+
     // Update each marker based on timing
-    todayMics.forEach(mic => {
+    sortedMics.forEach(mic => {
         const marker = STATE.markerLookup[mic.id];
         if (!marker) return;
 
         const el = marker.getElement();
         if (!el) return;
+
+        // Only process each marker once (use earliest mic)
+        if (processedMarkers.has(marker)) return;
+        processedMarkers.add(marker);
 
         // Clear previous states
         el.classList.remove('marker-selected', 'marker-glow', 'marker-suggested', 'marker-dimmed');
@@ -295,16 +323,21 @@ function renderPlanDrawer() {
 
     if (STATE.route.length === 0) {
         container.innerHTML = `
-            <div style="padding: 24px 16px; text-align: center; color: rgba(255,255,255,0.4);">
-                <p style="font-size: 14px;">0 stops</p>
+            <div style="padding: 20px 24px; text-align: center;">
+                <p style="font-size: 16px; font-weight: 600; color: #fff; margin: 0; line-height: 1.4;">Tap mics on the map to add them to your schedule for the night</p>
             </div>
         `;
         return;
     }
 
     // Show current route
+    const stopCount = STATE.route.length;
+    const stopWord = stopCount === 1 ? 'stop' : 'stops';
     let html = '<div style="padding: 16px;">';
-    html += '<div style="font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">Your Route</div>';
+    html += `<div style="font-size: 17px; font-weight: 700; color: #fff; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between;">
+        <span>${stopCount} ${stopWord} planned</span>
+        <span style="font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.5);">Swipe up ↑</span>
+    </div>`;
 
     STATE.route.forEach((micId, i) => {
         const mic = STATE.mics.find(m => m.id === micId);

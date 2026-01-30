@@ -294,6 +294,11 @@ const transitService = {
 
         render(STATE.currentMode);
 
+        // Refresh plan mode marker badges with real transit data
+        if (STATE.planMode && typeof updateMarkerStates === 'function') {
+            updateMarkerStates();
+        }
+
         // Background preload: Calculate routes for other days
         this.preloadOtherDays(lat, lng);
     },
@@ -483,21 +488,29 @@ const transitService = {
             await Promise.all(batch.map(async (venue) => {
                 const { lat, lng, mics: venueMics, representativeMic } = venue;
 
-                // Check if walkable first (< 0.5 miles straight line)
+                // Check straight-line distance
                 const distance = calculateDistance(userLat, userLng, lat, lng);
-                if (distance < 0.5) {
-                    // Get accurate walking time from OSRM
+
+                // For venues under 1.0 miles, get walking time (matches modal threshold)
+                // This will be used for the badge display
+                if (distance < 1.0) {
                     const walkData = await this.getWalkingTime(userLat, userLng, lat, lng);
-                    // Apply to all mics at this venue
                     venueMics.forEach(mic => {
-                        mic.transitMins = walkData.mins;
-                        mic.transitSeconds = walkData.mins * 60;
-                        mic.transitType = 'walk';
+                        mic.walkMins = walkData.mins;
                         mic.walkData = walkData;
-                        mic.route = null;
-                        mic.transitOrigin = { lat: userLat, lng: userLng };
                     });
-                    return;
+
+                    // Under 0.5 miles - walking only, no transit needed
+                    if (distance < 0.5) {
+                        venueMics.forEach(mic => {
+                            mic.transitMins = walkData.mins;
+                            mic.transitSeconds = walkData.mins * 60;
+                            mic.transitType = 'walk';
+                            mic.route = null;
+                            mic.transitOrigin = { lat: userLat, lng: userLng };
+                        });
+                        return;
+                    }
                 }
 
                 // Get exact route via Dijkstra (use representative mic for schedule-based calculation)

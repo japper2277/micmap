@@ -101,7 +101,7 @@ function initModal() {
 
             const micId = btn.dataset.micId;
             if (micId && typeof toggleMicInRoute === 'function') {
-                toggleMicInRoute(micId);
+                toggleMicInRoute(micId, true);  // skipZoom = true when clicking from modal
                 // Refresh the modal content to update button states (don't close)
                 const mic = modalMicsArray[modalActiveMicIndex];
                 if (mic) {
