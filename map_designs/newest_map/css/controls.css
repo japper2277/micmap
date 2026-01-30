@@ -102,6 +102,68 @@
     }
 }
 
+/* --- PLAN MODE BUTTON --- */
+.plan-btn {
+    position: fixed;
+    bottom: 240px; /* Above locate button */
+    right: 16px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(180deg, #f43f5e 0%, #e11d48 100%);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 899;
+    box-shadow:
+        0 6px 20px rgba(244, 63, 94, 0.4),
+        0 2px 6px rgba(0, 0, 0, 0.15),
+        inset 0 2px 2px rgba(255, 255, 255, 0.2);
+    transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.plan-btn:hover {
+    transform: translateY(-2px);
+    box-shadow:
+        0 10px 28px rgba(244, 63, 94, 0.5),
+        0 4px 10px rgba(0, 0, 0, 0.2),
+        inset 0 2px 2px rgba(255, 255, 255, 0.2);
+}
+
+.plan-btn:active {
+    transform: translateY(1px);
+    box-shadow:
+        0 2px 8px rgba(244, 63, 94, 0.3),
+        0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.plan-btn.active {
+    background: linear-gradient(180deg, #22c55e 0%, #16a34a 100%);
+    box-shadow:
+        0 6px 20px rgba(34, 197, 94, 0.4),
+        0 2px 6px rgba(0, 0, 0, 0.15),
+        inset 0 2px 2px rgba(255, 255, 255, 0.2);
+}
+
+/* Mobile: stack above locate button */
+@media (max-width: 767px) {
+    .plan-btn {
+        bottom: 215px;
+        right: 16px;
+    }
+}
+
+/* Desktop: stack above locate button */
+@media (min-width: 768px) {
+    .plan-btn {
+        bottom: 94px;
+        right: 24px;
+    }
+}
+
 /* --- MICS HEADER ROW (New Sliding Toggle Design) --- */
 .mics-header-row {
     background-color: var(--bg-elevated);
