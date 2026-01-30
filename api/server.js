@@ -350,12 +350,16 @@ app.get('/health/deep', async (req, res) => {
 });
 
 // Load mics from JSON file as fallback
+// In test, we disable fallback so tests can assert Mongo failure behavior deterministically.
+const allowJsonFallback = process.env.NODE_ENV !== 'test';
 let micsJsonData = null;
-try {
-  micsJsonData = JSON.parse(fs.readFileSync(path.join(__dirname, 'mics.json'), 'utf-8'));
-  console.log(`📋 Loaded ${micsJsonData.length} mics from mics.json as fallback`);
-} catch (e) {
-  console.warn('⚠️ Could not load mics.json fallback');
+if (allowJsonFallback) {
+  try {
+    micsJsonData = JSON.parse(fs.readFileSync(path.join(__dirname, 'mics.json'), 'utf-8'));
+    console.log(`📋 Loaded ${micsJsonData.length} mics from mics.json as fallback`);
+  } catch (e) {
+    console.warn('⚠️ Could not load mics.json fallback');
+  }
 }
 
 // Main endpoint: Fetch open mic data from MongoDB (with Redis caching)
@@ -399,7 +403,7 @@ app.get('/api/v1/mics', cacheMiddleware, async (req, res) => {
 
       mics = await micsQuery;
       console.log(`✅ Loaded ${mics.length} mics from MongoDB`);
-    } else if (micsJsonData) {
+    } else if (allowJsonFallback && micsJsonData) {
       // Fallback to JSON file
       mics = micsJsonData;
 
@@ -442,7 +446,7 @@ app.get('/api/v1/mics', cacheMiddleware, async (req, res) => {
 
       console.log(`✅ Loaded ${mics.length} mics from JSON fallback`);
     } else {
-      throw new Error('No data source available');
+      throw new Error('MongoDB not connected');
     }
 
     res.json({

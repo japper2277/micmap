@@ -27,27 +27,35 @@ let isRedisConnected = false;
 // Handle successful connection
 redis.on('connect', () => {
   isRedisConnected = true;
-  console.log('✅ Redis connected successfully');
-  console.log(`📦 Redis URL: ${redisUrl.replace(/:[^:]*@/, ':****@')}`); // Hide password
+  if (process.env.NODE_ENV !== 'test') {
+    console.log('✅ Redis connected successfully');
+    console.log(`📦 Redis URL: ${redisUrl.replace(/:[^:]*@/, ':****@')}`); // Hide password
+  }
 });
 
 // Handle connection ready
 redis.on('ready', () => {
   isRedisConnected = true;
-  console.log('✅ Redis is ready to accept commands');
+  if (process.env.NODE_ENV !== 'test') {
+    console.log('✅ Redis is ready to accept commands');
+  }
 });
 
 // Handle connection errors
 redis.on('error', (error) => {
   isRedisConnected = false;
-  console.warn('⚠️ Redis connection error:', error.message);
-  console.warn('⚠️ Caching disabled - API will query MongoDB directly');
+  if (process.env.NODE_ENV !== 'test') {
+    console.warn('⚠️ Redis connection error:', error.message);
+    console.warn('⚠️ Caching disabled - API will query MongoDB directly');
+  }
 });
 
 // Handle disconnection
 redis.on('close', () => {
   isRedisConnected = false;
-  console.warn('⚠️ Redis connection closed');
+  if (process.env.NODE_ENV !== 'test') {
+    console.warn('⚠️ Redis connection closed');
+  }
 });
 
 // Graceful shutdown
@@ -57,8 +65,10 @@ process.on('SIGTERM', () => {
 
 // Attempt to connect (lazy connect is true, so this won't block server startup)
 redis.connect().catch((error) => {
-  console.warn('⚠️ Redis not available:', error.message);
-  console.warn('⚠️ Server will run without caching');
+  if (process.env.NODE_ENV !== 'test') {
+    console.warn('⚠️ Redis not available:', error.message);
+    console.warn('⚠️ Server will run without caching');
+  }
 });
 
 // Export Redis client and connection status helper

@@ -300,5 +300,16 @@ window.debugDrawerScroll = function() {
     };
 };
 
+// Open Plan My Night feature
+function openPlanMyNight() {
+    // Navigate to the planner page (index redirects to planner.html)
+    try {
+        if (typeof syncSharedStateFromMicMap === 'function') syncSharedStateFromMicMap();
+    } catch (_) {
+        // ignore
+    }
+    window.location.href = 'planmynight/';
+}
+
 // Run init when DOM is ready
 init();

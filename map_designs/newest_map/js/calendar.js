@@ -140,6 +140,8 @@ function setModeFromToggle(mode) {
     }
 
     setMode(mode);
+
+    if (typeof syncSharedStateFromMicMap === 'function') syncSharedStateFromMicMap();
 }
 
 function setMode(mode) {
@@ -177,6 +179,8 @@ function setMode(mode) {
             );
         }
     }
+
+    if (typeof syncSharedStateFromMicMap === 'function') syncSharedStateFromMicMap();
 }
 
 function generateDateCarousel() {

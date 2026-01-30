@@ -3,6 +3,80 @@
    Pure utility functions
    ================================================================= */
 
+const MICMAP_SHARED_KEY = 'micmap.shared.v1';
+
+function getComedyAdjustedNow() {
+    const now = new Date();
+    const adjusted = new Date(now);
+    if (adjusted.getHours() < 4) {
+        adjusted.setDate(adjusted.getDate() - 1);
+    }
+    return adjusted;
+}
+
+function getMicMapSelectedDayName() {
+    try {
+        if (STATE.currentMode === 'calendar') {
+            const selectedDate = new Date(STATE.selectedCalendarDate);
+            if (!isNaN(selectedDate.getTime())) {
+                return CONFIG.dayNames[selectedDate.getDay()];
+            }
+        }
+
+        const adjusted = getComedyAdjustedNow();
+        if (STATE.currentMode === 'tomorrow') {
+            const tomorrow = new Date(adjusted);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            return CONFIG.dayNames[tomorrow.getDay()];
+        }
+        return CONFIG.dayNames[adjusted.getDay()];
+    } catch (_) {
+        return null;
+    }
+}
+
+function getMicMapSharedOrigin() {
+    const now = Date.now();
+    if (STATE.userOrigin?.lat && STATE.userOrigin?.lng) {
+        return { lat: STATE.userOrigin.lat, lng: STATE.userOrigin.lng, name: STATE.userOrigin.name || 'Saved Location', updatedAt: now };
+    }
+    if (STATE.userLocation?.lat && STATE.userLocation?.lng) {
+        return { lat: STATE.userLocation.lat, lng: STATE.userLocation.lng, name: 'My Location', updatedAt: now };
+    }
+    return null;
+}
+
+function syncSharedStateFromMicMap() {
+    try {
+        const prevRaw = localStorage.getItem(MICMAP_SHARED_KEY);
+        const prev = prevRaw ? JSON.parse(prevRaw) : {};
+
+        const dayName = getMicMapSelectedDayName();
+        const origin = getMicMapSharedOrigin();
+
+        const next = {
+            ...prev,
+            source: 'micmap',
+            origin,
+            lastFilters: {
+                ...(prev.lastFilters || {}),
+                price: STATE.activeFilters?.price,
+                time: STATE.activeFilters?.time,
+                borough: STATE.activeFilters?.borough,
+                commute: STATE.activeFilters?.commute,
+                mode: STATE.currentMode,
+                calendarDate: STATE.selectedCalendarDate,
+                day: dayName
+            },
+            updatedAt: Date.now()
+        };
+
+        localStorage.setItem(MICMAP_SHARED_KEY, JSON.stringify(next));
+    } catch (_) {
+        // ignore
+    }
+}
+
 // Escape HTML to prevent XSS attacks
 function escapeHtml(str) {
     if (!str) return '';

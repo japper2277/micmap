@@ -32,6 +32,8 @@ module.exports = {
   },
 
   // Setup files
+  // setupFiles runs before each test file is evaluated (critical so server.js sees NODE_ENV=test)
+  setupFiles: ['<rootDir>/__tests__/env.js'],
   setupFilesAfterEnv: ['<rootDir>/__tests__/setup.js'],
 
   // Test timeout (increase for MongoDB memory server)

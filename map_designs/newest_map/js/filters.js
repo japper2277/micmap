@@ -162,11 +162,6 @@ function cycleFilter(type) {
     flashFilterButton(type);
     render(STATE.currentMode);
 
-    // Show undo toast only when filter is active (not resetting to All)
-    if (newValue !== 'All') {
-        showUndoToast();
-    }
-
     // Zoom map when borough filter changes (defer to ensure markers are registered)
     if (type === 'borough') {
         setTimeout(() => {
@@ -180,6 +175,8 @@ function cycleFilter(type) {
             }
         }, 0);
     }
+
+    if (typeof syncSharedStateFromMicMap === 'function') syncSharedStateFromMicMap();
 }
 
 // Toggle time filter popover
@@ -472,6 +469,8 @@ function selectPriceFilter(value) {
     // Close popover and re-render
     closePricePopover();
     render(STATE.currentMode);
+
+    if (typeof syncSharedStateFromMicMap === 'function') syncSharedStateFromMicMap();
 }
 
 /* =================================================================
@@ -580,6 +579,8 @@ function selectBoroughFilter(value) {
             map.flyTo(CONFIG.mapCenter, CONFIG.mapZoom, { duration: 1.5 });
         }
     }, 0);
+
+    if (typeof syncSharedStateFromMicMap === 'function') syncSharedStateFromMicMap();
 }
 
 // Select time filter from popover
@@ -605,6 +606,8 @@ function selectTimeFilter(value) {
     // Close popover and re-render
     closeTimePopover();
     render(STATE.currentMode);
+
+    if (typeof syncSharedStateFromMicMap === 'function') syncSharedStateFromMicMap();
 }
 
 // Show custom time inputs
@@ -650,6 +653,8 @@ function applyCustomTime() {
     flashFilterButton('time');
     closeTimePopover();
     render(STATE.currentMode);
+
+    if (typeof syncSharedStateFromMicMap === 'function') syncSharedStateFromMicMap();
 }
 
 function updateFilterPillUI(type, value) {

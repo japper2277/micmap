@@ -50,7 +50,9 @@ function generateCacheKey(query) {
 async function cacheMiddleware(req, res, next) {
   // Skip caching if Redis isn't connected
   if (!isRedisConnected()) {
-    console.log('⚠️ Redis not connected - bypassing cache');
+    if (process.env.NODE_ENV !== 'test') {
+      console.log('⚠️ Redis not connected - bypassing cache');
+    }
     return next();
   }
 
@@ -62,7 +64,9 @@ async function cacheMiddleware(req, res, next) {
 
     if (cachedData) {
       // Cache HIT - return immediately
-      console.log(`✅ Cache HIT: ${cacheKey}`);
+      if (process.env.NODE_ENV !== 'test') {
+        console.log(`✅ Cache HIT: ${cacheKey}`);
+      }
       const data = JSON.parse(cachedData);
 
       // Add cache metadata to response
@@ -73,7 +77,9 @@ async function cacheMiddleware(req, res, next) {
     }
 
     // Cache MISS - continue to MongoDB
-    console.log(`❌ Cache MISS: ${cacheKey}`);
+    if (process.env.NODE_ENV !== 'test') {
+      console.log(`❌ Cache MISS: ${cacheKey}`);
+    }
 
     // Intercept res.json() to cache the response before sending
     const originalJson = res.json.bind(res);
@@ -90,9 +96,13 @@ async function cacheMiddleware(req, res, next) {
           };
 
           await redis.setex(cacheKey, CACHE_TTL, JSON.stringify(dataToCache));
-          console.log(`💾 Cached response: ${cacheKey} (TTL: ${CACHE_TTL}s)`);
+          if (process.env.NODE_ENV !== 'test') {
+            console.log(`💾 Cached response: ${cacheKey} (TTL: ${CACHE_TTL}s)`);
+          }
         } catch (cacheError) {
-          console.warn('⚠️ Failed to cache response:', cacheError.message);
+          if (process.env.NODE_ENV !== 'test') {
+            console.warn('⚠️ Failed to cache response:', cacheError.message);
+          }
           // Don't throw - caching is optional
         }
       });
@@ -105,7 +115,9 @@ async function cacheMiddleware(req, res, next) {
 
   } catch (error) {
     // Redis error - log and continue without cache
-    console.warn('⚠️ Cache middleware error:', error.message);
+    if (process.env.NODE_ENV !== 'test') {
+      console.warn('⚠️ Cache middleware error:', error.message);
+    }
     next();
   }
 }

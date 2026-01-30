@@ -237,12 +237,15 @@ const transitService = {
             // Still set origin for UI purposes but don't calculate routes
             STATE.userOrigin = { lat, lng, name };
             STATE.isTransitMode = false;
+            if (typeof syncSharedStateFromMicMap === 'function') syncSharedStateFromMicMap();
             return;
         }
 
         STATE.userOrigin = { lat, lng, name };
         STATE.isTransitMode = true;
         STATE.isCalculatingTransit = true;
+
+        if (typeof syncSharedStateFromMicMap === 'function') syncSharedStateFromMicMap();
 
         // Show commute filter button
         if (typeof updateTransitButtonUI === 'function') {

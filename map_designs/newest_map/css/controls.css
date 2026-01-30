@@ -751,6 +751,7 @@
     color: #F42B4E;
 }
 
+
 /* --- SEARCH BAR - Apple Liquid Glass Style --- */
 .search-wrapper {
     background: rgba(28, 28, 30, 0.72);
@@ -1694,4 +1695,41 @@
 /* Hide voice button when input has value (show clear instead) */
 .search-wrapper.has-value .voice-search-btn {
     display: none;
+}
+
+/* =================================================================
+   PLAN MY NIGHT BUTTON
+   ================================================================= */
+.plan-night-btn {
+    margin-left: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 14px;
+    background: #ef4444;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.plan-night-btn:hover {
+    background: #dc2626;
+    transform: translateY(-1px);
+}
+
+.plan-night-btn:active {
+    transform: scale(0.97);
+}
+
+/* Mobile: Hide Plan My Night button on small screens */
+@media (max-width: 480px) {
+    .plan-night-btn {
+        display: none;
+    }
 }
