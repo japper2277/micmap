@@ -40,16 +40,72 @@ function addToRoute(micId) {
     });
 
     updateRouteClass();
-    updateMarkerStates();
+    render(STATE.currentMode);  // Re-render to update strikethrough on times
     updateRouteLine();
     renderPlanDrawer();
+    fitMapToReachableMics();
+}
+
+// Fit map to show selected mic + all reachable (non-dimmed) mics
+function fitMapToReachableMics() {
+    if (!STATE.planMode || STATE.route.length === 0) return;
+
+    const lastMicId = STATE.route[STATE.route.length - 1];
+    const lastMic = STATE.mics.find(m => m.id === lastMicId);
+    if (!lastMic) return;
+
+    // Get today's mics
+    const now = new Date();
+    const todayName = CONFIG.dayNames[now.getDay()];
+    const tomorrowName = CONFIG.dayNames[(now.getDay() + 1) % 7];
+    const targetDay = STATE.currentMode === 'tomorrow' ? tomorrowName : todayName;
+    const todayMics = STATE.mics.filter(m => m.day === targetDay);
+
+    // Collect bounds: selected mics + reachable mics (glow/suggested)
+    const points = [];
+
+    // Add all selected mics
+    STATE.route.forEach(id => {
+        const mic = STATE.mics.find(m => m.id === id);
+        if (mic && mic.lat && mic.lng) {
+            points.push([mic.lat, mic.lng]);
+        }
+    });
+
+    // Add reachable mics (check marker state)
+    todayMics.forEach(mic => {
+        if (STATE.route.includes(mic.id)) return; // Already added
+        if (!mic.lat || !mic.lng) return;
+
+        const marker = STATE.markerLookup[mic.id];
+        if (!marker) return;
+        const el = marker.getElement();
+        if (!el) return;
+
+        // Include if glow or suggested (not dimmed)
+        if (el.classList.contains('marker-glow') || el.classList.contains('marker-suggested')) {
+            points.push([mic.lat, mic.lng]);
+        }
+    });
+
+    // Need at least 2 points to fit bounds
+    if (points.length < 2) return;
+
+    // Fit map with padding
+    const bounds = L.latLngBounds(points);
+    map.fitBounds(bounds, {
+        padding: [60, 60],
+        maxZoom: 15,
+        animate: true,
+        duration: 0.4
+    });
 }
 
 // Remove mic from route
 function removeFromRoute(micId) {
     STATE.route = STATE.route.filter(id => id !== micId);
     updateRouteClass();
-    updateMarkerStates();
+    render(STATE.currentMode);  // Re-render to update strikethrough on times
     updateRouteLine();
     renderPlanDrawer();
 }
@@ -186,39 +242,44 @@ function updateMarkerStates() {
             const commuteMins = getCommuteBetweenMics(lastMic, mic);
             setCommuteLabel(el, commuteMins);
 
-            // Apply status based on timing
+            // Apply status: reachable or dimmed
             const status = getMicStatus(mic.id, lastMicId, commuteMins);
-            if (status === 'glow') el.classList.add('marker-glow');
-            else if (status === 'suggested') el.classList.add('marker-suggested');
-            else if (status === 'dimmed') el.classList.add('marker-dimmed');
+            if (status === 'dimmed') el.classList.add('marker-dimmed');
         }
     });
 }
 
-// Calculate if a mic is reachable and how good the timing is
+// Get time in minutes from midnight (for comparison)
+function getTimeInMinutes(date) {
+    if (!(date instanceof Date)) return 0;
+    return date.getHours() * 60 + date.getMinutes();
+}
+
+// Calculate if a mic is reachable (simplified: just reachable or not)
 function getMicStatus(candidateId, lastMicId, commuteMins) {
     const candidate = STATE.mics.find(m => m.id === candidateId);
     const anchor = STATE.mics.find(m => m.id === lastMicId);
     if (!candidate || !anchor || !candidate.start || !anchor.start) return 'visible';
 
+    // Compare by time of day (hours:minutes), not full Date
+    const candidateTime = getTimeInMinutes(candidate.start);
+    const anchorTime = getTimeInMinutes(anchor.start);
+
     // Candidate must be after anchor in time
-    if (candidate.start <= anchor.start) return 'dimmed';
+    if (candidateTime <= anchorTime) return 'dimmed';
 
-    // When does anchor mic end? (start + setDuration)
-    const anchorEndTime = new Date(anchor.start.getTime() + STATE.setDuration * 60000);
-
-    // Use provided commute time or default to 20
+    // When would you arrive at candidate?
+    // anchorTime + setDuration + commute
+    const setDuration = STATE.setDuration || 30; // default 30 min set
     const travelMins = commuteMins || 20;
-    const arrivalTime = new Date(anchorEndTime.getTime() + travelMins * 60000);
+    const arrivalTime = anchorTime + setDuration + travelMins;
 
     // How much buffer before the candidate mic starts?
-    const waitMins = (candidate.start - arrivalTime) / 60000;
+    const waitMins = candidateTime - arrivalTime;
 
-    // Status based on wait time
-    if (waitMins < -5) return 'dimmed';      // Too late (5m grace period)
-    if (waitMins <= 15) return 'glow';       // Perfect! Arrive 0-15m early
-    if (waitMins <= 45) return 'suggested';  // Good, but some waiting
-    return 'dimmed';                          // Too much dead time (45+ mins)
+    // Simple: can you make it? (5 min grace period)
+    if (waitMins < -5) return 'dimmed';  // Too late
+    return 'visible';                     // Reachable
 }
 
 // Update route line on map

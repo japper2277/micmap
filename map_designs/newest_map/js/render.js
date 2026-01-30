@@ -421,7 +421,32 @@ function render(mode) {
 
         // Get unique times (dedupe in case of duplicates)
         const allTimes = [...new Set(cluster.mics.map(formatTime))];
-        const displayTimes = allTimes.join(', ');
+
+        // In plan mode with route, check which times are reachable
+        let displayTimes;
+        if (STATE.planMode && STATE.route.length > 0 && typeof getMicStatus === 'function') {
+            const lastMicId = STATE.route[STATE.route.length - 1];
+
+            // Group mics by time, check if ANY mic at that time is reachable
+            const timeReachability = {};
+            cluster.mics.forEach(mic => {
+                const timeStr = formatTime(mic);
+                const status = getMicStatus(mic.id, lastMicId, 20);
+                // If any mic at this time is reachable, mark time as reachable
+                if (!timeReachability[timeStr]) {
+                    timeReachability[timeStr] = status !== 'dimmed';
+                } else if (status !== 'dimmed') {
+                    timeReachability[timeStr] = true;
+                }
+            });
+
+            // Format times with strikethrough for unreachable
+            displayTimes = allTimes.map(t =>
+                timeReachability[t] ? t : `<s class="time-unreachable">${t}</s>`
+            ).join(', ');
+        } else {
+            displayTimes = allTimes.join(', ');
+        }
 
         // Count unique venues
         const venueNames = [...new Set(cluster.mics.map(m => m.title || m.venue))];
@@ -442,10 +467,12 @@ function render(mode) {
         if (isZoomedIn && isMultiVenue) {
             // Multi-venue stacked ticket: build venue data array
             const venueMap = {};
+            const lastMicId = STATE.planMode && STATE.route.length > 0 ? STATE.route[STATE.route.length - 1] : null;
+
             cluster.mics.forEach(mic => {
                 const key = mic.title || mic.venue || 'Unknown';
-                if (!venueMap[key]) venueMap[key] = { name: key, times: [], status: 'future' };
-                venueMap[key].times.push(formatTime(mic));
+                if (!venueMap[key]) venueMap[key] = { name: key, mics: [], status: 'future' };
+                venueMap[key].mics.push(mic);
                 // Use best status (live > upcoming > future)
                 const statusPri = { live: 3, upcoming: 2, future: 0 };
                 if ((statusPri[mic.status] || 0) > (statusPri[venueMap[key].status] || 0)) {
@@ -453,11 +480,29 @@ function render(mode) {
                 }
             });
 
-            const venueData = Object.values(venueMap).map(v => ({
-                name: v.name,
-                times: v.times.join(', '),
-                status: v.status
-            }));
+            const venueData = Object.values(venueMap).map(v => {
+                // Get unique times for this venue
+                const uniqueTimes = [...new Set(v.mics.map(formatTime))];
+
+                // In plan mode, check reachability per time
+                let timesStr;
+                if (lastMicId && typeof getMicStatus === 'function') {
+                    const timeReach = {};
+                    v.mics.forEach(mic => {
+                        const t = formatTime(mic);
+                        const status = getMicStatus(mic.id, lastMicId, 20);
+                        if (!timeReach[t]) timeReach[t] = status !== 'dimmed';
+                        else if (status !== 'dimmed') timeReach[t] = true;
+                    });
+                    timesStr = uniqueTimes.map(t =>
+                        timeReach[t] ? t : `<s class="time-unreachable">${t}</s>`
+                    ).join(', ');
+                } else {
+                    timesStr = uniqueTimes.join(', ');
+                }
+
+                return { name: v.name, times: timesStr, status: v.status };
+            });
 
             markerIcon = createMultiVenuePin(venueData);
         } else {

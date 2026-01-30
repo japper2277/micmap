@@ -151,6 +151,17 @@
         inset 0 2px 2px rgba(255, 255, 255, 0.2);
 }
 
+/* Toggle icons based on active state */
+.plan-btn .plan-icon-on {
+    display: none;
+}
+.plan-btn.active .plan-icon-off {
+    display: none;
+}
+.plan-btn.active .plan-icon-on {
+    display: block;
+}
+
 /* Tooltip for plan button */
 .plan-btn[data-tooltip]::before {
     content: attr(data-tooltip);

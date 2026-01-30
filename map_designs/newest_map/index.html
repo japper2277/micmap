@@ -67,8 +67,13 @@
 
     <!-- PLAN MODE BUTTON -->
     <button id="plan-btn" class="plan-btn" aria-label="Plan my night" data-tooltip="Plan My Night">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <!-- Clipboard icon (shown when inactive) -->
+        <svg class="plan-icon-off w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+        </svg>
+        <!-- X icon (shown when active) -->
+        <svg class="plan-icon-on w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
         </svg>
     </button>
 
@@ -268,6 +273,14 @@
                     <a href="#" class="btn btn-primary" id="modal-signup-btn">Sign Up Link</a>
                     <a href="#" class="btn btn-ig" id="modal-ig-btn">IG</a>
                 </div>
+
+                <!-- Plan mode: Add to Route button -->
+                <button class="btn-add-to-route" id="modal-add-route-btn" style="display: none;">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M12 5v14M5 12h14"/>
+                    </svg>
+                    Add to Route
+                </button>
             </div>
 
             <!-- 2. CONTENT SHEET (Transit Cards) -->

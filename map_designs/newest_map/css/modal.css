@@ -234,6 +234,34 @@
 .btn-primary { background: linear-gradient(180deg, #2997FF 0%, #007AFF 100%); text-shadow: 0 1px 2px rgba(0,0,0,0.1); }
 .btn-ig { background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%); text-shadow: 0 1px 2px rgba(0,0,0,0.15); }
 
+/* Add to Route button (plan mode) */
+.btn-add-to-route {
+    width: 100%;
+    margin-top: 12px;
+    padding: 14px;
+    border: none;
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    color: white;
+    background: linear-gradient(180deg, #22c55e 0%, #16a34a 100%);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 4px 12px rgba(34, 197, 94, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: transform 0.1s, opacity 0.1s;
+}
+.btn-add-to-route:active {
+    transform: scale(0.98);
+    opacity: 0.9;
+}
+.btn-add-to-route.in-route {
+    background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
 /* Button loading state */
 .btn.loading {
     pointer-events: none;

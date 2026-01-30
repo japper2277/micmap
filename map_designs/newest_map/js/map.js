@@ -115,10 +115,16 @@ function shortenVenueName(name) {
     return short || name;
 }
 
+// Strip HTML tags for text length calculation
+function stripHtml(str) {
+    return str.replace(/<[^>]*>/g, '');
+}
+
 // Create marker - pill style (zoomed out) or ticket style (zoomed in)
 // extraCount: number of additional items, extraType: 'mics' or 'venues'
 function createPin(status, timeStr, extraCount, venueName, extraType = 'mics') {
     const displayTime = timeStr || '?';
+    const displayTimeText = stripHtml(displayTime); // For width calculation
     const isZoomedIn = map.getZoom() >= ZOOM_TICKET_THRESHOLD;
 
     // Status determines color class
@@ -141,7 +147,7 @@ function createPin(status, timeStr, extraCount, venueName, extraType = 'mics') {
         const countBadge = extraCount > 0 ? `<span class="ticket-count">+${extraCount} ${countLabel}</span>` : '';
 
         // Dynamic width based on longer of: times or venue name
-        const timeWidth = displayTime.length * 8 + 16;  // times are bigger font
+        const timeWidth = displayTimeText.length * 8 + 16;  // times are bigger font
         const nameWidth = displayName.length * 7 + 16;
         const contentWidth = Math.max(timeWidth, nameWidth);
         const ticketWidth = Math.max(70, Math.min(contentWidth, 180));
@@ -161,7 +167,7 @@ function createPin(status, timeStr, extraCount, venueName, extraType = 'mics') {
         // PILL STYLE: Main pill with white chip badge for venue count
         const isLive = statusClass === 'live';
         // For pills, only show earliest time (first one before comma)
-        const firstTime = displayTime.split(',')[0].trim();
+        const firstTime = displayTimeText.split(',')[0].trim();
         const mainText = isLive ? 'LIVE' : firstTime;
         const hasCount = extraCount > 0;
 
