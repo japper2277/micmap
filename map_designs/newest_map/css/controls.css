@@ -251,7 +251,7 @@ body.plan-mode .mics-header-row {
 /* --- PLAN MODE MAP OVERLAY --- */
 .plan-overlay {
     position: fixed;
-    bottom: calc(var(--drawer-peek-height, 180px) + 8px);
+    bottom: 56px; /* Right above peek drawer header */
     left: 50%;
     transform: translateX(-50%);
     z-index: 500;
@@ -260,7 +260,8 @@ body.plan-mode .mics-header-row {
     transition: opacity 0.3s ease;
 }
 
-body.plan-mode .plan-overlay {
+/* Only show when plan mode AND commute times loaded */
+body.plan-mode.commute-loaded .plan-overlay {
     opacity: 1;
 }
 
