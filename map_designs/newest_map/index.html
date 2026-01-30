@@ -54,7 +54,6 @@
     <div id="plan-overlay" class="plan-overlay">
         <div class="plan-overlay-content">
             <div class="plan-overlay-title">Tap markers to build your route</div>
-            <div class="plan-overlay-sub">Glowing markers have perfect timing</div>
         </div>
     </div>
 
@@ -260,6 +259,9 @@
                     <span class="time-display" id="modal-mic-time">7:00 PM</span>
                 </div>
 
+                <!-- Plan mode: Add to Route buttons (dynamically populated) -->
+                <div class="plan-route-actions" id="modal-plan-actions" style="display: none;"></div>
+
                 <a href="#" class="sub-header maps-link" id="modal-directions" title="Get directions">
                     <svg class="maps-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
                     <span class="address" id="modal-address">61 2nd Ave</span>
@@ -273,14 +275,6 @@
                     <a href="#" class="btn btn-primary" id="modal-signup-btn">Sign Up Link</a>
                     <a href="#" class="btn btn-ig" id="modal-ig-btn">IG</a>
                 </div>
-
-                <!-- Plan mode: Add to Route button -->
-                <button class="btn-add-to-route" id="modal-add-route-btn" style="display: none;">
-                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path d="M12 5v14M5 12h14"/>
-                    </svg>
-                    Add to Route
-                </button>
             </div>
 
             <!-- 2. CONTENT SHEET (Transit Cards) -->

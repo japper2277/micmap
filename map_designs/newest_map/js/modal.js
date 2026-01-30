@@ -66,7 +66,7 @@ function setupModalSwipeToDismiss() {
 
 // DOM element references (initialized after DOM loads)
 let venueModal, modalVenueName, modalAddress, modalDirections;
-let modalMicTime, modalInfoRow, modalInstructions, modalActions, modalSignupBtn, modalIgBtn;
+let modalMicTime, modalInfoRow, modalInstructions, modalActions, modalSignupBtn, modalIgBtn, modalPlanActions;
 let modalTransit, modalTabs;
 
 // Focus trap state
@@ -91,6 +91,21 @@ function initModal() {
     modalIgBtn = document.getElementById('modal-ig-btn');
     modalTransit = document.getElementById('modal-transit');
     modalTabs = document.getElementById('modal-tabs');
+    modalPlanActions = document.getElementById('modal-plan-actions');
+
+    // Plan mode: Add to Route button click handler (event delegation)
+    if (modalPlanActions) {
+        modalPlanActions.addEventListener('click', (e) => {
+            const btn = e.target.closest('.btn-add-to-route');
+            if (!btn) return;
+
+            const micId = btn.dataset.micId;
+            if (micId && typeof toggleMicInRoute === 'function') {
+                toggleMicInRoute(micId);
+                closeVenueModal();
+            }
+        });
+    }
 
     // Close modal on background click
     venueModal.addEventListener('click', (e) => {
@@ -341,6 +356,22 @@ function populateModalContent(mic, allMicsAtVenue = null) {
     }
     modalActions.style.display = (hasSignupAction || hasIg) ? 'grid' : 'none';
 
+    // Plan mode: Show Add to Route buttons for each time
+    const micsForButtons = allMicsAtVenue || [mic];
+    if (modalPlanActions) {
+        if (STATE.planMode && micsForButtons.length > 0) {
+            const buttonsHtml = micsForButtons.map(m => {
+                const inRoute = STATE.route && STATE.route.includes(m.id);
+                const timeStr = m.start ? m.start.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : '?';
+                return `<button class="btn-add-to-route${inRoute ? ' in-route' : ''}" data-mic-id="${m.id}">${timeStr}</button>`;
+            }).join('');
+            modalPlanActions.innerHTML = buttonsHtml;
+            modalPlanActions.style.display = 'flex';
+        } else {
+            modalPlanActions.style.display = 'none';
+        }
+    }
+
     // 5. TRANSIT
     loadModalArrivals(mic);
 }
@@ -456,6 +487,18 @@ function openVenueModal(mic) {
 
     // Hide actions row entirely if no buttons
     modalActions.style.display = (hasSignupAction || hasIg) ? 'grid' : 'none';
+
+    // Plan mode: Show Add to Route button
+    if (modalPlanActions) {
+        if (STATE.planMode) {
+            const inRoute = STATE.route && STATE.route.includes(mic.id);
+            const timeStr = mic.start ? mic.start.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : '?';
+            modalPlanActions.innerHTML = `<button class="btn-add-to-route${inRoute ? ' in-route' : ''}" data-mic-id="${mic.id}">${timeStr}</button>`;
+            modalPlanActions.style.display = 'flex';
+        } else {
+            modalPlanActions.style.display = 'none';
+        }
+    }
 
     // Show modal
     venueModal.classList.add('active');
