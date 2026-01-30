@@ -311,5 +311,27 @@ function openPlanMyNight() {
     window.location.href = 'planmynight/';
 }
 
+// Toggle plan mode on/off
+function togglePlanMode() {
+    STATE.planMode = !STATE.planMode;
+    document.getElementById('plan-btn').classList.toggle('active', STATE.planMode);
+    document.body.classList.toggle('plan-mode', STATE.planMode);
+
+    if (STATE.planMode) {
+        console.log('Plan mode: ON');
+    } else {
+        exitPlanMode();
+    }
+}
+
+// Exit plan mode and reset state
+function exitPlanMode() {
+    STATE.planMode = false;
+    STATE.route = [];
+    document.getElementById('plan-btn').classList.remove('active');
+    document.body.classList.remove('plan-mode');
+    console.log('Plan mode: OFF');
+}
+
 // Run init when DOM is ready
 init();
