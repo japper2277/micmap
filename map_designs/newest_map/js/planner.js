@@ -50,8 +50,75 @@ function toggleMicInRoute(micId) {
 
 // Update marker visual states based on route
 function updateMarkerStates() {
-    // Placeholder - will be implemented in step 3.4
-    console.log('updateMarkerStates called, route:', STATE.route);
+    // Get today's mics only (same day as current mode)
+    const now = new Date();
+    const todayName = CONFIG.dayNames[now.getDay()];
+    const tomorrowName = CONFIG.dayNames[(now.getDay() + 1) % 7];
+    const targetDay = STATE.currentMode === 'tomorrow' ? tomorrowName : todayName;
+
+    const todayMics = STATE.mics.filter(m => m.day === targetDay);
+
+    if (STATE.route.length === 0) {
+        // Reset all markers
+        todayMics.forEach(mic => {
+            const marker = STATE.markerLookup[mic.id];
+            if (!marker) return;
+            const el = marker.getElement();
+            if (el) {
+                el.classList.remove('marker-selected', 'marker-glow', 'marker-suggested', 'marker-dimmed');
+            }
+        });
+        return;
+    }
+
+    const lastMicId = STATE.route[STATE.route.length - 1];
+
+    // Update each marker based on timing
+    todayMics.forEach(mic => {
+        const marker = STATE.markerLookup[mic.id];
+        if (!marker) return;
+
+        const el = marker.getElement();
+        if (!el) return;
+
+        // Clear previous states
+        el.classList.remove('marker-selected', 'marker-glow', 'marker-suggested', 'marker-dimmed');
+
+        if (STATE.route.includes(mic.id)) {
+            el.classList.add('marker-selected');
+        } else {
+            const status = getMicStatus(mic.id, lastMicId);
+            if (status === 'glow') el.classList.add('marker-glow');
+            else if (status === 'suggested') el.classList.add('marker-suggested');
+            else if (status === 'dimmed') el.classList.add('marker-dimmed');
+        }
+    });
+}
+
+// Calculate if a mic is reachable and how good the timing is
+function getMicStatus(candidateId, lastMicId) {
+    const candidate = STATE.mics.find(m => m.id === candidateId);
+    const anchor = STATE.mics.find(m => m.id === lastMicId);
+    if (!candidate || !anchor || !candidate.start || !anchor.start) return 'visible';
+
+    // Candidate must be after anchor in time
+    if (candidate.start <= anchor.start) return 'dimmed';
+
+    // When does anchor mic end? (start + setDuration)
+    const anchorEndTime = new Date(anchor.start.getTime() + STATE.setDuration * 60000);
+
+    // Estimate travel time (use transit time if available, else 20 min default)
+    const travelMins = candidate.transitTime || 20;
+    const arrivalTime = new Date(anchorEndTime.getTime() + travelMins * 60000);
+
+    // How much buffer before the candidate mic starts?
+    const waitMins = (candidate.start - arrivalTime) / 60000;
+
+    // Status based on wait time
+    if (waitMins < -5) return 'dimmed';      // Too late (5m grace period)
+    if (waitMins <= 15) return 'glow';       // Perfect! Arrive 0-15m early
+    if (waitMins <= 45) return 'suggested';  // Good, but some waiting
+    return 'dimmed';                          // Too much dead time (45+ mins)
 }
 
 // Update route line on map
