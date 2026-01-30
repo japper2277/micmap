@@ -26,7 +26,7 @@ function setupPlanMapListeners() {
 }
 
 // Add mic to route
-function addToRoute(micId) {
+function addToRoute(micId, skipZoom = false) {
     if (STATE.route.includes(micId)) return;
 
     STATE.route.push(micId);
@@ -43,7 +43,7 @@ function addToRoute(micId) {
     render(STATE.currentMode);  // Re-render to update strikethrough on times
     updateRouteLine();
     renderPlanDrawer();
-    fitMapToReachableMics();
+    if (!skipZoom) fitMapToReachableMics();
 }
 
 // Fit map to show selected mic + all reachable (non-dimmed) mics
