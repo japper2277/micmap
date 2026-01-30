@@ -96,7 +96,7 @@ function setCommuteLabel(el, minutes) {
         el.appendChild(label);
     }
 
-    label.textContent = `${minutes}m`;
+    label.textContent = `${minutes} min`;
 }
 
 // Remove commute label from marker element
