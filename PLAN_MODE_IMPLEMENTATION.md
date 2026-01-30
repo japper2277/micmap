@@ -1,312 +1,407 @@
 # Plan Mode Implementation
 
-**Goal**: Add route planning to MicFinder - users can build a night of open mics.
+**Goal**: Add route planning to MicFinder - users build a night of open mics by clicking markers on the map.
 
-**Approach**: One small step at a time. Test after each. Commit after each.
+**Approach**: Map-first interaction. Drawer is secondary. One step at a time. Test after each. Commit after each.
+
+**Reference**: `plan-mode-simple-demo.html` - standalone demo with all features working.
 
 ---
 
-## Phase 1: State Foundation
+## Completed Steps
+
+| Step | Description | Commit |
+|------|-------------|--------|
+| 1.1 | State variables (planMode, route, setDuration, timeWindow) | `feat(plan): add plan mode state variables` |
+| 1.2 | Plan button HTML | `feat(plan): add plan button HTML` |
+| 1.3 | Plan button CSS (rose, green when active) | `style(plan): add plan button styles` |
+| 1.4 | togglePlanMode() and exitPlanMode() functions | `feat(plan): add togglePlanMode and exitPlanMode functions` |
+| 1.5 | Wire up button click handler | `feat(plan): wire up plan button click handler` |
+| 2.1 | Plan header in drawer (not fixed top) | `refactor(plan): move plan header into drawer` |
+| 2.2 | Drag handle position fix | `fix(plan): move drag handle up in plan mode` |
+
+---
+
+## Phase 3: Map Marker Interactions (MAP IS HERO)
 **Status**: [ ] Not started
 
-### Step 1.1: Add state variables
-**File**: `map_designs/newest_map/js/state.js`
+The map is the primary interaction. Users click markers to add/remove mics from route.
 
-Add to STATE object:
-```javascript
-// Plan Mode State
-planMode: false,              // Is plan mode active?
-route: [],                    // Array of mic IDs
-setDuration: 45,              // Minutes at each mic
-timeWindowStart: 700,         // 7pm
-timeWindowEnd: 1100           // 11pm
-```
-
-**Test**: Open console, type `STATE.planMode` → should return `false`
-
-**Commit**: `feat(plan): add plan mode state variables`
-
----
-
-### Step 1.2: Add plan button HTML
-**File**: `map_designs/newest_map/index.html`
-
-Find the locate button div, add plan button after it:
-```html
-<!-- Plan Mode Button -->
-<button id="plan-btn" class="map-control-btn" aria-label="Plan my night">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
-        <path d="M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-        <path d="M9 14l2 2 4-4"/>
-    </svg>
-</button>
-```
-
-**Test**: See new button on map (unstyled initially)
-
-**Commit**: `feat(plan): add plan button to HTML`
-
----
-
-### Step 1.3: Style plan button
-**File**: `map_designs/newest_map/css/controls.css`
-
-Add styles:
-```css
-/* Plan Mode Button */
-#plan-btn {
-    background: #f43f5e;
-    color: white;
-}
-
-#plan-btn:hover {
-    background: #e11d48;
-}
-
-#plan-btn.active {
-    background: #22c55e;
-}
-```
-
-**Test**: Button is rose colored, hover darkens it
-
-**Commit**: `style(plan): add plan button styles`
-
----
-
-### Step 1.4: Add toggle functions
-**File**: `map_designs/newest_map/js/app.js`
-
-Add functions (near other UI functions):
-```javascript
-function togglePlanMode() {
-    STATE.planMode = !STATE.planMode;
-    document.getElementById('plan-btn').classList.toggle('active', STATE.planMode);
-    document.body.classList.toggle('plan-mode', STATE.planMode);
-
-    if (STATE.planMode) {
-        console.log('Plan mode: ON');
-    } else {
-        exitPlanMode();
-    }
-}
-
-function exitPlanMode() {
-    STATE.planMode = false;
-    STATE.route = [];
-    document.getElementById('plan-btn').classList.remove('active');
-    document.body.classList.remove('plan-mode');
-    console.log('Plan mode: OFF');
-}
-```
-
-**Test**: Click plan button → console shows "Plan mode: ON", button turns green
-
-**Commit**: `feat(plan): add togglePlanMode and exitPlanMode functions`
-
----
-
-### Step 1.5: Wire up button click
-**File**: `map_designs/newest_map/js/app.js`
-
-In `init()` function, add event listener:
-```javascript
-// Plan mode button
-document.getElementById('plan-btn')?.addEventListener('click', togglePlanMode);
-```
-
-**Test**: Click button → toggles plan mode on/off
-
-**Commit**: `feat(plan): wire up plan button click handler`
-
----
-
-## Phase 2: Plan Mode Header
-**Status**: [ ] Not started
-
-### Step 2.1: Add header HTML
-**File**: `map_designs/newest_map/index.html`
-
-Add after opening body tag:
-```html
-<!-- Plan Mode Header -->
-<div id="plan-header" class="plan-header">
-    <button class="plan-header-cancel" onclick="exitPlanMode()">Cancel</button>
-    <div class="plan-header-title">PLAN MY NIGHT</div>
-    <div class="plan-header-spacer"></div>
-</div>
-```
-
-**Test**: Header exists in DOM (hidden by default)
-
-**Commit**: `feat(plan): add plan mode header HTML`
-
----
-
-### Step 2.2: Style header
-**File**: `map_designs/newest_map/css/controls.css`
-
-```css
-/* Plan Mode Header */
-.plan-header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 56px;
-    background: rgba(24, 24, 27, 0.95);
-    backdrop-filter: blur(10px);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 16px;
-    z-index: 1000;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-    transform: translateY(-100%);
-    opacity: 0;
-    transition: transform 0.3s ease, opacity 0.3s ease;
-}
-
-body.plan-mode .plan-header {
-    transform: translateY(0);
-    opacity: 1;
-}
-
-.plan-header-cancel {
-    background: none;
-    border: none;
-    color: #f43f5e;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    padding: 8px 12px;
-}
-
-.plan-header-title {
-    font-size: 17px;
-    font-weight: 600;
-    color: white;
-}
-
-.plan-header-spacer {
-    width: 60px;
-}
-```
-
-**Test**: Enter plan mode → header slides down from top
-
-**Commit**: `style(plan): add plan header styles with slide animation`
-
----
-
-## Phase 3: Drawer Integration
-**Status**: [ ] Not started
-
-### Step 3.1: Create planner.js file
+### Step 3.1: Create planner.js with route functions
 **File**: `map_designs/newest_map/js/planner.js` (NEW)
 
 ```javascript
 /* =================================================================
    PLANNER
-   Plan mode drawer rendering and route management
+   Map-first route planning - click markers to build route
    ================================================================= */
 
-function renderPlanDrawer() {
-    const container = document.getElementById('list-content');
-    if (!container) return;
+// Add mic to route
+function addToRoute(micId) {
+    if (STATE.route.includes(micId)) return;
 
-    // For now, just show a placeholder
-    container.innerHTML = `
-        <div style="padding: 20px; text-align: center; color: rgba(255,255,255,0.6);">
-            <p style="font-size: 15px; margin-bottom: 8px;">Plan Mode Active</p>
-            <p style="font-size: 13px;">Pick mics to build your route</p>
-        </div>
-    `;
+    STATE.route.push(micId);
+    // Sort by start time
+    STATE.route.sort((a, b) => {
+        const micA = STATE.mics.find(m => m.id === micId);
+        const micB = STATE.mics.find(m => m.id === micId);
+        return micA.start - micB.start;
+    });
+
+    updateMarkerStates();
+    updateRouteLine();
+    renderPlanDrawer();
 }
-```
 
-**Test**: File exists, no syntax errors
+// Remove mic from route
+function removeFromRoute(micId) {
+    STATE.route = STATE.route.filter(id => id !== micId);
+    updateMarkerStates();
+    updateRouteLine();
+    renderPlanDrawer();
+}
 
-**Commit**: `feat(plan): create planner.js with placeholder renderPlanDrawer`
+// Toggle mic in/out of route (called when marker clicked)
+function toggleMicInRoute(micId) {
+    if (!STATE.planMode) return;
 
----
-
-### Step 3.2: Add script to HTML
-**File**: `map_designs/newest_map/index.html`
-
-Add before app.js:
-```html
-<script src="js/planner.js"></script>
-```
-
-**Test**: No console errors on page load
-
-**Commit**: `feat(plan): add planner.js script to index.html`
-
----
-
-### Step 3.3: Call renderPlanDrawer on toggle
-**File**: `map_designs/newest_map/js/app.js`
-
-Update togglePlanMode():
-```javascript
-function togglePlanMode() {
-    STATE.planMode = !STATE.planMode;
-    document.getElementById('plan-btn').classList.toggle('active', STATE.planMode);
-    document.body.classList.toggle('plan-mode', STATE.planMode);
-
-    if (STATE.planMode) {
-        renderPlanDrawer();
+    if (STATE.route.includes(micId)) {
+        removeFromRoute(micId);
     } else {
-        exitPlanMode();
+        addToRoute(micId);
     }
 }
 ```
 
-Update exitPlanMode():
-```javascript
-function exitPlanMode() {
-    STATE.planMode = false;
-    STATE.route = [];
-    document.getElementById('plan-btn').classList.remove('active');
-    document.body.classList.remove('plan-mode');
-    render(STATE.currentMode); // Restore normal drawer
-}
-```
+**Test**: Functions exist, no errors
 
-**Test**: Enter plan mode → drawer shows placeholder text
-
-**Commit**: `feat(plan): integrate renderPlanDrawer with toggle`
+**Commit**: `feat(plan): add route management functions`
 
 ---
 
-## Phase 4-10: [To be detailed after Phase 3 works]
+### Step 3.2: Hook marker clicks to toggleMicInRoute
+**File**: `map_designs/newest_map/js/map.js`
 
-- Phase 4: Mic list with add buttons
-- Phase 5: Route display with connectors
-- Phase 6: Timing logic (glow/dimmed)
-- Phase 7: Map marker states
-- Phase 8: SVG route line
-- Phase 9: Final view screen
-- Phase 10: Share/save features
+In marker click handler, check for plan mode:
+```javascript
+// In marker click handler
+if (STATE.planMode) {
+    toggleMicInRoute(mic.id);
+    return; // Don't open modal
+}
+// Normal behavior - open modal
+```
+
+**Test**: Click marker in plan mode → adds to route (check STATE.route in console)
+
+**Commit**: `feat(plan): wire marker clicks to route in plan mode`
+
+---
+
+### Step 3.3: Add marker state CSS
+**File**: `map_designs/newest_map/css/map.css`
+
+```css
+/* Plan Mode Marker States */
+.marker-selected .map-pin {
+    background: #22c55e !important;
+    border-color: #22c55e !important;
+}
+
+.marker-glow .map-pin {
+    border: 2px solid #22c55e;
+    box-shadow: 0 0 15px rgba(34, 197, 94, 0.6);
+    animation: pulse-glow 2s infinite;
+}
+
+@keyframes pulse-glow {
+    0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+    70% { box-shadow: 0 0 0 12px rgba(34, 197, 94, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+.marker-suggested .map-pin {
+    border: 2px solid #f43f5e;
+    box-shadow: 0 0 12px rgba(244, 63, 94, 0.4);
+}
+
+.marker-dimmed {
+    opacity: 0.2;
+    filter: grayscale(1);
+    pointer-events: none;
+}
+```
+
+**Test**: Manually add class to marker → see visual change
+
+**Commit**: `style(plan): add marker state styles (selected, glow, dimmed)`
+
+---
+
+### Step 3.4: Implement updateMarkerStates()
+**File**: `map_designs/newest_map/js/planner.js`
+
+```javascript
+function updateMarkerStates() {
+    if (STATE.route.length === 0) {
+        // Reset all markers
+        Object.values(STATE.markerLookup).forEach(marker => {
+            const el = marker.getElement();
+            if (el) {
+                el.classList.remove('marker-selected', 'marker-glow', 'marker-suggested', 'marker-dimmed');
+            }
+        });
+        return;
+    }
+
+    const lastMicId = STATE.route[STATE.route.length - 1];
+
+    // Update each marker based on timing
+    STATE.mics.forEach(mic => {
+        const marker = STATE.markerLookup[mic.id];
+        if (!marker) return;
+
+        const el = marker.getElement();
+        if (!el) return;
+
+        // Clear previous states
+        el.classList.remove('marker-selected', 'marker-glow', 'marker-suggested', 'marker-dimmed');
+
+        if (STATE.route.includes(mic.id)) {
+            el.classList.add('marker-selected');
+        } else {
+            const status = getMicStatus(mic.id, lastMicId);
+            if (status === 'glow') el.classList.add('marker-glow');
+            else if (status === 'suggested') el.classList.add('marker-suggested');
+            else if (status === 'dimmed') el.classList.add('marker-dimmed');
+        }
+    });
+}
+```
+
+**Test**: Add mic to route → other markers update states
+
+**Commit**: `feat(plan): implement updateMarkerStates for visual feedback`
+
+---
+
+## Phase 4: Timing Logic
+**Status**: [ ] Not started
+
+Calculate if a mic is reachable based on when you'd arrive.
+
+### Step 4.1: Implement getMicStatus()
+**File**: `map_designs/newest_map/js/planner.js`
+
+```javascript
+// Calculate if a mic is reachable and how good the timing is
+function getMicStatus(candidateId, lastMicId) {
+    const candidate = STATE.mics.find(m => m.id === candidateId);
+    const anchor = STATE.mics.find(m => m.id === lastMicId);
+    if (!candidate || !anchor) return 'visible';
+
+    // When does anchor mic end? (start + setDuration)
+    const anchorEndTime = new Date(anchor.start.getTime() + STATE.setDuration * 60000);
+
+    // Estimate travel time (use transit time if available, else 20 min default)
+    const travelMins = candidate.transitTime || 20;
+    const arrivalTime = new Date(anchorEndTime.getTime() + travelMins * 60000);
+
+    // How much buffer before the candidate mic starts?
+    const waitMins = (candidate.start - arrivalTime) / 60000;
+
+    // Status based on wait time
+    if (waitMins < -5) return 'dimmed';      // Too late (5m grace)
+    if (waitMins <= 15) return 'glow';       // Perfect! Arrive 0-15m early
+    if (waitMins <= 45) return 'suggested';  // Good, but some waiting
+    return 'dimmed';                          // Too much dead time (45+ mins)
+}
+```
+
+**Test**: Console log getMicStatus results for different mics
+
+**Commit**: `feat(plan): implement timing logic for mic reachability`
+
+---
+
+## Phase 5: Route Line SVG
+**Status**: [ ] Not started
+
+Draw curved dashed green line connecting route stops on map.
+
+### Step 5.1: Add SVG overlay to map
+**File**: `map_designs/newest_map/index.html`
+
+Add inside #map div:
+```html
+<svg id="route-line" class="route-line-svg">
+    <path id="route-path" fill="none" stroke="#22c55e" stroke-width="3" stroke-dasharray="8 8" stroke-linecap="round"/>
+</svg>
+```
+
+### Step 5.2: Style route line
+**File**: `map_designs/newest_map/css/map.css`
+
+```css
+.route-line-svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 400;
+}
+```
+
+### Step 5.3: Implement updateRouteLine()
+**File**: `map_designs/newest_map/js/planner.js`
+
+```javascript
+function updateRouteLine() {
+    const path = document.getElementById('route-path');
+    if (!path || STATE.route.length < 2) {
+        if (path) path.setAttribute('d', '');
+        return;
+    }
+
+    // Get pixel positions for each mic in route
+    const points = STATE.route.map(micId => {
+        const mic = STATE.mics.find(m => m.id === micId);
+        const marker = STATE.markerLookup[micId];
+        if (!marker) return null;
+        const pos = map.latLngToContainerPoint([mic.lat, mic.lng]);
+        return { x: pos.x, y: pos.y };
+    }).filter(Boolean);
+
+    if (points.length < 2) return;
+
+    // Build curved path
+    let d = `M ${points[0].x} ${points[0].y}`;
+    for (let i = 1; i < points.length; i++) {
+        const prev = points[i - 1];
+        const curr = points[i];
+        const midX = (prev.x + curr.x) / 2;
+        const midY = (prev.y + curr.y) / 2;
+        // Add curve
+        const dx = curr.x - prev.x;
+        const dy = curr.y - prev.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const curveAmount = dist * 0.2;
+        const direction = i % 2 === 0 ? 1 : -1;
+        const perpX = (-dy / dist) * curveAmount * direction;
+        const perpY = (dx / dist) * curveAmount * direction;
+        const cpX = midX + perpX;
+        const cpY = midY + perpY;
+        d += ` Q ${cpX} ${cpY} ${curr.x} ${curr.y}`;
+    }
+
+    path.setAttribute('d', d);
+}
+
+// Update on map move
+map.on('move', updateRouteLine);
+map.on('zoom', updateRouteLine);
+```
+
+**Test**: Add 2+ mics to route → see green dashed line
+
+**Commit**: `feat(plan): add SVG route line on map`
+
+---
+
+## Phase 6: Drawer Content (Secondary)
+**Status**: [ ] Not started
+
+Drawer shows current route and allows removal. NOT primary interaction.
+
+### Step 6.1: Implement renderPlanDrawer()
+**File**: `map_designs/newest_map/js/planner.js`
+
+```javascript
+function renderPlanDrawer() {
+    const container = document.getElementById('list-content');
+    if (!container) return;
+
+    if (STATE.route.length === 0) {
+        container.innerHTML = `
+            <div class="plan-empty">
+                <p class="plan-empty-title">Tap markers to build your route</p>
+                <p class="plan-empty-sub">Glowing markers have perfect timing</p>
+            </div>
+        `;
+        return;
+    }
+
+    let html = '<div class="plan-route">';
+    html += '<div class="plan-section-title">Your Route</div>';
+
+    STATE.route.forEach((micId, i) => {
+        const mic = STATE.mics.find(m => m.id === micId);
+        if (!mic) return;
+
+        html += renderRouteMicItem(mic);
+
+        // Transit connector between stops
+        if (i < STATE.route.length - 1) {
+            html += renderTransitConnector(micId, STATE.route[i + 1]);
+        }
+    });
+
+    html += '</div>';
+
+    // Done button
+    html += `
+        <div class="plan-cta">
+            <button class="plan-done-btn" onclick="showFinalView()">
+                Done - ${STATE.route.length} stop${STATE.route.length > 1 ? 's' : ''}
+            </button>
+        </div>
+    `;
+
+    container.innerHTML = html;
+}
+```
+
+**Test**: Add mics via map → drawer updates
+
+**Commit**: `feat(plan): implement drawer route display`
+
+---
+
+## Phase 7: Final View & Share
+**Status**: [ ] Not started
+
+Full screen summary with share/copy/save options.
+
+(Details to be added after Phase 6 works)
 
 ---
 
 ## Progress Tracker
 
-| Phase | Step | Status | Commit |
-|-------|------|--------|--------|
-| 1 | 1.1 State vars | [ ] | |
-| 1 | 1.2 Button HTML | [ ] | |
-| 1 | 1.3 Button CSS | [ ] | |
-| 1 | 1.4 Toggle funcs | [ ] | |
-| 1 | 1.5 Wire click | [ ] | |
-| 2 | 2.1 Header HTML | [ ] | |
-| 2 | 2.2 Header CSS | [ ] | |
-| 3 | 3.1 planner.js | [ ] | |
-| 3 | 3.2 Add script | [ ] | |
-| 3 | 3.3 Integrate | [ ] | |
+| Phase | Step | Description | Status |
+|-------|------|-------------|--------|
+| 1 | 1.1-1.5 | State & Toggle Foundation | [x] Done |
+| 2 | 2.1-2.2 | Drawer Header | [x] Done |
+| 3 | 3.1 | Create planner.js with route functions | [ ] |
+| 3 | 3.2 | Hook marker clicks | [ ] |
+| 3 | 3.3 | Marker state CSS | [ ] |
+| 3 | 3.4 | updateMarkerStates() | [ ] |
+| 4 | 4.1 | getMicStatus() timing logic | [ ] |
+| 5 | 5.1-5.3 | Route line SVG | [ ] |
+| 6 | 6.1 | Drawer content | [ ] |
+| 7 | - | Final view & share | [ ] |
+
+---
+
+## Key Principle: MAP IS HERO
+
+- Users click markers on map to add/remove mics
+- Markers glow/dim based on timing from last selection
+- Route line shows path on map
+- Drawer is secondary - just shows current route
+- Drawer stays in peek mode
 
 ---
 
