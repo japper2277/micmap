@@ -111,13 +111,13 @@ function removeFromRoute(micId) {
 }
 
 // Toggle mic in/out of route (called when marker clicked in plan mode)
-function toggleMicInRoute(micId) {
+function toggleMicInRoute(micId, skipZoom = false) {
     if (!STATE.planMode) return;
 
     if (STATE.route.includes(micId)) {
         removeFromRoute(micId);
     } else {
-        addToRoute(micId);
+        addToRoute(micId, skipZoom);
     }
 }
 
