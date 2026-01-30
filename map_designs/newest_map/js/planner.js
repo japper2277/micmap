@@ -41,6 +41,7 @@ function addToRoute(micId, skipZoom = false) {
 
     updateRouteClass();
     render(STATE.currentMode);  // Re-render to update strikethrough on times
+    updateMarkerStates();       // Update marker visual states (selected, dimmed, etc.)
     updateRouteLine();
     renderPlanDrawer();
     if (!skipZoom) fitMapToReachableMics();
@@ -106,6 +107,7 @@ function removeFromRoute(micId) {
     STATE.route = STATE.route.filter(id => id !== micId);
     updateRouteClass();
     render(STATE.currentMode);  // Re-render to update strikethrough on times
+    updateMarkerStates();       // Update marker visual states (selected, dimmed, etc.)
     updateRouteLine();
     renderPlanDrawer();
 }
@@ -243,36 +245,46 @@ function updateMarkerStates() {
     const lastMicId = STATE.route[STATE.route.length - 1];
     const lastMic = STATE.mics.find(m => m.id === lastMicId);
 
-    // Sort by start time so earliest mic is processed first
-    const sortedMics = [...todayMics].sort((a, b) => (a.start || 0) - (b.start || 0));
-    const processedMarkers = new Set();
-
-    // Update each marker based on timing
-    sortedMics.forEach(mic => {
+    // Group mics by their marker (venues with multiple mics share a marker)
+    const markerMics = new Map();
+    todayMics.forEach(mic => {
         const marker = STATE.markerLookup[mic.id];
         if (!marker) return;
+        if (!markerMics.has(marker)) markerMics.set(marker, []);
+        markerMics.get(marker).push(mic);
+    });
 
+    // Update each marker based on timing
+    markerMics.forEach((mics, marker) => {
         const el = marker.getElement();
         if (!el) return;
-
-        // Only process each marker once (use earliest mic)
-        if (processedMarkers.has(marker)) return;
-        processedMarkers.add(marker);
 
         // Clear previous states
         el.classList.remove('marker-selected', 'marker-glow', 'marker-suggested', 'marker-dimmed');
 
-        if (STATE.route.includes(mic.id)) {
+        // Check if any mic at this marker is in the route
+        const hasSelectedMic = mics.some(m => STATE.route.includes(m.id));
+        if (hasSelectedMic) {
             el.classList.add('marker-selected');
-            removeCommuteLabel(el); // No commute label for selected mics
-        } else {
-            // Calculate commute from last selected mic
-            const commuteMins = getCommuteBetweenMics(lastMic, mic);
-            setCommuteLabel(el, commuteMins);
+            removeCommuteLabel(el);
+            return;
+        }
 
-            // Apply status: reachable or dimmed
+        // Use earliest mic for commute label
+        const earliestMic = mics.reduce((a, b) => (a.start || 0) < (b.start || 0) ? a : b);
+        const commuteMins = getCommuteBetweenMics(lastMic, earliestMic);
+        setCommuteLabel(el, commuteMins);
+
+        // Check if ANY mic at this marker is reachable (not dimmed)
+        const anyReachable = mics.some(mic => {
+            if (STATE.route.includes(mic.id)) return true;
             const status = getMicStatus(mic.id, lastMicId, commuteMins);
-            if (status === 'dimmed') el.classList.add('marker-dimmed');
+            return status !== 'dimmed';
+        });
+
+        // Only dim if ALL mics at this marker are unreachable
+        if (!anyReachable) {
+            el.classList.add('marker-dimmed');
         }
     });
 }
@@ -283,31 +295,55 @@ function getTimeInMinutes(date) {
     return date.getHours() * 60 + date.getMinutes();
 }
 
-// Calculate if a mic is reachable (simplified: just reachable or not)
+// Calculate if a mic is reachable - can it fit anywhere in the route?
 function getMicStatus(candidateId, lastMicId, commuteMins) {
     const candidate = STATE.mics.find(m => m.id === candidateId);
-    const anchor = STATE.mics.find(m => m.id === lastMicId);
-    if (!candidate || !anchor || !candidate.start || !anchor.start) return 'visible';
+    if (!candidate || !candidate.start) return 'visible';
 
-    // Compare by time of day (hours:minutes), not full Date
+    // Skip if already in route
+    if (STATE.route.includes(candidateId)) return 'in-route';
+
     const candidateTime = getTimeInMinutes(candidate.start);
-    const anchorTime = getTimeInMinutes(anchor.start);
-
-    // Candidate must be after anchor in time
-    if (candidateTime <= anchorTime) return 'dimmed';
-
-    // When would you arrive at candidate?
-    // anchorTime + setDuration + commute
-    const setDuration = STATE.setDuration || 30; // default 30 min set
+    const setDuration = STATE.setDuration || 30;
     const travelMins = commuteMins || 20;
-    const arrivalTime = anchorTime + setDuration + travelMins;
 
-    // How much buffer before the candidate mic starts?
-    const waitMins = candidateTime - arrivalTime;
+    // Get sorted route mics with their times
+    const routeMics = STATE.route
+        .map(id => STATE.mics.find(m => m.id === id))
+        .filter(m => m && m.start)
+        .map(m => ({
+            id: m.id,
+            time: getTimeInMinutes(m.start)
+        }));
 
-    // Simple: can you make it? (5 min grace period)
-    if (waitMins < -5) return 'dimmed';  // Too late
-    return 'visible';                     // Reachable
+    if (routeMics.length === 0) return 'visible';
+
+    // Check if candidate can fit BEFORE the first mic
+    const firstMicTime = routeMics[0].time;
+    const candidateEndTime = candidateTime + setDuration + travelMins;
+    if (candidateEndTime <= firstMicTime + 5) {  // 5 min grace
+        return 'visible';
+    }
+
+    // Check if candidate can fit AFTER the last mic
+    const lastMicTime = routeMics[routeMics.length - 1].time;
+    const lastMicEndTime = lastMicTime + setDuration + travelMins;
+    if (candidateTime >= lastMicEndTime - 5) {  // 5 min grace
+        return 'visible';
+    }
+
+    // Check if candidate can fit BETWEEN any two consecutive mics
+    for (let i = 0; i < routeMics.length - 1; i++) {
+        const prevMicEndTime = routeMics[i].time + setDuration + travelMins;
+        const nextMicTime = routeMics[i + 1].time;
+
+        // Candidate must start after prev mic ends and end before next mic starts
+        if (candidateTime >= prevMicEndTime - 5 && candidateEndTime <= nextMicTime + 5) {
+            return 'visible';
+        }
+    }
+
+    return 'dimmed';  // Can't fit anywhere
 }
 
 // Update route line on map

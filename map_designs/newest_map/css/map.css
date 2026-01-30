@@ -767,9 +767,9 @@
     color: #fff !important;
 }
 
-/* Dimmed - unreachable (grayscale, faded) */
+/* Dimmed - unreachable (grayscale, faded but still visible) */
 .marker-dimmed {
-    opacity: 0.25 !important;
+    opacity: 0.5 !important;
     filter: grayscale(1) !important;
     pointer-events: none !important;
 }
