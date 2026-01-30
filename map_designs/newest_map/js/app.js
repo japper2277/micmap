@@ -321,9 +321,9 @@ function togglePlanMode() {
     document.body.classList.toggle('plan-mode', STATE.planMode);
 
     if (STATE.planMode) {
-        document.body.classList.remove('map-interacted'); // Reset overlay visibility
+        document.body.classList.remove('map-interacted', 'commute-loaded'); // Reset states
         setupPlanMapListeners(); // Setup map interaction listeners
-        updateMarkerStates(); // Show commute labels on markers
+        updateMarkerStates(); // Show commute labels on markers (adds commute-loaded)
         renderPlanDrawer();
     } else {
         exitPlanMode();
@@ -335,7 +335,7 @@ function exitPlanMode() {
     STATE.planMode = false;
     STATE.route = [];
     document.getElementById('plan-btn').classList.remove('active');
-    document.body.classList.remove('plan-mode', 'has-route', 'map-interacted');
+    document.body.classList.remove('plan-mode', 'has-route', 'map-interacted', 'commute-loaded');
     updateMarkerStates(); // Clear marker states
     render(STATE.currentMode); // Restore normal drawer
 }

@@ -96,7 +96,7 @@ function setCommuteLabel(el, minutes) {
         el.appendChild(label);
     }
 
-    label.textContent = `${minutes} min`;
+    label.textContent = `${minutes}M`;
 }
 
 // Remove commute label from marker element
@@ -159,6 +159,8 @@ function updateMarkerStates() {
                 setCommuteLabel(el, commuteMins);
             }
         });
+        // Mark commute times as loaded
+        document.body.classList.add('commute-loaded');
         return;
     }
 
