@@ -251,9 +251,9 @@ body.plan-mode .mics-header-row {
 /* --- PLAN MODE MAP OVERLAY --- */
 .plan-overlay {
     position: fixed;
-    top: 50%;
+    bottom: calc(var(--drawer-peek-height, 180px) + 16px);
     left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translateX(-50%);
     z-index: 500;
     pointer-events: none;
     opacity: 0;
