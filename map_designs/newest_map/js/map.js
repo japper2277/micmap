@@ -471,6 +471,10 @@ map.on('zoomend', () => {
         if (typeof render === 'function') {
             render(STATE.currentMode);
         }
+        // Reapply plan mode marker states after re-render
+        if (STATE.planMode && typeof updateMarkerStates === 'function') {
+            updateMarkerStates();
+        }
     }
 });
 

@@ -797,11 +797,16 @@
     pointer-events: none !important;
 }
 
+/* Ensure marker wrappers can position nano-tags */
+body.plan-mode .leaflet-marker-icon {
+    overflow: visible !important;
+}
+
 /* Commute label - Nano-Tag style in plan mode */
 .marker-commute-label {
     position: absolute;
-    top: -12px;
-    right: -8px;
+    top: -8px;
+    right: -4px;
     background: #3b82f6;
     color: #fff;
     font-size: 13px;
