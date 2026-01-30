@@ -28,13 +28,6 @@
     <!-- SKIP LINK -->
     <a href="#list-content" class="skip-link">Skip to mic listings</a>
 
-    <!-- PLAN MODE HEADER -->
-    <div id="plan-header" class="plan-header">
-        <button class="plan-header-cancel" onclick="exitPlanMode()">Cancel</button>
-        <div class="plan-header-title">PLAN MY NIGHT</div>
-        <div class="plan-header-spacer"></div>
-    </div>
-
     <!-- MANHATTAN RETURN BUTTON -->
     <div id="manhattan-notice" class="manhattan-notice">
         <div class="manhattan-notice-text">No mics in this area</div>
@@ -65,7 +58,7 @@
     </button>
 
     <!-- PLAN MODE BUTTON -->
-    <button id="plan-btn" class="plan-btn" aria-label="Plan my night">
+    <button id="plan-btn" class="plan-btn" aria-label="Plan my night" data-tooltip="Plan My Night">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
         </svg>
@@ -137,7 +130,14 @@
                 <span class="w-12 h-1.5 bg-white/40 rounded-full"></span>
             </button>
 
-            <!-- Mics Header Row (New Design) -->
+            <!-- Plan Mode Header Row (shown when plan-mode active) -->
+            <div class="plan-header-row">
+                <button class="plan-header-cancel" onclick="exitPlanMode()">Cancel</button>
+                <div class="plan-header-title">PLAN MY NIGHT</div>
+                <div class="plan-header-spacer"></div>
+            </div>
+
+            <!-- Mics Header Row (hidden when plan-mode active) -->
             <div class="mics-header-row">
                 <!-- Left: Title & Count -->
                 <div class="title-group">
