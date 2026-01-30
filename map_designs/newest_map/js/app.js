@@ -321,7 +321,7 @@ function togglePlanMode() {
     document.body.classList.toggle('plan-mode', STATE.planMode);
 
     if (STATE.planMode) {
-        console.log('Plan mode: ON');
+        renderPlanDrawer();
     } else {
         exitPlanMode();
     }
@@ -333,7 +333,8 @@ function exitPlanMode() {
     STATE.route = [];
     document.getElementById('plan-btn').classList.remove('active');
     document.body.classList.remove('plan-mode');
-    console.log('Plan mode: OFF');
+    updateMarkerStates(); // Clear marker states
+    render(STATE.currentMode); // Restore normal drawer
 }
 
 // Run init when DOM is ready
