@@ -473,9 +473,20 @@ function render(mode) {
 
         marker
         .on('click', () => {
-            // If cluster has multiple venues OR multiple mics at same venue
+            // Plan mode: toggle mic in route instead of opening modal
+            if (STATE.planMode) {
+                if (cluster.mics.length === 1) {
+                    // Single mic - toggle it in route
+                    toggleMicInRoute(firstMic.id);
+                } else {
+                    // Multiple mics - still open modal for selection
+                    openVenueModalWithMics(cluster.mics);
+                }
+                return;
+            }
+
+            // Normal mode: open modal
             if (cluster.venueCount > 1 || cluster.mics.length > 1) {
-                // Always show venue card with tabs
                 openVenueModalWithMics(cluster.mics);
             } else {
                 openVenueModal(firstMic);
