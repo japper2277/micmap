@@ -8,6 +8,23 @@ function updateRouteClass() {
     document.body.classList.toggle('has-route', STATE.route.length > 0);
 }
 
+// Hide plan overlay when user interacts with map
+function onPlanMapInteraction() {
+    if (STATE.planMode) {
+        document.body.classList.add('map-interacted');
+    }
+}
+
+// Setup map event listeners for plan mode (called once)
+let planMapListenersAdded = false;
+function setupPlanMapListeners() {
+    if (planMapListenersAdded) return;
+    planMapListenersAdded = true;
+
+    map.on('movestart', onPlanMapInteraction);
+    map.on('zoomstart', onPlanMapInteraction);
+}
+
 // Add mic to route
 function addToRoute(micId) {
     if (STATE.route.includes(micId)) return;
