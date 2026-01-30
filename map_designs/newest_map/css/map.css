@@ -774,6 +774,17 @@
     pointer-events: none !important;
 }
 
+/* Dismissed - explicitly removed from route (faded with strikethrough effect) */
+.marker-dismissed {
+    opacity: 0.4 !important;
+    filter: grayscale(0.5) !important;
+}
+
+.marker-dismissed .ticket-time,
+.marker-dismissed .mv-times-list {
+    text-decoration: line-through;
+}
+
 /* Strikethrough for unreachable times in plan mode */
 .time-unreachable {
     opacity: 0.4;
@@ -791,21 +802,21 @@ body.plan-mode .leaflet-marker-icon {
 /* Commute label - Nano-Tag style in plan mode */
 .marker-commute-label {
     position: absolute;
-    top: -14px;
+    top: -6px;
     right: -10px;
     background: #3b82f6;
     color: #fff;
-    font-size: 13px;
-    font-weight: 900;
-    letter-spacing: -0.5px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: -0.3px;
     line-height: 1;
-    padding: 3px 6px;
-    border-radius: 5px;
+    padding: 2px 5px;
+    border-radius: 4px;
     border: 2px solid #0f1115;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
     white-space: nowrap;
     pointer-events: none;
-    z-index: 9999;
+    z-index: 10000;
 }
 
 /* Hide commute labels when not in plan mode */
