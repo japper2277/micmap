@@ -44,11 +44,11 @@
         0 1px 3px rgba(0, 0, 0, 0.12),
         inset 0 2px 4px rgba(0, 0, 0, 0.06);
 }
-/* Tooltip - Google Maps style, anchored to right */
+/* Tooltip - Google Maps style, anchored to right, positioned above plan button */
 .locate-btn[data-tooltip]::before {
     content: attr(data-tooltip);
     position: absolute;
-    bottom: calc(100% + 10px);
+    bottom: calc(100% + 80px);
     right: 0;
     padding: 6px 10px;
     background: #fff;
@@ -65,7 +65,7 @@
 .locate-btn[data-tooltip]::after {
     content: '';
     position: absolute;
-    bottom: calc(100% + 4px);
+    bottom: calc(100% + 74px);
     right: 12px;
     border: 6px solid transparent;
     border-top-color: #fff;
@@ -162,6 +162,59 @@
         bottom: 94px;
         right: 24px;
     }
+}
+
+/* --- PLAN MODE HEADER --- */
+.plan-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 56px;
+    background: rgba(24, 24, 27, 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    z-index: 1000;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    transform: translateY(-100%);
+    opacity: 0;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+body.plan-mode .plan-header {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.plan-header-cancel {
+    background: none;
+    border: none;
+    color: #f43f5e;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: background 0.15s ease;
+}
+
+.plan-header-cancel:hover {
+    background: rgba(244, 63, 94, 0.1);
+}
+
+.plan-header-title {
+    font-size: 17px;
+    font-weight: 600;
+    color: white;
+    letter-spacing: 0.5px;
+}
+
+.plan-header-spacer {
+    width: 60px;
 }
 
 /* --- MICS HEADER ROW (New Sliding Toggle Design) --- */
