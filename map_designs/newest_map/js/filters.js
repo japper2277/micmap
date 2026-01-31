@@ -610,11 +610,138 @@ function selectTimeFilter(value) {
     if (typeof syncSharedStateFromMicMap === 'function') syncSharedStateFromMicMap();
 }
 
+// Custom time picker state
+let customTimePickerState = {
+    startHour: 17, // 5pm
+    endHour: 21,   // 9pm
+    openPicker: null
+};
+
+// Format hour for display (12-hour format)
+function formatHourDisplay(hour) {
+    if (hour === 0 || hour === 24) return '12am';
+    if (hour === 12) return '12pm';
+    return hour > 12 ? `${hour - 12}pm` : `${hour}am`;
+}
+
+// Initialize time picker dropdowns
+function initTimePickerDropdowns() {
+    const startOptions = document.getElementById('start-time-options');
+    const endOptions = document.getElementById('end-time-options');
+
+    if (!startOptions || !endOptions) return;
+
+    // Generate hour options (12pm to 2am next day)
+    const hours = [];
+    for (let h = 12; h <= 23; h++) hours.push(h);
+    hours.push(24); // Midnight
+    hours.push(25); // 1am
+    hours.push(26); // 2am
+
+    const createOptions = (container, selectedHour, type) => {
+        container.innerHTML = hours.map(h => {
+            const displayHour = h > 24 ? h - 24 : (h === 24 ? 0 : h);
+            const label = formatHourDisplay(displayHour);
+            const isSelected = h === selectedHour || (h > 24 && displayHour === selectedHour);
+            return `<button class="time-option${isSelected ? ' selected' : ''}" data-hour="${h}" onclick="selectTimeOption('${type}', ${h})">${label}</button>`;
+        }).join('');
+    };
+
+    createOptions(startOptions, customTimePickerState.startHour, 'start');
+    createOptions(endOptions, customTimePickerState.endHour, 'end');
+
+    // Update display values
+    document.getElementById('custom-start-value').textContent = formatHourDisplay(customTimePickerState.startHour);
+    document.getElementById('custom-end-value').textContent = formatHourDisplay(customTimePickerState.endHour > 24 ? customTimePickerState.endHour - 24 : customTimePickerState.endHour);
+}
+
+// Toggle time picker dropdown
+function toggleTimePicker(type) {
+    const dropdown = document.getElementById(`${type}-time-dropdown`);
+    const select = document.getElementById(`custom-${type}-picker`);
+    const otherType = type === 'start' ? 'end' : 'start';
+    const otherDropdown = document.getElementById(`${otherType}-time-dropdown`);
+    const otherSelect = document.getElementById(`custom-${otherType}-picker`);
+
+    // Close other dropdown
+    otherDropdown?.classList.remove('open');
+    otherSelect?.classList.remove('open');
+
+    // Toggle this dropdown
+    const isOpen = dropdown.classList.contains('open');
+    dropdown.classList.toggle('open', !isOpen);
+    select.classList.toggle('open', !isOpen);
+    customTimePickerState.openPicker = isOpen ? null : type;
+
+    // Scroll selected option into view
+    if (!isOpen) {
+        setTimeout(() => {
+            const selected = dropdown.querySelector('.time-option.selected');
+            if (selected) {
+                selected.scrollIntoView({ block: 'center', behavior: 'instant' });
+            }
+        }, 50);
+    }
+}
+
+// Select time option
+function selectTimeOption(type, hour) {
+    const normalizedHour = hour > 24 ? hour - 24 : hour;
+
+    if (type === 'start') {
+        customTimePickerState.startHour = hour;
+        document.getElementById('custom-start-value').textContent = formatHourDisplay(normalizedHour);
+    } else {
+        customTimePickerState.endHour = hour;
+        document.getElementById('custom-end-value').textContent = formatHourDisplay(normalizedHour);
+    }
+
+    // Update selected state
+    const options = document.getElementById(`${type}-time-options`);
+    options.querySelectorAll('.time-option').forEach(opt => {
+        opt.classList.toggle('selected', parseInt(opt.dataset.hour) === hour);
+    });
+
+    // Close dropdown
+    document.getElementById(`${type}-time-dropdown`).classList.remove('open');
+    document.getElementById(`custom-${type}-picker`).classList.remove('open');
+    customTimePickerState.openPicker = null;
+}
+
+// Close time picker dropdowns when clicking outside
+document.addEventListener('click', (e) => {
+    if (!customTimePickerState.openPicker) return;
+
+    const startPicker = document.getElementById('custom-start-picker');
+    const endPicker = document.getElementById('custom-end-picker');
+    const startDropdown = document.getElementById('start-time-dropdown');
+    const endDropdown = document.getElementById('end-time-dropdown');
+
+    const clickedInsidePicker = startPicker?.contains(e.target) ||
+                                 endPicker?.contains(e.target) ||
+                                 startDropdown?.contains(e.target) ||
+                                 endDropdown?.contains(e.target);
+
+    if (!clickedInsidePicker) {
+        startDropdown?.classList.remove('open');
+        endDropdown?.classList.remove('open');
+        startPicker?.classList.remove('open');
+        endPicker?.classList.remove('open');
+        customTimePickerState.openPicker = null;
+    }
+});
+
 // Show custom time inputs
 function showCustomTimeInputs() {
     const customInputs = document.getElementById('custom-time-inputs');
     if (customInputs) {
-        customInputs.style.display = customInputs.style.display === 'none' ? 'block' : 'none';
+        const isShowing = customInputs.style.display !== 'none';
+        customInputs.style.display = isShowing ? 'none' : 'block';
+
+        // Initialize dropdowns when showing
+        if (!isShowing) {
+            initTimePickerDropdowns();
+        }
     }
 
     // Mark custom option as selected
@@ -628,24 +755,22 @@ function showCustomTimeInputs() {
 
 // Apply custom time range
 function applyCustomTime() {
-    const startInput = document.getElementById('custom-time-start');
-    const endInput = document.getElementById('custom-time-end');
+    let startHour = customTimePickerState.startHour;
+    let endHour = customTimePickerState.endHour;
 
-    if (!startInput || !endInput) return;
-
-    const startHour = parseInt(startInput.value.split(':')[0]);
-    const endHour = parseInt(endInput.value.split(':')[0]);
+    // Normalize hours for the filter (handle past-midnight times)
+    const normalizedStart = startHour > 24 ? startHour - 24 : startHour;
+    const normalizedEnd = endHour > 24 ? endHour - 24 : (endHour === 24 ? 0 : endHour);
 
     // Update the custom range in config
-    CONFIG.timeRanges.custom = { start: startHour, end: endHour === 0 ? 24 : endHour };
+    CONFIG.timeRanges.custom = {
+        start: normalizedStart,
+        end: normalizedEnd === 0 ? 24 : normalizedEnd,
+        crossesMidnight: endHour > 24 || endHour < startHour
+    };
 
     // Format label for display
-    const formatHour = (h) => {
-        if (h === 0 || h === 24) return '12am';
-        if (h === 12) return '12pm';
-        return h > 12 ? `${h - 12}pm` : `${h}am`;
-    };
-    CONFIG.filterLabels.time.custom = `${formatHour(startHour)}-${formatHour(endHour === 0 ? 24 : endHour)}`;
+    CONFIG.filterLabels.time.custom = `${formatHourDisplay(normalizedStart)}-${formatHourDisplay(normalizedEnd)}`;
 
     // Apply the filter
     STATE.activeFilters.time = 'custom';

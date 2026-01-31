@@ -221,6 +221,7 @@
     padding: var(--space-md) var(--space-lg);
     align-items: center;
     justify-content: space-between;
+    border-bottom: 2px solid rgba(34, 197, 94, 0.4);
 }
 
 /* Show plan header, hide mics header when plan mode active */
@@ -232,31 +233,92 @@ body.plan-mode .mics-header-row {
     display: none;
 }
 
-.plan-header-cancel {
-    background: none;
-    border: none;
-    color: #f43f5e;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    padding: 8px 12px;
-    border-radius: 8px;
-    transition: background 0.15s ease;
-}
-
-.plan-header-cancel:hover {
-    background: rgba(244, 63, 94, 0.1);
-}
-
 .plan-header-title {
     font-size: 17px;
     font-weight: 600;
     color: white;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.2px;
 }
 
-.plan-header-spacer {
-    width: 60px;
+/* Plan duration - horizontal expanding pills */
+.plan-duration-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.plan-duration-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.plan-duration-unit {
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.4);
+    transition: opacity 0.15s ease;
+}
+
+.plan-duration-picker {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    border-radius: 6px;
+    overflow: hidden;
+    transition: all 0.2s ease;
+}
+
+.plan-duration-pill {
+    padding: 6px 0;
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    width: 0;
+    opacity: 0;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+/* Only show selected pill when collapsed */
+.plan-duration-pill.selected {
+    width: auto;
+    padding: 6px 10px;
+    opacity: 1;
+    background: rgba(34, 197, 94, 0.25);
+    color: #22c55e;
+    border-radius: 6px;
+}
+
+/* When expanded, show all pills */
+.plan-duration-picker.expanded {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 6px;
+}
+
+.plan-duration-picker.expanded .plan-duration-pill {
+    width: auto;
+    padding: 6px 12px;
+    opacity: 1;
+}
+
+.plan-duration-picker.expanded .plan-duration-pill:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.plan-duration-picker.expanded .plan-duration-pill.selected {
+    background: rgba(34, 197, 94, 0.3);
+    color: #22c55e;
+}
+
+/* Hide "min" label when expanded */
+.plan-duration-picker.expanded ~ .plan-duration-unit {
+    opacity: 0;
 }
 
 /* --- PLAN MODE MAP OVERLAY --- */
@@ -311,6 +373,7 @@ body.plan-mode.map-interacted .plan-overlay {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    cursor: pointer; /* Tap anywhere to open drawer */
 }
 
 .title-group {
@@ -826,9 +889,9 @@ body.plan-mode.map-interacted .plan-overlay {
 /* Mobile: Compact time popover */
 @media (max-width: 640px) {
     #time-popover {
-        width: 200px;
-        min-width: 200px;
-        max-width: 200px;
+        width: 220px;
+        min-width: 220px;
+        max-width: 220px;
         padding: 6px;
     }
     #time-popover .popover-option {
@@ -842,43 +905,17 @@ body.plan-mode.map-interacted .plan-overlay {
     #time-popover .popover-option .option-detail {
         font-size: 11px;
     }
-    .custom-time-inputs {
-        padding: 8px;
-        margin: 4px 0;
-        background: rgba(255, 255, 255, 0.02);
-        border-radius: 8px;
-        width: 100%;
-        box-sizing: border-box;
+    #time-popover .custom-time-inputs {
+        padding: 12px;
+        margin: 4px;
     }
-    .time-input-row {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        margin-bottom: 6px;
-    }
-    .time-input-row:last-of-type {
-        margin-bottom: 8px;
-    }
-    .time-input-row label {
-        font-size: 12px;
-        width: 36px;
-        flex-shrink: 0;
-    }
-    .time-input-row input[type="time"] {
-        flex: 1;
-        min-width: 110px;
-        padding: 6px 10px;
-        font-size: 14px;
-        border-radius: 6px;
-    }
-    .custom-time-apply {
-        padding: 8px;
-        font-size: 12px;
-        border-radius: 6px;
+    #time-popover .custom-time-apply {
+        padding: 10px;
+        font-size: 13px;
     }
 }
 
-/* Custom time inputs */
+/* Custom time picker - redesigned */
 .custom-time-inputs {
     padding: 16px;
     background: rgba(255, 255, 255, 0.03);
@@ -886,42 +923,147 @@ body.plan-mode.map-interacted .plan-overlay {
     margin: 8px;
     margin-top: 4px;
 }
-.time-input-row {
+
+.time-picker-row {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 12px;
-    margin-bottom: 12px;
-}
-.time-input-row:last-of-type {
     margin-bottom: 16px;
 }
-.time-input-row label {
+
+.time-picker-group {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+}
+
+.time-picker-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.time-picker-select {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1.5px solid rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.time-picker-select:hover {
+    background: rgba(0, 0, 0, 0.5);
+    border-color: rgba(255, 255, 255, 0.25);
+}
+
+.time-picker-select.open {
+    border-color: var(--rose);
+    background: rgba(244, 63, 94, 0.1);
+}
+
+.time-picker-select.open .time-picker-chevron {
+    transform: rotate(180deg);
+}
+
+.time-picker-value {
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+}
+
+.time-picker-chevron {
+    color: rgba(255, 255, 255, 0.4);
+    transition: transform 0.2s ease;
+}
+
+.time-picker-separator {
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.3);
+    margin-top: 20px;
+}
+
+.time-picker-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: rgba(28, 28, 30, 0.98);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    max-height: 200px;
+    overflow-y: auto;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    transition: all 0.2s ease;
+    z-index: 10;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.time-picker-dropdown.open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.time-picker-options {
+    padding: 4px;
+}
+
+.time-option {
+    display: block;
+    width: 100%;
+    padding: 10px 12px;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    color: rgba(255, 255, 255, 0.8);
     font-size: 14px;
     font-weight: 500;
-    color: rgba(255, 255, 255, 0.6);
-    width: 50px;
-}
-.time-input-row input[type="time"] {
-    flex: 1;
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 10px;
-    padding: 12px 14px;
-    color: #fff;
-    font-size: 16px;
-    font-weight: 500;
-    font-family: inherit;
-    transition: border-color 0.2s, background 0.2s;
-}
-.time-input-row input[type="time"]:focus {
-    outline: none;
-    border-color: var(--rose);
-    background: rgba(0, 0, 0, 0.4);
-}
-.time-input-row input[type="time"]::-webkit-calendar-picker-indicator {
-    filter: invert(1) opacity(0.5);
+    text-align: left;
     cursor: pointer;
+    transition: all 0.1s ease;
 }
+
+.time-option:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+}
+
+.time-option.selected {
+    background: rgba(244, 63, 94, 0.15);
+    color: var(--rose);
+}
+
+/* Hide scrollbar but keep functionality */
+.time-picker-dropdown::-webkit-scrollbar {
+    width: 6px;
+}
+
+.time-picker-dropdown::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.time-picker-dropdown::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 3px;
+}
+
+.time-picker-dropdown::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.25);
+}
+
 .custom-time-apply {
     width: 100%;
     padding: 14px;
@@ -951,6 +1093,26 @@ body.plan-mode.map-interacted .plan-overlay {
 .popover-option.active .custom-chevron {
     transform: rotate(180deg);
     color: #F42B4E;
+}
+
+/* Mobile adjustments for time picker */
+@media (max-width: 640px) {
+    .time-picker-row {
+        gap: 8px;
+    }
+    .time-picker-select {
+        padding: 10px 12px;
+    }
+    .time-picker-value {
+        font-size: 15px;
+    }
+    .time-picker-dropdown {
+        max-height: 180px;
+    }
+    .time-option {
+        padding: 9px 10px;
+        font-size: 13px;
+    }
 }
 
 

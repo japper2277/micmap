@@ -44,8 +44,10 @@ const STATE = {
 
     // Plan Mode State
     planMode: false,              // Is plan mode active?
-    route: [],                    // Array of mic IDs in route
-    setDuration: 45,              // Minutes user stays at each mic
-    timeWindowStart: 700,         // Start of availability (7pm = 700)
-    timeWindowEnd: 1100           // End of availability (11pm = 1100)
+    route: JSON.parse(localStorage.getItem('planRoute') || '[]'),
+    dismissed: JSON.parse(localStorage.getItem('planDismissed') || '[]'),
+    setDuration: parseInt(localStorage.getItem('planSetDuration') || '45', 10),
+    timeWindowStart: parseInt(localStorage.getItem('planTimeWindowStart') || '700', 10),
+    timeWindowEnd: parseInt(localStorage.getItem('planTimeWindowEnd') || '1100', 10),
+    planGracePeriod: 5            // Minutes of overlap allowed between mics
 };

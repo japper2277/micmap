@@ -323,6 +323,7 @@ function togglePlanMode() {
     if (STATE.planMode) {
         document.body.classList.remove('map-interacted', 'commute-loaded'); // Reset states
         setupPlanMapListeners(); // Setup map interaction listeners
+        initPlanFilterRow(); // Initialize the time filter row in header
         updateMarkerStates(); // Show commute labels on markers (adds commute-loaded)
         renderPlanDrawer();
     } else {
@@ -334,6 +335,8 @@ function togglePlanMode() {
 function exitPlanMode() {
     STATE.planMode = false;
     STATE.route = [];
+    STATE.dismissed = [];
+    clearPlanState(); // Clear localStorage
     document.getElementById('plan-btn').classList.remove('active');
     document.body.classList.remove('plan-mode', 'has-route', 'map-interacted', 'commute-loaded');
     updateMarkerStates(); // Clear marker states

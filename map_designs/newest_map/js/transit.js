@@ -549,6 +549,9 @@ const transitService = {
                 }
             }));
 
+            // Progressive render: update markers as commute times come in
+            render(STATE.currentMode);
+
             // 10ms delay between batches (local OSRM is fast)
             if (i + BATCH_SIZE < uniqueVenues.length) {
                 await new Promise(r => setTimeout(r, 10));

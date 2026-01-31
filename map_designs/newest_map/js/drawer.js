@@ -73,6 +73,11 @@ function setDrawerState(newState) {
     STATE.drawerState = newState;
     STATE.isDrawerOpen = isOpen;
 
+    // Update plan drawer if in plan mode (to show/hide swipe hint)
+    if (STATE.planMode && typeof renderPlanDrawer === 'function') {
+        renderPlanDrawer();
+    }
+
     // Force scroll context recalculation (fixes scroll not working after state change)
     const listContent = document.getElementById('list-content');
     if (listContent) {

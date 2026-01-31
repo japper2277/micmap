@@ -3,6 +3,21 @@
    Map-first route planning - click markers to build route
    ================================================================= */
 
+// Persist plan state to localStorage
+function persistPlanState() {
+    localStorage.setItem('planRoute', JSON.stringify(STATE.route));
+    localStorage.setItem('planDismissed', JSON.stringify(STATE.dismissed));
+    localStorage.setItem('planSetDuration', STATE.setDuration.toString());
+    localStorage.setItem('planTimeWindowStart', STATE.timeWindowStart.toString());
+    localStorage.setItem('planTimeWindowEnd', STATE.timeWindowEnd.toString());
+}
+
+// Clear plan state from localStorage
+function clearPlanState() {
+    localStorage.removeItem('planRoute');
+    localStorage.removeItem('planDismissed');
+}
+
 // Update body class based on route state (for overlay visibility)
 function updateRouteClass() {
     document.body.classList.toggle('has-route', STATE.route.length > 0);
@@ -29,6 +44,9 @@ function setupPlanMapListeners() {
 function addToRoute(micId, skipZoom = false) {
     if (STATE.route.includes(micId)) return;
 
+    // Remove from dismissed list if it was there
+    STATE.dismissed = STATE.dismissed.filter(id => id !== micId);
+
     STATE.route.push(micId);
 
     // Sort by start time
@@ -44,6 +62,7 @@ function addToRoute(micId, skipZoom = false) {
     updateMarkerStates();       // Update marker visual states (selected, dimmed, etc.)
     updateRouteLine();
     renderPlanDrawer();
+    persistPlanState();
     if (!skipZoom) fitMapToReachableMics();
 }
 
@@ -89,10 +108,20 @@ function fitMapToReachableMics() {
         }
     });
 
-    // Need at least 2 points to fit bounds
-    if (points.length < 2) return;
+    // Handle edge cases
+    if (points.length === 0 && lastMic) {
+        // No points at all - center on last mic
+        map.setView([lastMic.lat, lastMic.lng], 15, { animate: true });
+        return;
+    }
 
-    // Fit map with padding
+    if (points.length === 1) {
+        // Single point - center and zoom appropriately
+        map.setView(points[0], 15, { animate: true });
+        return;
+    }
+
+    // 2+ points - fit bounds
     const bounds = L.latLngBounds(points);
     map.fitBounds(bounds, {
         padding: [60, 60],
@@ -105,11 +134,20 @@ function fitMapToReachableMics() {
 // Remove mic from route
 function removeFromRoute(micId) {
     STATE.route = STATE.route.filter(id => id !== micId);
+    // Add to dismissed list so it shows crossed out on map
+    if (!STATE.dismissed.includes(micId)) {
+        STATE.dismissed.push(micId);
+    }
+    // Cap dismissed list to prevent unbounded growth
+    if (STATE.dismissed.length > 50) {
+        STATE.dismissed = STATE.dismissed.slice(-50);
+    }
     updateRouteClass();
     render(STATE.currentMode);  // Re-render to update strikethrough on times
     updateMarkerStates();       // Update marker visual states (selected, dimmed, etc.)
     updateRouteLine();
     renderPlanDrawer();
+    persistPlanState();
 }
 
 // Toggle mic in/out of route (called when marker clicked in plan mode)
@@ -208,7 +246,7 @@ function updateMarkerStates() {
             if (!marker) return;
             const el = marker.getElement();
             if (el) {
-                el.classList.remove('marker-selected', 'marker-glow', 'marker-suggested', 'marker-dimmed');
+                el.classList.remove('marker-selected', 'marker-glow', 'marker-suggested', 'marker-dimmed', 'marker-dismissed');
                 removeCommuteLabel(el);
             }
         });
@@ -231,7 +269,7 @@ function updateMarkerStates() {
 
             const el = marker.getElement();
             if (el) {
-                el.classList.remove('marker-selected', 'marker-glow', 'marker-suggested', 'marker-dimmed');
+                el.classList.remove('marker-selected', 'marker-glow', 'marker-suggested', 'marker-dimmed', 'marker-dismissed');
                 // Show commute from user location
                 const commuteMins = getCommuteFromUser(mic);
                 setCommuteLabel(el, commuteMins);
@@ -260,7 +298,7 @@ function updateMarkerStates() {
         if (!el) return;
 
         // Clear previous states
-        el.classList.remove('marker-selected', 'marker-glow', 'marker-suggested', 'marker-dimmed');
+        el.classList.remove('marker-selected', 'marker-glow', 'marker-suggested', 'marker-dimmed', 'marker-dismissed');
 
         // Check if any mic at this marker is in the route
         const hasSelectedMic = mics.some(m => STATE.route.includes(m.id));
@@ -270,14 +308,23 @@ function updateMarkerStates() {
             return;
         }
 
+        // Check if ALL mics at this marker are dismissed
+        const allDismissed = mics.every(m => STATE.dismissed.includes(m.id));
+        if (allDismissed) {
+            el.classList.add('marker-dismissed');
+            removeCommuteLabel(el);
+            return;
+        }
+
         // Use earliest mic for commute label
         const earliestMic = mics.reduce((a, b) => (a.start || 0) < (b.start || 0) ? a : b);
         const commuteMins = getCommuteBetweenMics(lastMic, earliestMic);
         setCommuteLabel(el, commuteMins);
 
-        // Check if ANY mic at this marker is reachable (not dimmed)
+        // Check if ANY mic at this marker is reachable (not dimmed and not dismissed)
         const anyReachable = mics.some(mic => {
             if (STATE.route.includes(mic.id)) return true;
+            if (STATE.dismissed.includes(mic.id)) return false;
             const status = getMicStatus(mic.id, lastMicId, commuteMins);
             return status !== 'dimmed';
         });
@@ -306,6 +353,22 @@ function getMicStatus(candidateId, lastMicId, commuteMins) {
     const candidateTime = getTimeInMinutes(candidate.start);
     const setDuration = STATE.setDuration || 30;
     const travelMins = commuteMins || 20;
+    const grace = STATE.planGracePeriod || 5;
+
+    // Use Time filter to determine availability window
+    const timeFilter = STATE.activeFilters?.time || 'All';
+
+    // Only apply time window filtering if a specific time range is selected
+    if (timeFilter !== 'All' && CONFIG.timeRanges && CONFIG.timeRanges[timeFilter]) {
+        const range = CONFIG.timeRanges[timeFilter];
+        const windowStartMins = range.start * 60;  // CONFIG uses 24-hour format (17 = 5pm)
+        const windowEndMins = (range.end === 24 ? 24 : range.end) * 60;
+
+        // Dim mics outside the user's availability window
+        if (candidateTime < windowStartMins || candidateTime > windowEndMins) {
+            return 'dimmed';
+        }
+    }
 
     // Get sorted route mics with their times
     const routeMics = STATE.route
@@ -321,14 +384,14 @@ function getMicStatus(candidateId, lastMicId, commuteMins) {
     // Check if candidate can fit BEFORE the first mic
     const firstMicTime = routeMics[0].time;
     const candidateEndTime = candidateTime + setDuration + travelMins;
-    if (candidateEndTime <= firstMicTime + 5) {  // 5 min grace
+    if (candidateEndTime <= firstMicTime + grace) {
         return 'visible';
     }
 
     // Check if candidate can fit AFTER the last mic
     const lastMicTime = routeMics[routeMics.length - 1].time;
     const lastMicEndTime = lastMicTime + setDuration + travelMins;
-    if (candidateTime >= lastMicEndTime - 5) {  // 5 min grace
+    if (candidateTime >= lastMicEndTime - grace) {
         return 'visible';
     }
 
@@ -338,7 +401,7 @@ function getMicStatus(candidateId, lastMicId, commuteMins) {
         const nextMicTime = routeMics[i + 1].time;
 
         // Candidate must start after prev mic ends and end before next mic starts
-        if (candidateTime >= prevMicEndTime - 5 && candidateEndTime <= nextMicTime + 5) {
+        if (candidateTime >= prevMicEndTime - grace && candidateEndTime <= nextMicTime + grace) {
             return 'visible';
         }
     }
@@ -346,10 +409,127 @@ function getMicStatus(candidateId, lastMicId, commuteMins) {
     return 'dimmed';  // Can't fit anywhere
 }
 
+// Route polyline for map
+let routePolyline = null;
+
 // Update route line on map
 function updateRouteLine() {
-    // Placeholder - will be implemented in phase 5
-    console.log('updateRouteLine called, route:', STATE.route);
+    // Remove existing line
+    if (routePolyline) {
+        map.removeLayer(routePolyline);
+        routePolyline = null;
+    }
+
+    // Need at least 2 points to draw a line
+    if (STATE.route.length < 2) return;
+
+    // Get coordinates for each mic in route
+    const points = STATE.route
+        .map(id => STATE.mics.find(m => m.id === id))
+        .filter(m => m && m.lat && m.lng)
+        .map(m => [m.lat, m.lng]);
+
+    if (points.length < 2) return;
+
+    // Create dashed polyline
+    routePolyline = L.polyline(points, {
+        color: '#22c55e',      // Green to match selected markers
+        weight: 3,
+        opacity: 0.8,
+        dashArray: '10, 10',
+        lineCap: 'round',
+        lineJoin: 'round'
+    }).addTo(map);
+}
+
+// Handle set duration change
+function onSetDurationChange(value) {
+    STATE.setDuration = parseInt(value, 10);
+    updateMarkerStates();
+    renderPlanDrawer();
+    persistPlanState();
+}
+
+// Handle time window change
+function onTimeWindowChange() {
+    const startEl = document.getElementById('planTimeStart');
+    const endEl = document.getElementById('planTimeEnd');
+    if (startEl) STATE.timeWindowStart = parseInt(startEl.value, 10);
+    if (endEl) STATE.timeWindowEnd = parseInt(endEl.value, 10);
+    updateMarkerStates();  // Re-evaluate which mics are reachable
+    renderPlanDrawer();
+    persistPlanState();
+}
+
+// Duration options for Plan My Night
+const planDurationOptions = [
+    { value: 30, label: '30' },
+    { value: 45, label: '45' },
+    { value: 60, label: '60' },
+    { value: 90, label: '90' }
+];
+
+// Handle duration pill click - expand if collapsed, select if expanded
+function handleDurationClick(value, event) {
+    event.stopPropagation();
+    const picker = document.getElementById('plan-duration-picker');
+    const isExpanded = picker.classList.contains('expanded');
+
+    if (!isExpanded) {
+        // Expand
+        picker.classList.add('expanded');
+    } else {
+        // Select this option
+        STATE.setDuration = value;
+
+        // Update selected state
+        picker.querySelectorAll('.plan-duration-pill').forEach(pill => {
+            pill.classList.toggle('selected', parseInt(pill.dataset.value) === value);
+        });
+
+        // Collapse after brief delay
+        setTimeout(() => {
+            picker.classList.remove('expanded');
+        }, 150);
+
+        // Update markers and persist
+        updateMarkerStates();
+        renderPlanDrawer();
+        persistPlanState();
+    }
+}
+
+// Close duration picker when clicking outside
+document.addEventListener('click', (e) => {
+    const picker = document.getElementById('plan-duration-picker');
+    if (picker && !picker.contains(e.target)) {
+        picker.classList.remove('expanded');
+    }
+});
+
+// Initialize the plan filter row in the header
+function initPlanFilterRow() {
+    const container = document.getElementById('plan-filter-row');
+    if (!container) return;
+
+    const duration = STATE.setDuration || 45;
+
+    container.innerHTML = `
+        <div class="plan-header-title">Plan My Night</div>
+        <div class="plan-duration-row" onclick="event.stopPropagation()">
+            <span class="plan-duration-label">Stay</span>
+            <div class="plan-duration-picker" id="plan-duration-picker">
+                ${planDurationOptions.map(opt => `
+                    <button class="plan-duration-pill${opt.value === duration ? ' selected' : ''}"
+                            data-value="${opt.value}"
+                            onclick="handleDurationClick(${opt.value}, event)">
+                        ${opt.label}
+                    </button>
+                `).join('')}
+            </div>
+            <span class="plan-duration-unit">min</span>
+        </div>
+    `;
 }
 
 // Render drawer content for plan mode
@@ -357,22 +537,22 @@ function renderPlanDrawer() {
     const container = document.getElementById('list-content');
     if (!container) return;
 
+    let html = '';
+
+    // When route is empty, show the normal mic list (render() adds "+ Tonight" buttons in plan mode)
     if (STATE.route.length === 0) {
-        container.innerHTML = `
-            <div style="padding: 20px 24px; text-align: center;">
-                <p style="font-size: 16px; font-weight: 600; color: #fff; margin: 0; line-height: 1.4;">Tap mics on the map to add them to your schedule for the night</p>
-            </div>
-        `;
+        render(STATE.currentMode);
         return;
     }
 
     // Show current route
     const stopCount = STATE.route.length;
     const stopWord = stopCount === 1 ? 'stop' : 'stops';
-    let html = '<div style="padding: 16px;">';
+    const swipeHint = STATE.drawerState === 'peek' ? '<span style="font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.5);">Swipe up ↑</span>' : '';
+    html += '<div style="padding: 16px;">';
     html += `<div style="font-size: 17px; font-weight: 700; color: #fff; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between;">
         <span>${stopCount} ${stopWord} planned</span>
-        <span style="font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.5);">Swipe up ↑</span>
+        ${swipeHint}
     </div>`;
 
     STATE.route.forEach((micId, i) => {

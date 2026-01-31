@@ -66,7 +66,7 @@ function setupModalSwipeToDismiss() {
 
 // DOM element references (initialized after DOM loads)
 let venueModal, modalVenueName, modalAddress, modalDirections;
-let modalMicTime, modalInfoRow, modalInstructions, modalActions, modalSignupBtn, modalIgBtn, modalPlanActions;
+let modalMicTime, modalInfoRow, modalInstructions, modalActions, modalSignupBtn, modalIgBtn, modalPlanBtn, modalPlanActions;
 let modalTransit, modalTabs;
 
 // Focus trap state
@@ -92,12 +92,35 @@ function initModal() {
     modalTransit = document.getElementById('modal-transit');
     modalTabs = document.getElementById('modal-tabs');
     modalPlanActions = document.getElementById('modal-plan-actions');
+    modalPlanBtn = document.getElementById('modal-plan-btn');
+
+    // "Add to Plan" button click handler - enters plan mode and adds mic
+    if (modalPlanBtn) {
+        modalPlanBtn.addEventListener('click', () => {
+            const mic = modalMicsArray[modalActiveMicIndex];
+            if (!mic) return;
+
+            // Enter plan mode if not already
+            if (!STATE.planMode) {
+                togglePlanMode();
+            }
+
+            // Add mic to route
+            if (typeof toggleMicInRoute === 'function') {
+                toggleMicInRoute(mic.id, true); // skipZoom = true
+            }
+
+            // Close modal and let user see the plan
+            closeVenueModal();
+        });
+    }
 
     // Plan mode: Time button click handler in header (event delegation)
     if (modalMicTime) {
         modalMicTime.addEventListener('click', (e) => {
             const btn = e.target.closest('.time-add-btn');
             if (!btn) return;
+            if (btn.classList.contains('conflict')) return;  // Don't allow clicking conflict pills
 
             const micId = btn.dataset.micId;
             if (micId && typeof toggleMicInRoute === 'function') {
@@ -159,6 +182,11 @@ function openVenueModalWithMics(mics) {
         const key = mic.title || mic.venue || 'Unknown';
         if (!modalVenueMap[key]) modalVenueMap[key] = [];
         modalVenueMap[key].push(mic);
+    });
+
+    // Sort each venue's mics by start time (earliest first)
+    Object.values(modalVenueMap).forEach(venueMics => {
+        venueMics.sort((a, b) => (a.start || 0) - (b.start || 0));
     });
 
     const venues = Object.entries(modalVenueMap);
@@ -331,10 +359,17 @@ function populateModalContent(mic, allMicsAtVenue = null) {
         }
     }
 
-    // 3. Signup type badge (coral/red)
-    let signupType = mic.signupUrl ? 'Advance Sign-up' :
-                     mic.signupEmail ? 'Email Sign-up' : 'Sign up in person';
-    infoParts.push(`<div class="info-badge info-badge-signup">${escapeHtml(signupType)}</div>`);
+    // 3. IG badge (if available)
+    const igHandleForBadge = mic.contact || mic.host || mic.hostIg;
+    if (igHandleForBadge && igHandleForBadge !== 'TBD') {
+        const igIcon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>';
+        infoParts.push(`<a href="https://instagram.com/${igHandleForBadge.replace(/^@/, '')}" target="_blank" class="info-badge info-badge-ig">${igIcon} IG</a>`);
+    }
+
+    // 4. Walk-in badge (when no online signup)
+    if (!mic.signupUrl && !mic.signupEmail) {
+        infoParts.push(`<div class="info-badge info-badge-walkin">Walk-in</div>`);
+    }
 
     modalInfoRow.innerHTML = infoParts.join('');
 
@@ -356,7 +391,7 @@ function populateModalContent(mic, allMicsAtVenue = null) {
     if (hasSignupUrl) {
         modalSignupBtn.href = mic.signupUrl;
         modalSignupBtn.target = '_blank';
-        modalSignupBtn.innerText = 'Sign Up';
+        modalSignupBtn.innerText = 'Sign Up Online';
         modalSignupBtn.style.display = 'flex';
     } else if (hasSignupEmail) {
         modalSignupBtn.href = `mailto:${mic.signupEmail}`;
@@ -367,21 +402,24 @@ function populateModalContent(mic, allMicsAtVenue = null) {
         modalSignupBtn.style.display = 'none';
     }
 
-    if (hasIg) {
-        modalIgBtn.href = `https://instagram.com/${igHandle.replace(/^@/, '')}`;
-        modalIgBtn.target = '_blank';
-        modalIgBtn.style.display = 'flex';
-    } else {
-        modalIgBtn.style.display = 'none';
+    const hasSignupAction = hasSignupUrl || hasSignupEmail;
+
+    // + Tonight button always visible (unless in plan mode with time pills)
+    if (modalPlanBtn) {
+        modalPlanBtn.style.display = STATE.planMode ? 'none' : 'flex';
     }
 
-    const hasSignupAction = hasSignupUrl || hasSignupEmail;
-    if (hasSignupAction && hasIg) {
-        modalActions.classList.remove('single-btn');
+    // Action row layout: 2 columns if both buttons, 1 column if only +Tonight
+    modalActions.classList.remove('single-btn');
+    if (hasSignupAction) {
+        modalActions.style.display = 'grid';
+        // 2 columns: Sign Up + Tonight
     } else {
+        // Only +Tonight button
+        modalActions.style.display = 'grid';
         modalActions.classList.add('single-btn');
+        modalSignupBtn.style.display = 'none';
     }
-    modalActions.style.display = (hasSignupAction || hasIg) ? 'grid' : 'none';
 
     // Plan mode: Hide the separate plan-actions (buttons are now in header)
     if (modalPlanActions) {
@@ -468,10 +506,17 @@ function openVenueModal(mic) {
         }
     }
 
-    // 3. Signup type badge (coral/red)
-    let signupType = mic.signupUrl ? 'Advance Sign-up' :
-                     mic.signupEmail ? 'Email Sign-up' : 'Sign up in person';
-    infoParts.push(`<div class="info-badge info-badge-signup">${escapeHtml(signupType)}</div>`);
+    // 3. IG badge (if available)
+    const igHandleForBadge = mic.contact || mic.host || mic.hostIg;
+    if (igHandleForBadge && igHandleForBadge !== 'TBD') {
+        const igIcon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>';
+        infoParts.push(`<a href="https://instagram.com/${igHandleForBadge.replace(/^@/, '')}" target="_blank" class="info-badge info-badge-ig">${igIcon} IG</a>`);
+    }
+
+    // 4. Walk-in badge (when no online signup)
+    if (!mic.signupUrl && !mic.signupEmail) {
+        infoParts.push(`<div class="info-badge info-badge-walkin">Walk-in</div>`);
+    }
 
     modalInfoRow.innerHTML = infoParts.join('');
 
@@ -493,7 +538,7 @@ function openVenueModal(mic) {
     if (hasSignupUrl) {
         modalSignupBtn.href = mic.signupUrl;
         modalSignupBtn.target = '_blank';
-        modalSignupBtn.innerText = 'Sign Up';
+        modalSignupBtn.innerText = 'Sign Up Online';
         modalSignupBtn.style.display = 'flex';
     } else if (hasSignupEmail) {
         modalSignupBtn.href = `mailto:${mic.signupEmail}`;
@@ -504,24 +549,24 @@ function openVenueModal(mic) {
         modalSignupBtn.style.display = 'none';
     }
 
-    if (hasIg) {
-        modalIgBtn.href = `https://instagram.com/${igHandle.replace(/^@/, '')}`;
-        modalIgBtn.target = '_blank';
-        modalIgBtn.style.display = 'flex';
-    } else {
-        modalIgBtn.style.display = 'none';
-    }
-
-    // Adjust grid based on button count
     const hasSignupAction = hasSignupUrl || hasSignupEmail;
-    if (hasSignupAction && hasIg) {
-        modalActions.classList.remove('single-btn');
-    } else {
-        modalActions.classList.add('single-btn');
+
+    // + Tonight button always visible (unless in plan mode with time pills)
+    if (modalPlanBtn) {
+        modalPlanBtn.style.display = STATE.planMode ? 'none' : 'flex';
     }
 
-    // Hide actions row entirely if no buttons
-    modalActions.style.display = (hasSignupAction || hasIg) ? 'grid' : 'none';
+    // Action row layout: 2 columns if both buttons, 1 column if only +Tonight
+    modalActions.classList.remove('single-btn');
+    if (hasSignupAction) {
+        modalActions.style.display = 'grid';
+        // 2 columns: Sign Up + Tonight
+    } else {
+        // Only +Tonight button
+        modalActions.style.display = 'grid';
+        modalActions.classList.add('single-btn');
+        modalSignupBtn.style.display = 'none';
+    }
 
     // Plan mode: Hide plan-actions (buttons are now in header)
     if (modalPlanActions) {

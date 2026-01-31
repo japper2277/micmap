@@ -214,23 +214,28 @@
     color: #a1a1aa;
 }
 
-/* IG badge - subtle outline style */
+/* IG badge - gradient pill style */
 .info-badge-ig {
-    background: transparent;
-    border: 1px solid rgba(225, 48, 108, 0.4);
-    color: #e1306c;
-    padding: 5px 8px;
+    background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+    border: none;
+    color: white;
+    padding: 5px 10px;
     text-decoration: none;
     transition: all 0.15s;
-    border-radius: 6px;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 600;
 }
 .info-badge-ig:hover {
-    background: rgba(225, 48, 108, 0.1);
-    border-color: rgba(225, 48, 108, 0.6);
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(225, 48, 108, 0.4);
 }
 .info-badge-ig svg {
-    width: 12px;
-    height: 12px;
+    width: 14px;
+    height: 14px;
 }
 
 .note-text {

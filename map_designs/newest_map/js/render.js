@@ -422,25 +422,41 @@ function render(mode) {
         // Get unique times (dedupe in case of duplicates)
         const allTimes = [...new Set(cluster.mics.map(formatTime))];
 
-        // In plan mode with route, check which times are reachable
+        // In plan mode, check which times are reachable/dismissed
         let displayTimes;
         if (STATE.planMode && STATE.route.length > 0 && typeof getMicStatus === 'function') {
             const lastMicId = STATE.route[STATE.route.length - 1];
 
-            // Group mics by time, check if ANY mic at that time is reachable
+            // Group mics by time, check if ANY mic at that time is reachable and not dismissed
             const timeReachability = {};
             cluster.mics.forEach(mic => {
                 const timeStr = formatTime(mic);
                 const status = getMicStatus(mic.id, lastMicId, 20);
-                // If any mic at this time is reachable, mark time as reachable
+                const isDismissed = STATE.dismissed?.includes(mic.id);
+                // If any mic at this time is reachable AND not dismissed, mark time as reachable
                 if (!timeReachability[timeStr]) {
-                    timeReachability[timeStr] = status !== 'dimmed';
-                } else if (status !== 'dimmed') {
+                    timeReachability[timeStr] = status !== 'dimmed' && !isDismissed;
+                } else if (status !== 'dimmed' && !isDismissed) {
                     timeReachability[timeStr] = true;
                 }
             });
 
-            // Format times with strikethrough for unreachable
+            // Format times with strikethrough for unreachable/dismissed
+            displayTimes = allTimes.map(t =>
+                timeReachability[t] ? t : `<s class="time-unreachable">${t}</s>`
+            ).join(', ');
+        } else if (STATE.planMode && STATE.dismissed?.length > 0) {
+            // Plan mode with dismissed mics but no route - just check dismissed
+            const timeReachability = {};
+            cluster.mics.forEach(mic => {
+                const timeStr = formatTime(mic);
+                const isDismissed = STATE.dismissed.includes(mic.id);
+                if (!timeReachability[timeStr]) {
+                    timeReachability[timeStr] = !isDismissed;
+                } else if (!isDismissed) {
+                    timeReachability[timeStr] = true;
+                }
+            });
             displayTimes = allTimes.map(t =>
                 timeReachability[t] ? t : `<s class="time-unreachable">${t}</s>`
             ).join(', ');
@@ -484,15 +500,28 @@ function render(mode) {
                 // Get unique times for this venue
                 const uniqueTimes = [...new Set(v.mics.map(formatTime))];
 
-                // In plan mode, check reachability per time
+                // In plan mode, check reachability per time (also check dismissed)
                 let timesStr;
                 if (lastMicId && typeof getMicStatus === 'function') {
                     const timeReach = {};
                     v.mics.forEach(mic => {
                         const t = formatTime(mic);
                         const status = getMicStatus(mic.id, lastMicId, 20);
-                        if (!timeReach[t]) timeReach[t] = status !== 'dimmed';
-                        else if (status !== 'dimmed') timeReach[t] = true;
+                        const isDismissed = STATE.dismissed?.includes(mic.id);
+                        if (!timeReach[t]) timeReach[t] = status !== 'dimmed' && !isDismissed;
+                        else if (status !== 'dimmed' && !isDismissed) timeReach[t] = true;
+                    });
+                    timesStr = uniqueTimes.map(t =>
+                        timeReach[t] ? t : `<s class="time-unreachable">${t}</s>`
+                    ).join(', ');
+                } else if (STATE.dismissed?.length > 0) {
+                    // No route but have dismissed - just check dismissed
+                    const timeReach = {};
+                    v.mics.forEach(mic => {
+                        const t = formatTime(mic);
+                        const isDismissed = STATE.dismissed.includes(mic.id);
+                        if (!timeReach[t]) timeReach[t] = !isDismissed;
+                        else if (!isDismissed) timeReach[t] = true;
                     });
                     timesStr = uniqueTimes.map(t =>
                         timeReach[t] ? t : `<s class="time-unreachable">${t}</s>`
@@ -503,7 +532,6 @@ function render(mode) {
 
                 return { name: v.name, times: timesStr, status: v.status };
             });
-
             markerIcon = createMultiVenuePin(venueData);
         } else {
             // Single venue ticket OR pill (zoomed out)
@@ -718,7 +746,8 @@ function render(mode) {
         const card = document.createElement('div');
         card.id = `card-${mic.id}`;
         card.onclick = () => locateMic(mic.lat, mic.lng, mic.id);
-        card.className = `stream-item group ${isHappeningNow ? 'is-happening-now' : ''}`;
+        const isInRoute = STATE.planMode && STATE.route && STATE.route.includes(mic.id);
+        card.className = `stream-item group ${isHappeningNow ? 'is-happening-now' : ''} ${isInRoute ? 'in-route' : ''}`;
         // Accessibility: make card keyboard navigable
         card.setAttribute('tabindex', '0');
         card.setAttribute('role', 'article');
@@ -817,6 +846,7 @@ function render(mode) {
                         <div class="venue-row">
                             <div class="venue-name">${safeTitle}</div>
                             <span class="tag-pill borough-pill"><span class="borough-full">${safeBorough}</span><span class="borough-short">${shortBorough}</span></span>
+                            <button class="plan-add-circle" onclick="event.stopPropagation(); addToRoute('${mic.id}')"><span class="circle-plus">+</span><span class="circle-text">Tonight</span></button>
                         </div>
                         <div class="meta-row">
                             <span class="neighborhood">${safeHood}</span>
@@ -841,6 +871,7 @@ function render(mode) {
                         <div class="venue-row">
                             <div class="venue-name">${safeTitle}</div>
                             <span class="tag-pill borough-pill"><span class="borough-full">${safeBorough}</span><span class="borough-short">${shortBorough}</span></span>
+                            <button class="plan-add-circle" onclick="event.stopPropagation(); addToRoute('${mic.id}')"><span class="circle-plus">+</span><span class="circle-text">Tonight</span></button>
                         </div>
                         <div class="meta-row">
                             <span class="neighborhood">${safeHood}</span>
