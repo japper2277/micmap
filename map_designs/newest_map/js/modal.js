@@ -124,6 +124,29 @@ function initModal() {
 // Store venue map for tab switching
 let modalVenueMap = {};
 
+// Helper: Adjust mic start time to the correct date based on viewing mode
+// today = today's date, tomorrow = +1 day, calendar = selected date
+function adjustMicDateForMode(mic) {
+    if (!mic?.start || !(mic.start instanceof Date)) return mic;
+
+    const mode = STATE?.currentMode || 'today';
+    const now = new Date();
+
+    // Calculate target date based on mode
+    let targetDate = new Date(now);
+    if (mode === 'tomorrow') {
+        targetDate.setDate(targetDate.getDate() + 1);
+    } else if (mode === 'calendar' && STATE?.selectedCalendarDate) {
+        targetDate = new Date(STATE.selectedCalendarDate);
+    }
+
+    // Create new date with target date but original time
+    const adjusted = new Date(targetDate);
+    adjusted.setHours(mic.start.getHours(), mic.start.getMinutes(), 0, 0);
+
+    return { ...mic, start: adjusted };
+}
+
 // Open modal with multiple mics (shows tabs)
 function openVenueModalWithMics(mics) {
     if (!mics || mics.length === 0) return;
@@ -156,7 +179,19 @@ function openVenueModalWithMics(mics) {
         modalTabs.innerHTML = '';
         modalTabs.style.display = 'none';
         const venueMics = venues[0][1];
-        populateModalContent(venueMics[0], venueMics);
+        // For today, find first mic that hasn't passed (started < 30 min ago)
+        // For tomorrow/calendar, use earliest mic
+        const now = new Date();
+        let primaryMic = venueMics[0];
+        if (STATE?.currentMode === 'today') {
+            const upcomingMic = venueMics.find(m => {
+                if (!m.start) return false;
+                const diffMins = (m.start - now) / 60000;
+                return diffMins > -30; // hasn't started > 30 min ago
+            });
+            if (upcomingMic) primaryMic = upcomingMic;
+        }
+        populateModalContent(primaryMic, venueMics);
         venueModal.classList.add('active');
         modalTriggerElement = document.activeElement;
         setupFocusTrap(venueModal);
@@ -350,13 +385,8 @@ function populateModalContent(mic, allMicsAtVenue = null) {
     }
     modalActions.style.display = (hasSignupAction || hasIg) ? 'grid' : 'none';
 
-    // 5. TRANSIT - adjust mic start time for tomorrow mode
-    let transitMic = mic;
-    if (STATE?.currentMode === 'tomorrow' && mic.start instanceof Date) {
-        // Clone mic and add 1 day to start time
-        transitMic = { ...mic, start: new Date(mic.start.getTime() + 24 * 60 * 60 * 1000) };
-    }
-    loadModalArrivals(transitMic);
+    // 5. TRANSIT - adjust mic date for current viewing mode
+    loadModalArrivals(adjustMicDateForMode(mic));
 }
 
 function openVenueModal(mic) {
@@ -489,12 +519,8 @@ function openVenueModal(mic) {
     modalTriggerElement = document.activeElement;
     setupFocusTrap(venueModal);
 
-    // 5. TRANSIT - adjust mic start time for tomorrow mode
-    let transitMic = mic;
-    if (STATE?.currentMode === 'tomorrow' && mic.start instanceof Date) {
-        transitMic = { ...mic, start: new Date(mic.start.getTime() + 24 * 60 * 60 * 1000) };
-    }
-    loadModalArrivals(transitMic);
+    // 5. TRANSIT - adjust mic date for current viewing mode
+    loadModalArrivals(adjustMicDateForMode(mic));
 }
 
 // Setup focus trap for modal accessibility
@@ -554,14 +580,11 @@ function setupFocusTrap(modal) {
     }, 100);
 }
 
-// Get route - uses shared cache from transitService or fetches fresh
+// Get route - always fetch fresh for modal to get current train times
 async function getRouteForModal(mic, userLat, userLng) {
-    // Check if route is already cached from card calculation
-    if (mic.route) {
-        return { routes: [mic.route], schedule: null };
-    }
-
-    // Not cached - fetch via shared transitService
+    // Always fetch fresh route when opening modal
+    // Cached routes from card rendering may have stale scheduledDepartureTimes
+    // Cards use cache for speed, modal uses fresh for accuracy
     const route = await transitService.fetchSubwayRoute(userLat, userLng, mic.lat, mic.lng, mic);
     if (route) {
         return { routes: [route], schedule: null };
@@ -780,28 +803,29 @@ async function displaySubwayRoutes(routes, mic, walkOption = null, schedule = nu
                     return trainTime >= earliestCatchableNow && trainTime <= latestTrainDeparture;
                 });
 
-            if (trainDepartures.length === 0) continue; // no catchable trains on this route for this mic
+            // If trains found, use them; otherwise fall through to other options
+            if (trainDepartures.length > 0) {
+                // Use FIRST catchable train for departure time (earliest the user can leave)
+                const firstTrain = new Date(trainDepartures[0]);
+                let departure = new Date(firstTrain.getTime() - walkToStation * 60000);
 
-            // Use FIRST catchable train for departure time (earliest the user can leave)
-            const firstTrain = new Date(trainDepartures[0]);
-            let departure = new Date(firstTrain.getTime() - walkToStation * 60000);
+                // Don't show departure times in the past - use "now" if needed
+                if (departure < now) {
+                    departure = now;
+                }
 
-            // Don't show departure times in the past - use "now" if needed
-            if (departure < now) {
-                departure = now;
+                // Use LAST valid train for arrival calculation
+                const lastTrain = new Date(trainDepartures[trainDepartures.length - 1]);
+                const arrival = new Date(lastTrain.getTime() + (rideTime + walkFromStation) * 60000);
+
+                displayTimeRange = `${formatT(departure)} - ${formatT(arrival)}`;
+                displayDuration = Math.round((arrival - departure) / 60000);
+                depTimesStr = trainDepartures.map(iso => formatT(new Date(iso))).join(', ');
             }
-
-            // Use LAST valid train for arrival calculation
-            const lastTrain = new Date(trainDepartures[trainDepartures.length - 1]);
-            const arrival = new Date(lastTrain.getTime() + (rideTime + walkFromStation) * 60000);
-
-            displayTimeRange = `${formatT(departure)} - ${formatT(arrival)}`;
-            displayDuration = Math.round((arrival - departure) / 60000);
-            depTimesStr = trainDepartures.map(iso => formatT(new Date(iso))).join(', ');
         }
-        // Priority 2: Need to leave within 30 min - use real-time MTA
+        // Priority 2: Need to leave within 30 min - use real-time MTA (only if Priority 1 didn't find trains)
         // Departure = mic start - 15 min early - transit time
-        else if (firstLine && originStationId && mic?.start instanceof Date) {
+        if (!displayTimeRange && firstLine && originStationId && mic?.start instanceof Date) {
             const departureTime = mic.start.getTime() - 15 * 60000 - adjustedTotalTime * 60000;
             const minsToDepart = (departureTime - Date.now()) / 60000;
 
