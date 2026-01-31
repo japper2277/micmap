@@ -97,18 +97,23 @@
         </button>
         <button class="mobile-filter-pill" id="mobile-filter-price" data-filter="price" onclick="cycleFilter('price')">
             <span class="pill-text">Price</span>
+            <span class="pill-clear" role="button" tabindex="0" onclick="event.stopPropagation(); clearFilter('price')" onkeydown="if(event.key==='Enter'){event.stopPropagation(); clearFilter('price')}" aria-label="Clear price filter">
+                <svg viewBox="0 0 24 24" fill="none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </span>
         </button>
         <button class="mobile-filter-pill" id="mobile-filter-time" data-filter="time" onclick="toggleMobileTimePopover(this)" aria-expanded="false" aria-controls="time-popover">
             <span class="pill-text">Time</span>
             <svg class="pill-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            <span class="pill-clear" role="button" tabindex="0" onclick="event.stopPropagation(); clearFilter('time')" onkeydown="if(event.key==='Enter'){event.stopPropagation(); clearFilter('time')}" aria-label="Clear time filter">
+                <svg viewBox="0 0 24 24" fill="none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </span>
         </button>
         <button class="mobile-filter-pill" id="mobile-filter-borough" data-filter="borough" onclick="toggleMobileBoroughPopover(this)" aria-expanded="false" aria-controls="borough-popover">
             <span class="pill-text">Borough</span>
             <svg class="pill-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-        </button>
-        <!-- Clear filters button (mobile only, end of row) -->
-        <button class="mobile-clear-filters-btn" id="clear-filters-mobile" onclick="clearAllFilters()" aria-label="Clear all filters" style="display: none;">
-            Clear
+            <span class="pill-clear" role="button" tabindex="0" onclick="event.stopPropagation(); clearFilter('borough')" onkeydown="if(event.key==='Enter'){event.stopPropagation(); clearFilter('borough')}" aria-label="Clear borough filter">
+                <svg viewBox="0 0 24 24" fill="none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </span>
         </button>
     </div>
 
@@ -127,8 +132,8 @@
                 <span class="w-12 h-1.5 bg-white/40 rounded-full"></span>
             </button>
 
-            <!-- Mics Header Row (New Design) -->
-            <div class="mics-header-row">
+            <!-- Mics Header Row (New Design) - Tap to toggle on mobile -->
+            <div class="mics-header-row" onclick="if(!event.target.closest('button, a, input')) toggleDrawer()">
                 <!-- Left: Title & Count -->
                 <div class="title-group">
                     <h1 class="title-text">Mics</h1>

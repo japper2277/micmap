@@ -45,15 +45,15 @@
         justify-content: center;
         position: fixed;
         top: 72px; /* Closer to search bar */
-        left: 12px;
-        right: 12px;
+        left: 0;
+        right: 0;
         z-index: 990; /* Below search dropdown */
         gap: 8px;
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
         scrollbar-width: none;
         -ms-overflow-style: none;
-        padding: 4px 12px 4px 0; /* Right padding so last pill isn't clipped */
+        padding: 4px 20px 4px 16px; /* Left and right padding so pills aren't clipped */
     }
     .mobile-filter-bar::-webkit-scrollbar {
         display: none;
@@ -267,19 +267,71 @@
         animation: none; /* Remove distracting glow animation */
     }
 
-    /* Mobile Clear Filters Button - Light pill with gray border */
+    /* Clear × inside active filter pills */
+    .pill-clear {
+        display: none;
+        width: 24px;
+        height: 24px;
+        min-width: 24px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.25);
+        border: none;
+        margin-left: 6px;
+        padding: 0;
+        cursor: pointer;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.15s, transform 0.1s;
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+    }
+
+    .pill-clear svg {
+        width: 12px;
+        height: 12px;
+        stroke: currentColor;
+        stroke-width: 2.5;
+        stroke-linecap: round;
+    }
+
+    .pill-clear:hover {
+        background: rgba(255, 255, 255, 0.4);
+    }
+
+    .pill-clear:active {
+        background: rgba(255, 255, 255, 0.5);
+        transform: scale(0.9);
+    }
+
+    .pill-clear:focus-visible {
+        outline: 2px solid white;
+        outline-offset: 2px;
+    }
+
+    /* Show × and hide chevron when filter is active */
+    .mobile-filter-pill.has-filter .pill-clear,
+    .mobile-filter-pill.active .pill-clear {
+        display: flex;
+    }
+
+    .mobile-filter-pill.has-filter .pill-chevron,
+    .mobile-filter-pill.active .pill-chevron {
+        display: none;
+    }
+
+    /* Mobile Clear Filters Button - no longer needed but keep for backwards compat */
     .mobile-clear-filters-btn {
         flex-shrink: 0;
         height: 44px;
-        padding: 0 22px;
+        padding: 0 16px;
+        gap: 6px;
         border-radius: 99px;
-        background-color: #fff;
-        border: 1.5px solid rgba(0, 0, 0, 0.2);
-        color: #666;
+        background-color: #1a1a1a;
+        border: 1.75px solid #FFFFFF;
+        color: #FFF;
         font-size: 14px;
-        font-weight: 500;
+        font-weight: 600;
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-        white-space: nowrap;
         cursor: pointer;
         transition: all 0.2s ease;
         display: flex;
@@ -288,13 +340,12 @@
     }
 
     .mobile-clear-filters-btn:hover {
-        background-color: #f5f5f5;
-        border-color: rgba(0, 0, 0, 0.3);
+        background-color: #3a3a3a;
+        transform: translateY(-2px);
     }
 
     .mobile-clear-filters-btn:active {
         transform: scale(0.96);
-        background-color: #eee;
     }
 
     /* Hide drawer filters on mobile */
@@ -356,9 +407,15 @@
         font-size: 20px !important;
     }
 
-    /* Adjust drawer header */
+    /* Adjust drawer header - tappable on mobile */
     .mics-header-row {
         padding-top: 16px;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .mics-header-row:active {
+        background: rgba(255, 255, 255, 0.05);
     }
 }
 
@@ -378,6 +435,16 @@
         height: 36px;
         padding: 0 12px;
         font-size: 13px;
+    }
+    /* Larger clear button on small phones for easier tapping */
+    .pill-clear {
+        width: 28px;
+        height: 28px;
+        min-width: 28px;
+    }
+    .pill-clear svg {
+        width: 14px;
+        height: 14px;
     }
 }
 
