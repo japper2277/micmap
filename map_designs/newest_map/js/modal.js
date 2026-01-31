@@ -140,6 +140,15 @@ function openVenueModalWithMics(mics) {
         modalVenueMap[key].push(mic);
     });
 
+    // Sort each venue's mics by start time (earliest first)
+    Object.values(modalVenueMap).forEach(venueMics => {
+        venueMics.sort((a, b) => {
+            const aTime = a.start ? a.start.getTime() : (parseTime(a.timeStr || a.startTime) || new Date(0)).getTime();
+            const bTime = b.start ? b.start.getTime() : (parseTime(b.timeStr || b.startTime) || new Date(0)).getTime();
+            return aTime - bTime;
+        });
+    });
+
     const venues = Object.entries(modalVenueMap);
 
     // If only one venue (regardless of mic count), show without tabs
@@ -348,6 +357,17 @@ function populateModalContent(mic, allMicsAtVenue = null) {
 function openVenueModal(mic) {
     if (!mic) return;
 
+    // Find all mics at this venue (same address/coordinates)
+    const venueMics = (STATE?.mics || []).filter(m =>
+        m.lat === mic.lat && m.lng === mic.lng && m.day === mic.day
+    );
+
+    // If multiple mics at same venue, use the multi-mic modal
+    if (venueMics.length > 1) {
+        openVenueModalWithMics(venueMics);
+        return;
+    }
+
     // Clear tabs for single mic
     modalTabs.innerHTML = '';
     modalTabs.style.display = 'none';
@@ -554,14 +574,7 @@ function formatTimeRange(durationMins, route = null, mic = null) {
         hour12: true
     }).format(d);
 
-    // Use scheduled times from route if available
-    if (route?.scheduledDeparture && route?.scheduledArrival) {
-        const dep = new Date(route.scheduledDeparture);
-        const arr = new Date(route.scheduledArrival);
-        return `${formatTime(dep)} - ${formatTime(arr)}`;
-    }
-
-    // Calculate based on mic start time (for walking or when route lacks scheduled times)
+    // Always calculate based on mic start time if available (most accurate)
     if (mic?.start instanceof Date) {
         const mins = (typeof durationMins === 'number' && !isNaN(durationMins)) ? durationMins : 15;
         const now = new Date();
@@ -740,17 +753,25 @@ async function displaySubwayRoutes(routes, mic, walkOption = null, schedule = nu
 
         const formatT = (d) => d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
 
-        // Priority 1: Use backend's scheduledDepartureTimes (trains before deadline for on-time arrival)
-        if (route.scheduledDepartureTimes && route.scheduledDepartureTimes.length > 0) {
+        // Priority 1: Use backend's scheduledDepartureTimes but filter based on CURRENT mic's start time
+        if (route.scheduledDepartureTimes && route.scheduledDepartureTimes.length > 0 && mic?.start instanceof Date) {
             const now = new Date();
 
-            // First filter: remove trains that have already left (based on current time + walk)
+            // Calculate deadline: need to arrive at mic 15 min early
+            const targetArrival = new Date(mic.start.getTime() - 15 * 60000);
+            // Latest train departure = target arrival - ride time - walk from station
+            const latestTrainDeparture = new Date(targetArrival.getTime() - (rideTime + walkFromStation) * 60000);
+
+            // Filter trains: must be catchable (after walk to station) AND before deadline
             const walkBuffer = walkToStation <= 3 ? walkToStation : (walkToStation - 2);
             const earliestCatchableNow = new Date(now.getTime() + walkBuffer * 60000);
             const trainDepartures = route.scheduledDepartureTimes
-                .filter(iso => new Date(iso) >= earliestCatchableNow);
+                .filter(iso => {
+                    const trainTime = new Date(iso);
+                    return trainTime >= earliestCatchableNow && trainTime <= latestTrainDeparture;
+                });
 
-            if (trainDepartures.length === 0) continue; // no catchable trains on this route
+            if (trainDepartures.length === 0) continue; // no catchable trains on this route for this mic
 
             // Use FIRST catchable train for departure time (earliest the user can leave)
             const firstTrain = new Date(trainDepartures[0]);
@@ -761,7 +782,7 @@ async function displaySubwayRoutes(routes, mic, walkOption = null, schedule = nu
                 departure = now;
             }
 
-            // Use LAST train for arrival calculation (latest arrival on time)
+            // Use LAST valid train for arrival calculation
             const lastTrain = new Date(trainDepartures[trainDepartures.length - 1]);
             const arrival = new Date(lastTrain.getTime() + (rideTime + walkFromStation) * 60000);
 
@@ -817,7 +838,18 @@ async function displaySubwayRoutes(routes, mic, walkOption = null, schedule = nu
             displayTimeRange = formatTimeRange(adjustedTotalTime, route, mic);
         }
         if (!depTimesStr) {
-            if (route.scheduledDeparture) {
+            // Calculate departure based on mic start time, not cached route times
+            if (mic?.start instanceof Date) {
+                const targetArrival = new Date(mic.start.getTime() - 15 * 60000); // Arrive 15 min early
+                const targetDeparture = new Date(targetArrival.getTime() - adjustedTotalTime * 60000);
+                const now = new Date();
+
+                if (targetDeparture >= now) {
+                    depTimesStr = formatT(targetDeparture);
+                } else {
+                    depTimesStr = 'Leave now';
+                }
+            } else if (route.scheduledDeparture) {
                 const scheduledDep = new Date(route.scheduledDeparture);
                 const now = new Date();
                 const walkBuffer = walkToStation <= 3 ? walkToStation : (walkToStation - 2);
