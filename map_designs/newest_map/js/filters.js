@@ -162,11 +162,6 @@ function cycleFilter(type) {
     flashFilterButton(type);
     render(STATE.currentMode);
 
-    // Show undo toast only when filter is active (not resetting to All)
-    if (newValue !== 'All') {
-        showUndoToast();
-    }
-
     // Zoom map when borough filter changes (defer to ensure markers are registered)
     if (type === 'borough') {
         setTimeout(() => {
@@ -693,12 +688,15 @@ function updateFilterPillUI(type, value) {
     // Update filter icon state - active when any filter is applied
     const filterIcon = document.getElementById('mobile-filter-reset');
     if (filterIcon) {
-        const hasActiveFilters = STATE.activeFilters.price !== 'All' ||
-                                 STATE.activeFilters.time !== 'All' ||
-                                 STATE.activeFilters.commute !== 'All' ||
-                                 STATE.activeFilters.borough !== 'All';
-        filterIcon.classList.toggle('active', hasActiveFilters);
+        const hasFilters = STATE.activeFilters.price !== 'All' ||
+                           STATE.activeFilters.time !== 'All' ||
+                           STATE.activeFilters.commute !== 'All' ||
+                           STATE.activeFilters.borough !== 'All';
+        filterIcon.classList.toggle('active', hasFilters);
     }
+
+    // Update clear filters button visibility
+    updateClearFiltersVisibility();
 }
 
 function resetFilters() {
@@ -722,6 +720,42 @@ function resetFilters() {
     boroughOptions.forEach(opt => {
         opt.classList.toggle('active', opt.dataset.value === 'All');
     });
+
+    // Update clear filters button visibility
+    updateClearFiltersVisibility();
+}
+
+// Clear all filters (called from clear buttons)
+function clearAllFilters() {
+    resetFilters();
+    render(STATE.currentMode);
+
+    // Haptic feedback on mobile
+    if ('vibrate' in navigator) {
+        navigator.vibrate(10);
+    }
+}
+
+// Check if any filters are active
+function hasActiveFilters() {
+    return STATE.activeFilters.price !== 'All' ||
+           STATE.activeFilters.time !== 'All' ||
+           STATE.activeFilters.commute !== 'All' ||
+           STATE.activeFilters.borough !== 'All';
+}
+
+// Update clear filters button visibility based on active filters
+function updateClearFiltersVisibility() {
+    const hasFilters = hasActiveFilters();
+    const desktopBtn = document.getElementById('clear-filters-desktop');
+    const mobileBtn = document.getElementById('clear-filters-mobile');
+
+    if (desktopBtn) {
+        desktopBtn.style.display = hasFilters ? '' : 'none';
+    }
+    if (mobileBtn) {
+        mobileBtn.style.display = hasFilters ? '' : 'none';
+    }
 }
 
 // Show/hide commute filter based on transit mode
