@@ -430,8 +430,13 @@ function populateModalContent(mic, allMicsAtVenue = null) {
         modalPlanActions.style.display = 'none';
     }
 
-    // 5. TRANSIT
-    loadModalArrivals(mic);
+    // 5. TRANSIT - adjust mic start time for tomorrow mode
+    let transitMic = mic;
+    if (STATE?.currentMode === 'tomorrow' && mic.start instanceof Date) {
+        // Clone mic and add 1 day to start time
+        transitMic = { ...mic, start: new Date(mic.start.getTime() + 24 * 60 * 60 * 1000) };
+    }
+    loadModalArrivals(transitMic);
 }
 
 function openVenueModal(mic) {
@@ -595,8 +600,12 @@ function openVenueModal(mic) {
     modalTriggerElement = document.activeElement;
     setupFocusTrap(venueModal);
 
-    // 5. TRANSIT - Load live arrivals
-    loadModalArrivals(mic);
+    // 5. TRANSIT - adjust mic start time for tomorrow mode
+    let transitMic = mic;
+    if (STATE?.currentMode === 'tomorrow' && mic.start instanceof Date) {
+        transitMic = { ...mic, start: new Date(mic.start.getTime() + 24 * 60 * 60 * 1000) };
+    }
+    loadModalArrivals(transitMic);
 }
 
 // Setup focus trap for modal accessibility
