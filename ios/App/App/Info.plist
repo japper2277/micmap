@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>ComedyNYC</string>
+	<string>MicFinder</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -53,6 +53,6 @@
 		<true/>
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>ComedyNYC uses your location to show nearby open mics and calculate transit times.</string>
+	<string>MicFinder uses your location to show nearby open mics and calculate transit times.</string>
 </dict>
 </plist>
