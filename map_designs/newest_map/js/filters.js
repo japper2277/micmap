@@ -871,6 +871,29 @@ function clearAllFilters() {
     }
 }
 
+// Clear a single filter (called from × in pill)
+function clearFilter(type) {
+    STATE.activeFilters[type] = 'All';
+    updateFilterPillUI(type, 'All');
+
+    // Reset popover option active states
+    const popover = document.getElementById(`${type}-popover`);
+    if (popover) {
+        const options = popover.querySelectorAll('.popover-option');
+        options.forEach(opt => {
+            opt.classList.toggle('active', opt.dataset.value === 'All');
+            opt.setAttribute('aria-selected', opt.dataset.value === 'All' ? 'true' : 'false');
+        });
+    }
+
+    render(STATE.currentMode);
+
+    // Haptic feedback on mobile
+    if ('vibrate' in navigator) {
+        navigator.vibrate(10);
+    }
+}
+
 // Check if any filters are active
 function hasActiveFilters() {
     return STATE.activeFilters.price !== 'All' ||
