@@ -578,11 +578,29 @@ app.get('/api/mta/alerts', async (req, res) => {
     const buffer = await response.arrayBuffer();
     const feed = GtfsRealtimeBindings.transit_realtime.FeedMessage.decode(new Uint8Array(buffer));
 
-    // Parse alerts
+    // Parse alerts - only include currently active ones
     const alerts = [];
+    const now = Math.floor(Date.now() / 1000); // Current time in seconds
+
     feed.entity.forEach(entity => {
       if (entity.alert && entity.alert.headerText) {
         const alert = entity.alert;
+
+        // Check if alert is currently active
+        const activePeriods = alert.activePeriod || [];
+        let isActive = activePeriods.length === 0; // No period = always active
+
+        for (const period of activePeriods) {
+          const start = period.start ? Number(period.start) : 0;
+          const end = period.end ? Number(period.end) : Infinity;
+          if (now >= start && now <= end) {
+            isActive = true;
+            break;
+          }
+        }
+
+        if (!isActive) return; // Skip alerts not currently active
+
         const lines = [];
         alert.informedEntity?.forEach(ie => {
           if (ie.routeId) lines.push(ie.routeId);
@@ -1415,9 +1433,24 @@ app.get('/api/subway/routes', async (req, res) => {
           const buffer = await alertRes.arrayBuffer();
           const feed = GtfsRealtimeBindings.transit_realtime.FeedMessage.decode(new Uint8Array(buffer));
           alerts = [];
+          const now = Math.floor(Date.now() / 1000);
           feed.entity.forEach(entity => {
             if (entity.alert && entity.alert.headerText) {
               const alert = entity.alert;
+
+              // Check if alert is currently active
+              const activePeriods = alert.activePeriod || [];
+              let isActive = activePeriods.length === 0;
+              for (const period of activePeriods) {
+                const start = period.start ? Number(period.start) : 0;
+                const end = period.end ? Number(period.end) : Infinity;
+                if (now >= start && now <= end) {
+                  isActive = true;
+                  break;
+                }
+              }
+              if (!isActive) return;
+
               const lines = [];
               alert.informedEntity?.forEach(ie => {
                 if (ie.routeId) lines.push(ie.routeId);
