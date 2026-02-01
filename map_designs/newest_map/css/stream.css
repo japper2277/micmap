@@ -8,8 +8,10 @@
     position: sticky;
     top: 0;
     z-index: 50;
-    background: rgba(0, 0, 0, 0.98);
-    backdrop-filter: blur(10px);
+    background: rgba(0, 0, 0, 0.72);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     padding: var(--space-sm) var(--space-xl);
     font-family: 'Space Grotesk', sans-serif;
     font-weight: 700;
@@ -17,6 +19,20 @@
     align-items: center;
     gap: var(--space-md);
     touch-action: pan-y;
+}
+
+.time-header-label {
+    color: rgba(255, 255, 255, 0.92);
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+}
+
+.time-header-divider {
+    height: 1px;
+    flex: 1;
+    background: rgba(255, 255, 255, 0.1);
 }
 
 /* --- HAPPENING NOW CARD (Collapsed) --- */
@@ -67,14 +83,32 @@
 .happening-now-dot {
     width: 8px;
     height: 8px;
-    background: var(--green);
+    background: #ff9f0a;
     border-radius: var(--radius-full);
-    animation: pulse-green 2s infinite;
+    animation: pulse-orange 2s infinite;
 }
 
-@keyframes pulse-green {
-    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(48, 209, 88, 0.7); }
-    50% { opacity: 0.8; box-shadow: 0 0 0 4px rgba(48, 209, 88, 0); }
+@keyframes pulse-orange {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(255, 159, 10, 0.55); }
+    50% { opacity: 0.85; box-shadow: 0 0 0 4px rgba(255, 159, 10, 0); }
+}
+
+/* Plan mode: avoid back-to-back big cards (schedule card + happening now) */
+body.plan-mode .happening-now-card {
+    margin-top: 14px;
+    margin-bottom: 8px;
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+body.plan-mode .happening-now-card-venues {
+    display: none;
+}
+
+body.plan-mode .happening-now-card-label {
+    color: rgba(255, 255, 255, 0.88);
+    font-weight: 800;
 }
 
 .happening-now-card-count {
@@ -138,6 +172,389 @@
     margin-left: auto;
     font-size: 12px;
     color: rgba(255, 255, 255, 0.4);
+}
+
+/* --- MY SCHEDULE CARD (Plan Mode) --- */
+.my-schedule-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    margin: 8px 12px;
+    background: rgba(34, 197, 94, 0.08);
+    border: none;
+    border-top: 3px solid #22c55e;
+    border-radius: 0 0 12px 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    animation: scheduleSlideIn 0.3s ease;
+    position: relative;
+}
+
+/* Plan mode schedule empty state */
+.schedule-empty-card {
+    padding: 12px 14px;
+    margin: 8px 12px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.schedule-empty-title {
+    font-size: 14px;
+    font-weight: 800;
+    color: rgba(255, 255, 255, 0.92);
+    margin-bottom: 2px;
+}
+
+.schedule-empty-sub {
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.55);
+}
+
+@keyframes scheduleSlideIn {
+    from { opacity: 0; transform: translateY(-12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes schedulePulse {
+    0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+    70% { box-shadow: 0 0 0 8px rgba(34, 197, 94, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+.my-schedule-card.just-added {
+    animation: schedulePulse 0.6s ease;
+}
+
+.my-schedule-card:hover {
+    background: rgba(34, 197, 94, 0.12);
+}
+
+.my-schedule-card:active {
+    transform: scale(0.99);
+}
+
+.my-schedule-card-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.my-schedule-icon {
+    font-size: 16px;
+}
+
+.my-schedule-card-count {
+    font-weight: 800;
+    font-size: 22px;
+    color: #22c55e;
+    line-height: 1;
+}
+
+.my-schedule-card-label {
+    font-size: 15px;
+    font-weight: 600;
+    color: #22c55e;
+}
+
+.my-schedule-card-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.my-schedule-card-preview {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.6);
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.my-schedule-chevron {
+    width: 18px;
+    height: 18px;
+    color: #22c55e;
+    flex-shrink: 0;
+    transition: transform 0.25s ease;
+}
+
+.my-schedule-card.expanded .my-schedule-chevron {
+    transform: rotate(180deg);
+}
+
+/* Expanded schedule list */
+.my-schedule-expanded {
+    position: relative;
+    margin: -6px 12px 12px;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transform: translateY(-4px);
+    transition: max-height 0.25s ease, opacity 0.2s ease, transform 0.25s ease;
+}
+
+.schedule-placeholder {
+    border-radius: 12px;
+    margin-bottom: 8px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px dashed rgba(255, 255, 255, 0.14);
+}
+
+.my-schedule-item.dragging-touch {
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+    border-color: rgba(255, 255, 255, 0.18);
+}
+
+.my-schedule-expanded.is-open {
+    max-height: 520px;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+@keyframes expandDown {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.my-schedule-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    margin-bottom: 8px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
+}
+
+.my-schedule-item.conflict {
+    border-color: rgba(255, 69, 58, 0.35);
+    background: rgba(255, 69, 58, 0.08);
+}
+
+.my-schedule-item:last-child {
+    margin-bottom: 0;
+}
+
+.my-schedule-item-time {
+    font-size: 14px;
+    font-weight: 800;
+    color: rgba(255, 255, 255, 0.92);
+    width: 70px;
+    flex-shrink: 0;
+}
+
+.my-schedule-item-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.my-schedule-item-venue {
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
+}
+
+.my-schedule-item-price {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.my-schedule-item-price.free {
+    color: #4ade80;
+}
+
+.my-schedule-remove {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: rgba(255, 69, 58, 0.85);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+    margin-left: 8px;
+    transition: all 0.15s;
+}
+
+.my-schedule-item-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 10px;
+}
+
+.schedule-drag-handle {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 14px;
+    font-weight: 900;
+    cursor: grab;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    letter-spacing: -1px;
+    transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
+    user-select: none;
+}
+
+.schedule-drag-handle:hover {
+    background: rgba(255, 255, 255, 0.09);
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.schedule-drag-handle:active {
+    cursor: grabbing;
+    transform: scale(0.98);
+}
+
+.my-schedule-item.dragging {
+    opacity: 0.65;
+    transform: scale(0.995);
+}
+
+.schedule-tools {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 6px;
+}
+
+.schedule-tool-btn {
+    height: 32px;
+    padding: 0 12px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.schedule-tool-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.92);
+}
+
+.schedule-tool-btn:active {
+    transform: scale(0.98);
+}
+
+.schedule-conflict-banner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    border-radius: 12px;
+    background: rgba(255, 69, 58, 0.08);
+    border: 1px solid rgba(255, 69, 58, 0.22);
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.schedule-conflict-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 9999px;
+    background: #ff453a;
+    box-shadow: 0 0 0 4px rgba(255, 69, 58, 0.15);
+}
+
+.schedule-conflict-cta {
+    margin-left: auto;
+    color: rgba(255, 255, 255, 0.65);
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.my-schedule-remove:hover {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.4);
+    transform: scale(1.05);
+}
+
+.my-schedule-remove:active {
+    transform: scale(0.95);
+    background: rgba(239, 68, 68, 0.3);
+}
+
+/* Hide Conflicts Toggle in Header */
+.conflict-toggle {
+    display: inline-flex;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+}
+
+.conflict-toggle:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.conflict-toggle:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.conflict-toggle.active {
+    background: rgba(34, 197, 94, 0.15);
+    border-color: rgba(34, 197, 94, 0.4);
+    color: #22c55e;
+}
+
+/* Hidden mics notice */
+.hidden-mics-notice {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px;
+    margin: var(--space-sm) var(--space-md);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px dashed rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-md);
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.hidden-mics-notice:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.7);
 }
 
 /* --- HAPPENING NOW CARD STYLE (when viewing happening now list) --- */
@@ -410,6 +827,8 @@
     transition: transform 0.05s ease-out, opacity 0.05s ease-out;
 }
 
+
+
 /* Text Color Inversion on Hover (desktop only) */
 @media (hover: hover) and (pointer: fine) {
     .stream-item:hover .start-time,
@@ -600,68 +1019,87 @@
     margin-bottom: 5px;
 }
 
-/* Plan Mode: Tonight pill button on cards */
-.plan-add-circle {
-    display: none; /* Hidden by default */
-    padding: 6px 12px;
-    border-radius: 8px;
-    background: linear-gradient(180deg, #f43f5e 0%, #e11d48 100%);
-    border: none;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    cursor: pointer;
-    box-shadow: 0 2px 8px rgba(244, 63, 94, 0.3);
-    transition: transform 0.15s, box-shadow 0.15s;
+/* In plan mode, keep + Add on the same row as venue + borough (right-aligned) */
+.venue-row .plan-add-btn {
     margin-left: auto;
-    flex-shrink: 0;
-    font-size: 12px;
-    font-weight: 600;
-    color: white;
-    white-space: nowrap;
 }
 
-body.plan-mode .plan-add-circle {
+/* Plan Mode: Rectangular + Add button (inline, not floating) */
+.plan-add-btn {
+    display: none; /* Hidden by default */
+    position: static;
+    height: 32px;
+    padding: 0 12px;
+    border-radius: 10px;
+    background: rgba(34, 197, 94, 0.14);
+    border: 1px solid rgba(34, 197, 94, 0.38);
+    color: #22c55e;
+    font-weight: 700;
+    font-size: 13px;
+    line-height: 1;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: none;
+    transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    flex-shrink: 0;
+    z-index: 5;
+}
+
+body.plan-mode .plan-add-btn {
     display: flex;
 }
 
-.plan-add-circle:hover {
-    transform: scale(1.02);
-    box-shadow: 0 4px 12px rgba(244, 63, 94, 0.4);
+.plan-add-btn:hover {
+    background: rgba(34, 197, 94, 0.2);
+    border-color: rgba(34, 197, 94, 0.55);
+    color: #34d399;
+    transform: translateY(-1px);
 }
 
-.plan-add-circle:active {
-    transform: scale(0.97);
+.plan-add-btn:active {
+    transform: scale(0.98);
 }
 
-.plan-add-circle .circle-plus {
-    font-size: 14px;
-    font-weight: 500;
-    line-height: 1;
+/* Tap animation - pop and fade */
+@keyframes addBtnPop {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.08); opacity: 1; }
+    100% { transform: scale(0.92); opacity: 0; }
 }
 
-.plan-add-circle .circle-text {
+.plan-add-btn.added {
+    animation: addBtnPop 0.35s ease forwards;
+    pointer-events: none;
+}
+
+/* Plan CTA: read-only “In Schedule” */
+.in-schedule-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 32px;
+    padding: 0 12px;
+    border-radius: 10px;
+    background: rgba(34, 197, 94, 0.14);
+    border: 1px solid rgba(34, 197, 94, 0.35);
+    color: rgba(236, 253, 245, 0.95);
     font-size: 12px;
-    font-weight: 600;
-    text-transform: capitalize;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
 }
 
-/* Hide button for mics already in route */
-.stream-item.in-route .plan-add-circle {
-    display: none;
+/* Right align CTA in venue row (matches .plan-add-btn behavior) */
+.venue-row .in-schedule-badge {
+    margin-left: auto;
 }
 
 /* Visual indicator for mics in route */
 body.plan-mode .stream-item.in-route {
     background: rgba(34, 197, 94, 0.1);
     border-left: 3px solid #22c55e;
-}
-
-body.plan-mode .stream-item.in-route .venue-name::after {
-    content: '✓';
-    margin-left: 8px;
-    color: #22c55e;
-    font-size: 14px;
+    padding-right: var(--space-xl); /* Reset padding when in route */
 }
 
 .venue-name {

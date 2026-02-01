@@ -211,9 +211,132 @@ function render(mode) {
     const container = document.getElementById('list-content');
     if (!container) return;
 
+    // Plan mode: schedule card lives in the sticky drawer header (not the scrolling list)
+    const scheduleSlot = document.getElementById('plan-schedule-slot');
+    if (scheduleSlot) scheduleSlot.innerHTML = '';
+
     markersGroup.clearLayers();
     STATE.markerLookup = {};
     container.innerHTML = '';
+
+    // Plan mode: schedule UI lives in the schedule slot (keeps list scrolling stable)
+    if (scheduleSlot && STATE.planMode) {
+        if (!STATE.route || STATE.route.length === 0) {
+            const empty = document.createElement('div');
+            empty.className = 'schedule-empty-card';
+            empty.innerHTML = `
+                <div class="schedule-empty-title">Start your schedule</div>
+                <div class="schedule-empty-sub">Tap <strong>+ Add</strong> on mics you want to hit tonight.</div>
+            `;
+            scheduleSlot.appendChild(empty);
+        } else {
+            const routeMics = STATE.route.map(id => STATE.mics.find(m => m.id === id)).filter(Boolean);
+            const setDuration = STATE.setDuration || 45;
+
+            const fmtTime = (d) => {
+                const h = d?.getHours?.() || 0;
+                const m = d?.getMinutes?.() || 0;
+                const displayH = h > 12 ? h - 12 : (h === 0 ? 12 : h);
+                const ampm = h >= 12 ? 'PM' : 'AM';
+                return `${displayH}:${m.toString().padStart(2, '0')} ${ampm}`;
+            };
+
+            const startTime = routeMics[0]?.start ? fmtTime(routeMics[0].start) : '';
+            const endTime = routeMics[routeMics.length - 1]?.start ? fmtTime(routeMics[routeMics.length - 1].start) : '';
+            const rangeText = startTime && endTime && startTime !== endTime ? `${startTime}–${endTime}` : startTime;
+
+            // Conflict detection (adjacent overlap in current itinerary order)
+            const conflicts = new Set();
+            for (let i = 1; i < routeMics.length; i++) {
+                const prev = routeMics[i - 1];
+                const cur = routeMics[i];
+                if (!prev?.start || !cur?.start) continue;
+                const prevEnd = prev.start.getTime() + (setDuration * 60 * 1000);
+                if (cur.start.getTime() < prevEnd) {
+                    conflicts.add(prev.id);
+                    conflicts.add(cur.id);
+                }
+            }
+
+            const scheduleCard = document.createElement('div');
+            scheduleCard.className = `my-schedule-card${STATE.scheduleExpanded ? ' expanded' : ''}`;
+            scheduleCard.setAttribute('role', 'button');
+            scheduleCard.setAttribute('aria-expanded', STATE.scheduleExpanded ? 'true' : 'false');
+            scheduleCard.onclick = () => {
+                if ('vibrate' in navigator) navigator.vibrate(8);
+                STATE.scheduleExpanded = !STATE.scheduleExpanded;
+                scheduleCard.classList.toggle('expanded', STATE.scheduleExpanded);
+                scheduleCard.setAttribute('aria-expanded', STATE.scheduleExpanded ? 'true' : 'false');
+                expandedList.classList.toggle('is-open', STATE.scheduleExpanded);
+            };
+            scheduleCard.innerHTML = `
+                <div class="my-schedule-card-left">
+                    <span class="my-schedule-icon">📋</span>
+                    <span class="my-schedule-card-count">${routeMics.length}</span>
+                    <span class="my-schedule-card-label">My Schedule</span>
+                </div>
+                <div class="my-schedule-card-right">
+                    <span class="my-schedule-card-preview">${rangeText}</span>
+                    <svg class="my-schedule-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M6 9l6 6 6-6"/>
+                    </svg>
+                </div>
+            `;
+            scheduleSlot.appendChild(scheduleCard);
+
+            const expandedList = document.createElement('div');
+            expandedList.className = `my-schedule-expanded${STATE.scheduleExpanded ? ' is-open' : ''}`;
+
+            const conflictBanner = conflicts.size
+                ? `
+                    <div class="schedule-conflict-banner" onclick="event.stopPropagation(); toggleHideConflicts();" role="button">
+                        <span class="schedule-conflict-dot"></span>
+                        <span><strong>${conflicts.size}</strong> conflict${conflicts.size === 1 ? '' : 's'} in your itinerary</span>
+                        <span class="schedule-conflict-cta">${STATE.hideConflicts ? 'Showing conflicts' : 'Hide conflicts in list'}</span>
+                    </div>
+                `
+                : '';
+
+            const itemsHtml = routeMics.map((mic) => {
+                const timeStr = mic.start ? fmtTime(mic.start) : '';
+                const rawPrice = mic.price || mic.cost || 0;
+                const priceStr = !rawPrice || rawPrice === 'Free' || rawPrice === 0
+                    ? 'FREE'
+                    : (String(rawPrice).startsWith('$') ? rawPrice : `$${rawPrice}`);
+                const priceClass = priceStr === 'FREE' ? 'free' : '';
+                const conflictClass = conflicts.has(mic.id) ? ' conflict' : '';
+
+                return `
+                    <div class="my-schedule-item${conflictClass}" draggable="true" data-mic-id="${mic.id}" aria-label="Scheduled stop">
+                        <div class="my-schedule-item-time">${timeStr}</div>
+                        <div class="my-schedule-item-info">
+                            <div class="my-schedule-item-venue">${escapeHtml(mic.title || mic.venue || 'Mic')}</div>
+                            <div class="my-schedule-item-price ${priceClass}">${priceStr}</div>
+                        </div>
+                        <div class="my-schedule-item-actions">
+                            <button class="schedule-drag-handle" onclick="event.stopPropagation();" aria-label="Drag to reorder" title="Drag to reorder">⋮⋮</button>
+                            <button class="my-schedule-remove" onclick="event.stopPropagation(); removeFromRoute('${mic.id}')" aria-label="Remove from schedule">✕</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            const toolsRow = `
+                <div class="schedule-tools" onclick="event.stopPropagation()">
+                    <button class="schedule-tool-btn" onclick="event.stopPropagation(); sortRouteByTime();" aria-label="Sort schedule by time">Sort by time</button>
+                </div>
+            `;
+
+            expandedList.innerHTML = `${conflictBanner}${itemsHtml}${toolsRow}`;
+            scheduleSlot.appendChild(expandedList);
+
+            if (typeof initScheduleReorder === 'function') {
+                initScheduleReorder(expandedList);
+            } else if (typeof initScheduleDragAndDrop === 'function') {
+                initScheduleDragAndDrop(expandedList);
+            }
+        }
+    }
 
     // Use fresh timestamp for accurate calculations
     const currentTime = new Date();
@@ -314,6 +437,10 @@ function render(mode) {
     const previousCount = parseInt(countEl.textContent) || 0;
     countEl.textContent = filtered.length;
     countEl.classList.remove('pulsing');
+
+    // Plan mode header: mic count
+    const planCountEl = document.getElementById('plan-mic-count');
+    if (planCountEl) planCountEl.textContent = filtered.length;
 
     // Announce filter changes to screen readers (only if count changed significantly)
     if (Math.abs(filtered.length - previousCount) > 0 && previousCount > 0) {
@@ -686,6 +813,8 @@ function render(mode) {
         container.appendChild(backBtn);
     }
 
+    // (Schedule UI rendered above into #plan-schedule-slot)
+
     // In transit mode: split into visible and hidden for "Show more" functionality
     const searchQuery = document.getElementById('search-input')?.value?.toLowerCase() || '';
     let visibleMics = filtered;
@@ -720,6 +849,36 @@ function render(mode) {
         }
     }
 
+    // Filter out conflicting mics when hideConflicts is enabled (plan mode)
+    let hiddenConflictCount = 0;
+    if (STATE.planMode && STATE.hideConflicts && STATE.route && STATE.route.length > 0) {
+        const setDuration = STATE.setDuration || 45;
+        const routeTimes = STATE.route.map(id => {
+            const m = STATE.mics.find(mic => mic.id === id);
+            return m?.start ? m.start.getTime() : null;
+        }).filter(Boolean);
+
+        const beforeFilter = visibleMics.length;
+        visibleMics = visibleMics.filter(mic => {
+            // Always show mics in the route
+            if (STATE.route.includes(mic.id)) return true;
+            if (!mic.start) return true;
+
+            const micTime = mic.start.getTime();
+            const micEndTime = micTime + (setDuration * 60 * 1000);
+
+            // Check if this mic conflicts with any scheduled mic
+            for (const routeTime of routeTimes) {
+                const routeEndTime = routeTime + (setDuration * 60 * 1000);
+                // Conflict if times overlap
+                const overlaps = (micTime < routeEndTime) && (micEndTime > routeTime);
+                if (overlaps) return false;
+            }
+            return true;
+        });
+        hiddenConflictCount = beforeFilter - visibleMics.length;
+    }
+
     // Group by Hour with Sticky Headers
     let currentHour = -1;
 
@@ -734,10 +893,10 @@ function render(mode) {
             const displayHour = micHour === 0 ? 12 : (micHour > 12 ? micHour - 12 : micHour);
             const ampm = micHour >= 12 ? 'PM' : 'AM';
             const header = document.createElement('div');
-            header.className = 'time-header text-white/50 text-sm';
+            header.className = 'time-header';
             header.innerHTML = `
-                <span class="font-mono text-lg text-white">${displayHour}:00 ${ampm}</span>
-                <div class="h-[1px] bg-white/10 flex-1"></div>
+                <div class="time-header-label">${displayHour}:00 ${ampm}</div>
+                <div class="time-header-divider"></div>
             `;
             container.appendChild(header);
         }
@@ -834,6 +993,8 @@ function render(mode) {
         const safeSignupUrl = mic.signupUrl ? escapeHtml(mic.signupUrl) : '';
         const signupLabel = mic.signupUrl ? 'Online signup' : mic.signupEmail ? 'Email signup' : 'Sign up in person';
 
+        const isInPlanRoute = !!(STATE.planMode && STATE.route && STATE.route.includes(mic.id));
+
         // Build action buttons HTML (small for desktop)
         const signupBtnSm = mic.signupUrl
             ? `<a href="${safeSignupUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation();" class="icon-btn-sm" title="Visit Website"><svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg></a>`
@@ -849,6 +1010,13 @@ function render(mode) {
                 ? `<a href="mailto:${safeSignupEmail}" onclick="event.stopPropagation();" class="icon-btn" title="Email"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></a>`
                 : `<button onclick="event.stopPropagation(); flipCard(this);" class="icon-btn" title="Signup info"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></button>`;
         const igBtn = safeContact ? `<a href="https://instagram.com/${safeContact}" target="_blank" rel="noopener" onclick="event.stopPropagation();" class="icon-btn" title="@${safeContact}"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg></a>` : '';
+
+        const planAddBtn = `<button class="plan-add-btn" onclick="event.stopPropagation(); handleAddClick(this, '${mic.id}')" aria-label="Add to schedule">+ Add</button>`;
+        const planCta = !STATE.planMode
+            ? ''
+            : isInPlanRoute
+                ? `<span class="in-schedule-badge" aria-label="In Schedule">✓ In Schedule</span>`
+                : planAddBtn;
 
         // Add live indicator class for styling
         const liveClass = mic.status === 'live' ? ' is-live-mic' : '';
@@ -866,7 +1034,7 @@ function render(mode) {
                         <div class="venue-row">
                             <div class="venue-name">${safeTitle}</div>
                             <span class="tag-pill borough-pill"><span class="borough-full">${safeBorough}</span><span class="borough-short">${shortBorough}</span></span>
-                            <button class="plan-add-circle" onclick="event.stopPropagation(); addToRoute('${mic.id}')">+ Add</button>
+                            ${planCta}
                         </div>
                         <div class="meta-row">
                             <span class="neighborhood">${safeHood}</span>
@@ -891,7 +1059,7 @@ function render(mode) {
                         <div class="venue-row">
                             <div class="venue-name">${safeTitle}</div>
                             <span class="tag-pill borough-pill"><span class="borough-full">${safeBorough}</span><span class="borough-short">${shortBorough}</span></span>
-                            <button class="plan-add-circle" onclick="event.stopPropagation(); addToRoute('${mic.id}')">+ Add</button>
+                            ${planCta}
                         </div>
                         <div class="meta-row">
                             <span class="neighborhood">${safeHood}</span>
@@ -957,6 +1125,15 @@ function render(mode) {
             `;
         }
         container.appendChild(showMoreContainer);
+    }
+
+    // Show "X conflicts hidden" notice when conflicts are being filtered
+    if (STATE.planMode && STATE.hideConflicts && hiddenConflictCount > 0) {
+        const notice = document.createElement('div');
+        notice.className = 'hidden-mics-notice';
+        notice.onclick = () => toggleHideConflicts();
+        notice.innerHTML = `${hiddenConflictCount} conflicting mic${hiddenConflictCount > 1 ? 's' : ''} hidden • <strong>Show All</strong>`;
+        container.appendChild(notice);
     }
 
     // Fetch and update departure times for cards with routes

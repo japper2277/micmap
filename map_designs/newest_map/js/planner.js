@@ -3,6 +3,32 @@
    Map-first route planning - click markers to build route
    ================================================================= */
 
+// Handle add button click with animation and toast
+function handleAddClick(btn, micId) {
+    if (STATE.route.includes(micId)) return;
+
+    if ('vibrate' in navigator) {
+        navigator.vibrate(10);
+    }
+
+    // Get mic info for toast
+    const mic = STATE.mics.find(m => m.id === micId);
+    const venueName = mic ? (mic.title || mic.venue || 'Mic') : 'Mic';
+
+    // Add animation class
+    btn.classList.add('added');
+
+    // Add to route after brief delay for animation
+    setTimeout(() => {
+        addToRoute(micId, true); // skipZoom since user clicked from list
+
+        // Show toast
+        if (typeof toastService !== 'undefined' && toastService.show) {
+            toastService.show(`Added ${venueName}`, 'success');
+        }
+    }, 150);
+}
+
 // Persist plan state to localStorage
 function persistPlanState() {
     localStorage.setItem('planRoute', JSON.stringify(STATE.route));
@@ -58,12 +84,18 @@ function addToRoute(micId, skipZoom = false) {
     });
 
     updateRouteClass();
-    render(STATE.currentMode);  // Re-render to update strikethrough on times
+    render(STATE.currentMode);  // Re-render (includes My Schedule card)
     updateMarkerStates();       // Update marker visual states (selected, dimmed, etc.)
     updateRouteLine();
-    renderPlanDrawer();
     persistPlanState();
     if (!skipZoom) fitMapToReachableMics();
+
+    // Trigger pulse animation on schedule card
+    const scheduleCard = document.querySelector('.my-schedule-card');
+    if (scheduleCard) {
+        scheduleCard.classList.add('just-added');
+        setTimeout(() => scheduleCard.classList.remove('just-added'), 600);
+    }
 }
 
 // Fit map to show selected mic + all reachable (non-dimmed) mics
@@ -133,6 +165,9 @@ function fitMapToReachableMics() {
 
 // Remove mic from route
 function removeFromRoute(micId) {
+    if ('vibrate' in navigator) {
+        navigator.vibrate(10);
+    }
     STATE.route = STATE.route.filter(id => id !== micId);
     // Add to dismissed list so it shows crossed out on map
     if (!STATE.dismissed.includes(micId)) {
@@ -143,11 +178,251 @@ function removeFromRoute(micId) {
         STATE.dismissed = STATE.dismissed.slice(-50);
     }
     updateRouteClass();
-    render(STATE.currentMode);  // Re-render to update strikethrough on times
+    render(STATE.currentMode);  // Re-render (includes My Schedule card)
     updateMarkerStates();       // Update marker visual states (selected, dimmed, etc.)
     updateRouteLine();
-    renderPlanDrawer();
     persistPlanState();
+}
+
+// Reorder scheduled items (itinerary-grade)
+function moveRouteItem(micId, direction) {
+    const idx = STATE.route.indexOf(micId);
+    if (idx < 0) return;
+    const nextIdx = idx + direction;
+    if (nextIdx < 0 || nextIdx >= STATE.route.length) return;
+
+    const next = STATE.route[nextIdx];
+    STATE.route[nextIdx] = micId;
+    STATE.route[idx] = next;
+
+    updateRouteClass();
+    render(STATE.currentMode);
+    updateMarkerStates();
+    updateRouteLine();
+    persistPlanState();
+}
+
+function sortRouteByTime() {
+    STATE.route.sort((a, b) => {
+        const micA = STATE.mics.find(m => m.id === a);
+        const micB = STATE.mics.find(m => m.id === b);
+        if (!micA || !micB) return 0;
+        return (micA.start || 0) - (micB.start || 0);
+    });
+    updateRouteClass();
+    render(STATE.currentMode);
+    updateMarkerStates();
+    updateRouteLine();
+    persistPlanState();
+}
+
+// Desktop drag-and-drop reorder for schedule (HTML5 DnD)
+function initScheduleDragAndDrop(containerEl) {
+    if (!containerEl || containerEl.dataset.dndBound === '1') return;
+    containerEl.dataset.dndBound = '1';
+
+    let draggedEl = null;
+
+    const getItemEls = () => Array.from(containerEl.querySelectorAll('.my-schedule-item[data-mic-id]'));
+    const getOrder = () => getItemEls().map(el => el.dataset.micId).filter(Boolean);
+
+    containerEl.addEventListener('dragstart', (e) => {
+        const item = e.target.closest('.my-schedule-item[data-mic-id]');
+        if (!item) return;
+        draggedEl = item;
+        item.classList.add('dragging');
+        if (e.dataTransfer) {
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', item.dataset.micId || '');
+        }
+    });
+
+    containerEl.addEventListener('dragend', () => {
+        if (draggedEl) draggedEl.classList.remove('dragging');
+        draggedEl = null;
+    });
+
+    containerEl.addEventListener('dragover', (e) => {
+        if (!draggedEl) return;
+        e.preventDefault();
+
+        const over = e.target.closest('.my-schedule-item[data-mic-id]');
+        if (!over || over === draggedEl) return;
+
+        const rect = over.getBoundingClientRect();
+        const before = e.clientY < rect.top + rect.height / 2;
+        if (before) {
+            containerEl.insertBefore(draggedEl, over);
+        } else {
+            containerEl.insertBefore(draggedEl, over.nextSibling);
+        }
+    });
+
+    containerEl.addEventListener('drop', (e) => {
+        if (!draggedEl) return;
+        e.preventDefault();
+
+        const newOrder = getOrder();
+        if (!newOrder.length) return;
+
+        STATE.route = newOrder;
+        persistPlanState();
+        updateRouteClass();
+        updateMarkerStates();
+        updateRouteLine();
+    });
+}
+
+// Touch/pointer drag-to-reorder for schedule (mobile-friendly)
+function initScheduleTouchReorder(containerEl) {
+    if (!containerEl || containerEl.dataset.touchDndBound === '1') return;
+    containerEl.dataset.touchDndBound = '1';
+
+    containerEl.style.position = containerEl.style.position || 'relative';
+
+    let draggedEl = null;
+    let placeholder = null;
+    let startY = 0;
+    let startTop = 0;
+    let pointerId = null;
+
+    const getItemEls = () => Array.from(containerEl.querySelectorAll('.my-schedule-item[data-mic-id]'));
+    const getOrder = () => getItemEls().map(el => el.dataset.micId).filter(Boolean);
+
+    const cleanup = () => {
+        if (draggedEl) {
+            draggedEl.classList.remove('dragging-touch');
+            draggedEl.style.position = '';
+            draggedEl.style.left = '';
+            draggedEl.style.right = '';
+            draggedEl.style.top = '';
+            draggedEl.style.width = '';
+            draggedEl.style.zIndex = '';
+            draggedEl.style.pointerEvents = '';
+        }
+        if (placeholder) placeholder.remove();
+        placeholder = null;
+        draggedEl = null;
+        startY = 0;
+        startTop = 0;
+        pointerId = null;
+    };
+
+    const maybeAutoScroll = (clientY) => {
+        const rect = containerEl.getBoundingClientRect();
+        const edge = 40;
+        if (clientY < rect.top + edge) containerEl.scrollTop -= 10;
+        if (clientY > rect.bottom - edge) containerEl.scrollTop += 10;
+    };
+
+    containerEl.addEventListener('pointerdown', (e) => {
+        const handle = e.target.closest('.schedule-drag-handle');
+        if (!handle) return;
+        const item = e.target.closest('.my-schedule-item[data-mic-id]');
+        if (!item) return;
+
+        // Only activate for coarse pointers (phones/tablets) to avoid fighting desktop DnD
+        const isCoarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+        if (!isCoarse) return;
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        pointerId = e.pointerId;
+        handle.setPointerCapture(pointerId);
+
+        draggedEl = item;
+        draggedEl.classList.add('dragging-touch');
+
+        const containerRect = containerEl.getBoundingClientRect();
+        const itemRect = draggedEl.getBoundingClientRect();
+
+        startY = e.clientY;
+        startTop = itemRect.top - containerRect.top + containerEl.scrollTop;
+
+        placeholder = document.createElement('div');
+        placeholder.className = 'schedule-placeholder';
+        placeholder.style.height = `${itemRect.height}px`;
+        containerEl.insertBefore(placeholder, draggedEl.nextSibling);
+
+        draggedEl.style.position = 'absolute';
+        draggedEl.style.left = '0';
+        draggedEl.style.right = '0';
+        draggedEl.style.width = '100%';
+        draggedEl.style.top = `${startTop}px`;
+        draggedEl.style.zIndex = '20';
+        draggedEl.style.pointerEvents = 'none';
+
+        if ('vibrate' in navigator) navigator.vibrate(8);
+    });
+
+    containerEl.addEventListener('pointermove', (e) => {
+        if (!draggedEl || e.pointerId !== pointerId) return;
+        e.preventDefault();
+
+        maybeAutoScroll(e.clientY);
+
+        const delta = e.clientY - startY;
+        const nextTop = startTop + delta;
+        draggedEl.style.top = `${nextTop}px`;
+
+        const containerRect = containerEl.getBoundingClientRect();
+        const yInContainer = (e.clientY - containerRect.top) + containerEl.scrollTop;
+
+        const items = getItemEls().filter(el => el !== draggedEl);
+        const beforeEl = items.find(el => {
+            const r = el.getBoundingClientRect();
+            const mid = (r.top - containerRect.top) + containerEl.scrollTop + (r.height / 2);
+            return yInContainer < mid;
+        });
+
+        if (beforeEl) {
+            if (placeholder && placeholder.nextSibling !== beforeEl) {
+                containerEl.insertBefore(placeholder, beforeEl);
+            }
+        } else {
+            containerEl.appendChild(placeholder);
+        }
+    });
+
+    containerEl.addEventListener('pointerup', (e) => {
+        if (!draggedEl || e.pointerId !== pointerId) return;
+        e.preventDefault();
+
+        // Insert dragged element where placeholder ended
+        containerEl.insertBefore(draggedEl, placeholder);
+
+        const newOrder = getOrder();
+        cleanup();
+
+        if (!newOrder.length) return;
+        STATE.route = newOrder;
+        persistPlanState();
+        updateRouteClass();
+        updateMarkerStates();
+        updateRouteLine();
+    });
+
+    containerEl.addEventListener('pointercancel', (e) => {
+        if (!draggedEl || e.pointerId !== pointerId) return;
+        e.preventDefault();
+        cleanup();
+    });
+}
+
+function initScheduleReorder(containerEl) {
+    if (!containerEl) return;
+
+    const finePointer = window.matchMedia && window.matchMedia('(pointer: fine)').matches;
+    containerEl.querySelectorAll('.my-schedule-item[data-mic-id]').forEach(el => {
+        el.draggable = !!finePointer;
+    });
+
+    if (finePointer) {
+        initScheduleDragAndDrop(containerEl);
+    }
+
+    initScheduleTouchReorder(containerEl);
 }
 
 // Toggle mic in/out of route (called when marker clicked in plan mode)
@@ -477,9 +752,15 @@ function handleDurationClick(value, event) {
 
     if (!isExpanded) {
         // Expand
+        if ('vibrate' in navigator) {
+            navigator.vibrate(6);
+        }
         picker.classList.add('expanded');
     } else {
         // Select this option
+        if ('vibrate' in navigator) {
+            navigator.vibrate(10);
+        }
         STATE.setDuration = value;
 
         // Update selected state
@@ -514,67 +795,60 @@ function initPlanFilterRow() {
 
     const duration = STATE.setDuration || 45;
 
+    const hasRoute = !!(STATE.route && STATE.route.length > 0);
+    const conflictToggleText = STATE.hideConflicts ? 'Show All' : 'Hide Conflicts';
+
     container.innerHTML = `
-        <div class="plan-header-title">Plan My Night</div>
-        <div class="plan-duration-row" onclick="event.stopPropagation()">
-            <span class="plan-duration-label">Stay</span>
-            <div class="plan-duration-picker" id="plan-duration-picker">
-                ${planDurationOptions.map(opt => `
-                    <button class="plan-duration-pill${opt.value === duration ? ' selected' : ''}"
-                            data-value="${opt.value}"
-                            onclick="handleDurationClick(${opt.value}, event)">
-                        ${opt.label}
-                    </button>
-                `).join('')}
+        <div class="plan-header-left">
+            <div class="plan-header-title">Plan My Night</div>
+            <div class="plan-header-sub">
+                <span id="plan-mic-count">0</span> available
             </div>
-            <span class="plan-duration-unit">min</span>
+        </div>
+        <div class="plan-header-right" onclick="event.stopPropagation()">
+            <button class="conflict-toggle${STATE.hideConflicts ? ' active' : ''}" id="conflict-toggle" ${hasRoute ? '' : 'disabled'} onclick="event.stopPropagation(); toggleHideConflicts()" aria-label="Toggle hide conflicts">
+                <span id="conflict-toggle-text">${conflictToggleText}</span>
+            </button>
+            <div class="plan-duration-row">
+                <span class="plan-duration-label">Stay</span>
+                <div class="plan-duration-picker" id="plan-duration-picker">
+                    ${planDurationOptions.map(opt => `
+                        <button class="plan-duration-pill${opt.value === duration ? ' selected' : ''}"
+                                data-value="${opt.value}"
+                                onclick="handleDurationClick(${opt.value}, event)">
+                            ${opt.label}
+                        </button>
+                    `).join('')}
+                </div>
+                <span class="plan-duration-unit">min</span>
+            </div>
+            <button class="plan-exit-btn" onclick="event.stopPropagation(); exitPlanMode();" aria-label="Exit plan mode">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </button>
         </div>
     `;
 }
 
 // Render drawer content for plan mode
-function renderPlanDrawer() {
-    const container = document.getElementById('list-content');
-    if (!container) return;
-
-    let html = '';
-
-    // When route is empty, show the normal mic list (render() adds "+ Tonight" buttons in plan mode)
-    if (STATE.route.length === 0) {
-        render(STATE.currentMode);
-        return;
+// Toggle hide conflicts setting
+function toggleHideConflicts() {
+    if (!STATE.route || STATE.route.length === 0) return;
+    STATE.hideConflicts = !STATE.hideConflicts;
+    const toggle = document.getElementById('conflict-toggle');
+    const toggleText = document.getElementById('conflict-toggle-text');
+    if (toggle) {
+        toggle.classList.toggle('active', STATE.hideConflicts);
     }
+    if (toggleText) {
+        toggleText.textContent = STATE.hideConflicts ? 'Show All' : 'Hide Conflicts';
+    }
+    render(STATE.currentMode);
+}
 
-    // Show current route
-    const stopCount = STATE.route.length;
-    const stopWord = stopCount === 1 ? 'stop' : 'stops';
-    const swipeHint = STATE.drawerState === 'peek' ? '<span style="font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.5);">Swipe up ↑</span>' : '';
-    html += '<div style="padding: 16px;">';
-    html += `<div style="font-size: 17px; font-weight: 700; color: #fff; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between;">
-        <span>${stopCount} ${stopWord} planned</span>
-        ${swipeHint}
-    </div>`;
-
-    STATE.route.forEach((micId, i) => {
-        const mic = STATE.mics.find(m => m.id === micId);
-        if (!mic) return;
-
-        const timeStr = mic.start ? mic.start.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : '';
-        const priceStr = mic.price === 0 || mic.price === 'Free' ? 'FREE' : `$${mic.price}`;
-        const priceClass = mic.price === 0 || mic.price === 'Free' ? 'color: #4ade80;' : 'color: #fb923c;';
-
-        html += `
-            <div style="display: flex; align-items: center; padding: 12px; background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 12px; margin-bottom: 8px;">
-                <div style="font-size: 16px; font-weight: 700; width: 60px;">${timeStr}</div>
-                <div style="flex: 1;">
-                    <div style="font-size: 15px; font-weight: 600;">${mic.venue || mic.name}</div>
-                    <div style="font-size: 12px; color: rgba(255,255,255,0.5);"><span style="${priceClass}">${priceStr}</span></div>
-                </div>
-                <button onclick="removeFromRoute('${micId}')" style="width: 32px; height: 32px; border-radius: 50%; background: rgba(239, 68, 68, 0.2); border: none; color: #ef4444; cursor: pointer; font-size: 16px;">✕</button>
-            </div>
-        `;
-    });
-
-    html += '</div>';
-    container.innerHTML = html;
+// Legacy function - now just calls render() since My Schedule is inline
+function renderPlanDrawer() {
+    render(STATE.currentMode);
 }

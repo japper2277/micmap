@@ -481,7 +481,8 @@ function removeFilterChip(chipId) {
 // Update mic count in header based on current day and filters
 function updateFormMicCount() {
     const countEl = document.getElementById('form-mic-count');
-    if (!countEl) return;
+    const headerCountEl = document.getElementById('header-mic-count');
+    if (!countEl && !headerCountEl) return;
 
     // Get current day
     const daySelect = document.getElementById('day-select');
@@ -508,9 +509,11 @@ function updateFormMicCount() {
             filtered = filtered.filter(mic => mic.neighborhood === formFilterState.neighborhood);
         }
 
-        countEl.textContent = filtered.length;
+        if (countEl) countEl.textContent = filtered.length;
+        if (headerCountEl) headerCountEl.textContent = filtered.length;
     } else {
-        countEl.textContent = '--';
+        if (countEl) countEl.textContent = '--';
+        if (headerCountEl) headerCountEl.textContent = '--';
     }
 }
 
@@ -720,11 +723,15 @@ function toggleBoroughSection(borough) {
     haptic('light');
     const header = document.querySelector(`.borough-header[data-borough="${borough}"]`);
     const grid = document.getElementById(`neighborhoods-${borough}`);
+    const expandBtn = header ? header.querySelector('.borough-expand') : null;
+    if (!header || !grid) return;
 
     // Close other borough sections
     document.querySelectorAll('.borough-header').forEach(h => {
         if (h.dataset.borough !== borough) {
             h.classList.remove('expanded');
+            const otherExpandBtn = h.querySelector('.borough-expand');
+            if (otherExpandBtn) otherExpandBtn.setAttribute('aria-expanded', 'false');
             const otherGrid = document.getElementById(`neighborhoods-${h.dataset.borough}`);
             if (otherGrid) otherGrid.classList.add('hidden');
         }
@@ -735,6 +742,7 @@ function toggleBoroughSection(borough) {
     if (isExpanded) {
         // Collapse - select the whole borough
         header.classList.remove('expanded');
+        if (expandBtn) expandBtn.setAttribute('aria-expanded', 'false');
         grid.classList.add('hidden');
 
         // Select borough
@@ -758,8 +766,14 @@ function toggleBoroughSection(borough) {
     } else {
         // Expand to show neighborhoods
         header.classList.add('expanded');
+        if (expandBtn) expandBtn.setAttribute('aria-expanded', 'true');
         grid.classList.remove('hidden');
     }
+}
+
+// Back-compat for older markup
+function toggleBoroughNeighborhoods(borough) {
+    toggleBoroughSection(borough);
 }
 
 // Select a specific neighborhood

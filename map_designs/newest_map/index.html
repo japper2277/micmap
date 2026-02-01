@@ -154,6 +154,9 @@
             <!-- Plan Mode Header (shown when plan-mode active) -->
             <div class="plan-header-row" id="plan-filter-row" onclick="toggleDrawer()"></div>
 
+            <!-- Plan Mode: Schedule slot (sticky with header) -->
+            <div id="plan-schedule-slot" class="plan-schedule-slot"></div>
+
             <!-- Mics Header Row (hidden when plan-mode active) - tap anywhere to open drawer -->
             <div class="mics-header-row" onclick="if(!event.target.closest('button, a, input')) toggleDrawer()">
                 <!-- Left: Title & Count -->
@@ -174,7 +177,6 @@
 
                 <!-- Right: Controls -->
                 <div class="controls-group">
-
                     <!-- Calendar Button -->
                     <button class="calendar-pill-btn" id="btn-calendar" onclick="event.stopPropagation(); setMode('calendar')" aria-label="Open calendar picker">
                         <span class="cal-text" id="cal-text">Mon 26</span>

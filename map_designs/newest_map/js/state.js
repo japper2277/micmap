@@ -49,5 +49,7 @@ const STATE = {
     setDuration: parseInt(localStorage.getItem('planSetDuration') || '45', 10),
     timeWindowStart: parseInt(localStorage.getItem('planTimeWindowStart') || '700', 10),
     timeWindowEnd: parseInt(localStorage.getItem('planTimeWindowEnd') || '1100', 10),
-    planGracePeriod: 5            // Minutes of overlap allowed between mics
+    planGracePeriod: 5,           // Minutes of overlap allowed between mics
+    scheduleExpanded: false,      // Is "My Schedule" dropdown expanded?
+    hideConflicts: false          // Hide mics that conflict with scheduled times?
 };

@@ -657,14 +657,18 @@ async function renderResults(sequence, origin, timePerVenue = 60) {
                 <div class="tl-content">
                     <div class="tl-row1">
                         <span class="tl-venue">${mic.venueName || mic.venue || 'Unknown Venue'}</span>
-                        ${mic.borough ? `<span class="tl-borough-badge">${mic.borough.toUpperCase()}</span>` : ''}
                     </div>
                     <div class="tl-row2">
                         ${mic.neighborhood ? `<span class="tl-neighborhood">${mic.neighborhood.toUpperCase()}</span>` : ''}
+                        ${mic.borough ? `<span class="tl-borough-badge">${mic.borough.toUpperCase()}</span>` : ''}
                         <span class="tl-price-badge ${priceClass}">${priceText}</span>
                         ${primaryLine ? `
                             <span class="tl-line-badge ${isDarkTextLine ? 'dark-text' : ''}" style="background: ${primaryLineColor}">${primaryLine}</span>
                         ` : ''}
+
+                        <button class="tl-add-btn" type="button" onclick="showInsertMicPicker(${i})" aria-label="Add stop after ${escapeHtml(mic.venueName || mic.venue || 'venue')}">
+                            + Add
+                        </button>
                     </div>
                 </div>
 
@@ -697,12 +701,6 @@ async function renderResults(sequence, origin, timePerVenue = 60) {
                             </svg>
                         </button>
                     `}
-
-                    <button class="tl-action-btn" onclick="showInsertMicPicker(${i})" aria-label="Add stop after ${escapeHtml(mic.venueName || mic.venue || 'venue')}">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                        </svg>
-                    </button>
 
                     <button class="tl-action-btn" onclick="removeMicFromRoute('${mic.id}')" aria-label="Remove ${escapeHtml(mic.venueName || mic.venue || 'venue')} from route">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
