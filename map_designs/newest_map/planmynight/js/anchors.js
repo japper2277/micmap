@@ -289,6 +289,44 @@ function clearAnchorMic(role) {
     }
 }
 
+// Check if a mic passes current filters
+function micPassesCurrentFilters(mic) {
+    if (!mic) return false;
+
+    // Check price filter
+    if (typeof formFilterState !== 'undefined' && formFilterState.price === 'free') {
+        const cost = mic.cost || mic.price || 0;
+        if (typeof cost === 'number' && cost > 0) return false;
+        if (typeof cost === 'string' && cost.toLowerCase() !== 'free' && cost !== '0' && cost !== '') return false;
+    }
+
+    // Check price radio (fallback)
+    const priceRadio = document.querySelector('input[name="price"]:checked')?.value;
+    if (priceRadio === 'free') {
+        const cost = mic.cost || mic.price || 0;
+        if (typeof cost === 'number' && cost > 0) return false;
+        if (typeof cost === 'string' && cost.toLowerCase() !== 'free' && cost !== '0' && cost !== '') return false;
+    }
+
+    // Check borough/area filter
+    if (typeof formFilterState !== 'undefined' && formFilterState.borough && formFilterState.borough !== 'all') {
+        if (formFilterState.neighborhood) {
+            if (mic.neighborhood !== formFilterState.neighborhood) return false;
+        } else {
+            if (mic.borough !== formFilterState.borough) return false;
+        }
+    }
+
+    // Check selectedAreas if present
+    if (typeof selectedAreas !== 'undefined' && selectedAreas.size > 0) {
+        const matchesBorough = mic.borough && selectedAreas.has(mic.borough);
+        const matchesNeighborhood = mic.neighborhood && selectedAreas.has(mic.neighborhood);
+        if (!matchesBorough && !matchesNeighborhood) return false;
+    }
+
+    return true;
+}
+
 // Render selected anchor chips
 function renderAnchorChips() {
     const container = document.getElementById('anchor-chips');
@@ -307,13 +345,19 @@ function renderAnchorChips() {
         const time = minsToTime(mic.startMins);
         const roleInfo = ANCHOR_ROLES[role];
 
+        // FIX: Check if mic passes current filters
+        const passesFilters = micPassesCurrentFilters(mic);
+        const warningClass = passesFilters ? '' : ' filter-warning';
+        const warningIcon = passesFilters ? '' : '<span class="anchor-chip-warning" title="This mic may not appear in results with current filters">⚠️</span>';
+
         chips.push(`
-            <div class="anchor-chip">
+            <div class="anchor-chip${warningClass}">
                 <span class="anchor-chip-icon">${roleInfo.icon}</span>
                 <div class="anchor-chip-content">
                     <span class="anchor-chip-role">${roleInfo.label}</span>
                     <span class="anchor-chip-name" title="${escapeHtml(name)}">${escapeHtml(name)} · ${time}</span>
                 </div>
+                ${warningIcon}
                 <button type="button" class="anchor-chip-clear" onclick="clearAnchorMic('${role}')" aria-label="Remove ${roleInfo.label}">
                     &times;
                 </button>

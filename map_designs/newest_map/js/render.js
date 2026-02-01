@@ -808,7 +808,27 @@ function render(mode) {
         const safeBorough = escapeHtml((mic.borough || 'NYC').toUpperCase());
         const boroughAbbrev = { 'MANHATTAN': 'MN', 'BROOKLYN': 'BK', 'QUEENS': 'QN', 'BRONX': 'BX', 'STATEN ISLAND': 'SI' };
         const shortBorough = boroughAbbrev[safeBorough] || safeBorough;
-        const safeSignupInstructions = escapeHtml(mic.signupInstructions || 'Sign up in person only');
+        // Filter redundant signup instructions (shown elsewhere via badges/buttons)
+        let filteredSignup = mic.signupInstructions || '';
+        const hasSignupTime = /sign\s*up\s*(at|@)\s*\d{1,2}(:\d{2})?\s*(am|pm)?/i.test(filteredSignup);
+        if (!hasSignupTime && filteredSignup) {
+            const lower = filteredSignup.toLowerCase();
+            // Walk-in variations - shown as Walk-in badge in modal
+            const isWalkIn = /^(sign\s*up\s*)?(there|in\s*person|at\s*(the\s*)?venue|list\s*in\s*person)/.test(lower) ||
+                             lower === 'in person only' || lower === 'in person' ||
+                             /^in\s*person\b/.test(lower);
+            // IG/DM mentions - shown as IG button
+            const isIgDm = /(dm|comment)\s*(on\s*)?(ig|instagram)|@\w+\s*(on\s*)?(ig|instagram)/i.test(filteredSignup);
+            // Price info - shown in price badge
+            const isPriceOnly = /^\$?\d+(\.\d{2})?\s*(\*|fee)?$/.test(filteredSignup.trim()) ||
+                               /free\s*(but\s*buy|drink|item)/i.test(lower);
+            // Marketing/perks text
+            const isPerks = /free\s*drink|free\s*fries|you\s*get\s*a\s*free/i.test(lower);
+            if (isWalkIn || isIgDm || isPriceOnly || isPerks) {
+                filteredSignup = '';
+            }
+        }
+        const safeSignupInstructions = escapeHtml(filteredSignup || 'Walk-in');
         const safeContact = mic.contact ? escapeHtml(mic.contact.replace(/^@/, '')) : '';
         const safeSignupEmail = mic.signupEmail ? escapeHtml(mic.signupEmail) : '';
         const safeSignupUrl = mic.signupUrl ? escapeHtml(mic.signupUrl) : '';
@@ -846,7 +866,7 @@ function render(mode) {
                         <div class="venue-row">
                             <div class="venue-name">${safeTitle}</div>
                             <span class="tag-pill borough-pill"><span class="borough-full">${safeBorough}</span><span class="borough-short">${shortBorough}</span></span>
-                            <button class="plan-add-circle" onclick="event.stopPropagation(); addToRoute('${mic.id}')"><span class="circle-plus">+</span><span class="circle-text">Tonight</span></button>
+                            <button class="plan-add-circle" onclick="event.stopPropagation(); addToRoute('${mic.id}')">+ Add</button>
                         </div>
                         <div class="meta-row">
                             <span class="neighborhood">${safeHood}</span>
@@ -871,7 +891,7 @@ function render(mode) {
                         <div class="venue-row">
                             <div class="venue-name">${safeTitle}</div>
                             <span class="tag-pill borough-pill"><span class="borough-full">${safeBorough}</span><span class="borough-short">${shortBorough}</span></span>
-                            <button class="plan-add-circle" onclick="event.stopPropagation(); addToRoute('${mic.id}')"><span class="circle-plus">+</span><span class="circle-text">Tonight</span></button>
+                            <button class="plan-add-circle" onclick="event.stopPropagation(); addToRoute('${mic.id}')">+ Add</button>
                         </div>
                         <div class="meta-row">
                             <span class="neighborhood">${safeHood}</span>

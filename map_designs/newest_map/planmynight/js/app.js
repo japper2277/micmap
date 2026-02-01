@@ -339,7 +339,15 @@ function savePlannerPrefs() {
             maxCommute: document.querySelector('input[name="max-commute"]:checked')?.value,
             timePerVenue: document.querySelector('input[name="time-per-venue"]:checked')?.value,
             areas: typeof getSelectedAreas === 'function' ? getSelectedAreas() : [],
-            origin: selectedOrigin ? { lat: selectedOrigin.lat, lng: selectedOrigin.lng, name: selectedOrigin.name } : null
+            origin: selectedOrigin ? { lat: selectedOrigin.lat, lng: selectedOrigin.lng, name: selectedOrigin.name } : null,
+            // FIX: Add form filter state persistence
+            formFilterState: typeof formFilterState !== 'undefined' ? {
+                price: formFilterState.price,
+                time: formFilterState.time,
+                borough: formFilterState.borough,
+                neighborhood: formFilterState.neighborhood,
+                commute: formFilterState.commute
+            } : null
         };
         localStorage.setItem(PLAN_PREFS_KEY, JSON.stringify(prefs));
 
@@ -420,6 +428,60 @@ function loadPlannerPrefs() {
         if (!sharedApplied.origin && prefs.origin && prefs.origin.lat && prefs.origin.lng) {
             selectedOrigin = { lat: prefs.origin.lat, lng: prefs.origin.lng, name: prefs.origin.name || 'Saved Location' };
             if (typeof selectOriginUI === 'function') selectOriginUI(selectedOrigin);
+        }
+
+        // FIX: Restore form filter state (top filter pills)
+        if (prefs.formFilterState && typeof formFilterState !== 'undefined') {
+            const ffs = prefs.formFilterState;
+
+            // Restore price
+            if (ffs.price) {
+                formFilterState.price = ffs.price;
+                const pricePill = document.getElementById('form-filter-price');
+                if (pricePill) {
+                    const pillText = pricePill.querySelector('.pill-text');
+                    if (pillText) pillText.textContent = ffs.price === 'all' ? 'PRICE' : 'FREE';
+                    pricePill.classList.toggle('has-filter', ffs.price !== 'all');
+                }
+                // Sync hidden radio
+                const priceRadio = document.querySelector(`input[name="price"][value="${ffs.price}"]`);
+                if (priceRadio) priceRadio.checked = true;
+            }
+
+            // Restore time
+            if (ffs.time && typeof selectFormTimeFilter === 'function') {
+                selectFormTimeFilter(ffs.time);
+            }
+
+            // Restore borough
+            if (ffs.borough) {
+                formFilterState.borough = ffs.borough;
+                formFilterState.neighborhood = ffs.neighborhood || null;
+                const boroughPill = document.getElementById('form-filter-borough');
+                if (boroughPill) {
+                    const pillText = boroughPill.querySelector('.pill-text');
+                    const labels = { 'all': 'BOROUGH', 'Manhattan': 'MANHATTAN', 'Brooklyn': 'BROOKLYN', 'Queens': 'QUEENS', 'Bronx': 'BRONX' };
+                    const displayText = ffs.neighborhood ? ffs.neighborhood.toUpperCase() : (labels[ffs.borough] || ffs.borough.toUpperCase());
+                    if (pillText) pillText.textContent = displayText;
+                    boroughPill.classList.toggle('has-filter', ffs.borough !== 'all');
+                }
+            }
+
+            // Restore commute
+            if (ffs.commute) {
+                formFilterState.commute = ffs.commute;
+                const commutePill = document.getElementById('form-filter-commute');
+                if (commutePill) {
+                    const pillText = commutePill.querySelector('.pill-text');
+                    const labels = { 'all': 'COMMUTE', '20': '20 MIN', '40': '40 MIN', '60': '60 MIN' };
+                    if (pillText) pillText.textContent = labels[ffs.commute] || 'COMMUTE';
+                    commutePill.classList.toggle('has-filter', ffs.commute !== 'all');
+                }
+                // Sync hidden radio
+                const commuteValue = ffs.commute === 'all' ? '999' : ffs.commute;
+                const commuteRadio = document.querySelector(`input[name="max-commute"][value="${commuteValue}"]`);
+                if (commuteRadio) commuteRadio.checked = true;
+            }
         }
 
         if (typeof updateFilterCountBadge === 'function') updateFilterCountBadge();
@@ -694,7 +756,19 @@ async function init() {
         // 2. Event listeners
         const daySelect = document.getElementById('day-select');
         if (daySelect) {
-            daySelect.addEventListener('change', updateAnchorOptions);
+            daySelect.addEventListener('change', () => {
+                updateAnchorOptions();
+                // Clear undo stack when day changes to prevent restoring wrong day's route
+                if (typeof clearUndoStack === 'function') {
+                    clearUndoStack();
+                }
+                // Clear current route since it's for a different day
+                if (typeof currentRoute !== 'undefined') {
+                    currentRoute = null;
+                }
+                const resultsEl = document.getElementById('results');
+                if (resultsEl) resultsEl.classList.add('hidden');
+            });
         }
 
         // 3. Load data (async - AWAIT this)
@@ -714,6 +788,32 @@ async function init() {
         showLoadingError(error.message || 'Unable to connect to server');
     }
 }
+
+// ============================================================
+// FIRST-VISIT INSTRUCTION BANNER
+// ============================================================
+function showFirstVisitBannerIfNeeded() {
+    const hasSeenBanner = localStorage.getItem('planmynight_seen_banner');
+    if (!hasSeenBanner) {
+        const banner = document.getElementById('first-visit-banner');
+        if (banner) {
+            banner.classList.remove('hidden');
+        }
+    }
+}
+
+function dismissFirstVisitBanner() {
+    localStorage.setItem('planmynight_seen_banner', 'true');
+    const banner = document.getElementById('first-visit-banner');
+    if (banner) {
+        banner.style.opacity = '0';
+        banner.style.transform = 'translateX(-50%) translateY(20px)';
+        setTimeout(() => banner.classList.add('hidden'), 300);
+    }
+}
+
+// Export for onclick handler
+window.dismissFirstVisitBanner = dismissFirstVisitBanner;
 
 // Run initialization when DOM is ready
 if (document.readyState === 'loading') {

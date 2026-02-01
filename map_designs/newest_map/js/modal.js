@@ -377,6 +377,29 @@ function populateModalContent(mic, allMicsAtVenue = null) {
         instructions = instructions.replace(/^email\s*/i, '').trim();
     }
 
+    // Check if instruction contains a signup TIME (e.g., "Sign up at 7:30") - keep these!
+    const hasSignupTime = /sign\s*up\s*(at|@)\s*\d{1,2}(:\d{2})?\s*(am|pm)?/i.test(instructions);
+
+    // Hide redundant instructions (shown elsewhere via badges/buttons)
+    if (!hasSignupTime) {
+        const lower = instructions.toLowerCase();
+        // Walk-in variations - already shown as Walk-in badge
+        const isWalkIn = /^(sign\s*up\s*)?(there|in\s*person|at\s*(the\s*)?venue|list\s*in\s*person)/.test(lower) ||
+                         lower === 'in person only' || lower === 'in person' ||
+                         /^in\s*person\b/.test(lower);
+        // IG/DM mentions - already shown as IG button
+        const isIgDm = /(dm|comment)\s*(on\s*)?(ig|instagram)|@\w+\s*(on\s*)?(ig|instagram)/i.test(instructions);
+        // Price info - already shown in price badge
+        const isPriceOnly = /^\$?\d+(\.\d{2})?\s*(\*|fee)?$/.test(instructions.trim()) ||
+                           /free\s*(but\s*buy|drink|item)/i.test(lower);
+        // Marketing/perks text
+        const isPerks = /free\s*drink|free\s*fries|you\s*get\s*a\s*free/i.test(lower);
+
+        if (isWalkIn || isIgDm || isPriceOnly || isPerks) {
+            instructions = '';
+        }
+    }
+
     // Build info row with badges (matching demo design)
     const infoParts = [];
     const clockIcon = '<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>';
@@ -533,6 +556,29 @@ function openVenueModal(mic) {
     if (mic.signupEmail) {
         instructions = instructions.replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, '').trim();
         instructions = instructions.replace(/^email\s*/i, '').trim();
+    }
+
+    // Check if instruction contains a signup TIME (e.g., "Sign up at 7:30") - keep these!
+    const hasSignupTime2 = /sign\s*up\s*(at|@)\s*\d{1,2}(:\d{2})?\s*(am|pm)?/i.test(instructions);
+
+    // Hide redundant instructions (shown elsewhere via badges/buttons)
+    if (!hasSignupTime2) {
+        const lower = instructions.toLowerCase();
+        // Walk-in variations - already shown as Walk-in badge
+        const isWalkIn = /^(sign\s*up\s*)?(there|in\s*person|at\s*(the\s*)?venue|list\s*in\s*person)/.test(lower) ||
+                         lower === 'in person only' || lower === 'in person' ||
+                         /^in\s*person\b/.test(lower);
+        // IG/DM mentions - already shown as IG button
+        const isIgDm = /(dm|comment)\s*(on\s*)?(ig|instagram)|@\w+\s*(on\s*)?(ig|instagram)/i.test(instructions);
+        // Price info - already shown in price badge
+        const isPriceOnly = /^\$?\d+(\.\d{2})?\s*(\*|fee)?$/.test(instructions.trim()) ||
+                           /free\s*(but\s*buy|drink|item)/i.test(lower);
+        // Marketing/perks text
+        const isPerks = /free\s*drink|free\s*fries|you\s*get\s*a\s*free/i.test(lower);
+
+        if (isWalkIn || isIgDm || isPriceOnly || isPerks) {
+            instructions = '';
+        }
     }
 
     // Build info row with badges (matching demo design)

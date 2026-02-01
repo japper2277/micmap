@@ -25,6 +25,8 @@ async function selectRouteTab(priority) {
 
     const cached = lastPlanContext.routes?.[priority];
     if (cached && cached.sequence?.length) {
+        // FIX: Update currentRoute BEFORE rendering so copy/share use correct data
+        currentRoute = cached;
         await renderResults(cached.sequence, cached.origin, cached.timePerVenue);
         return;
     }
@@ -38,6 +40,8 @@ async function selectRouteTab(priority) {
             return;
         }
         lastPlanContext.routes[priority] = route;
+        // FIX: Update currentRoute BEFORE rendering
+        currentRoute = route;
         await renderResults(route.sequence, route.origin, route.timePerVenue);
     } catch (e) {
         showToast('Could not build this route option. Try again.', 'error');
@@ -243,6 +247,23 @@ async function buildRouteForPriority(ctx, priority) {
                 isAnchorMust: true
             });
             current = { lat: anchorMust.lat, lng: anchorMust.lng, mins: anchorMust.startMins + timePerVenue };
+            mustHitInserted = true;
+        } else {
+            // FIX: Return specific error when must-hit cannot be reached
+            const mustHitName = anchorMust.venueName || anchorMust.venue || 'the must-hit mic';
+            const mustHitTime = typeof minsToTime === 'function' ? minsToTime(anchorMust.startMins) : `${Math.floor(anchorMust.startMins/60)}:${String(anchorMust.startMins%60).padStart(2,'0')}`;
+            const arrivalTime = typeof minsToTime === 'function' ? minsToTime(arrivalAtMust) : `${Math.floor(arrivalAtMust/60)}:${String(arrivalAtMust%60).padStart(2,'0')}`;
+
+            return {
+                sequence: [],
+                origin,
+                timePerVenue,
+                error: {
+                    type: 'MUST_HIT_UNREACHABLE',
+                    message: `Cannot reach "${mustHitName}" (${mustHitTime}) in time. You would arrive at ${arrivalTime}, which is more than 30 minutes late.`,
+                    suggestion: 'Try removing other stops before this mic, or pick a different must-hit venue.'
+                }
+            };
         }
     }
 
@@ -274,7 +295,24 @@ async function buildRouteForPriority(ctx, priority) {
 
     // Validate min
     if (sequence.length < minMics) {
-        return { sequence: [], origin, timePerVenue };
+        const anchorCount = (anchorStart ? 1 : 0) + (anchorMust ? 1 : 0) + (anchorEnd ? 1 : 0);
+        let errorMessage = `Only found ${sequence.length} mic${sequence.length !== 1 ? 's' : ''}, but ${minMics} were needed.`;
+        let suggestion = 'Try expanding your time window or search area.';
+
+        if (anchorCount > 0) {
+            suggestion = 'Your pinned mics may be limiting options. Try unpinning some or adjusting their times.';
+        }
+
+        return {
+            sequence: [],
+            origin,
+            timePerVenue,
+            error: {
+                type: 'INSUFFICIENT_MICS',
+                message: errorMessage,
+                suggestion: suggestion
+            }
+        };
     }
 
     return { sequence, origin, timePerVenue };
@@ -605,9 +643,20 @@ async function planMyNight() {
                 }
             }
         } else {
+            // FIX: Check for specific error from route building
+            if (route.error) {
+                showToast(route.error.message, 'error');
+                // Update no-results detail with suggestion
+                const detailEl = document.getElementById('no-results-detail');
+                if (detailEl) {
+                    detailEl.textContent = route.error.suggestion;
+                }
+                announceToScreenReader(route.error.message);
+            } else {
+                announceToScreenReader('No mics found matching your filters. Try adjusting your search criteria.');
+            }
             showNoResultsWithContext(day, 0, minMics);
             document.getElementById('no-results').classList.remove('hidden');
-            announceToScreenReader('No mics found matching your filters. Try adjusting your search criteria.');
         }
 
     } catch (e) {

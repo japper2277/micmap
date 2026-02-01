@@ -324,8 +324,8 @@ function togglePlanMode() {
         document.body.classList.remove('map-interacted', 'commute-loaded'); // Reset states
         setupPlanMapListeners(); // Setup map interaction listeners
         initPlanFilterRow(); // Initialize the time filter row in header
-        updateMarkerStates(); // Show commute labels on markers (adds commute-loaded)
-        renderPlanDrawer();
+        renderPlanDrawer(); // Render drawer first (may call render() which recreates markers)
+        updateMarkerStates(); // Show commute labels on markers AFTER render (adds commute-loaded)
     } else {
         exitPlanMode();
     }

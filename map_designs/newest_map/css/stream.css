@@ -600,22 +600,25 @@
     margin-bottom: 5px;
 }
 
-/* Plan Mode: Tonight circle button on cards */
+/* Plan Mode: Tonight pill button on cards */
 .plan-add-circle {
     display: none; /* Hidden by default */
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+    padding: 6px 12px;
+    border-radius: 8px;
+    background: linear-gradient(180deg, #f43f5e 0%, #e11d48 100%);
     border: none;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 4px;
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(244, 63, 94, 0.4);
+    box-shadow: 0 2px 8px rgba(244, 63, 94, 0.3);
     transition: transform 0.15s, box-shadow 0.15s;
     margin-left: auto;
     flex-shrink: 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: white;
+    white-space: nowrap;
 }
 
 body.plan-mode .plan-add-circle {
@@ -623,27 +626,24 @@ body.plan-mode .plan-add-circle {
 }
 
 .plan-add-circle:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 16px rgba(244, 63, 94, 0.5);
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(244, 63, 94, 0.4);
 }
 
 .plan-add-circle:active {
-    transform: scale(0.95);
+    transform: scale(0.97);
 }
 
 .plan-add-circle .circle-plus {
-    font-size: 18px;
-    font-weight: 300;
-    color: white;
+    font-size: 14px;
+    font-weight: 500;
     line-height: 1;
 }
 
 .plan-add-circle .circle-text {
-    font-size: 9px;
-    font-weight: 700;
-    color: white;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: capitalize;
 }
 
 /* Hide button for mics already in route */

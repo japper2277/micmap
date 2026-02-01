@@ -32,6 +32,15 @@ function updateUndoButtonState() {
     }
 }
 
+// Clear undo stack (call when day changes or new planning session starts)
+function clearUndoStack() {
+    routeUndoStack.length = 0;
+    updateUndoButtonState();
+}
+
+// Export for use in app.js
+window.clearUndoStack = clearUndoStack;
+
 // --- KEYBOARD SHORTCUTS ---
 document.addEventListener('keydown', (e) => {
     // Ctrl/Cmd + Z for undo

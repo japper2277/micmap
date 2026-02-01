@@ -336,6 +336,50 @@ async function swapMicInRoute(index, newMicId) {
             isAnchorEnd: oldEntry.isAnchorEnd
         };
 
+        // FIX: Recalculate transit to NEXT stop if it exists
+        if (index + 1 < currentRoute.sequence.length) {
+            const nextEntry = currentRoute.sequence[index + 1];
+            const nextMic = nextEntry.mic;
+
+            let nextTransitData = { mins: 0, type: 'walk', route: null, isEstimate: false };
+            if (newMic.lat && newMic.lng && nextMic.lat && nextMic.lng) {
+                const nextDistance = haversine(newMic.lat, newMic.lng, nextMic.lat, nextMic.lng);
+                const walkableMiles = typeof getWalkableMilesFromUI === 'function' ? getWalkableMilesFromUI() : 0.5;
+
+                if (nextDistance < walkableMiles) {
+                    nextTransitData.mins = Math.round(nextDistance * 20);
+                    nextTransitData.type = 'walk';
+                    nextTransitData.isEstimate = false;
+                } else {
+                    try {
+                        const nextRoute = await fetchSubwayRoute(newMic.lat, newMic.lng, nextMic.lat, nextMic.lng);
+                        if (nextRoute) {
+                            nextTransitData.mins = nextRoute.adjustedTotalTime || nextRoute.totalTime || nextRoute.duration;
+                            nextTransitData.type = 'transit';
+                            nextTransitData.route = nextRoute;
+                            nextTransitData.isEstimate = false;
+                        } else {
+                            nextTransitData.mins = Math.round(5 + nextDistance * 3);
+                            nextTransitData.type = 'estimate';
+                            nextTransitData.isEstimate = true;
+                        }
+                    } catch (e) {
+                        nextTransitData.mins = Math.round(5 + nextDistance * 3);
+                        nextTransitData.type = 'estimate';
+                        nextTransitData.isEstimate = true;
+                    }
+                }
+            }
+
+            // Update next entry's transit
+            currentRoute.sequence[index + 1].transitFromPrev = {
+                mins: nextTransitData.mins,
+                type: nextTransitData.type,
+                subwayRoute: nextTransitData.route,
+                isEstimate: !!nextTransitData.isEstimate
+            };
+        }
+
         // Re-render results
         await renderResults(currentRoute.sequence, currentRoute.origin, currentRoute.timePerVenue);
 
@@ -595,17 +639,14 @@ async function renderResults(sequence, origin, timePerVenue = 60) {
         if (isFirst) cardClasses.push('first-stop');
         if (isLast) cardClasses.push('last-stop');
 
-        // Stop badge
-        let stopBadgeHtml = '';
-        if (isFirst && sequence.length > 1) {
-            stopBadgeHtml = '<span class="tl-stop-badge start">Start</span>';
-        } else if (isLast && sequence.length > 1) {
-            stopBadgeHtml = '<span class="tl-stop-badge end">Final</span>';
-        }
+        // Numbered route marker (Uber-style) - replaces old stop badge
+        const stopNumber = i + 1;
+        const markerClass = isFirst ? 'start' : (isLast ? 'end' : 'middle');
+        const routeMarkerHtml = `<div class="route-marker ${markerClass}" aria-label="Stop ${stopNumber}">${stopNumber}</div>`;
 
         html += `
             <div class="${cardClasses.join(' ')}">
-                ${stopBadgeHtml}
+                ${routeMarkerHtml}
                 <!-- Left: Time column -->
                 <div class="tl-time-col">
                     <div class="tl-time">${startTime.replace(/\s*(AM|PM)/i, '').replace(':', ':')}</div>
@@ -705,6 +746,11 @@ async function renderResults(sequence, origin, timePerVenue = 60) {
     // Update summary
     const summary = DOM.getSummary();
     if (summary) summary.textContent = `${sequence.length} stop${sequence.length > 1 ? 's' : ''}`;
+
+    // Show first-visit instruction banner if this is user's first time
+    if (typeof showFirstVisitBannerIfNeeded === 'function') {
+        showFirstVisitBannerIfNeeded();
+    }
 }
 
 // Note: overflow menu handlers are defined above; avoid duplicate definitions.
