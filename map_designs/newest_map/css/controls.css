@@ -270,10 +270,6 @@ body.plan-mode .plan-schedule-slot { display: block; }
     border-radius: 0 0 12px 12px;
 }
 
-.plan-schedule-slot .schedule-empty-card {
-    margin: 0 0 10px;
-}
-
 /* Show plan header, hide mics header when plan mode active */
 body.plan-mode .plan-header-row {
     display: flex;

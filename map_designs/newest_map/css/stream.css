@@ -93,13 +93,12 @@
     50% { opacity: 0.85; box-shadow: 0 0 0 4px rgba(255, 159, 10, 0); }
 }
 
-/* Plan mode: avoid back-to-back big cards (schedule card + happening now) */
+/* Plan mode: happening now is first in sticky header, keep orange styling */
 body.plan-mode .happening-now-card {
-    margin-top: 14px;
-    margin-bottom: 8px;
+    margin: 0 0 8px;
     padding: 10px 12px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 149, 0, 0.1);
+    border: 1px solid rgba(255, 149, 0, 0.3);
 }
 
 body.plan-mode .happening-now-card-venues {
@@ -107,7 +106,7 @@ body.plan-mode .happening-now-card-venues {
 }
 
 body.plan-mode .happening-now-card-label {
-    color: rgba(255, 255, 255, 0.88);
+    color: rgba(255, 255, 255, 0.92);
     font-weight: 800;
 }
 
@@ -191,27 +190,7 @@ body.plan-mode .happening-now-card-label {
     position: relative;
 }
 
-/* Plan mode schedule empty state */
-.schedule-empty-card {
-    padding: 12px 14px;
-    margin: 8px 12px;
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.schedule-empty-title {
-    font-size: 14px;
-    font-weight: 800;
-    color: rgba(255, 255, 255, 0.92);
-    margin-bottom: 2px;
-}
-
-.schedule-empty-sub {
-    font-size: 12px;
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.55);
-}
+/* (empty state removed - users learn from +Add buttons on mic cards) */
 
 @keyframes scheduleSlideIn {
     from { opacity: 0; transform: translateY(-12px); }

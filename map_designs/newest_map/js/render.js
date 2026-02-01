@@ -219,124 +219,7 @@ function render(mode) {
     STATE.markerLookup = {};
     container.innerHTML = '';
 
-    // Plan mode: schedule UI lives in the schedule slot (keeps list scrolling stable)
-    if (scheduleSlot && STATE.planMode) {
-        if (!STATE.route || STATE.route.length === 0) {
-            const empty = document.createElement('div');
-            empty.className = 'schedule-empty-card';
-            empty.innerHTML = `
-                <div class="schedule-empty-title">Start your schedule</div>
-                <div class="schedule-empty-sub">Tap <strong>+ Add</strong> on mics you want to hit tonight.</div>
-            `;
-            scheduleSlot.appendChild(empty);
-        } else {
-            const routeMics = STATE.route.map(id => STATE.mics.find(m => m.id === id)).filter(Boolean);
-            const setDuration = STATE.setDuration || 45;
-
-            const fmtTime = (d) => {
-                const h = d?.getHours?.() || 0;
-                const m = d?.getMinutes?.() || 0;
-                const displayH = h > 12 ? h - 12 : (h === 0 ? 12 : h);
-                const ampm = h >= 12 ? 'PM' : 'AM';
-                return `${displayH}:${m.toString().padStart(2, '0')} ${ampm}`;
-            };
-
-            const startTime = routeMics[0]?.start ? fmtTime(routeMics[0].start) : '';
-            const endTime = routeMics[routeMics.length - 1]?.start ? fmtTime(routeMics[routeMics.length - 1].start) : '';
-            const rangeText = startTime && endTime && startTime !== endTime ? `${startTime}–${endTime}` : startTime;
-
-            // Conflict detection (adjacent overlap in current itinerary order)
-            const conflicts = new Set();
-            for (let i = 1; i < routeMics.length; i++) {
-                const prev = routeMics[i - 1];
-                const cur = routeMics[i];
-                if (!prev?.start || !cur?.start) continue;
-                const prevEnd = prev.start.getTime() + (setDuration * 60 * 1000);
-                if (cur.start.getTime() < prevEnd) {
-                    conflicts.add(prev.id);
-                    conflicts.add(cur.id);
-                }
-            }
-
-            const scheduleCard = document.createElement('div');
-            scheduleCard.className = `my-schedule-card${STATE.scheduleExpanded ? ' expanded' : ''}`;
-            scheduleCard.setAttribute('role', 'button');
-            scheduleCard.setAttribute('aria-expanded', STATE.scheduleExpanded ? 'true' : 'false');
-            scheduleCard.onclick = () => {
-                if ('vibrate' in navigator) navigator.vibrate(8);
-                STATE.scheduleExpanded = !STATE.scheduleExpanded;
-                scheduleCard.classList.toggle('expanded', STATE.scheduleExpanded);
-                scheduleCard.setAttribute('aria-expanded', STATE.scheduleExpanded ? 'true' : 'false');
-                expandedList.classList.toggle('is-open', STATE.scheduleExpanded);
-            };
-            scheduleCard.innerHTML = `
-                <div class="my-schedule-card-left">
-                    <span class="my-schedule-icon">📋</span>
-                    <span class="my-schedule-card-count">${routeMics.length}</span>
-                    <span class="my-schedule-card-label">My Schedule</span>
-                </div>
-                <div class="my-schedule-card-right">
-                    <span class="my-schedule-card-preview">${rangeText}</span>
-                    <svg class="my-schedule-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M6 9l6 6 6-6"/>
-                    </svg>
-                </div>
-            `;
-            scheduleSlot.appendChild(scheduleCard);
-
-            const expandedList = document.createElement('div');
-            expandedList.className = `my-schedule-expanded${STATE.scheduleExpanded ? ' is-open' : ''}`;
-
-            const conflictBanner = conflicts.size
-                ? `
-                    <div class="schedule-conflict-banner" onclick="event.stopPropagation(); toggleHideConflicts();" role="button">
-                        <span class="schedule-conflict-dot"></span>
-                        <span><strong>${conflicts.size}</strong> conflict${conflicts.size === 1 ? '' : 's'} in your itinerary</span>
-                        <span class="schedule-conflict-cta">${STATE.hideConflicts ? 'Showing conflicts' : 'Hide conflicts in list'}</span>
-                    </div>
-                `
-                : '';
-
-            const itemsHtml = routeMics.map((mic) => {
-                const timeStr = mic.start ? fmtTime(mic.start) : '';
-                const rawPrice = mic.price || mic.cost || 0;
-                const priceStr = !rawPrice || rawPrice === 'Free' || rawPrice === 0
-                    ? 'FREE'
-                    : (String(rawPrice).startsWith('$') ? rawPrice : `$${rawPrice}`);
-                const priceClass = priceStr === 'FREE' ? 'free' : '';
-                const conflictClass = conflicts.has(mic.id) ? ' conflict' : '';
-
-                return `
-                    <div class="my-schedule-item${conflictClass}" draggable="true" data-mic-id="${mic.id}" aria-label="Scheduled stop">
-                        <div class="my-schedule-item-time">${timeStr}</div>
-                        <div class="my-schedule-item-info">
-                            <div class="my-schedule-item-venue">${escapeHtml(mic.title || mic.venue || 'Mic')}</div>
-                            <div class="my-schedule-item-price ${priceClass}">${priceStr}</div>
-                        </div>
-                        <div class="my-schedule-item-actions">
-                            <button class="schedule-drag-handle" onclick="event.stopPropagation();" aria-label="Drag to reorder" title="Drag to reorder">⋮⋮</button>
-                            <button class="my-schedule-remove" onclick="event.stopPropagation(); removeFromRoute('${mic.id}')" aria-label="Remove from schedule">✕</button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-
-            const toolsRow = `
-                <div class="schedule-tools" onclick="event.stopPropagation()">
-                    <button class="schedule-tool-btn" onclick="event.stopPropagation(); sortRouteByTime();" aria-label="Sort schedule by time">Sort by time</button>
-                </div>
-            `;
-
-            expandedList.innerHTML = `${conflictBanner}${itemsHtml}${toolsRow}`;
-            scheduleSlot.appendChild(expandedList);
-
-            if (typeof initScheduleReorder === 'function') {
-                initScheduleReorder(expandedList);
-            } else if (typeof initScheduleDragAndDrop === 'function') {
-                initScheduleDragAndDrop(expandedList);
-            }
-        }
-    }
+    // Plan mode: schedule UI is rendered later (after "Happening Now" calculation)
 
     // Use fresh timestamp for accurate calculations
     const currentTime = new Date();
@@ -769,6 +652,9 @@ function render(mode) {
     }
 
     // Render "Happening Now" collapsed card at top (only if there are in-progress mics)
+    // In plan mode: render to sticky scheduleSlot; otherwise render to scrollable container
+    const happeningNowTarget = (STATE.planMode && scheduleSlot) ? scheduleSlot : container;
+
     if (mode === 'today' && happeningNowMics.length > 0 && !STATE.happeningNowExpanded) {
         const venueNames = happeningNowMics.slice(0, 2).map(m => m.title || m.venue || 'Mic').join(', ');
         const moreCount = happeningNowMics.length > 2 ? ` +${happeningNowMics.length - 2} more` : '';
@@ -792,7 +678,7 @@ function render(mode) {
                 </svg>
             </div>
         `;
-        container.appendChild(card);
+        happeningNowTarget.appendChild(card);
     }
 
     // Show "Back to Upcoming" button when viewing happening now
@@ -813,7 +699,114 @@ function render(mode) {
         container.appendChild(backBtn);
     }
 
-    // (Schedule UI rendered above into #plan-schedule-slot)
+    // Plan mode: render schedule UI (below "Happening Now" in sticky slot)
+    if (scheduleSlot && STATE.planMode && STATE.route && STATE.route.length > 0) {
+        const routeMics = STATE.route.map(id => STATE.mics.find(m => m.id === id)).filter(Boolean);
+        const setDuration = STATE.setDuration || 45;
+
+        const fmtTime = (d) => {
+            const h = d?.getHours?.() || 0;
+            const m = d?.getMinutes?.() || 0;
+            const displayH = h > 12 ? h - 12 : (h === 0 ? 12 : h);
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            return `${displayH}:${m.toString().padStart(2, '0')} ${ampm}`;
+        };
+
+        const startTime = routeMics[0]?.start ? fmtTime(routeMics[0].start) : '';
+        const endTime = routeMics[routeMics.length - 1]?.start ? fmtTime(routeMics[routeMics.length - 1].start) : '';
+        const rangeText = startTime && endTime && startTime !== endTime ? `${startTime}–${endTime}` : startTime;
+
+        // Conflict detection (adjacent overlap in current itinerary order)
+        const conflicts = new Set();
+        for (let i = 1; i < routeMics.length; i++) {
+            const prev = routeMics[i - 1];
+            const cur = routeMics[i];
+            if (!prev?.start || !cur?.start) continue;
+            const prevEnd = prev.start.getTime() + (setDuration * 60 * 1000);
+            if (cur.start.getTime() < prevEnd) {
+                conflicts.add(prev.id);
+                conflicts.add(cur.id);
+            }
+        }
+
+        const scheduleCard = document.createElement('div');
+        scheduleCard.className = `my-schedule-card${STATE.scheduleExpanded ? ' expanded' : ''}`;
+        scheduleCard.setAttribute('role', 'button');
+        scheduleCard.setAttribute('aria-expanded', STATE.scheduleExpanded ? 'true' : 'false');
+        const expandedList = document.createElement('div');
+        expandedList.className = `my-schedule-expanded${STATE.scheduleExpanded ? ' is-open' : ''}`;
+
+        scheduleCard.onclick = () => {
+            if ('vibrate' in navigator) navigator.vibrate(8);
+            STATE.scheduleExpanded = !STATE.scheduleExpanded;
+            scheduleCard.classList.toggle('expanded', STATE.scheduleExpanded);
+            scheduleCard.setAttribute('aria-expanded', STATE.scheduleExpanded ? 'true' : 'false');
+            expandedList.classList.toggle('is-open', STATE.scheduleExpanded);
+        };
+        scheduleCard.innerHTML = `
+            <div class="my-schedule-card-left">
+                <span class="my-schedule-icon">📋</span>
+                <span class="my-schedule-card-count">${routeMics.length}</span>
+                <span class="my-schedule-card-label">My Schedule</span>
+            </div>
+            <div class="my-schedule-card-right">
+                <span class="my-schedule-card-preview">${rangeText}</span>
+                <svg class="my-schedule-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M6 9l6 6 6-6"/>
+                </svg>
+            </div>
+        `;
+        scheduleSlot.appendChild(scheduleCard);
+
+        const conflictBanner = conflicts.size
+            ? `
+                <div class="schedule-conflict-banner" onclick="event.stopPropagation(); toggleHideConflicts();" role="button">
+                    <span class="schedule-conflict-dot"></span>
+                    <span><strong>${conflicts.size}</strong> conflict${conflicts.size === 1 ? '' : 's'} in your itinerary</span>
+                    <span class="schedule-conflict-cta">${STATE.hideConflicts ? 'Showing conflicts' : 'Hide conflicts in list'}</span>
+                </div>
+            `
+            : '';
+
+        const itemsHtml = routeMics.map((mic) => {
+            const timeStr = mic.start ? fmtTime(mic.start) : '';
+            const rawPrice = mic.price || mic.cost || 0;
+            const priceStr = !rawPrice || rawPrice === 'Free' || rawPrice === 0
+                ? 'FREE'
+                : (String(rawPrice).startsWith('$') ? rawPrice : `$${rawPrice}`);
+            const priceClass = priceStr === 'FREE' ? 'free' : '';
+            const conflictClass = conflicts.has(mic.id) ? ' conflict' : '';
+
+            return `
+                <div class="my-schedule-item${conflictClass}" draggable="true" data-mic-id="${mic.id}" aria-label="Scheduled stop">
+                    <div class="my-schedule-item-time">${timeStr}</div>
+                    <div class="my-schedule-item-info">
+                        <div class="my-schedule-item-venue">${escapeHtml(mic.title || mic.venue || 'Mic')}</div>
+                        <div class="my-schedule-item-price ${priceClass}">${priceStr}</div>
+                    </div>
+                    <div class="my-schedule-item-actions">
+                        <button class="schedule-drag-handle" onclick="event.stopPropagation();" aria-label="Drag to reorder" title="Drag to reorder">⋮⋮</button>
+                        <button class="my-schedule-remove" onclick="event.stopPropagation(); removeFromRoute('${mic.id}')" aria-label="Remove from schedule">✕</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        const toolsRow = `
+            <div class="schedule-tools" onclick="event.stopPropagation()">
+                <button class="schedule-tool-btn" onclick="event.stopPropagation(); sortRouteByTime();" aria-label="Sort schedule by time">Sort by time</button>
+            </div>
+        `;
+
+        expandedList.innerHTML = `${conflictBanner}${itemsHtml}${toolsRow}`;
+        scheduleSlot.appendChild(expandedList);
+
+        if (typeof initScheduleReorder === 'function') {
+            initScheduleReorder(expandedList);
+        } else if (typeof initScheduleDragAndDrop === 'function') {
+            initScheduleDragAndDrop(expandedList);
+        }
+    }
 
     // In transit mode: split into visible and hidden for "Show more" functionality
     const searchQuery = document.getElementById('search-input')?.value?.toLowerCase() || '';
