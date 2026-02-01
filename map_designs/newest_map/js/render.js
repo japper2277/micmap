@@ -946,11 +946,13 @@ function render(mode) {
 
     // Show sticky bottom banner if few mics left tonight
     // Use total mics (happening now + upcoming), not just current view
+    // Only show when no filters are active (don't suggest tomorrow when filters caused 0 results)
     const bottomBanner = document.getElementById('drawer-bottom-banner');
     const bannerCount = document.getElementById('banner-count');
     if (bottomBanner) {
         const totalTonightMics = happeningNowMics.length + upcomingMics.length;
-        if (mode === 'today' && totalTonightMics > 0 && totalTonightMics <= 5) {
+        const noFiltersActive = typeof hasActiveFilters === 'function' ? !hasActiveFilters() : true;
+        if (mode === 'today' && totalTonightMics > 0 && totalTonightMics <= 5 && noFiltersActive) {
             bannerCount.textContent = totalTonightMics;
             bottomBanner.classList.add('show');
         } else {

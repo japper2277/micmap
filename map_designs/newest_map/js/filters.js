@@ -865,6 +865,12 @@ function clearAllFilters() {
     resetFilters();
     render(STATE.currentMode);
 
+    // Scroll list back to top
+    const listContent = document.getElementById('list-content');
+    if (listContent) {
+        listContent.scrollTop = 0;
+    }
+
     // Haptic feedback on mobile
     if ('vibrate' in navigator) {
         navigator.vibrate(10);
@@ -909,10 +915,10 @@ function updateClearFiltersVisibility() {
     const mobileBtn = document.getElementById('clear-filters-mobile');
 
     if (desktopBtn) {
-        desktopBtn.style.display = hasFilters ? '' : 'none';
+        desktopBtn.classList.toggle('visible', hasFilters);
     }
     if (mobileBtn) {
-        mobileBtn.style.display = hasFilters ? '' : 'none';
+        mobileBtn.classList.toggle('visible', hasFilters);
     }
 }
 

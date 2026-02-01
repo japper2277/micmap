@@ -161,7 +161,11 @@
                     <h1 class="title-text">Mics</h1>
                     <span class="count-text" id="mic-count" aria-live="polite" aria-atomic="true"></span>
                     <!-- Clear filters button (desktop only, next to count) -->
-                    <button class="clear-filters-btn desktop-only" id="clear-filters-desktop" onclick="clearAllFilters()" aria-label="Clear all filters" style="display: none;">
+                    <button class="clear-filters-btn" id="clear-filters-desktop" onclick="clearAllFilters()" aria-label="Clear all filters">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
                         Clear
                     </button>
                     <span class="filter-feedback" id="filter-feedback" style="display: none;"></span>
