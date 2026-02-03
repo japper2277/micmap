@@ -557,6 +557,20 @@ function render(mode) {
         filtered = STATE.happeningNowExpanded ? [...happeningNowMics] : [...upcomingMics];
     }
 
+    // Hardcoded Comedy Shop warning card (always show at top)
+    const comedyShopWarning = document.createElement('div');
+    comedyShopWarning.className = 'stream-item warning-card';
+    comedyShopWarning.innerHTML = `
+        <div class="warning-card-content">
+            <div class="warning-icon"><svg viewBox="0 0 24 24" fill="#f97316"><path d="M12 2L1 21h22L12 2z"/><rect x="11" y="9" width="2" height="6" rx="1" fill="#1a1a1a"/><circle cx="12" cy="17.5" r="1.2" fill="#1a1a1a"/></svg></div>
+            <div class="warning-text">
+                <div class="warning-venue">Comedy Shop</div>
+                <div class="warning-message">Multiple women have alleged sexual harassment by this venue's owner <a href="https://www.instagram.com/p/DUPKOE_EaCE/" target="_blank" rel="noopener" class="warning-learn-more" onclick="event.stopPropagation();">Learn more →</a></div>
+            </div>
+        </div>
+    `;
+    container.appendChild(comedyShopWarning);
+
     // Render "Happening Now" collapsed card at top (only if there are in-progress mics)
     if (mode === 'today' && happeningNowMics.length > 0 && !STATE.happeningNowExpanded) {
         const venueNames = happeningNowMics.slice(0, 2).map(m => m.title || m.venue || 'Mic').join(', ');
