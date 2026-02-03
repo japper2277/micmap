@@ -31,11 +31,29 @@ function handleAddClick(btn, micId) {
 
 // Persist plan state to localStorage
 function persistPlanState() {
+    // Save current route to the specific date in schedules
+    const dateKey = STATE.selectedCalendarDate || new Date().toDateString();
+
+    if (dateKey) {
+        if (STATE.route.length > 0) {
+            STATE.schedules[dateKey] = [...STATE.route];
+        } else {
+            delete STATE.schedules[dateKey];
+        }
+        localStorage.setItem('planSchedules', JSON.stringify(STATE.schedules));
+    }
+
+    // Keep legacy/session storage for recovery
     localStorage.setItem('planRoute', JSON.stringify(STATE.route));
     localStorage.setItem('planDismissed', JSON.stringify(STATE.dismissed));
     localStorage.setItem('planSetDuration', STATE.setDuration.toString());
-    localStorage.setItem('planTimeWindowStart', STATE.timeWindowStart.toString());
-    localStorage.setItem('planTimeWindowEnd', STATE.timeWindowEnd.toString());
+    if (STATE.timeWindowStart) localStorage.setItem('planTimeWindowStart', STATE.timeWindowStart.toString());
+    if (STATE.timeWindowEnd) localStorage.setItem('planTimeWindowEnd', STATE.timeWindowEnd.toString());
+
+    // Update calendar dots to reflect changes
+    if (typeof renderCalendarDots === 'function') {
+        renderCalendarDots();
+    }
 }
 
 // Clear plan state from localStorage
@@ -270,6 +288,7 @@ function initScheduleDragAndDrop(containerEl) {
         updateRouteClass();
         updateMarkerStates();
         updateRouteLine();
+        render(STATE.currentMode);
     });
 }
 
@@ -401,6 +420,7 @@ function initScheduleTouchReorder(containerEl) {
         updateRouteClass();
         updateMarkerStates();
         updateRouteLine();
+        render(STATE.currentMode);
     });
 
     containerEl.addEventListener('pointercancel', (e) => {
@@ -533,6 +553,13 @@ function updateMarkerStates() {
         // Sort by start time so earliest mic is processed first
         const sortedMics = [...todayMics].sort((a, b) => (a.start || 0) - (b.start || 0));
         const labeledMarkers = new Set();
+        let earliestGlobalTime = Infinity;
+
+        // First pass: Find earliest mic time
+        sortedMics.forEach(mic => {
+            const t = getTimeInMinutes(mic.start);
+            if (t < earliestGlobalTime) earliestGlobalTime = t;
+        });
 
         sortedMics.forEach(mic => {
             const marker = STATE.markerLookup[mic.id];
@@ -548,6 +575,13 @@ function updateMarkerStates() {
                 // Show commute from user location
                 const commuteMins = getCommuteFromUser(mic);
                 setCommuteLabel(el, commuteMins);
+
+                // Highlight the earliest mic(s) as "suggested start"
+                if (getTimeInMinutes(mic.start) === earliestGlobalTime) {
+                    el.classList.add('marker-glow');
+                } else {
+                    el.classList.add('marker-suggested');
+                }
             }
         });
         // Mark commute times as loaded
@@ -567,46 +601,94 @@ function updateMarkerStates() {
         markerMics.get(marker).push(mic);
     });
 
-    // Update each marker based on timing
+    // PASS 1: Calculate states and find the best "next" option
+    const markerUpdates = [];
+    let minReachableTime = Infinity;
+
     markerMics.forEach((mics, marker) => {
         const el = marker.getElement();
         if (!el) return;
 
-        // Clear previous states
-        el.classList.remove('marker-selected', 'marker-glow', 'marker-suggested', 'marker-dimmed', 'marker-dismissed');
+        let state = 'dimmed'; // Default to dimmed
+        let markerReachableTime = Infinity;
+        let commuteMins = 0;
 
         // Check if any mic at this marker is in the route
         const hasSelectedMic = mics.some(m => STATE.route.includes(m.id));
         if (hasSelectedMic) {
+            state = 'selected';
+        } else {
+            // Check if ALL mics at this marker are dismissed
+            const allDismissed = mics.every(m => STATE.dismissed.includes(m.id));
+            if (allDismissed) {
+                state = 'dismissed';
+            } else {
+                // Use earliest mic for commute label calculation base
+                const earliestMic = mics.reduce((a, b) => (a.start || 0) < (b.start || 0) ? a : b);
+                commuteMins = getCommuteBetweenMics(lastMic, earliestMic);
+
+                // Check if ANY mic at this marker is reachable
+                let anyReachable = false;
+                mics.forEach(mic => {
+                    if (STATE.route.includes(mic.id)) return;
+                    if (STATE.dismissed.includes(mic.id)) return;
+
+                    const status = getMicStatus(mic.id, lastMicId, commuteMins);
+                    if (status !== 'dimmed') {
+                        anyReachable = true;
+                        const t = getTimeInMinutes(mic.start);
+                        if (t < markerReachableTime) markerReachableTime = t;
+                    }
+                });
+
+                if (anyReachable) {
+                    state = 'suggested';
+                    if (markerReachableTime < minReachableTime) {
+                        minReachableTime = markerReachableTime;
+                    }
+                }
+            }
+        }
+        // Store update info
+        markerUpdates.push({ el, state, commuteMins, reachableTime: markerReachableTime });
+    });
+
+    // PASS 2: Apply updates
+    let glowApplied = false;
+
+    // Sort updates to prioritize the "best" suggestion for glowing
+    // Criteria: Is Suggested -> Earliest Reachable Time -> Shortest Commute
+    markerUpdates.sort((a, b) => {
+        if (a.state !== 'suggested' && b.state === 'suggested') return 1;
+        if (a.state === 'suggested' && b.state !== 'suggested') return -1;
+        
+        if (a.reachableTime !== b.reachableTime) return a.reachableTime - b.reachableTime;
+        return a.commuteMins - b.commuteMins;
+    });
+
+    markerUpdates.forEach(({ el, state, commuteMins, reachableTime }) => {
+        // Clear previous states
+        el.classList.remove('marker-selected', 'marker-glow', 'marker-suggested', 'marker-dimmed', 'marker-dismissed');
+        removeCommuteLabel(el);
+
+        if (state === 'selected') {
             el.classList.add('marker-selected');
-            removeCommuteLabel(el);
-            return;
-        }
-
-        // Check if ALL mics at this marker are dismissed
-        const allDismissed = mics.every(m => STATE.dismissed.includes(m.id));
-        if (allDismissed) {
+        } else if (state === 'dismissed') {
             el.classList.add('marker-dismissed');
-            removeCommuteLabel(el);
-            return;
-        }
-
-        // Use earliest mic for commute label
-        const earliestMic = mics.reduce((a, b) => (a.start || 0) < (b.start || 0) ? a : b);
-        const commuteMins = getCommuteBetweenMics(lastMic, earliestMic);
-        setCommuteLabel(el, commuteMins);
-
-        // Check if ANY mic at this marker is reachable (not dimmed and not dismissed)
-        const anyReachable = mics.some(mic => {
-            if (STATE.route.includes(mic.id)) return true;
-            if (STATE.dismissed.includes(mic.id)) return false;
-            const status = getMicStatus(mic.id, lastMicId, commuteMins);
-            return status !== 'dimmed';
-        });
-
-        // Only dim if ALL mics at this marker are unreachable
-        if (!anyReachable) {
+        } else if (state === 'dimmed') {
             el.classList.add('marker-dimmed');
+        } else if (state === 'suggested') {
+            el.classList.add('marker-suggested');
+            
+            // "Google Standard" Logic:
+            // 1. Only ONE marker glows (the absolute best option).
+            // 2. Only the glowing marker gets the commute label (reduce noise).
+            if (!glowApplied && reachableTime !== Infinity && reachableTime === minReachableTime) {
+                // Double check this is actually the best one (it should be due to sort)
+                el.classList.add('marker-glow');
+                setCommuteLabel(el, commuteMins); // Only show label for the top recommendation
+                glowApplied = true;
+            }
         }
     });
 }
@@ -614,7 +696,9 @@ function updateMarkerStates() {
 // Get time in minutes from midnight (for comparison)
 function getTimeInMinutes(date) {
     if (!(date instanceof Date)) return 0;
-    return date.getHours() * 60 + date.getMinutes();
+    let h = date.getHours();
+    if (h < 4) h += 24;
+    return h * 60 + date.getMinutes();
 }
 
 // Calculate if a mic is reachable - can it fit anywhere in the route?
@@ -715,6 +799,76 @@ function updateRouteLine() {
         lineCap: 'round',
         lineJoin: 'round'
     }).addTo(map);
+}
+
+// Google Calendar Integration
+function formatGoogleTime(date) {
+    if (!date) return '';
+    return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+}
+
+function generateGoogleCalendarUrl(mic) {
+    if (!mic) return '';
+    
+    const venueName = mic.title || mic.venue || 'Open Mic';
+    const title = encodeURIComponent(`Open Mic @ ${venueName}`);
+    
+    // Default duration 90 mins if not specified
+    const start = mic.start || new Date();
+    const durationMins = STATE.setDuration || 90;
+    const end = new Date(start.getTime() + durationMins * 60000);
+    
+    const startTime = formatGoogleTime(start);
+    const endTime = formatGoogleTime(end);
+    
+    const address = mic.address || mic.location || (mic.neighborhood ? `${mic.venue}, ${mic.neighborhood}, NY` : 'New York, NY');
+    const location = encodeURIComponent(address);
+    
+    const price = mic.price || 'Free';
+    const signup = mic.signupInstructions || 'Check app for signup details';
+    const details = encodeURIComponent(`Price: ${price}\nSignup: ${signup}\n\nPlan your night with MicFinder NYC`);
+
+    return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startTime}/${endTime}&location=${location}&details=${details}`;
+}
+
+function exportScheduleToGoogleCalendar() {
+    if (!STATE.route || STATE.route.length === 0) {
+        if (typeof toastService !== 'undefined') toastService.show('No mics in schedule', 'error');
+        return;
+    }
+
+    // Since we can't batch add via URL scheme, we'll export the *first* mic 
+    // or maybe open multiple tabs? Opening multiple tabs is often blocked.
+    // Let's just export the first one for now, or maybe prompt?
+    // BETTER: Export the whole itinerary as one event or provide links for each?
+    // The requirement says "Creates events for each scheduled mic".
+    // But URL scheme only does one. 
+    // Let's try to add "Add to Calendar" button *per mic* in the schedule list,
+    // OR just open the first one and let user handle it.
+    
+    // Actually, for "Add to Google Calendar" button on the schedule card, 
+    // maybe we create a combined event "Mic Crawl: Venue 1, Venue 2..."?
+    // Or we just add the button to each item in the list.
+    
+    // Let's look at the plan: "Add to Google Calendar button... Creates events for each scheduled mic".
+    // If I click one button and it creates multiple events, that requires API.
+    // If I use URL scheme, I can only do one.
+    
+    // Strategy: Add an export button *next to* the schedule that opens a modal with links for each?
+    // OR add a small calendar icon to each item in the schedule list.
+    
+    // Let's go with adding a small calendar icon to each item in the list in `render.js`.
+    // And maybe a "Export All" that tries to open multiple windows (might be blocked).
+    
+    // For this function, let's make it handle a specific mic ID.
+}
+
+function exportMicToCalendar(micId) {
+    const mic = STATE.mics.find(m => m.id === micId);
+    if (!mic) return;
+    
+    const url = generateGoogleCalendarUrl(mic);
+    window.open(url, '_blank');
 }
 
 // Handle set duration change
@@ -851,4 +1005,137 @@ function toggleHideConflicts() {
 // Legacy function - now just calls render() since My Schedule is inline
 function renderPlanDrawer() {
     render(STATE.currentMode);
+}
+
+// Find mics that fit in the current schedule gaps
+function getSuggestedMics() {
+    if (!STATE.route || STATE.route.length === 0) return [];
+
+    // Get today's mics
+    const now = new Date();
+    const todayName = CONFIG.dayNames[now.getDay()];
+    const tomorrowName = CONFIG.dayNames[(now.getDay() + 1) % 7];
+    const targetDay = STATE.currentMode === 'tomorrow' ? tomorrowName : todayName;
+    const todayMics = STATE.mics.filter(m => m.day === targetDay);
+
+    const routeMics = STATE.route
+        .map(id => STATE.mics.find(m => m.id === id))
+        .filter(m => m && m.start)
+        .sort((a, b) => (a.start || 0) - (b.start || 0));
+
+    if (routeMics.length === 0) return [];
+
+    const suggestions = [];
+    const setDuration = STATE.setDuration || 30;
+    const grace = STATE.planGracePeriod || 5;
+
+    // Helper to check if a mic is already in route or dismissed
+    const isAvailable = (mic) => {
+        return !STATE.route.includes(mic.id) && !STATE.dismissed.includes(mic.id);
+    };
+
+    // Helper to format reason
+    const getReason = (type, travelMins) => {
+        const mode = travelMins <= 15 ? 'walk' : 'travel';
+        const timeStr = `${travelMins}m ${mode}`;
+        
+        if (travelMins <= 10) return `Nearby • ${timeStr}`;
+        if (type === 'gap') return `Fits gap • ${timeStr}`;
+        return `Up next • ${timeStr}`;
+    };
+
+    // 1. Check for gaps BETWEEN mics
+    for (let i = 0; i < routeMics.length - 1; i++) {
+        const prevMic = routeMics[i];
+        const nextMic = routeMics[i+1];
+        
+        const prevEnd = getTimeInMinutes(prevMic.start) + setDuration;
+        const nextStart = getTimeInMinutes(nextMic.start);
+
+        // Find mics that start after prevEnd + travel and end before nextStart - travel
+        todayMics.forEach(mic => {
+            if (!isAvailable(mic)) return;
+            
+            const micStart = getTimeInMinutes(mic.start);
+            const micEnd = micStart + setDuration;
+
+            // Travel times
+            const travelTo = getCommuteBetweenMics(prevMic, mic);
+            const travelFrom = getCommuteBetweenMics(mic, nextMic);
+
+            if (micStart >= prevEnd + travelTo - grace && 
+                micEnd + travelFrom <= nextStart + grace) {
+                
+                suggestions.push({
+                    mic: mic,
+                    type: 'gap',
+                    score: travelTo + travelFrom, // Lower is better
+                    reason: getReason('gap', travelTo)
+                });
+            }
+        });
+    }
+
+    // 2. Check for slots AFTER the last mic
+    const lastMic = routeMics[routeMics.length - 1];
+    const lastEnd = getTimeInMinutes(lastMic.start) + setDuration;
+    
+    todayMics.forEach(mic => {
+        if (!isAvailable(mic)) return;
+
+        const micStart = getTimeInMinutes(mic.start);
+        const travelTo = getCommuteBetweenMics(lastMic, mic);
+
+        // Must be after last mic (plus travel) and within reasonable time (e.g. < 2 hours wait)
+        if (micStart >= lastEnd + travelTo - grace && 
+            micStart <= lastEnd + travelTo + 120) {
+            
+            suggestions.push({
+                mic: mic,
+                type: 'next',
+                score: travelTo + (micStart - (lastEnd + travelTo)), // Travel + Wait time
+                reason: getReason('next', travelTo)
+            });
+        }
+    });
+
+    // Deduplicate suggestions (prefer gap fillers over tail end)
+    const uniqueSuggestions = [];
+    const seenIds = new Set();
+    
+    // Sort by type (gap first) then score (lower is better)
+    suggestions.sort((a, b) => {
+        if (a.type !== b.type) return a.type === 'gap' ? -1 : 1;
+        return a.score - b.score;
+    });
+
+    for (const item of suggestions) {
+        if (!seenIds.has(item.mic.id)) {
+            seenIds.add(item.mic.id);
+            uniqueSuggestions.push(item);
+        }
+    }
+
+    return uniqueSuggestions.slice(0, 3);
+}
+
+function addSuggestedMic(micId) {
+    if ('vibrate' in navigator) {
+        navigator.vibrate([10, 30, 10]); // Distinct 'success' pattern
+    }
+    
+    // Find the element to animate (if possible)
+    const btn = document.querySelector(`.suggested-mic-item[data-id="${micId}"] .suggested-mic-add-btn`);
+    if (btn) {
+        btn.innerHTML = '✓';
+        btn.classList.add('added');
+    }
+
+    // Add with a slight delay to allow animation to register
+    setTimeout(() => {
+        addToRoute(micId);
+        if (typeof toastService !== 'undefined') {
+            toastService.show('Added to schedule', 'success');
+        }
+    }, 250);
 }

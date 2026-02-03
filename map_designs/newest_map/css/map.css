@@ -748,78 +748,166 @@
    PLAN MODE MARKER STATES
    ================================================================= */
 
-/* Selected - in route (green) */
+/* TRANSITIONS */
+.leaflet-marker-icon .mic-ticket,
+.leaflet-marker-icon .cluster-pill,
+.leaflet-marker-icon .multi-venue-ticket {
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), 
+                background-color 0.2s ease, 
+                box-shadow 0.2s ease, 
+                opacity 0.2s ease, 
+                filter 0.2s ease;
+}
+
+/* 1. SELECTED - In route (Strong Green + Checkmark indicator) */
 .marker-selected .mic-ticket,
 .marker-selected .cluster-pill,
 .marker-selected .multi-venue-ticket {
-    background: #22c55e !important;
-    border-color: #22c55e !important;
-    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.5) !important;
+    background: #16a34a !important; /* Green-600 */
+    border-color: #15803d !important; /* Green-700 */
+    box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.4), 0 8px 16px rgba(0, 0, 0, 0.3) !important;
+    z-index: 9000 !important;
+    transform: scale(1.1);
 }
 
 .marker-selected .mic-ticket .ticket-time,
 .marker-selected .mic-ticket .ticket-venue {
-    background: #22c55e !important;
+    background: #16a34a !important;
 }
 
 .marker-selected .cluster-pill {
-    background: #22c55e !important;
+    background: #16a34a !important;
     color: #fff !important;
 }
 
-/* Dimmed - unreachable (grayscale, faded but still visible) */
-.marker-dimmed {
-    opacity: 0.5 !important;
-    filter: grayscale(1) !important;
-    pointer-events: none !important;
+/* Add a checkmark badge to selected markers */
+.marker-selected .cluster-pill::after,
+.marker-selected .mic-ticket::after, 
+.marker-selected .multi-venue-ticket::after {
+    content: '✓';
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 18px;
+    height: 18px;
+    background: white;
+    color: #16a34a;
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    border: 2px solid #16a34a;
+    z-index: 10;
 }
 
-/* Dismissed - explicitly removed from route (faded with strikethrough effect) */
+/* Fix for cluster pill glass effect conflict */
+.marker-selected .cluster-pill::before {
+    /* Reset the touch target to be normal */
+    inset: -5px -8px; 
+}
+
+/* 2. GLOW - Suggested Next (Pulsing Animation) */
+@keyframes pulse-ring-green {
+    0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+    70% { box-shadow: 0 0 0 12px rgba(34, 197, 94, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+.marker-glow .mic-ticket,
+.marker-glow .cluster-pill,
+.marker-glow .multi-venue-ticket {
+    background: #22c55e !important; /* Green-500 */
+    border-color: #22c55e !important;
+    animation: pulse-ring-green 2s infinite;
+    z-index: 9999 !important; /* Always on top */
+    transform: scale(1.05);
+}
+
+/* 3. SUGGESTED - Reachable (Highlight) */
+.marker-suggested .mic-ticket,
+.marker-suggested .cluster-pill,
+.marker-suggested .multi-venue-ticket {
+    filter: brightness(1.1);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.8), 0 4px 12px rgba(0,0,0,0.3) !important;
+}
+
+/* 4. DIMMED - Unreachable (Grayscale, Faded) */
+.marker-dimmed {
+    z-index: 100 !important; /* Push to back */
+}
+
+.marker-dimmed .mic-ticket,
+.marker-dimmed .cluster-pill,
+.marker-dimmed .multi-venue-ticket {
+    opacity: 0.6 !important; /* Increased from 0.4 for outdoor visibility */
+    filter: grayscale(1) contrast(0.9) !important;
+    box-shadow: none !important;
+    background: #f3f4f6 !important;
+    color: #6b7280 !important;
+    border-color: #d1d5db !important;
+    pointer-events: none !important;
+    transform: scale(0.95);
+}
+
+.marker-dimmed .ticket-time,
+.marker-dimmed .ticket-venue {
+    background: #f3f4f6 !important;
+    color: #6b7280 !important;
+}
+
+/* 5. DISMISSED - Removed (Strikethrough, Red tint?) */
 .marker-dismissed {
-    opacity: 0.4 !important;
-    filter: grayscale(0.5) !important;
+    z-index: 50 !important;
+}
+
+.marker-dismissed .mic-ticket,
+.marker-dismissed .cluster-pill,
+.marker-dismissed .multi-venue-ticket {
+    opacity: 0.6 !important;
+    filter: grayscale(0.8) !important;
+    transform: scale(0.9);
 }
 
 .marker-dismissed .ticket-time,
-.marker-dismissed .mv-times-list {
+.marker-dismissed .mv-times-list,
+.marker-dismissed .pill-main-text {
     text-decoration: line-through;
+    color: #ef4444 !important; /* Red-500 text to indicate removed */
 }
 
-/* Strikethrough for unreachable times in plan mode */
-.time-unreachable {
-    opacity: 0.4;
-    text-decoration: line-through;
-    display: inline;
-    font-size: inherit;
-    line-height: inherit;
-}
-
-/* Ensure marker wrappers can position nano-tags */
+/* COMMUTE LABELS - Improved legibility */
 body.plan-mode .leaflet-marker-icon {
     overflow: visible !important;
 }
 
-/* Commute label - Nano-Tag style in plan mode */
 .marker-commute-label {
     position: absolute;
-    top: -6px;
-    right: -10px;
-    background: #3b82f6;
+    top: -8px; /* Slightly higher than before to clear the pin head */
+    right: -12px; /* Top right corner */
+    background: #2563eb; /* Blue-600 */
     color: #fff;
-    font-size: 11px;
+    font-size: 11px; /* Back to 11px for tighter badge look */
     font-weight: 800;
-    letter-spacing: -0.3px;
-    line-height: 1;
-    padding: 2px 5px;
-    border-radius: 4px;
-    border: 2px solid #0f1115;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    padding: 2px 6px;
+    border-radius: 6px;
+    border: 1.5px solid #ffffff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
     white-space: nowrap;
     pointer-events: none;
     z-index: 10000;
+    transition: all 0.2s ease;
+    
+    /* Remove triangle clip-path for badge look */
+    clip-path: none; 
 }
 
-/* Hide commute labels when not in plan mode */
-body:not(.plan-mode) .marker-commute-label {
-    display: none;
+/* Hide commute labels for dimmed/dismissed/selected */
+.marker-dimmed .marker-commute-label,
+.marker-dismissed .marker-commute-label,
+.marker-selected .marker-commute-label {
+    opacity: 0;
+    transform: translateX(-50%) translateY(5px);
 }
