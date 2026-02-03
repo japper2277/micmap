@@ -138,28 +138,42 @@
     animation: loading-pulse 2s ease-in-out infinite;
 }
 
-/* --- CLEAR FILTERS BUTTON (Desktop - next to count) --- */
+/* --- CLEAR FILTERS BUTTON (Desktop only - pill style) --- */
 .clear-filters-btn {
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--rose, #f43f5e);
-    background: none;
-    border: none;
-    padding: 4px 8px;
-    margin-left: 4px;
+    display: none; /* Hidden by default, shown via JS on desktop only */
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 12px;
+    margin-left: 8px;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 6px;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
     cursor: pointer;
-    border-radius: 4px;
     transition: all 0.15s ease;
     white-space: nowrap;
 }
 
 .clear-filters-btn:hover {
-    background: rgba(244, 63, 94, 0.1);
-    color: #ff5a7a;
+    border-color: rgba(255, 255, 255, 0.4);
+    color: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.05);
 }
 
 .clear-filters-btn:active {
-    transform: scale(0.95);
+    transform: scale(0.97);
+}
+
+/* Only show on desktop when visible class added */
+@media (min-width: 640px) {
+    .clear-filters-btn.visible {
+        display: inline-flex;
+    }
 }
 
 /* Desktop only utility */

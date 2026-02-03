@@ -768,16 +768,13 @@ function hasActiveFilters() {
 }
 
 // Update clear filters button visibility based on active filters
+// Desktop only - mobile uses pill × buttons instead
 function updateClearFiltersVisibility() {
     const hasFilters = hasActiveFilters();
     const desktopBtn = document.getElementById('clear-filters-desktop');
-    const mobileBtn = document.getElementById('clear-filters-mobile');
 
     if (desktopBtn) {
-        desktopBtn.style.display = hasFilters ? '' : 'none';
-    }
-    if (mobileBtn) {
-        mobileBtn.style.display = hasFilters ? '' : 'none';
+        desktopBtn.classList.toggle('visible', hasFilters);
     }
 }
 
