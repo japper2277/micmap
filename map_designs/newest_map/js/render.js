@@ -357,8 +357,10 @@ function render(mode) {
     // First group by exact venue (same lat/lng)
     // Use filtered mics for map markers so filters apply to both list AND map
     // Skip mics without valid coordinates (they'll still show in the list)
+    // Skip warning-only entries (no map marker for them)
     const venueGroups = {};
     filtered.forEach(mic => {
+        if (mic.warning) return; // Warning entries don't get map markers
         if (mic.lat == null || mic.lng == null || isNaN(mic.lat) || isNaN(mic.lng)) return;
         const key = `${mic.lat},${mic.lng}`;
         if (!venueGroups[key]) venueGroups[key] = [];
@@ -872,10 +874,36 @@ function render(mode) {
         hiddenConflictCount = beforeFilter - visibleMics.length;
     }
 
+    // Separate warning cards from regular mics - render warnings first
+    const warningMics = visibleMics.filter(m => m.warning);
+    const regularMics = visibleMics.filter(m => !m.warning);
+
+    // Render warning cards at top (no time header)
+    warningMics.forEach(mic => {
+        const card = document.createElement('div');
+        card.id = `card-${mic.id}`;
+        card.className = 'stream-item warning-card';
+        const warningLink = mic.warningLink || '';
+        const venueName = escapeHtml(mic.title || mic.venueName || 'Venue');
+        const learnMoreHtml = warningLink
+            ? `<a href="${escapeHtml(warningLink)}" target="_blank" rel="noopener" class="warning-learn-more" onclick="event.stopPropagation();">Learn more →</a>`
+            : '';
+        card.innerHTML = `
+            <div class="warning-card-content">
+                <div class="warning-icon"><svg viewBox="0 0 24 24" fill="#f97316"><path d="M12 2L1 21h22L12 2z"/><rect x="11" y="9" width="2" height="6" rx="1" fill="#1a1a1a"/><circle cx="12" cy="17.5" r="1.2" fill="#1a1a1a"/></svg></div>
+                <div class="warning-text">
+                    <div class="warning-venue">${venueName}</div>
+                    <div class="warning-message">${escapeHtml(mic.warning)} ${learnMoreHtml}</div>
+                </div>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+
     // Group by Hour with Sticky Headers
     let currentHour = -1;
 
-    visibleMics.forEach(mic => {
+    regularMics.forEach(mic => {
         const micHour = mic.start ? mic.start.getHours() : 0;
         const diffMins = mic.start ? (mic.start - currentTime) / 60000 : 999;
         const isHappeningNow = (mode === 'today') && diffMins < 0 && diffMins >= -30;
@@ -904,6 +932,7 @@ function render(mode) {
         card.setAttribute('tabindex', '0');
         card.setAttribute('role', 'article');
         card.setAttribute('aria-label', `${mic.title || 'Mic'} at ${mic.timeStr}, ${mic.hood || 'NYC'}, ${mic.price || 'Free'}`);
+
         card.onkeydown = (e) => {
             if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();

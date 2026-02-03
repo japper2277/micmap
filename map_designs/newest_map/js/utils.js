@@ -105,6 +105,7 @@ function getNow() {
 
 // Parse time string to Date object for today
 function parseTime(timeStr) {
+    if (!timeStr) return null;
     const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
     if (!match) return null;
     let hours = parseInt(match[1]);
