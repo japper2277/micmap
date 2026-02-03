@@ -501,3 +501,38 @@ npm test        # Jest tests
 - Check `transitService` in browser console
 - Verify `STATE.transitTimes` has data
 - Check `/api/proxy/transit` response in Network tab
+
+---
+
+## Working with Claude Code
+
+### Session Workflow
+1. **Start with Plan Mode** - Press `Shift+Tab` twice to enter plan mode
+2. Write your PR goal, iterate on the plan
+3. Switch to auto-accept edits mode for 1-shot completion
+4. Good planning upfront = faster execution
+
+### Parallel Sessions
+- Run multiple Claude instances in separate terminal tabs for independent tasks
+- Use `--teleport` to hand off sessions between CLI and claude.ai/code web interface
+
+### Model Choice
+- Use Opus 4.5 with thinking for complex tasks (better tool use, requires less steering)
+
+### Useful Commands
+- `/help` - Get help with Claude Code
+- `/config` - View/edit configuration
+- `/reset` - Clear context and start fresh
+- `Shift+Tab` - Cycle through permission modes
+
+### Project-Specific Tips
+- **Frontend changes**: Test in browser with `npx live-server map_designs/newest_map`
+- **Backend changes**: Run `cd api && npm test`
+- **Mobile**: Always check mobile view (640px breakpoint)
+- **Filters**: Test filter combinations in render.js
+
+### What NOT to Do
+- Don't add unnecessary abstractions or helpers for one-time operations
+- Don't add docstrings/comments to code you didn't change
+- Don't create new files when editing existing ones works
+- Don't over-engineer - keep changes minimal and focused
