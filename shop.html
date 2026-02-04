@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+    body { background: #000; padding: 20px; font-family: -apple-system, sans-serif; }
+    
+    /* App Store v1.1 Simulation Styles */
+    .stream-item {
+        background: rgba(255, 149, 0, 0.08); /* Subtle orange tint */
+        border: 2px solid #ff9500; /* Orange border */
+        border-radius: 12px;
+        color: #fff;
+        max-width: 600px;
+        overflow: hidden;
+        margin-bottom: 20px;
+    }
+
+    .card-layout-mobile {
+        display: flex;
+        padding: 16px;
+        gap: 14px;
+    }
+
+    .specs-col {
+        flex-shrink: 0;
+        width: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Warning icon */
+    .warning-icon {
+        font-size: 32px;
+        color: #ff9500;
+    }
+
+    .info-col { flex-grow: 1; min-width: 0; }
+
+    /* Venue name heading */
+    .venue-name {
+        font-weight: 600;
+        font-size: 17px;
+        color: #ff9500;
+        margin-bottom: 6px;
+    }
+
+    /* Warning message */
+    .meta-row {
+        font-size: 14px;
+        color: #d1d1d6;
+        line-height: 1.5;
+    }
+
+    .action-col { flex-shrink: 0; display: flex; align-items: center; }
+    .signup-btn {
+        background: transparent;
+        color: #ff9500;
+        padding: 0;
+        font-size: 14px;
+        font-weight: 500;
+        text-decoration: none;
+        border: none;
+    }
+</style>
+</head>
+<body>
+
+    <h2 style="color: #8e8e93; font-size: 14px; margin-bottom: 10px;">CLEANER WARNING BANNER (Using v1.1 Card Structure)</h2>
+    <div class="stream-item">
+        <div class="card-layout-mobile">
+            <!-- Left Side: Warning Icon -->
+            <div class="specs-col">
+                <div class="warning-icon">⚠︎</div>
+            </div>
+
+            <!-- Middle: Venue Name + Warning Message -->
+            <div class="info-col">
+                <div class="venue-name">Comedy Shop</div>
+                <div class="meta-row">
+                    Multiple women have alleged sexual harassment by this venue's owner
+                </div>
+            </div>
+
+            <!-- Right: Learn More Link -->
+            <div class="action-col">
+                <div class="signup-btn">Learn more →</div>
+            </div>
+        </div>
+    </div>
+
+    <p style="color: #8e8e93; font-size: 12px; max-width: 600px; line-height: 1.5;">
+        <strong>Implementation:</strong> This matches the screenshot design while using the existing v1.1 card structure:
+        <br>• Left column (specs-col): Warning icon
+        <br>• Middle column (info-col): Venue name + warning text
+        <br>• Right column (action-col): "Learn more →" link
+        <br><br>
+        All changes can be made via API content + CSS overrides (no layout changes needed).
+    </p>
+
+</body>
+</html>
