@@ -150,9 +150,7 @@
     border-radius: 12px;
     white-space: nowrap;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
-    border: 1.5px solid rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+    border: 1.5px solid rgba(255, 255, 255, 0.3);
 }
 
 /* Geometric tail (rotated square) */

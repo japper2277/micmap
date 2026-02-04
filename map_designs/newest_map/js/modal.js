@@ -385,20 +385,33 @@ function populateModalContent(mic, allMicsAtVenue = null) {
 
     // 3. INFO ROW - Time pill, Price badge, Signup type
     let instructions = mic.signupInstructions || '';
-    // Strip URLs (both https:// and www. formats)
+    // Strip URLs (https://, www., and bare domains like DrewTessier.com)
     instructions = instructions.replace(/https?:\/\/[^\s]+/gi, '').trim();
     instructions = instructions.replace(/www\.[^\s]+/gi, '').trim();
+    // Strip bare domain names (site.com, site.co/path) if URL was extracted for button
+    if (mic.signupUrl) {
+        instructions = instructions.replace(/^[a-zA-Z0-9-]+\.[a-zA-Z]{2,}(?:\/[^\s]*)?$/gi, '').trim();
+    }
     instructions = instructions.replace(/\s*(sign\s*up\s*)?(at|@)\s*$/i, '').trim();
     if (mic.signupEmail) {
         instructions = instructions.replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, '').trim();
         instructions = instructions.replace(/^email\s*/i, '').trim();
     }
 
-    // Check if instruction contains a signup TIME (e.g., "Sign up at 7:30") - keep these!
-    const hasSignupTime = /sign\s*up\s*(at|@)\s*\d{1,2}(:\d{2})?\s*(am|pm)?/i.test(instructions);
+    // Check if instruction contains a signup TIME (e.g., "Sign up at 7:30") - extract it for badge
+    let signupTimeForBadge = null;
+    const signupTimeMatch = instructions.match(/sign\s*up\s*(?:at|@)\s*(\d{1,2}(?::\d{2})?)\s*(am|pm)?/i) ||
+                            instructions.match(/^(\d{1,2}(?::\d{2})?)\s*(am|pm)?\s*signup/i);
+    if (signupTimeMatch) {
+        const timeNum = signupTimeMatch[1];
+        const ampm = signupTimeMatch[2] || '';
+        signupTimeForBadge = timeNum + (ampm ? ampm.toLowerCase() : '');
+        // Clear instructions since we'll show it in badge
+        instructions = '';
+    }
 
     // Hide redundant instructions (shown elsewhere via badges/buttons)
-    if (!hasSignupTime) {
+    if (!signupTimeForBadge) {
         const lower = instructions.toLowerCase();
         // Walk-in variations - already shown as Walk-in badge
         const isWalkIn = /^(sign\s*up\s*)?(there|in\s*person|at\s*(the\s*)?venue|list\s*in\s*person)/.test(lower) ||
@@ -411,8 +424,12 @@ function populateModalContent(mic, allMicsAtVenue = null) {
                            /free\s*(but\s*buy|drink|item)/i.test(lower);
         // Marketing/perks text
         const isPerks = /free\s*drink|free\s*fries|you\s*get\s*a\s*free/i.test(lower);
+        // Webpage title garbage (contains " | " separator or known scraped titles)
+        const isWebpageTitle = instructions.includes(' | ') ||
+                               lower.includes('peoples improv theater') ||
+                               lower.includes('upright citizens brigade');
 
-        if (isWalkIn || isIgDm || isPriceOnly || isPerks) {
+        if (isWalkIn || isIgDm || isPriceOnly || isPerks || isWebpageTitle) {
             instructions = '';
         }
     }
@@ -445,9 +462,13 @@ function populateModalContent(mic, allMicsAtVenue = null) {
         infoParts.push(`<a href="https://instagram.com/${igHandleForBadge.replace(/^@/, '')}" target="_blank" class="info-badge info-badge-ig">${igIcon} IG</a>`);
     }
 
-    // 4. Walk-in badge (when no online signup)
+    // 4. Walk-in or Signup time badge (when no online signup)
     if (!mic.signupUrl && !mic.signupEmail) {
-        infoParts.push(`<div class="info-badge info-badge-walkin">Walk-in</div>`);
+        if (signupTimeForBadge) {
+            infoParts.push(`<div class="info-badge info-badge-walkin">Signup @${escapeHtml(signupTimeForBadge)}</div>`);
+        } else {
+            infoParts.push(`<div class="info-badge info-badge-walkin">Walk-in</div>`);
+        }
     }
 
     modalInfoRow.innerHTML = infoParts.join('');
@@ -577,9 +598,13 @@ function openVenueModal(mic) {
 
     // 3. INFO ROW - Time pill, Price badge, Signup type
     let instructions = mic.signupInstructions || '';
-    // Strip URLs (both https:// and www. formats)
+    // Strip URLs (https://, www., and bare domains like DrewTessier.com)
     instructions = instructions.replace(/https?:\/\/[^\s]+/gi, '').trim();
     instructions = instructions.replace(/www\.[^\s]+/gi, '').trim();
+    // Strip bare domain names (site.com, site.co/path) if URL was extracted for button
+    if (mic.signupUrl) {
+        instructions = instructions.replace(/^[a-zA-Z0-9-]+\.[a-zA-Z]{2,}(?:\/[^\s]*)?$/gi, '').trim();
+    }
     instructions = instructions.replace(/\s*(sign\s*up\s*)?(at|@)\s*$/i, '').trim();
     // Remove email addresses from display text (button will handle it)
     if (mic.signupEmail) {
@@ -587,11 +612,20 @@ function openVenueModal(mic) {
         instructions = instructions.replace(/^email\s*/i, '').trim();
     }
 
-    // Check if instruction contains a signup TIME (e.g., "Sign up at 7:30") - keep these!
-    const hasSignupTime2 = /sign\s*up\s*(at|@)\s*\d{1,2}(:\d{2})?\s*(am|pm)?/i.test(instructions);
+    // Check if instruction contains a signup TIME (e.g., "Sign up at 7:30") - extract it for badge
+    let signupTimeForBadge = null;
+    const signupTimeMatch = instructions.match(/sign\s*up\s*(?:at|@)\s*(\d{1,2}(?::\d{2})?)\s*(am|pm)?/i) ||
+                            instructions.match(/^(\d{1,2}(?::\d{2})?)\s*(am|pm)?\s*signup/i);
+    if (signupTimeMatch) {
+        const timeNum = signupTimeMatch[1];
+        const ampm = signupTimeMatch[2] || '';
+        signupTimeForBadge = timeNum + (ampm ? ampm.toLowerCase() : '');
+        // Clear instructions since we'll show it in badge
+        instructions = '';
+    }
 
     // Hide redundant instructions (shown elsewhere via badges/buttons)
-    if (!hasSignupTime2) {
+    if (!signupTimeForBadge) {
         const lower = instructions.toLowerCase();
         // Walk-in variations - already shown as Walk-in badge
         const isWalkIn = /^(sign\s*up\s*)?(there|in\s*person|at\s*(the\s*)?venue|list\s*in\s*person)/.test(lower) ||
@@ -604,8 +638,12 @@ function openVenueModal(mic) {
                            /free\s*(but\s*buy|drink|item)/i.test(lower);
         // Marketing/perks text
         const isPerks = /free\s*drink|free\s*fries|you\s*get\s*a\s*free/i.test(lower);
+        // Webpage title garbage (contains " | " separator or known scraped titles)
+        const isWebpageTitle = instructions.includes(' | ') ||
+                               lower.includes('peoples improv theater') ||
+                               lower.includes('upright citizens brigade');
 
-        if (isWalkIn || isIgDm || isPriceOnly || isPerks) {
+        if (isWalkIn || isIgDm || isPriceOnly || isPerks || isWebpageTitle) {
             instructions = '';
         }
     }
@@ -638,9 +676,13 @@ function openVenueModal(mic) {
         infoParts.push(`<a href="https://instagram.com/${igHandleForBadge.replace(/^@/, '')}" target="_blank" class="info-badge info-badge-ig">${igIcon} IG</a>`);
     }
 
-    // 4. Walk-in badge (when no online signup)
+    // 4. Walk-in or Signup time badge (when no online signup)
     if (!mic.signupUrl && !mic.signupEmail) {
-        infoParts.push(`<div class="info-badge info-badge-walkin">Walk-in</div>`);
+        if (signupTimeForBadge) {
+            infoParts.push(`<div class="info-badge info-badge-walkin">Signup @${escapeHtml(signupTimeForBadge)}</div>`);
+        } else {
+            infoParts.push(`<div class="info-badge info-badge-walkin">Walk-in</div>`);
+        }
     }
 
     modalInfoRow.innerHTML = infoParts.join('');
