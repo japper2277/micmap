@@ -885,11 +885,12 @@ body.plan-mode .leaflet-marker-icon {
 
 .marker-commute-label {
     position: absolute;
-    top: -8px; /* Slightly higher than before to clear the pin head */
-    right: -12px; /* Top right corner */
+    top: -6px;
+    right: -10px;
+    transform: none;
     background: #2563eb; /* Blue-600 */
     color: #fff;
-    font-size: 11px; /* Back to 11px for tighter badge look */
+    font-size: 11px;
     font-weight: 800;
     padding: 2px 6px;
     border-radius: 6px;
@@ -899,9 +900,6 @@ body.plan-mode .leaflet-marker-icon {
     pointer-events: none;
     z-index: 10000;
     transition: all 0.2s ease;
-    
-    /* Remove triangle clip-path for badge look */
-    clip-path: none; 
 }
 
 /* Hide commute labels for dimmed/dismissed/selected */
@@ -909,5 +907,5 @@ body.plan-mode .leaflet-marker-icon {
 .marker-dismissed .marker-commute-label,
 .marker-selected .marker-commute-label {
     opacity: 0;
-    transform: translateX(-50%) translateY(5px);
+    transform: translateY(5px);
 }

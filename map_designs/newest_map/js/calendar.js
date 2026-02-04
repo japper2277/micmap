@@ -46,9 +46,58 @@ function updateDateCarouselHighlight(dateString) {
     });
 }
 
+// Render dots on calendar capsules for days with scheduled items
+function renderCalendarDots() {
+    const container = document.getElementById('cal-grid');
+    if (!container) return;
+
+    const capsules = container.querySelectorAll('.date-capsule');
+    capsules.forEach(cap => {
+        const dateString = cap.dataset.date;
+        const schedule = STATE.schedules[dateString];
+        const hasSchedule = schedule && schedule.length > 0;
+        
+        // Remove existing dots
+        const existingDot = cap.querySelector('.calendar-dot');
+        if (existingDot) existingDot.remove();
+
+        if (hasSchedule) {
+            const dot = document.createElement('div');
+            dot.className = 'calendar-dot';
+            dot.style.cssText = `
+                width: 4px;
+                height: 4px;
+                background-color: #22c55e;
+                border-radius: 50%;
+                margin-top: 6px;
+                box-shadow: 0 0 6px rgba(34, 197, 94, 0.6);
+            `;
+            // Append dot to the capsule
+            cap.appendChild(dot);
+        }
+    });
+}
+
 function selectDate(dateString) {
     STATE.currentMode = 'calendar';
     STATE.selectedCalendarDate = dateString;
+
+    // Load schedule for this date
+    if (STATE.planMode) {
+        const savedRoute = STATE.schedules[dateString] || [];
+        STATE.route = [...savedRoute];
+        // Reset dismissed for new day
+        STATE.dismissed = [];
+        
+        // Update local storage
+        localStorage.setItem('planRoute', JSON.stringify(STATE.route));
+        
+        // Update UI
+        updateRouteClass();
+        updateRouteLine();
+        
+        // Note: updateMarkerStates will be called by render() below
+    }
 
     // Update visual highlight
     document.querySelectorAll('.date-capsule').forEach(cap => {
@@ -65,6 +114,11 @@ function selectDate(dateString) {
 
     // Render immediately with the selected date
     render('calendar');
+    
+    // Explicitly update markers for the new schedule
+    if (STATE.planMode) {
+        updateMarkerStates();
+    }
 
     // If transit mode is active, recalculate routes for new day's mics (silent = don't move map)
     if (STATE.isTransitMode && STATE.userOrigin) {
@@ -224,6 +278,11 @@ function generateDateCarousel() {
             capsule.innerHTML = `<span class="text-[11px] uppercase opacity-70 tracking-wide" aria-hidden="true">${dayStr}</span><span class="text-2xl mt-0.5 leading-none text-white" aria-hidden="true">${dateNum}</span>`;
         }
         container.appendChild(capsule);
+    }
+
+    // Add dots for scheduled days
+    if (typeof renderCalendarDots === 'function') {
+        renderCalendarDots();
     }
 
     // Add styles for active state, hover/press feedback

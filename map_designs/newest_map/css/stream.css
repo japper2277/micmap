@@ -19,6 +19,8 @@
     align-items: center;
     gap: var(--space-md);
     touch-action: pan-y;
+    /* GPU acceleration for smoother sticky scroll */
+    will-change: transform;
 }
 
 .time-header-label {
@@ -178,12 +180,15 @@ body.plan-mode .happening-now-card-label {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 14px 16px;
+    padding: 12px 14px;
     margin: 8px 12px;
-    background: rgba(34, 197, 94, 0.08);
-    border: none;
-    border-top: 3px solid #22c55e;
-    border-radius: 0 0 12px 12px;
+    /* Glassmorphism effect */
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 14px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
     cursor: pointer;
     transition: all 0.2s;
     animation: scheduleSlideIn 0.3s ease;
@@ -208,7 +213,8 @@ body.plan-mode .happening-now-card-label {
 }
 
 .my-schedule-card:hover {
-    background: rgba(34, 197, 94, 0.12);
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.2);
 }
 
 .my-schedule-card:active {
@@ -222,20 +228,33 @@ body.plan-mode .happening-now-card-label {
 }
 
 .my-schedule-icon {
-    font-size: 16px;
+    width: 18px;
+    height: 18px;
+    color: #22c55e;
+    flex-shrink: 0;
 }
 
+/* Pill-shaped count badge */
 .my-schedule-card-count {
-    font-weight: 800;
-    font-size: 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 7px;
+    background: rgba(34, 197, 94, 0.2);
+    border-radius: 11px;
+    font-weight: 700;
+    font-size: 12px;
     color: #22c55e;
     line-height: 1;
 }
 
+/* Label text - white for contrast on glass */
 .my-schedule-card-label {
     font-size: 15px;
     font-weight: 600;
-    color: #22c55e;
+    color: rgba(255, 255, 255, 0.92);
 }
 
 .my-schedule-card-right {
@@ -1081,6 +1100,27 @@ body.plan-mode .stream-item.in-route {
     padding-right: var(--space-xl); /* Reset padding when in route */
 }
 
+/* Plan Mode: Commute badge in top-right corner of card */
+.plan-commute-corner {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    background: #2563eb; /* Blue-600 */
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    z-index: 10;
+    pointer-events: none;
+}
+
+/* Hide commute corner badge when mic is in schedule */
+body.plan-mode .stream-item.in-route .plan-commute-corner {
+    display: none;
+}
+
 .venue-name {
     font-size: 17px;
     font-weight: 700;
@@ -1473,6 +1513,7 @@ body.plan-mode .stream-item.in-route {
 .card-front {
     transform: rotateX(0deg);
     opacity: 1;
+    position: relative; /* For absolute positioned children like commute badge */
 }
 
 .card-back {
@@ -1824,7 +1865,296 @@ body.plan-mode .stream-item.in-route {
     transition: color 0.15s;
 }
 
-.warning-learn-more:hover {
-    color: #fdba74;
-    text-decoration: underline;
+        .warning-learn-more:hover {
+
+            color: #fdba74;
+
+            text-decoration: underline;
+
+        }
+
+    
+
+    /* --- SUGGESTED MICS BASE STYLES --- */
+
+    .suggested-mics-section {
+
+        margin-top: 12px;
+
+        padding-top: 12px;
+
+        border-top: 1px dashed rgba(255, 255, 255, 0.15);
+
+    }
+
+    
+
+    .suggested-mics-header {
+
+        font-size: 11px;
+
+        text-transform: uppercase;
+
+        color: rgba(255, 255, 255, 0.5);
+
+        font-weight: 700;
+
+        margin-bottom: 8px;
+
+        padding-left: 4px;
+
+    }
+
+    
+
+    .suggested-mic-item {
+
+        display: flex;
+
+        align-items: center;
+
+        justify-content: space-between;
+
+        padding: 8px 12px;
+
+        background: rgba(255, 255, 255, 0.03);
+
+        border: 1px solid rgba(255, 255, 255, 0.05);
+
+        border-radius: 10px;
+
+        margin-bottom: 6px;
+
+        cursor: pointer;
+
+        transition: all 0.2s;
+
+        /* Improved Touch Target */
+
+        min-height: 48px;
+
+    }
+
+    
+
+    .suggested-mic-item:hover {
+
+        background: rgba(255, 255, 255, 0.06);
+
+        border-color: rgba(255, 255, 255, 0.1);
+
+    }
+
+    
+
+    .suggested-mic-left {
+
+        display: flex;
+
+        align-items: center;
+
+        gap: 10px;
+
+    }
+
+    
+
+    .suggested-mic-time {
+
+        font-size: 13px;
+
+        font-weight: 700;
+
+        color: rgba(255, 255, 255, 0.7);
+
+        width: 60px;
+
+    }
+
+    
+
+    .suggested-mic-info {
+
+        display: flex;
+
+        flex-direction: column;
+
+    }
+
+    
+
+    .suggested-mic-venue {
+
+        font-size: 13px;
+
+        font-weight: 600;
+
+        color: #fff;
+
+    }
+
+    
+
+    .suggested-mic-reason {
+
+        font-size: 11px;
+
+        color: var(--green);
+
+    }
+
+    
+
+    .suggested-mic-add-btn {
+
+        background: rgba(34, 197, 94, 0.1);
+
+        color: var(--green);
+
+        border: 1px solid rgba(34, 197, 94, 0.2);
+
+        border-radius: 6px;
+
+        padding: 4px 10px;
+
+        font-size: 12px;
+
+        font-weight: 700;
+
+        cursor: pointer;
+
+        transition: all 0.15s;
+
+    }
+
+    
+
+    .suggested-mic-add-btn:hover {
+
+        background: rgba(34, 197, 94, 0.2);
+
+        transform: scale(1.05);
+
+    }
+
+    
+
+    /* --- SUGGESTED MICS ANIMATIONS & POLISH --- */
+
+
+
+.suggested-mic-item {
+
+    opacity: 0;
+
+    transform: translateY(8px);
+
+    animation: fadeInUp 0.3s ease forwards;
+
 }
+
+
+
+@keyframes fadeInUp {
+
+    to {
+
+        opacity: 1;
+
+        transform: translateY(0);
+
+    }
+
+}
+
+
+
+/* Success state for Add button */
+
+.suggested-mic-add-btn.added {
+
+    background: #22c55e !important;
+
+    color: #fff !important;
+
+    border-color: #22c55e !important;
+
+    transform: scale(1.1) !important;
+
+    pointer-events: none;
+
+}
+
+
+
+/* Empty State (Fully Booked) */
+
+.suggested-mics-section.empty {
+
+    border-top: none;
+
+    margin-top: 8px;
+
+    padding-top: 4px;
+
+}
+
+
+
+.suggested-empty-msg {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 8px;
+
+    padding: 12px;
+
+    background: rgba(34, 197, 94, 0.04);
+
+    border: 1px dashed rgba(34, 197, 94, 0.2);
+
+    border-radius: 12px;
+
+    color: rgba(255, 255, 255, 0.6);
+
+    font-size: 13px;
+
+    font-weight: 500;
+
+}
+
+
+
+/* Improved Touch Targets */
+
+.suggested-mic-item {
+
+    min-height: 48px; /* Better touch target */
+
+}
+
+
+
+/* Cleaner Drag Handle */
+
+.schedule-drag-handle svg {
+
+    opacity: 0.6;
+
+    transition: opacity 0.2s;
+
+}
+
+
+
+.schedule-drag-handle:hover svg {
+
+    opacity: 1;
+
+}
+
+

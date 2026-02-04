@@ -304,31 +304,144 @@
 
 /* Plan mode: Time add buttons in header */
 .time-add-btn {
-    padding: 6px 14px;
-    border: none;
-    border-radius: 8px;
-    font-size: 15px;
-    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 44px; /* Increased touch target for accessibility */
+    padding: 0 16px;
+    border: 1px solid #3f3f46;
+    border-radius: 100px; /* Pill shape */
+    font-size: 15px; /* Slightly larger text */
+    font-weight: 600;
     cursor: pointer;
-    color: black;
-    background: #4ade80;
-    margin-left: 6px;
-    transition: all 0.15s;
+    color: #e4e4e7;
+    background: rgba(255, 255, 255, 0.05);
+    margin-left: 8px;
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+    overflow: hidden;
 }
 .time-add-btn:first-child {
     margin-left: 0;
 }
 .time-add-btn:active {
-    transform: scale(0.95);
+    transform: scale(0.94);
 }
+
+/* STATE: In Route (Selected) */
 .time-add-btn.in-route {
-    background: #374151;
-    color: rgba(255,255,255,0.5);
+    background: #4ade80;
+    border-color: #4ade80;
+    color: #000;
+    font-weight: 700;
+    box-shadow: 0 0 12px rgba(74, 222, 128, 0.4);
+    animation: btnPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
+
+/* STATE: Conflict (Disabled/Warning) */
 .time-add-btn.conflict {
-    background: #374151;
-    color: rgba(255,255,255,0.5);
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.4);
+    color: #f87171;
+    opacity: 0.8;
+    pointer-events: none; /* Can't click */
+    text-decoration: line-through;
+}
+
+/* Icons inside buttons */
+.time-add-btn svg {
+    width: 14px;
+    height: 14px;
+    stroke-width: 2.5;
+}
+
+@keyframes btnPop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+/* =================================================================
+   PLAN MODE: Time Add Button Attention Animations
+   ================================================================= */
+
+/* Pulsing green glow - draws eye to clickable buttons */
+@keyframes timeAddPulse {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(74, 222, 128, 0);
+    }
+    50% {
+        box-shadow: 0 0 12px 2px rgba(74, 222, 128, 0.25);
+    }
+}
+
+/* Shimmer sweep across button */
+@keyframes timeAddShimmer {
+    0%, 100% { left: -100%; opacity: 0; }
+    10% { opacity: 1; }
+    50% { left: 100%; opacity: 1; }
+    60%, 100% { opacity: 0; }
+}
+
+/* Plus icon micro-bounce */
+@keyframes plusBounce {
+    0%, 100% { transform: translateY(0); }
+    15% { transform: translateY(-2px); }
+    30% { transform: translateY(0); }
+}
+
+/* Apply idle animations to default state only */
+.time-add-btn:not(.in-route):not(.conflict) {
+    animation: timeAddPulse 2.5s ease-in-out infinite;
+}
+
+/* Shimmer overlay */
+.time-add-btn:not(.in-route):not(.conflict)::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    animation: timeAddShimmer 4s ease-in-out infinite 1s;
     pointer-events: none;
+    border-radius: inherit;
+}
+
+/* Plus icon bounce */
+.time-add-btn:not(.in-route):not(.conflict) svg {
+    animation: plusBounce 2s ease-in-out infinite 0.5s;
+}
+
+/* Enhanced hover state - preview "added" green state */
+.time-add-btn:not(.in-route):not(.conflict):hover {
+    background: rgba(74, 222, 128, 0.15);
+    border-color: rgba(74, 222, 128, 0.5);
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(74, 222, 128, 0.25);
+    animation: none;
+}
+
+.time-add-btn:not(.in-route):not(.conflict):hover::before {
+    animation: none;
+    opacity: 0;
+}
+
+.time-add-btn:not(.in-route):not(.conflict):hover svg {
+    animation: none;
+    transform: translateY(0);
+}
+
+/* Accessibility: respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+    .time-add-btn,
+    .time-add-btn::before,
+    .time-add-btn svg {
+        animation: none !important;
+    }
 }
 
 /* Button loading state */

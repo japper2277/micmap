@@ -67,10 +67,23 @@ function updateRouteClass() {
     document.body.classList.toggle('has-route', STATE.route.length > 0);
 }
 
-// Hide plan overlay when user interacts with map
+// Track when plan mode started (for overlay persist delay)
+let planModeStartTime = 0;
+const OVERLAY_MIN_DURATION = 5000; // Show overlay for at least 5 seconds
+
+// Called when entering plan mode to reset the timer
+function resetPlanOverlayTimer() {
+    planModeStartTime = Date.now();
+    document.body.classList.remove('map-interacted');
+}
+
+// Hide plan overlay when user interacts with map (after delay)
 function onPlanMapInteraction() {
     if (STATE.planMode) {
-        document.body.classList.add('map-interacted');
+        const elapsed = Date.now() - planModeStartTime;
+        if (elapsed >= OVERLAY_MIN_DURATION) {
+            document.body.classList.add('map-interacted');
+        }
     }
 }
 
@@ -1133,7 +1146,7 @@ function addSuggestedMic(micId) {
 
     // Add with a slight delay to allow animation to register
     setTimeout(() => {
-        addToRoute(micId);
+        addToRoute(micId, true); // skipZoom=true to not zoom out
         if (typeof toastService !== 'undefined') {
             toastService.show('Added to schedule', 'success');
         }

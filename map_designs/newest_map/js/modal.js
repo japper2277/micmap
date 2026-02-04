@@ -339,12 +339,29 @@ function populateModalContent(mic, allMicsAtVenue = null) {
             const inRoute = STATE.route?.includes(m.id);
             // Check if same time as any mic in route (conflict)
             const hasConflict = !inRoute && routeTimes.includes(m.start?.getTime());
+            
+            // Format time nicely (e.g. "7:00")
             const h = m.start?.getHours() || 0;
             const mins = m.start?.getMinutes() || 0;
             const hour = h > 12 ? h - 12 : (h === 0 ? 12 : h);
-            const timeStr = mins === 0 ? `+${hour}:00` : `+${hour}:${mins.toString().padStart(2,'0')}`;
-            const btnClass = inRoute ? ' in-route' : (hasConflict ? ' conflict' : '');
-            return `<button class="time-add-btn${btnClass}" data-mic-id="${m.id}">${timeStr}</button>`;
+            const timeStr = mins === 0 ? `${hour}:00` : `${hour}:${mins.toString().padStart(2,'0')}`;
+            
+            let btnClass = '';
+            let iconSvg = '';
+            
+            if (inRoute) {
+                btnClass = ' in-route';
+                // Checkmark icon
+                iconSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+            } else if (hasConflict) {
+                btnClass = ' conflict';
+                // No icon, just text change in CSS
+            } else {
+                // Plus icon
+                iconSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>`;
+            }
+            
+            return `<button class="time-add-btn${btnClass}" data-mic-id="${m.id}">${iconSvg}<span>${timeStr}</span></button>`;
         }).join('');
         modalMicTime.innerHTML = btnsHtml;
     } else if (allMicsAtVenue && allMicsAtVenue.length > 1) {
@@ -528,9 +545,21 @@ function openVenueModal(mic) {
         const h = mic.start?.getHours() || 0;
         const mins = mic.start?.getMinutes() || 0;
         const hour = h > 12 ? h - 12 : (h === 0 ? 12 : h);
-        const timeStr = mins === 0 ? `+${hour}:00` : `+${hour}:${mins.toString().padStart(2,'0')}`;
-        const btnClass = inRoute ? ' in-route' : (hasConflict ? ' conflict' : '');
-        modalMicTime.innerHTML = `<button class="time-add-btn${btnClass}" data-mic-id="${mic.id}">${timeStr}</button>`;
+        const timeStr = mins === 0 ? `${hour}:00` : `${hour}:${mins.toString().padStart(2,'0')}`;
+        
+        let btnClass = '';
+        let iconSvg = '';
+        
+        if (inRoute) {
+            btnClass = ' in-route';
+            iconSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+        } else if (hasConflict) {
+            btnClass = ' conflict';
+        } else {
+            iconSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>`;
+        }
+        
+        modalMicTime.innerHTML = `<button class="time-add-btn${btnClass}" data-mic-id="${mic.id}">${iconSvg}<span>${timeStr}</span></button>`;
     } else {
         modalMicTime.innerText = mic.timeStr || '';
     }

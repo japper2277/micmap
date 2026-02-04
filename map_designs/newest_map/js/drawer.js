@@ -113,9 +113,251 @@ function setDrawerState(newState) {
     announceToScreenReader(isOpen ? 'Mic list expanded' : 'Mic list minimized');
 }
 
-// Mobile swipe disabled - tap only
+// Mobile gesture engine for drawer
 function setupMobileSwipe() {
-    // Swipe/drag disabled - drawer toggles via tap on handle only
+    const drawer = document.getElementById('list-drawer');
+    const listContent = document.getElementById('list-content');
+    if (!drawer || !listContent) return;
+
+    // Gesture state
+    let isDragging = false;
+    let startY = 0;
+    let startTranslateY = 0;
+    let currentTranslateY = 0;
+    let velocityTracker = [];
+    let lastMoveTime = 0;
+    let dragTarget = null; // 'header' or 'content'
+
+    // Snap points (in pixels from bottom)
+    const getSnapPoints = () => {
+        const drawerHeight = drawer.offsetHeight;
+        return {
+            peek: drawerHeight - 120,  // Show 120px
+            open: 0                     // Full drawer
+        };
+    };
+
+    // Get current translateY from computed style or inline
+    const getCurrentTranslateY = () => {
+        const transform = drawer.style.transform || window.getComputedStyle(drawer).transform;
+        if (!transform || transform === 'none') return 0;
+        const match = transform.match(/translateY\(([^)]+)\)/);
+        if (match) {
+            const value = match[1];
+            if (value.includes('calc')) {
+                // Calculate from peek state formula
+                const drawerHeight = drawer.offsetHeight;
+                return drawerHeight - 120;
+            }
+            return parseFloat(value) || 0;
+        }
+        return 0;
+    };
+
+    // Calculate velocity from recent touch points (pixels per second)
+    const getVelocity = () => {
+        if (velocityTracker.length < 2) return 0;
+        const recent = velocityTracker.slice(-5); // Last 5 points
+        const first = recent[0];
+        const last = recent[recent.length - 1];
+        const dt = (last.time - first.time) / 1000; // seconds
+        if (dt === 0) return 0;
+        return (last.y - first.y) / dt;
+    };
+
+    // Set drawer position without transition
+    const setTranslateY = (y) => {
+        const snaps = getSnapPoints();
+        // Clamp with rubber-band resistance at bounds
+        if (y < snaps.open) {
+            // Above open position - rubber band
+            y = snaps.open + (y - snaps.open) * 0.3;
+        } else if (y > snaps.peek) {
+            // Below peek position - rubber band
+            y = snaps.peek + (y - snaps.peek) * 0.3;
+        }
+        drawer.style.transform = `translateY(${y}px)`;
+        currentTranslateY = y;
+    };
+
+    // Animate to snap point
+    const animateToSnap = (targetY, velocity) => {
+        const distance = Math.abs(targetY - currentTranslateY);
+        // Velocity-based duration: faster swipe = faster animation
+        // Base: 300ms, min: 150ms, max: 400ms
+        const absVel = Math.abs(velocity);
+        let duration = 300;
+        if (absVel > 500) {
+            duration = Math.max(150, 300 - (absVel - 500) * 0.1);
+        }
+        duration = Math.min(400, Math.max(150, duration));
+
+        drawer.style.transition = `transform ${duration}ms cubic-bezier(0.32, 0.72, 0, 1)`;
+        drawer.style.transform = `translateY(${targetY}px)`;
+
+        // Update state after animation
+        const snaps = getSnapPoints();
+        const isOpen = targetY === snaps.open;
+
+        setTimeout(() => {
+            drawer.style.transition = '';
+            // Sync with CSS classes
+            drawer.classList.remove('drawer-peek', 'drawer-open');
+            drawer.classList.add(isOpen ? 'drawer-open' : 'drawer-peek');
+            STATE.drawerState = isOpen ? DRAWER_STATES.OPEN : DRAWER_STATES.PEEK;
+            STATE.isDrawerOpen = isOpen;
+
+            // Haptic feedback at snap
+            if ('vibrate' in navigator) navigator.vibrate(8);
+
+            // Update backdrop
+            const backdrop = document.getElementById('drawer-backdrop');
+            if (backdrop) backdrop.classList.toggle('active', isOpen);
+
+            // Update UI elements
+            const icon = document.getElementById('chevron-icon');
+            const btn = document.getElementById('drawer-btn');
+            if (icon) icon.style.transform = isOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+            if (btn) btn.classList.toggle('bg-white/10', isOpen);
+        }, duration);
+    };
+
+    // Determine target snap point from position and velocity
+    const getTargetSnap = (y, velocity) => {
+        const snaps = getSnapPoints();
+        const midpoint = (snaps.peek + snaps.open) / 2;
+
+        // High velocity overrides position
+        if (velocity > 800) return snaps.peek;  // Fast swipe down
+        if (velocity < -800) return snaps.open;  // Fast swipe up
+
+        // Medium velocity biases toward direction
+        if (velocity > 300) return y < midpoint * 0.7 ? snaps.open : snaps.peek;
+        if (velocity < -300) return y > midpoint * 1.3 ? snaps.peek : snaps.open;
+
+        // Low velocity - snap to nearest
+        return y > midpoint ? snaps.peek : snaps.open;
+    };
+
+    // Touch start handler
+    const onTouchStart = (e) => {
+        // Only on mobile
+        if (window.matchMedia('(min-width: 768px)').matches) return;
+
+        const touch = e.touches[0];
+        const target = e.target;
+
+        // Determine if touching header area or content
+        const headerArea = drawer.querySelector('.mics-header-row') || drawer.querySelector('.drag-handle');
+        const isHeaderTouch = headerArea && (headerArea.contains(target) || target.closest('.drag-handle'));
+
+        // Always allow drag from header
+        if (isHeaderTouch) {
+            dragTarget = 'header';
+        } else if (listContent.contains(target)) {
+            // Content touch - only allow pull-to-collapse at scroll top
+            // Or expand gesture in peek mode
+            if (STATE.drawerState === DRAWER_STATES.PEEK) {
+                dragTarget = 'content-peek';
+            } else if (listContent.scrollTop <= 0) {
+                dragTarget = 'content-top';
+            } else {
+                return; // Let normal scroll happen
+            }
+        } else {
+            return;
+        }
+
+        isDragging = true;
+        startY = touch.clientY;
+
+        // Get current position
+        drawer.style.transition = 'none';
+        startTranslateY = getCurrentTranslateY();
+        currentTranslateY = startTranslateY;
+
+        // Reset velocity tracker
+        velocityTracker = [{ y: touch.clientY, time: Date.now() }];
+    };
+
+    // Touch move handler
+    const onTouchMove = (e) => {
+        if (!isDragging) return;
+
+        const touch = e.touches[0];
+        const deltaY = touch.clientY - startY;
+        const now = Date.now();
+
+        // Track velocity
+        velocityTracker.push({ y: touch.clientY, time: now });
+        if (velocityTracker.length > 10) velocityTracker.shift();
+
+        // For content-peek, only allow upward drag (to open)
+        if (dragTarget === 'content-peek' && deltaY > 0) {
+            isDragging = false;
+            return;
+        }
+
+        // For content-top, only allow downward drag (to collapse)
+        if (dragTarget === 'content-top' && deltaY < 0) {
+            isDragging = false;
+            drawer.style.transition = '';
+            return;
+        }
+
+        // Prevent scroll during drag
+        e.preventDefault();
+
+        // Move drawer
+        const newY = startTranslateY + deltaY;
+        setTranslateY(newY);
+
+        // Haptic at midpoint crossing
+        const snaps = getSnapPoints();
+        const midpoint = (snaps.peek + snaps.open) / 2;
+        const wasAbove = (currentTranslateY < midpoint);
+        const isAbove = (newY < midpoint);
+        if (wasAbove !== isAbove && 'vibrate' in navigator) {
+            navigator.vibrate(5);
+        }
+    };
+
+    // Touch end handler
+    const onTouchEnd = (e) => {
+        if (!isDragging) return;
+        isDragging = false;
+        dragTarget = null;
+
+        const velocity = getVelocity();
+        const targetY = getTargetSnap(currentTranslateY, velocity);
+        animateToSnap(targetY, velocity);
+    };
+
+    // Touch cancel - same as end
+    const onTouchCancel = () => {
+        if (!isDragging) return;
+        isDragging = false;
+        dragTarget = null;
+
+        // Snap back to nearest
+        const velocity = getVelocity();
+        const targetY = getTargetSnap(currentTranslateY, velocity);
+        animateToSnap(targetY, velocity);
+    };
+
+    // Attach handlers to drawer (captures header and content)
+    drawer.addEventListener('touchstart', onTouchStart, { passive: true });
+    drawer.addEventListener('touchmove', onTouchMove, { passive: false });
+    drawer.addEventListener('touchend', onTouchEnd, { passive: true });
+    drawer.addEventListener('touchcancel', onTouchCancel, { passive: true });
+
+    // Handle scroll-to-expand in peek mode
+    listContent.addEventListener('scroll', () => {
+        if (STATE.drawerState === DRAWER_STATES.PEEK && listContent.scrollTop > 10) {
+            // User is trying to scroll down in peek - expand drawer
+            setDrawerState(DRAWER_STATES.OPEN);
+        }
+    }, { passive: true });
 }
 
 // Fix drawer state when viewport changes between mobile/desktop

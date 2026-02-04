@@ -113,8 +113,17 @@ function parseTime(timeStr) {
     const period = match[3].toUpperCase();
     if (period === 'PM' && hours !== 12) hours += 12;
     if (period === 'AM' && hours === 12) hours = 0;
-    const d = new Date();
+    
+    // Use Comedy Adjusted Now as base (handles post-midnight viewing)
+    const d = getComedyAdjustedNow();
     d.setHours(hours, mins, 0, 0);
+
+    // If time is 00:00 - 04:00, it belongs to the "next day" of the comedy night
+    // (e.g. Friday Night 12:30 AM is Saturday morning)
+    if (hours < 4) {
+        d.setDate(d.getDate() + 1);
+    }
+    
     return d;
 }
 
@@ -275,7 +284,9 @@ function isMicVisible(mic) {
 
     // Time filter
     if (STATE.activeFilters.time !== 'All' && mic.start) {
-        const hour = mic.start.getHours();
+        let hour = mic.start.getHours();
+        if (hour < 4) hour += 24; // Comedy hour adjustment
+
         const range = CONFIG.timeRanges[STATE.activeFilters.time];
         if (range && (hour < range.start || hour >= range.end)) return false;
     }

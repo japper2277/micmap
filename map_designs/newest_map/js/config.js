@@ -34,10 +34,10 @@ const CONFIG = {
         borough: { All: 'Borough', Manhattan: 'Manhattan', Brooklyn: 'Brooklyn', Queens: 'Queens', Bronx: 'Bronx' }
     },
     timeRanges: {
-        All: { start: 0, end: 24 },
+        All: { start: 0, end: 29 },
         afternoon: { start: 12, end: 17 },   // 12pm - 5pm
         evening: { start: 17, end: 21 },     // 5pm - 9pm
-        latenight: { start: 21, end: 24 },   // 9pm+
-        custom: { start: 0, end: 24 }        // User-defined (updated dynamically)
+        latenight: { start: 21, end: 29 },   // 9pm - 5am
+        custom: { start: 0, end: 29 }        // User-defined (updated dynamically)
     }
 };

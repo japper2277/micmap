@@ -219,7 +219,10 @@ function render(mode) {
     STATE.markerLookup = {};
     container.innerHTML = '';
 
-    // Plan mode: schedule UI is rendered later (after "Happening Now" calculation)
+    // Plan mode: ensure header is initialized (in case it got cleared)
+    if (STATE.planMode && typeof initPlanFilterRow === 'function') {
+        initPlanFilterRow();
+    }
 
     // Use fresh timestamp for accurate calculations
     const currentTime = new Date();
@@ -561,8 +564,8 @@ function render(mode) {
             // Plan mode: toggle mic in route instead of opening modal
             if (STATE.planMode) {
                 if (cluster.mics.length === 1) {
-                    // Single mic - toggle it in route
-                    toggleMicInRoute(firstMic.id);
+                    // Single mic - toggle it in route (skipZoom=true to not zoom out)
+                    toggleMicInRoute(firstMic.id, true);
                 } else {
                     // Multiple mics - still open modal for selection
                     openVenueModalWithMics(cluster.mics);
@@ -747,7 +750,7 @@ function render(mode) {
         };
         scheduleCard.innerHTML = `
             <div class="my-schedule-card-left">
-                <span class="my-schedule-icon">📋</span>
+                <span class="my-schedule-icon">🎤</span>
                 <span class="my-schedule-card-count">${routeMics.length}</span>
                 <span class="my-schedule-card-label">My Schedule</span>
             </div>
@@ -787,7 +790,12 @@ function render(mode) {
                         <div class="my-schedule-item-price ${priceClass}">${priceStr}</div>
                     </div>
                     <div class="my-schedule-item-actions">
-                        <button class="schedule-drag-handle" onclick="event.stopPropagation();" aria-label="Drag to reorder" title="Drag to reorder">⋮⋮</button>
+                        <button class="schedule-action-btn" onclick="event.stopPropagation(); exportMicToCalendar('${mic.id}')" aria-label="Add to Google Calendar" title="Add to Google Calendar">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><line x1="12" y1="15" x2="12" y2="15"></line></svg>
+                        </button>
+                        <button class="schedule-drag-handle" onclick="event.stopPropagation();" aria-label="Drag to reorder" title="Drag to reorder">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M4 8h16M4 16h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                        </button>
                         <button class="my-schedule-remove" onclick="event.stopPropagation(); removeFromRoute('${mic.id}')" aria-label="Remove from schedule">✕</button>
                     </div>
                 </div>
@@ -800,7 +808,53 @@ function render(mode) {
             </div>
         `;
 
-        expandedList.innerHTML = `${conflictBanner}${itemsHtml}${toolsRow}`;
+        // Suggested Mics Section
+        let suggestionsHtml = '';
+        if (typeof getSuggestedMics === 'function') {
+            const suggestions = getSuggestedMics();
+            if (suggestions.length > 0) {
+                suggestionsHtml = `
+                    <div class="suggested-mics-section">
+                        <div class="suggested-mics-header">Suggested for you</div>
+                        <div class="suggested-mics-list">
+                            ${suggestions.map((item, index) => {
+                                const mic = item.mic;
+                                const timeStr = mic.start ? fmtTime(mic.start) : '';
+                                const venueName = escapeHtml(mic.title || mic.venue || 'Mic');
+                                
+                                return `
+                                    <div class="suggested-mic-item" 
+                                         data-id="${mic.id}"
+                                         onclick="event.stopPropagation(); addSuggestedMic('${mic.id}')" 
+                                         role="button"
+                                         style="animation-delay: ${index * 60}ms">
+                                        <div class="suggested-mic-left">
+                                            <div class="suggested-mic-time">${timeStr}</div>
+                                            <div class="suggested-mic-info">
+                                                <div class="suggested-mic-venue">${venueName}</div>
+                                                <div class="suggested-mic-reason">${item.reason}</div>
+                                            </div>
+                                        </div>
+                                        <button class="suggested-mic-add-btn" aria-label="Add to schedule">+ Add</button>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            } else if (routeMics.length >= 2) {
+                // "Fully booked" state - only show if user actually has a schedule
+                suggestionsHtml = `
+                    <div class="suggested-mics-section empty">
+                        <div class="suggested-empty-msg">
+                            <span>🎉</span> Schedule looks tight! No gaps found.
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        expandedList.innerHTML = `${conflictBanner}${itemsHtml}${suggestionsHtml}${toolsRow}`;
         scheduleSlot.appendChild(expandedList);
 
         if (typeof initScheduleReorder === 'function') {
@@ -925,7 +979,13 @@ function render(mode) {
         // --- STREAM ITEM ---
         const card = document.createElement('div');
         card.id = `card-${mic.id}`;
-        card.onclick = () => locateMic(mic.lat, mic.lng, mic.id);
+        // In plan mode, clicking card does nothing (use + Add button instead)
+        // In normal mode, clicking card locates mic on map and opens modal
+        card.onclick = () => {
+            if (!STATE.planMode) {
+                locateMic(mic.lat, mic.lng, mic.id);
+            }
+        };
         const isInRoute = STATE.planMode && STATE.route && STATE.route.includes(mic.id);
         card.className = `stream-item group ${isHappeningNow ? 'is-happening-now' : ''} ${isInRoute ? 'in-route' : ''}`;
         // Accessibility: make card keyboard navigable
@@ -936,7 +996,9 @@ function render(mode) {
         card.onkeydown = (e) => {
             if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
-                locateMic(mic.lat, mic.lng, mic.id);
+                if (!STATE.planMode) {
+                    locateMic(mic.lat, mic.lng, mic.id);
+                }
             }
         };
 
@@ -1062,7 +1124,6 @@ function render(mode) {
                             <span class="neighborhood">${safeHood}</span>
                             <span class="meta-dot">·</span>
                             <span class="price-badge">${safePrice}</span>
-                            ${commuteDisplay}
                         </div>
                     </div>
                     <div class="action-col">
@@ -1088,7 +1149,6 @@ function render(mode) {
                         </div>
                         <div class="meta-row">
                             <span class="price-badge">${safePrice}</span>
-                            ${commuteDisplay}
                         </div>
                     </div>
                     <div class="action-col">
@@ -1183,6 +1243,11 @@ function render(mode) {
     const tomorrowNotice = document.getElementById('tomorrow-notice');
     if (tomorrowNotice) {
         tomorrowNotice.classList.remove('show');
+    }
+
+    // Refresh plan mode marker states (commute badges) after render
+    if (STATE.planMode && typeof updateMarkerStates === 'function') {
+        updateMarkerStates();
     }
 }
 

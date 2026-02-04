@@ -153,6 +153,11 @@
     min-width: 48px;
     min-height: 48px;
     cursor: pointer;
+    /* Remove 300ms tap delay, allow pan gestures */
+    touch-action: manipulation;
+    /* Ensure handle is always draggable */
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 .drag-handle:active span {

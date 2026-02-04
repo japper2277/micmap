@@ -322,6 +322,7 @@ function togglePlanMode() {
 
     if (STATE.planMode) {
         document.body.classList.remove('map-interacted', 'commute-loaded'); // Reset states
+        if (typeof resetPlanOverlayTimer === 'function') resetPlanOverlayTimer(); // Start overlay timer
         setupPlanMapListeners(); // Setup map interaction listeners
         initPlanFilterRow(); // Initialize the time filter row in header
         renderPlanDrawer(); // Render drawer first (may call render() which recreates markers)

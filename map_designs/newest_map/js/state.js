@@ -44,7 +44,8 @@ const STATE = {
 
     // Plan Mode State
     planMode: false,              // Is plan mode active?
-    route: JSON.parse(localStorage.getItem('planRoute') || '[]'),
+    route: [],                    // Current active route (will be loaded/saved to schedules)
+    schedules: JSON.parse(localStorage.getItem('planSchedules') || '{}'), // Multi-day schedules { "dateStr": [ids] }
     dismissed: JSON.parse(localStorage.getItem('planDismissed') || '[]'),
     setDuration: parseInt(localStorage.getItem('planSetDuration') || '45', 10),
     timeWindowStart: parseInt(localStorage.getItem('planTimeWindowStart') || '700', 10),
