@@ -176,9 +176,6 @@ function init() {
 
     // Refresh statuses every minute
     setInterval(refreshStatuses, 60000);
-
-    // Plan mode button
-    document.getElementById('plan-btn')?.addEventListener('click', togglePlanMode);
 }
 
 // Load transit station data for arrivals/fallback
@@ -317,7 +314,6 @@ function openPlanMyNight() {
 // Toggle plan mode on/off
 function togglePlanMode() {
     STATE.planMode = !STATE.planMode;
-    document.getElementById('plan-btn').classList.toggle('active', STATE.planMode);
     document.body.classList.toggle('plan-mode', STATE.planMode);
 
     if (STATE.planMode) {
@@ -338,7 +334,6 @@ function exitPlanMode() {
     STATE.route = [];
     STATE.dismissed = [];
     clearPlanState(); // Clear localStorage
-    document.getElementById('plan-btn').classList.remove('active');
     document.body.classList.remove('plan-mode', 'has-route', 'map-interacted', 'commute-loaded');
     updateMarkerStates(); // Clear marker states
     render(STATE.currentMode); // Restore normal drawer
