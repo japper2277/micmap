@@ -2,11 +2,13 @@
   "appId": "com.comedynyc.app",
   "appName": "MicFinder",
   "webDir": "map_designs/newest_map",
+  "server": {
+    "url": "https://micmap.netlify.app",
+    "cleartext": false,
+    "allowNavigation": ["micmap-production.up.railway.app"]
+  },
   "ios": {
     "contentInset": "automatic",
     "allowsLinkPreview": false
-  },
-  "server": {
-    "allowNavigation": ["micmap-production.up.railway.app"]
   }
 }
