@@ -557,19 +557,35 @@ function render(mode) {
         filtered = STATE.happeningNowExpanded ? [...happeningNowMics] : [...upcomingMics];
     }
 
-    // Hardcoded Comedy Shop warning card (always show at top)
-    const comedyShopWarning = document.createElement('div');
-    comedyShopWarning.className = 'stream-item warning-card';
-    comedyShopWarning.innerHTML = `
-        <div class="warning-card-content">
-            <div class="warning-icon"><svg viewBox="0 0 24 24" fill="#f97316"><path d="M12 2L1 21h22L12 2z"/><rect x="11" y="9" width="2" height="6" rx="1" fill="#1a1a1a"/><circle cx="12" cy="17.5" r="1.2" fill="#1a1a1a"/></svg></div>
-            <div class="warning-text">
-                <div class="warning-venue">Comedy Shop</div>
-                <div class="warning-message">Multiple women have alleged sexual harassment by this venue's owner <a href="https://www.instagram.com/p/DUPKOE_EaCE/" target="_blank" rel="noopener" class="warning-learn-more" onclick="event.stopPropagation();">Learn more →</a></div>
+    // Render warning cards for venues with warnings (from API)
+    const warningVenues = new Map(); // Use Map to dedupe by venue name
+    STATE.mics.forEach(mic => {
+        if (mic.warning && mic.warning.message) {
+            const venueName = mic.venue || mic.venueName;
+            if (venueName && !warningVenues.has(venueName)) {
+                warningVenues.set(venueName, mic.warning);
+            }
+        }
+    });
+
+    // Render each unique warning at the top
+    warningVenues.forEach((warning, venueName) => {
+        const warningCard = document.createElement('div');
+        warningCard.className = 'stream-item warning-card';
+        const learnMoreLink = warning.link
+            ? `<a href="${escapeHtml(warning.link)}" target="_blank" rel="noopener" class="warning-learn-more" onclick="event.stopPropagation();">Learn more →</a>`
+            : '';
+        warningCard.innerHTML = `
+            <div class="warning-card-content">
+                <div class="warning-icon"><svg viewBox="0 0 24 24" fill="#f97316"><path d="M12 2L1 21h22L12 2z"/><rect x="11" y="9" width="2" height="6" rx="1" fill="#1a1a1a"/><circle cx="12" cy="17.5" r="1.2" fill="#1a1a1a"/></svg></div>
+                <div class="warning-text">
+                    <div class="warning-venue">${escapeHtml(venueName)}</div>
+                    <div class="warning-message">${escapeHtml(warning.message)} ${learnMoreLink}</div>
+                </div>
             </div>
-        </div>
-    `;
-    container.appendChild(comedyShopWarning);
+        `;
+        container.appendChild(warningCard);
+    });
 
     // Render "Happening Now" collapsed card at top (only if there are in-progress mics)
     if (mode === 'today' && happeningNowMics.length > 0 && !STATE.happeningNowExpanded) {

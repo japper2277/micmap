@@ -90,6 +90,18 @@ const micSchema = new mongoose.Schema({
     default: null
   },
 
+  // Warning (for venue safety alerts)
+  warning: {
+    message: {
+      type: String,
+      default: null
+    },
+    link: {
+      type: String,
+      default: null
+    }
+  },
+
   // Metadata
   lastUpdated: {
     type: Date,
