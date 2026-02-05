@@ -455,11 +455,16 @@ function populateModalContent(mic, allMicsAtVenue = null) {
         }
     }
 
-    // 3. IG badge (if available)
+    // 3. IG button in title row (not badge row)
     const igHandleForBadge = mic.contact || mic.host || mic.hostIg;
-    if (igHandleForBadge && igHandleForBadge !== 'TBD') {
-        const igIcon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>';
-        infoParts.push(`<a href="https://instagram.com/${igHandleForBadge.replace(/^@/, '')}" target="_blank" class="info-badge info-badge-ig">${igIcon} IG</a>`);
+    const igTitleBtn = document.getElementById('modal-ig-title');
+    if (igTitleBtn) {
+        if (igHandleForBadge && igHandleForBadge !== 'TBD') {
+            igTitleBtn.href = `https://instagram.com/${igHandleForBadge.replace(/^@/, '')}`;
+            igTitleBtn.style.display = 'flex';
+        } else {
+            igTitleBtn.style.display = 'none';
+        }
     }
 
     // 4. Walk-in or Signup time badge (when no online signup)
@@ -669,11 +674,16 @@ function openVenueModal(mic) {
         }
     }
 
-    // 3. IG badge (if available)
+    // 3. IG button in title row (not badge row)
     const igHandleForBadge = mic.contact || mic.host || mic.hostIg;
-    if (igHandleForBadge && igHandleForBadge !== 'TBD') {
-        const igIcon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>';
-        infoParts.push(`<a href="https://instagram.com/${igHandleForBadge.replace(/^@/, '')}" target="_blank" class="info-badge info-badge-ig">${igIcon} IG</a>`);
+    const igTitleBtn = document.getElementById('modal-ig-title');
+    if (igTitleBtn) {
+        if (igHandleForBadge && igHandleForBadge !== 'TBD') {
+            igTitleBtn.href = `https://instagram.com/${igHandleForBadge.replace(/^@/, '')}`;
+            igTitleBtn.style.display = 'flex';
+        } else {
+            igTitleBtn.style.display = 'none';
+        }
     }
 
     // 4. Walk-in or Signup time badge (when no online signup)

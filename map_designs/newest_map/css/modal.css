@@ -36,7 +36,7 @@
     opacity: 0;
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     color: #fff;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 25px 60px -10px rgba(0, 0, 0, 0.7), 0 0 40px rgba(0, 0, 0, 0.4);
 }
 .modal-overlay.active .venue-card {
     transform: scale(1) translateY(0);
@@ -125,7 +125,30 @@
 }
 
 .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
-.header-top h1 { margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.6px; color: #fff; }
+.header-top h1,
+.header-top h2 { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.3px; color: #fff; }
+
+/* Venue title row with IG button */
+.venue-title-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.ig-title-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255,255,255,0.45);
+    text-decoration: none;
+    transition: color 0.15s ease;
+}
+.ig-title-btn:hover {
+    color: rgba(255,255,255,0.75);
+}
+.ig-title-btn svg {
+    width: 16px;
+    height: 16px;
+}
 .time-display { font-size: 18px; font-weight: 700; color: #ffffff; letter-spacing: -0.5px; }
 
 .sub-header {
