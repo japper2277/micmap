@@ -151,11 +151,6 @@ function init() {
         searchService.init();
     }
 
-    // Initialize settings modal
-    if (typeof settingsService !== 'undefined') {
-        settingsService.init();
-    }
-
     // Load transit data (for matrix-based estimates)
     if (typeof loadTransitData === 'function') {
         loadTransitData();

@@ -39,6 +39,15 @@ const STATE = {
     targetVenueHood: null,      // Neighborhood of explicitly searched venue
     isWaitingForMapClick: false, // Waiting for user to tap map (geolocation fallback)
 
-    // User Preferences (persisted to localStorage)
-    walkPreference: localStorage.getItem('walkPref') || '15min'
+    // Plan Mode State
+    planMode: false,              // Is plan mode active?
+    route: [],                    // Current active route (will be loaded/saved to schedules)
+    schedules: JSON.parse(localStorage.getItem('planSchedules') || '{}'), // Multi-day schedules { "dateStr": [ids] }
+    dismissed: JSON.parse(localStorage.getItem('planDismissed') || '[]'),
+    setDuration: parseInt(localStorage.getItem('planSetDuration') || '45', 10),
+    timeWindowStart: parseInt(localStorage.getItem('planTimeWindowStart') || '700', 10),
+    timeWindowEnd: parseInt(localStorage.getItem('planTimeWindowEnd') || '1100', 10),
+    planGracePeriod: 5,           // Minutes of overlap allowed between mics
+    scheduleExpanded: false,      // Is "My Schedule" dropdown expanded?
+    hideConflicts: false          // Hide mics that conflict with scheduled times?
 };
