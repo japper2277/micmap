@@ -882,6 +882,27 @@ function render(mode) {
         container.appendChild(showMoreContainer);
     }
 
+    // Show "X conflicts hidden" notice when conflicts are being filtered
+    if (STATE.planMode && STATE.hideConflicts && hiddenConflictCount > 0) {
+        const notice = document.createElement('div');
+        notice.className = 'hidden-mics-notice';
+        notice.onclick = () => toggleHideConflicts();
+        notice.innerHTML = `${hiddenConflictCount} conflicting mic${hiddenConflictCount > 1 ? 's' : ''} hidden • <strong>Show All</strong>`;
+        container.appendChild(notice);
+    }
+
+    // About footer
+    const footer = document.createElement('div');
+    footer.className = 'list-footer';
+    footer.innerHTML = `
+        <div class="list-footer-title">MicFinder NYC</div>
+        <div class="list-footer-subtitle">Find open mics across NYC</div>
+        <div class="list-footer-credits">
+            <span>Built by <a href="https://www.instagram.com/jaredapper/" target="_blank" rel="noopener">Jared Apper</a></span>
+            <span>Mic data by <a href="https://www.instagram.com/malevcomedy/" target="_blank" rel="noopener">Adam Malev</a></span>
+        </div>
+    `;
+    container.appendChild(footer);
     // Fetch and update departure times for cards with routes
     if (STATE.isTransitMode) {
         updateCardDepartureTimes();

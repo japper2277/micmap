@@ -140,6 +140,423 @@
     color: rgba(255, 255, 255, 0.4);
 }
 
+/* --- MY SCHEDULE CARD (Plan Mode) --- */
+.my-schedule-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    margin: 8px 12px;
+    /* Glassmorphism effect */
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 14px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    transition: all 0.2s;
+    animation: scheduleSlideIn 0.3s ease;
+    position: relative;
+}
+
+/* (empty state removed - users learn from +Add buttons on mic cards) */
+
+@keyframes scheduleSlideIn {
+    from { opacity: 0; transform: translateY(-12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes schedulePulse {
+    0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+    70% { box-shadow: 0 0 0 8px rgba(34, 197, 94, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+.my-schedule-card.just-added {
+    animation: schedulePulse 0.6s ease;
+}
+
+.my-schedule-card:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.my-schedule-card:active {
+    transform: scale(0.99);
+}
+
+.my-schedule-card-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.my-schedule-icon {
+    width: 18px;
+    height: 18px;
+    color: #22c55e;
+    flex-shrink: 0;
+}
+
+/* Pill-shaped count badge */
+.my-schedule-card-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 7px;
+    background: rgba(34, 197, 94, 0.2);
+    border-radius: 11px;
+    font-weight: 700;
+    font-size: 12px;
+    color: #22c55e;
+    line-height: 1;
+}
+
+/* Label text - white for contrast on glass */
+.my-schedule-card-label {
+    font-size: 15px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.92);
+}
+
+.my-schedule-card-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.my-schedule-card-preview {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.6);
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.my-schedule-chevron {
+    width: 18px;
+    height: 18px;
+    color: #22c55e;
+    flex-shrink: 0;
+    transition: transform 0.25s ease;
+}
+
+.my-schedule-card.expanded .my-schedule-chevron {
+    transform: rotate(180deg);
+}
+
+/* Expanded schedule list */
+.my-schedule-expanded {
+    position: relative;
+    margin: -6px 12px 12px;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transform: translateY(-4px);
+    transition: max-height 0.25s ease, opacity 0.2s ease, transform 0.25s ease;
+}
+
+.schedule-placeholder {
+    border-radius: 12px;
+    margin-bottom: 8px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px dashed rgba(255, 255, 255, 0.14);
+}
+
+.my-schedule-item.dragging-touch {
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+    border-color: rgba(255, 255, 255, 0.18);
+}
+
+.my-schedule-expanded.is-open {
+    max-height: 520px;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+@keyframes expandDown {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.my-schedule-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    margin-bottom: 8px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
+}
+
+.my-schedule-item.conflict {
+    border-color: rgba(255, 69, 58, 0.35);
+    background: rgba(255, 69, 58, 0.08);
+}
+
+.my-schedule-item:last-child {
+    margin-bottom: 0;
+}
+
+.my-schedule-item-time {
+    font-size: 14px;
+    font-weight: 800;
+    color: rgba(255, 255, 255, 0.92);
+    width: 70px;
+    flex-shrink: 0;
+}
+
+.my-schedule-item-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.my-schedule-item-venue {
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
+}
+
+.my-schedule-item-price {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.my-schedule-item-price.free {
+    color: #4ade80;
+}
+
+.my-schedule-remove {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: rgba(255, 69, 58, 0.85);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+    margin-left: 8px;
+    transition: all 0.15s;
+}
+
+.my-schedule-item-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 10px;
+}
+
+.schedule-drag-handle {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 14px;
+    font-weight: 900;
+    cursor: grab;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    letter-spacing: -1px;
+    transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
+    user-select: none;
+}
+
+.schedule-drag-handle:hover {
+    background: rgba(255, 255, 255, 0.09);
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.schedule-drag-handle:active {
+    cursor: grabbing;
+    transform: scale(0.98);
+}
+
+.my-schedule-item.dragging {
+    opacity: 0.65;
+    transform: scale(0.995);
+}
+
+.schedule-tools {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 6px;
+}
+
+.schedule-tool-btn {
+    height: 32px;
+    padding: 0 12px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.schedule-tool-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.92);
+}
+
+.schedule-tool-btn:active {
+    transform: scale(0.98);
+}
+
+.schedule-conflict-banner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    border-radius: 12px;
+    background: rgba(255, 69, 58, 0.08);
+    border: 1px solid rgba(255, 69, 58, 0.22);
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.schedule-conflict-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 9999px;
+    background: #ff453a;
+    box-shadow: 0 0 0 4px rgba(255, 69, 58, 0.15);
+}
+
+.schedule-conflict-cta {
+    margin-left: auto;
+    color: rgba(255, 255, 255, 0.65);
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.my-schedule-remove:hover {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.4);
+    transform: scale(1.05);
+}
+
+.my-schedule-remove:active {
+    transform: scale(0.95);
+    background: rgba(239, 68, 68, 0.3);
+}
+
+/* Hide Conflicts Toggle in Header */
+.conflict-toggle {
+    display: inline-flex;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+}
+
+.conflict-toggle:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.conflict-toggle:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.conflict-toggle.active {
+    background: rgba(34, 197, 94, 0.15);
+    border-color: rgba(34, 197, 94, 0.4);
+    color: #22c55e;
+}
+
+/* Hidden mics notice */
+.hidden-mics-notice {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px;
+    margin: var(--space-sm) var(--space-md);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px dashed rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-md);
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.hidden-mics-notice:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* --- LIST FOOTER / ABOUT --- */
+.list-footer {
+    text-align: center;
+    padding: 32px 16px 40px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    margin-top: 16px;
+}
+
+.list-footer-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 4px;
+}
+
+.list-footer-subtitle {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.25);
+    margin-bottom: 16px;
+}
+
+.list-footer-credits {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.list-footer-credits a {
+    color: rgba(255, 255, 255, 0.45);
+    text-decoration: none;
+}
+
+.list-footer-credits a:hover {
+    color: rgba(255, 255, 255, 0.7);
+}
 /* --- HAPPENING NOW CARD STYLE (when viewing happening now list) --- */
 .stream-item.is-happening-now {
     opacity: 0.85;
