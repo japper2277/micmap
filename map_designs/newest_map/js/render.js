@@ -245,6 +245,8 @@ function render(mode) {
     // Track mics filtered by commute for user feedback
     let commuteFilteredCount = 0;
     let filtered = baseMics.filter(m => {
+        // Skip warning-only entries (rendered separately as warning cards)
+        if (m.warning) return false;
         // Filter by price
         if (STATE.activeFilters.price !== 'All') {
             const priceStr = (m.price || 'Free').toLowerCase();
