@@ -901,7 +901,6 @@ function render(mode) {
         <div class="list-footer-subtitle">Find open mics across NYC</div>
         <div class="list-footer-credits">
             <span>Built by <a href="https://www.instagram.com/jaredapper/" target="_blank" rel="noopener">Jared Apper</a></span>
-            <span>Mic data by <a href="https://www.instagram.com/malevcomedy/" target="_blank" rel="noopener">Adam Malev</a></span>
         </div>
     `;
     container.appendChild(footer);
