@@ -39,9 +39,6 @@ const STATE = {
     targetVenueHood: null,      // Neighborhood of explicitly searched venue
     isWaitingForMapClick: false, // Waiting for user to tap map (geolocation fallback)
 
-    // User Preferences (persisted to localStorage)
-    walkPreference: localStorage.getItem('walkPref') || '15min',
-
     // Plan Mode State
     planMode: false,              // Is plan mode active?
     route: [],                    // Current active route (will be loaded/saved to schedules)
