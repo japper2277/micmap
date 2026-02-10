@@ -16,6 +16,21 @@ async function loadData() {
         const rawMics = data.mics || data; // Handle both { mics: [...] } and raw array
         STATE.mics = processMics(rawMics);
 
+        // Hardcoded venue warnings (shown as banner cards at top of list)
+        CONFIG.dayNames.forEach(day => {
+            STATE.mics.push({
+                id: `warning-comedy-shop-${day}`,
+                title: 'Comedy Shop',
+                venueName: 'Comedy Shop',
+                venue: 'Comedy Shop',
+                day: day,
+                warning: "Multiple women have alleged sexual abuse by this venue's owner",
+                warningLink: 'https://www.instagram.com/p/DUPKOE_EaCE/',
+                lat: 40.7288305,
+                lng: -74.0001342
+            });
+        });
+
         // Check if there are any mics left for today
         const now = new Date();
         const todayName = CONFIG.dayNames[now.getDay()];
