@@ -555,6 +555,44 @@ body.plan-mode .happening-now-card-label {
     color: rgba(255, 255, 255, 0.7);
 }
 
+/* --- LIST FOOTER / ABOUT --- */
+.list-footer {
+    text-align: center;
+    padding: 32px 16px 40px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    margin-top: 16px;
+}
+
+.list-footer-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 4px;
+}
+
+.list-footer-subtitle {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.25);
+    margin-bottom: 16px;
+}
+
+.list-footer-credits {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.list-footer-credits a {
+    color: rgba(255, 255, 255, 0.45);
+    text-decoration: none;
+}
+
+.list-footer-credits a:hover {
+    color: rgba(255, 255, 255, 0.7);
+}
+
 /* --- HAPPENING NOW CARD STYLE (when viewing happening now list) --- */
 .stream-item.is-happening-now {
     opacity: 0.85;
