@@ -480,6 +480,7 @@ const searchService = {
 
         // Venue search with fuzzy matching
         const q = query.toLowerCase();
+        const currentDayName = CONFIG.dayNames[new Date().getDay()];
         const seenVenues = new Set();
         const scored = STATE.mics
             .map(m => {
@@ -487,17 +488,19 @@ const searchService = {
                 const hood = (m.hood || m.neighborhood || '').toLowerCase();
                 const titleScore = this.fuzzyMatch(title, q);
                 const hoodScore = this.fuzzyMatch(hood, q) * 0.5; // Hood match worth less
-                return { ...m, score: Math.max(titleScore, hoodScore) };
+                // Prefer today's entry when deduplicating
+                const dayBonus = m.day === currentDayName ? 0.1 : 0;
+                return { ...m, score: Math.max(titleScore, hoodScore) + dayBonus };
             })
+            .sort((a, b) => b.score - a.score)
             .filter(m => {
                 if (m.score === 0) return false;
-                // Deduplicate by venue name
+                // Deduplicate by venue name (today's entry wins due to sort)
                 const venueName = (m.title || m.venue || '').toLowerCase().trim();
                 if (seenVenues.has(venueName)) return false;
                 seenVenues.add(venueName);
                 return true;
-            })
-            .sort((a, b) => b.score - a.score);
+            });
 
         results.venues = scored.slice(0, 6).map(m => ({ ...m, type: 'venue' }));
 
@@ -634,17 +637,26 @@ const searchService = {
     selectVenue(micId) {
         const mic = STATE.mics.find(m => m.id === micId || String(m.id) === String(micId));
         if (mic) {
+            // Find today's mic at this venue for the modal
+            const currentDayName = CONFIG.dayNames[new Date().getDay()];
+            const venueName = (mic.title || mic.venue || '').toLowerCase().trim();
+            const todayMic = STATE.mics.find(m =>
+                (m.title || m.venue || '').toLowerCase().trim() === venueName &&
+                m.lat === mic.lat && m.lng === mic.lng &&
+                m.day === currentDayName
+            ) || mic; // Fall back to matched mic if no today entry
+
             this.hideDropdown();
-            this.input.value = mic.title || mic.venue;
+            this.input.value = todayMic.title || todayMic.venue;
             this.updateClearButtonVisibility();
             this.input.blur();
 
             // Save to recent searches
             this.saveRecentSearch({
                 type: 'venue',
-                name: mic.title || mic.venue,
-                id: mic.id,
-                sub: mic.hood || mic.neighborhood || ''
+                name: todayMic.title || todayMic.venue,
+                id: todayMic.id,
+                sub: todayMic.hood || todayMic.neighborhood || ''
             });
 
             // Collapse drawer so user can see the map (mobile only)
@@ -655,12 +667,12 @@ const searchService = {
 
             // Fly to venue on map
             if (typeof map !== 'undefined') {
-                map.flyTo([mic.lat, mic.lng], 14, { duration: 1 });
+                map.flyTo([todayMic.lat, todayMic.lng], 14, { duration: 1 });
             }
 
             // Open venue modal if available
             if (typeof openVenueModal === 'function') {
-                openVenueModal(mic);
+                openVenueModal(todayMic);
             }
             // Note: We don't call transitService.calculateFromOrigin here
             // Venues are destinations, not origins. The user's current origin stays unchanged.
