@@ -24,8 +24,10 @@ async function loadData() {
                 venueName: 'Comedy Shop',
                 venue: 'Comedy Shop',
                 day: day,
-                warning: "Multiple women have alleged sexual abuse by this venue's owner",
-                warningLink: 'https://www.instagram.com/p/DUPKOE_EaCE/',
+                warning: {
+                    message: "Multiple women have alleged sexual abuse by this venue's owner",
+                    link: 'https://www.instagram.com/p/DUPKOE_EaCE/'
+                },
                 lat: 40.7288305,
                 lng: -74.0001342
             });
