@@ -68,6 +68,7 @@ function setupModalSwipeToDismiss() {
 let venueModal, modalVenueName, modalAddress, modalDirections;
 let modalMicTime, modalInfoRow, modalInstructions, modalActions, modalSignupBtn, modalIgBtn;
 let modalTransit, modalTabs;
+let modalDaytimePicker, modalDayRow, modalTimeRow, modalTimeMoreRow, modalNoMicsNotice;
 
 // Focus trap state
 let modalTriggerElement = null;
@@ -76,6 +77,7 @@ let modalFocusTrapHandler = null;
 // Current mics for tab switching
 let modalMicsArray = [];
 let modalActiveMicIndex = 0;
+let modalDayPickerState = null;
 
 // Initialize modal DOM references
 function initModal() {
@@ -91,6 +93,11 @@ function initModal() {
     modalIgBtn = document.getElementById('modal-ig-btn');
     modalTransit = document.getElementById('modal-transit');
     modalTabs = document.getElementById('modal-tabs');
+    modalDaytimePicker = document.getElementById('modal-daytime-picker');
+    modalDayRow = document.getElementById('modal-day-row');
+    modalTimeRow = document.getElementById('modal-time-row');
+    modalTimeMoreRow = document.getElementById('modal-time-more-row');
+    modalNoMicsNotice = document.getElementById('modal-no-mics-notice');
 
     // Close modal on background click
     venueModal.addEventListener('click', (e) => {
@@ -123,6 +130,239 @@ function initModal() {
 
 // Store venue map for tab switching
 let modalVenueMap = {};
+const modalDayNameToIndex = { Sunday: 0, Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6 };
+const modalTimeChipsLimit = 3;
+
+function getModalContextDayName() {
+    const now = new Date();
+    if (STATE?.currentMode === 'tomorrow') return CONFIG.dayNames[(now.getDay() + 1) % 7];
+    if (STATE?.currentMode === 'calendar' && STATE?.selectedCalendarDate) {
+        const d = new Date(STATE.selectedCalendarDate);
+        if (!isNaN(d.getTime())) return CONFIG.dayNames[d.getDay()];
+    }
+    return CONFIG.dayNames[now.getDay()];
+}
+
+function getClosestUpcomingDay(dayNames, fromDayName = null) {
+    if (!dayNames || dayNames.length === 0) return null;
+    const now = new Date();
+    const currentIdx = fromDayName && modalDayNameToIndex[fromDayName] !== undefined
+        ? modalDayNameToIndex[fromDayName]
+        : now.getDay();
+
+    let nearest = dayNames[0];
+    let minDist = 8;
+    dayNames.forEach(dayName => {
+        const idx = modalDayNameToIndex[dayName];
+        if (idx === undefined) return;
+        const dist = (idx - currentIdx + 7) % 7;
+        if (dist < minDist) {
+            minDist = dist;
+            nearest = dayName;
+        }
+    });
+    return nearest;
+}
+
+function getDateForDayName(dayName, fromDate = null) {
+    const idx = modalDayNameToIndex[dayName];
+    if (idx === undefined) return new Date();
+    const base = fromDate ? new Date(fromDate) : new Date();
+    if (isNaN(base.getTime())) return new Date();
+    const baseIdx = base.getDay();
+    const diff = (idx - baseIdx + 7) % 7;
+    base.setDate(base.getDate() + diff);
+    return base;
+}
+
+function formatModalDayDate(dayName) {
+    const date = getDateForDayName(dayName, STATE?.selectedCalendarDate || new Date());
+    return new Intl.DateTimeFormat('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric'
+    }).format(date);
+}
+
+function sortMicsByStartTime(mics) {
+    return [...mics].sort((a, b) => {
+        const aTime = a.start ? a.start.getTime() : (parseTime(a.timeStr || a.startTime) || new Date(0)).getTime();
+        const bTime = b.start ? b.start.getTime() : (parseTime(b.timeStr || b.startTime) || new Date(0)).getTime();
+        return aTime - bTime;
+    });
+}
+
+function getMicsAtVenueAcrossDays(mic) {
+    if (!mic || !STATE?.mics) return [];
+    const targetName = (mic.title || mic.venue || '').toLowerCase().trim();
+    return STATE.mics.filter(m => {
+        const sameCoords = m.lat === mic.lat && m.lng === mic.lng;
+        const sameName = (m.title || m.venue || '').toLowerCase().trim() === targetName;
+        return sameCoords && sameName && !m.warning;
+    });
+}
+
+function renderModalTimeChips() {
+    if (!modalDayPickerState || !modalTimeRow || !modalTimeMoreRow) return;
+    const { dayToMics, activeDay, activeMic, expandedTimes } = modalDayPickerState;
+    const dayMics = dayToMics[activeDay] || [];
+    const visibleMics = dayMics.slice(0, modalTimeChipsLimit);
+    const moreMics = dayMics.slice(modalTimeChipsLimit);
+
+    const renderChip = (mic) => {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = `modal-chip ${activeMic && mic.id === activeMic.id ? 'active-time' : ''}`;
+        chip.textContent = mic.timeStr || '?';
+        chip.addEventListener('click', () => {
+            modalDayPickerState.activeMic = mic;
+            populateModalContent(mic, dayMics, activeDay);
+            renderModalTimeChips();
+        });
+        return chip;
+    };
+
+    modalTimeRow.innerHTML = '';
+    visibleMics.forEach(m => modalTimeRow.appendChild(renderChip(m)));
+    if (moreMics.length > 0) {
+        const moreBtn = document.createElement('button');
+        moreBtn.type = 'button';
+        moreBtn.className = 'modal-chip more-chip';
+        moreBtn.textContent = expandedTimes ? 'Hide' : `+${moreMics.length}`;
+        moreBtn.addEventListener('click', () => {
+            modalDayPickerState.expandedTimes = !modalDayPickerState.expandedTimes;
+            renderModalTimeChips();
+        });
+        modalTimeRow.appendChild(moreBtn);
+    }
+
+    modalTimeMoreRow.innerHTML = '';
+    if (moreMics.length > 0 && expandedTimes) {
+        moreMics.forEach(m => modalTimeMoreRow.appendChild(renderChip(m)));
+        modalTimeMoreRow.classList.add('open');
+    } else {
+        modalTimeMoreRow.classList.remove('open');
+    }
+}
+
+function renderModalDayTimePicker(venueMicsAcrossDays, selectedMic) {
+    if (!modalDaytimePicker || !modalDayRow || !modalTimeRow || !modalNoMicsNotice) return;
+    const grouped = {};
+    venueMicsAcrossDays.forEach(m => {
+        if (!grouped[m.day]) grouped[m.day] = [];
+        grouped[m.day].push(m);
+    });
+    Object.keys(grouped).forEach(day => grouped[day] = sortMicsByStartTime(grouped[day]));
+
+    const availableDays = Object.keys(grouped).sort((a, b) => {
+        const ai = modalDayNameToIndex[a] ?? 99;
+        const bi = modalDayNameToIndex[b] ?? 99;
+        return ai - bi;
+    });
+
+    if (venueMicsAcrossDays.length <= 1) {
+        modalDaytimePicker.style.display = 'none';
+        modalNoMicsNotice.classList.remove('show');
+        modalNoMicsNotice.textContent = '';
+        modalDayPickerState = null;
+        return;
+    }
+
+    modalDaytimePicker.style.display = '';
+    const contextDayName = getModalContextDayName();
+    const hasContextDay = !!grouped[contextDayName];
+    const nextAvailableDay = getClosestUpcomingDay(availableDays, contextDayName);
+
+    // Single source of truth for active day:
+    // 1) context day if available
+    // 2) next available day
+    // 3) selected mic day fallback
+    // 4) first available day fallback
+    const defaultDay = hasContextDay
+        ? contextDayName
+        : (nextAvailableDay ||
+           (selectedMic?.day && grouped[selectedMic.day] ? selectedMic.day : availableDays[0]));
+    const dayMics = grouped[defaultDay] || [];
+    const defaultMic = (selectedMic && selectedMic.day === defaultDay)
+        ? selectedMic
+        : (dayMics[0] || selectedMic || venueMicsAcrossDays[0]);
+
+    if (!hasContextDay) {
+        const nextMic = defaultDay && grouped[defaultDay] ? grouped[defaultDay][0] : null;
+        const contextDayShort = (contextDayName || '').slice(0, 3);
+        const defaultDayShort = (defaultDay || '').slice(0, 3);
+        modalNoMicsNotice.textContent = nextMic
+            ? `No mics today (${contextDayShort}). Showing next available: ${defaultDayShort} ${nextMic.timeStr || ''}`
+            : `No mics today (${contextDayShort}).`;
+        modalNoMicsNotice.classList.add('show');
+    } else {
+        modalNoMicsNotice.classList.remove('show');
+        modalNoMicsNotice.textContent = '';
+    }
+
+    modalDayPickerState = {
+        dayToMics: grouped,
+        activeDay: defaultDay,
+        activeMic: defaultMic,
+        expandedTimes: false
+    };
+
+    modalDayRow.innerHTML = '';
+    availableDays.forEach(dayName => {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = `modal-chip ${dayName === modalDayPickerState.activeDay ? 'active-day' : ''}`;
+        chip.textContent = dayName.slice(0, 3);
+        chip.addEventListener('click', () => {
+            const selectedDayMics = modalDayPickerState.dayToMics[dayName] || [];
+            modalDayPickerState.activeDay = dayName;
+            modalDayPickerState.activeMic = selectedDayMics[0] || modalDayPickerState.activeMic;
+            modalDayPickerState.expandedTimes = false;
+
+            modalDayRow.querySelectorAll('.modal-chip').forEach(c => c.classList.remove('active-day'));
+            chip.classList.add('active-day');
+
+            if (modalDayPickerState.activeMic) {
+                populateModalContent(modalDayPickerState.activeMic, selectedDayMics, dayName);
+            }
+            renderModalTimeChips();
+        });
+        modalDayRow.appendChild(chip);
+    });
+
+    populateModalContent(defaultMic, dayMics, defaultDay);
+    renderModalTimeChips();
+}
+
+function renderVenueModalForMic(mic) {
+    const contextDayName = getModalContextDayName();
+    const isCurrentDayMic = mic?.day === contextDayName;
+
+    // Keep current-day cards simple: no day/time picker UI.
+    if (isCurrentDayMic) {
+        if (modalDaytimePicker) modalDaytimePicker.style.display = 'none';
+        if (modalNoMicsNotice) {
+            modalNoMicsNotice.classList.remove('show');
+            modalNoMicsNotice.textContent = '';
+        }
+        modalDayPickerState = null;
+        populateModalContent(mic, [mic], mic.day);
+        return;
+    }
+
+    const venueMicsAcrossDays = getMicsAtVenueAcrossDays(mic);
+    if (venueMicsAcrossDays.length > 0) {
+        renderModalDayTimePicker(venueMicsAcrossDays, mic);
+    } else {
+        if (modalDaytimePicker) modalDaytimePicker.style.display = 'none';
+        if (modalNoMicsNotice) {
+            modalNoMicsNotice.classList.remove('show');
+            modalNoMicsNotice.textContent = '';
+        }
+        modalDayPickerState = null;
+        populateModalContent(mic, [mic], mic.day);
+    }
+}
 
 // Helper: Adjust mic start time to the correct date based on viewing mode
 // today = today's date, tomorrow = +1 day, calendar = selected date
@@ -138,6 +378,11 @@ function adjustMicDateForMode(mic) {
         targetDate.setDate(targetDate.getDate() + 1);
     } else if (mode === 'calendar' && STATE?.selectedCalendarDate) {
         targetDate = new Date(STATE.selectedCalendarDate);
+    }
+
+    // When using modal day chips, always align transit timing with selected day.
+    if (modalDayPickerState?.activeDay) {
+        targetDate = getDateForDayName(modalDayPickerState.activeDay, STATE?.selectedCalendarDate || now);
     }
 
     // Create new date with target date but original time
@@ -191,7 +436,7 @@ function openVenueModalWithMics(mics) {
             });
             if (upcomingMic) primaryMic = upcomingMic;
         }
-        populateModalContent(primaryMic, venueMics);
+        renderVenueModalForMic(primaryMic);
         venueModal.classList.add('active');
         modalTriggerElement = document.activeElement;
         setupFocusTrap(venueModal);
@@ -258,14 +503,14 @@ function openVenueModalWithMics(mics) {
             // Update modal content with all mics at this venue
             const venueMics = modalVenueMap[venueName] || [];
             if (venueMics.length > 0) {
-                populateModalContent(venueMics[0], venueMics);
+                renderVenueModalForMic(venueMics[0]);
             }
         });
     });
 
     // Show first venue's mics
     const firstVenueMics = venues[0][1];
-    populateModalContent(firstVenueMics[0], firstVenueMics);
+    renderVenueModalForMic(firstVenueMics[0]);
 
     // Show modal
     venueModal.classList.add('active');
@@ -276,19 +521,14 @@ function openVenueModalWithMics(mics) {
 }
 
 // Populate modal content without showing it (for tab switching)
-function populateModalContent(mic, allMicsAtVenue = null) {
+function populateModalContent(mic, allMicsAtVenue = null, activeDayName = null) {
     if (!mic) return;
 
     // 1. HEADER - Venue name and time(s)
     modalVenueName.innerText = mic.title || 'Unknown Venue';
-
-    // If multiple mics at same venue, show all times
-    if (allMicsAtVenue && allMicsAtVenue.length > 1) {
-        const times = allMicsAtVenue.map(m => m.timeStr || '?').join(', ');
-        modalMicTime.innerText = times;
-    } else {
-        modalMicTime.innerText = mic.timeStr || '';
-    }
+    const dayName = activeDayName || mic.day || getModalContextDayName();
+    const hasPicker = !!modalDayPickerState;
+    modalMicTime.innerText = hasPicker ? formatModalDayDate(dayName) : (mic.timeStr || '');
 
     // 2. SUB-HEADER - Address and Maps link
     let address = mic.address || '';
@@ -334,16 +574,34 @@ function populateModalContent(mic, allMicsAtVenue = null) {
     }
 
     // 3. Signup type badge (coral/red)
-    let signupType = mic.signupUrl ? 'Advance Sign-up' :
-                     mic.signupEmail ? 'Email Sign-up' : 'Sign up in person';
-    infoParts.push(`<div class="info-badge info-badge-signup">${escapeHtml(signupType)}</div>`);
+    // Skip signup badge for URL signups to avoid duplicating the "Sign Up Online" CTA button
+    if (!mic.signupUrl) {
+        const signupType = mic.signupEmail ? 'RSVP' : 'Sign up in person';
+        infoParts.push(`<div class="info-badge info-badge-signup">${escapeHtml(signupType)}</div>`);
+    }
 
     modalInfoRow.innerHTML = infoParts.join('');
 
-    // 4. NOTE TEXT - Description only (if there's meaningful content)
-    let noteText = instructions;
-    if (noteText && noteText.length >= 3) {
-        noteText = noteText.charAt(0).toUpperCase() + noteText.slice(1);
+    // 4. NOTE TEXT - Show only important signup setup instructions
+    const normalizedNote = instructions.replace(/\s+/g, ' ').trim();
+    const lowerNote = normalizedNote.toLowerCase();
+
+    const genericOnlyPatterns = [
+        /^sign\s*up(\s*(in person|at venue|online))?(\s*only)?$/i,
+        /^show up go up$/i,
+        /^check venue for details$/i,
+        /^check instagram for signup (info|link)$/i,
+        /^no signup info available$/i
+    ];
+
+    const hasSpecificTiming = /\b(\d{1,2}(:\d{2})?\s*(am|pm)|minutes?\s+prior|starts?\s+at|day before|on (monday|tuesday|wednesday|thursday|friday|saturday|sunday))\b/i.test(normalizedNote);
+    const hasSpecificMethod = /\b(comment|dm|instagram post|waitlist|eventbrite|google sheet|register|text\b|link in instagram bio|link on instagram|form)\b/i.test(normalizedNote);
+    const hasSpecificLocation = /\b(blue room|main room|upstairs|downstairs|back room)\b/i.test(normalizedNote);
+    const isGenericOnly = genericOnlyPatterns.some(pattern => pattern.test(lowerNote));
+    const shouldShowInstruction = normalizedNote.length >= 3 && !isGenericOnly && (hasSpecificTiming || hasSpecificMethod || hasSpecificLocation);
+
+    if (shouldShowInstruction) {
+        const noteText = normalizedNote.charAt(0).toUpperCase() + normalizedNote.slice(1);
         modalInstructions.textContent = noteText;
     } else {
         modalInstructions.textContent = '';
@@ -358,12 +616,12 @@ function populateModalContent(mic, allMicsAtVenue = null) {
     if (hasSignupUrl) {
         modalSignupBtn.href = mic.signupUrl;
         modalSignupBtn.target = '_blank';
-        modalSignupBtn.innerText = 'Sign Up';
+        modalSignupBtn.innerText = 'Sign Up Online';
         modalSignupBtn.style.display = 'flex';
     } else if (hasSignupEmail) {
         modalSignupBtn.href = `mailto:${mic.signupEmail}`;
         modalSignupBtn.removeAttribute('target');
-        modalSignupBtn.innerText = 'Email';
+        modalSignupBtn.innerText = 'Send Email';
         modalSignupBtn.style.display = 'flex';
     } else {
         modalSignupBtn.style.display = 'none';
@@ -392,125 +650,12 @@ function populateModalContent(mic, allMicsAtVenue = null) {
 function openVenueModal(mic) {
     if (!mic) return;
 
-    // Find all mics at this venue (same address/coordinates)
-    const venueMics = (STATE?.mics || []).filter(m =>
-        m.lat === mic.lat && m.lng === mic.lng && m.day === mic.day
-    );
-
-    // If multiple mics at same venue, use the multi-mic modal
-    if (venueMics.length > 1) {
-        openVenueModalWithMics(venueMics);
-        return;
-    }
-
     // Clear tabs for single mic
     modalTabs.innerHTML = '';
     modalTabs.style.display = 'none';
     modalMicsArray = [mic];
     modalActiveMicIndex = 0;
-
-    // 1. HEADER - Venue name and time
-    modalVenueName.innerText = mic.title || 'Unknown Venue';
-    modalMicTime.innerText = mic.timeStr || '';
-
-    // 2. SUB-HEADER - Address and Maps link
-    let address = mic.address || '';
-    address = address.replace(/,?\s*NY\s*\d{5}(-\d{4})?/i, '').trim(); // Remove zip
-    address = address.replace(/,\s*$/, ''); // Remove trailing comma
-    address = address.replace(/\.,/g, ','); // Fix "St.," → "St,"
-    address = address.replace(/,?\s*New York(\s+City)?/gi, ', NY'); // "New York" → "NY"
-    address = address.replace(/,\s*,/g, ','); // Remove double commas
-    modalAddress.innerText = address;
-    modalDirections.href = `https://www.google.com/maps/dir/?api=1&destination=${mic.lat},${mic.lng}`;
-    modalDirections.target = '_blank';
-
-    // 3. INFO ROW - Time pill, Price badge, Signup type
-    let instructions = mic.signupInstructions || '';
-    // Strip URLs (both https:// and www. formats)
-    instructions = instructions.replace(/https?:\/\/[^\s]+/gi, '').trim();
-    instructions = instructions.replace(/www\.[^\s]+/gi, '').trim();
-    instructions = instructions.replace(/\s*(sign\s*up\s*)?(at|@)\s*$/i, '').trim();
-    // Remove email addresses from display text (button will handle it)
-    if (mic.signupEmail) {
-        instructions = instructions.replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, '').trim();
-        instructions = instructions.replace(/^email\s*/i, '').trim();
-    }
-
-    // Build info row with badges (matching demo design)
-    const infoParts = [];
-    const clockIcon = '<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>';
-
-    // 1. Set time badge (neutral)
-    if (mic.setTime) {
-        infoParts.push(`<div class="info-badge info-badge-time">${clockIcon} ${escapeHtml(formatSetTime(mic.setTime))}</div>`);
-    }
-
-    // 2. Price badge (money green)
-    if (mic.price) {
-        const priceLower = mic.price.toLowerCase();
-        if (priceLower === 'free' || priceLower.includes('free')) {
-            infoParts.push(`<div class="info-badge info-badge-price">FREE</div>`);
-        } else if (mic.price.includes('$')) {
-            const priceMatch = mic.price.match(/\$[\d]+(?:\.\d{2})?/);
-            const priceAmount = priceMatch ? priceMatch[0] : mic.price.replace(/\.$/, '');
-            infoParts.push(`<div class="info-badge info-badge-price">${escapeHtml(priceAmount)}</div>`);
-        }
-    }
-
-    // 3. Signup type badge (coral/red)
-    let signupType = mic.signupUrl ? 'Advance Sign-up' :
-                     mic.signupEmail ? 'Email Sign-up' : 'Sign up in person';
-    infoParts.push(`<div class="info-badge info-badge-signup">${escapeHtml(signupType)}</div>`);
-
-    modalInfoRow.innerHTML = infoParts.join('');
-
-    // 4. NOTE TEXT - Description only (if there's meaningful content)
-    let noteText = instructions;
-    if (noteText && noteText.length >= 3) {
-        noteText = noteText.charAt(0).toUpperCase() + noteText.slice(1);
-        modalInstructions.textContent = noteText;
-    } else {
-        modalInstructions.textContent = '';
-    }
-
-    // 5. ACTION BUTTONS - Sign up and IG
-    const hasSignupUrl = !!mic.signupUrl;
-    const hasSignupEmail = !!mic.signupEmail;
-    const igHandle = mic.contact || mic.host || mic.hostIg;
-    const hasIg = igHandle && igHandle !== 'TBD';
-
-    if (hasSignupUrl) {
-        modalSignupBtn.href = mic.signupUrl;
-        modalSignupBtn.target = '_blank';
-        modalSignupBtn.innerText = 'Sign Up';
-        modalSignupBtn.style.display = 'flex';
-    } else if (hasSignupEmail) {
-        modalSignupBtn.href = `mailto:${mic.signupEmail}`;
-        modalSignupBtn.removeAttribute('target');
-        modalSignupBtn.innerText = 'Email';
-        modalSignupBtn.style.display = 'flex';
-    } else {
-        modalSignupBtn.style.display = 'none';
-    }
-
-    if (hasIg) {
-        modalIgBtn.href = `https://instagram.com/${igHandle.replace(/^@/, '')}`;
-        modalIgBtn.target = '_blank';
-        modalIgBtn.style.display = 'flex';
-    } else {
-        modalIgBtn.style.display = 'none';
-    }
-
-    // Adjust grid based on button count
-    const hasSignupAction = hasSignupUrl || hasSignupEmail;
-    if (hasSignupAction && hasIg) {
-        modalActions.classList.remove('single-btn');
-    } else {
-        modalActions.classList.add('single-btn');
-    }
-
-    // Hide actions row entirely if no buttons
-    modalActions.style.display = (hasSignupAction || hasIg) ? 'grid' : 'none';
+    renderVenueModalForMic(mic);
 
     // Show modal
     venueModal.classList.add('active');
@@ -519,8 +664,6 @@ function openVenueModal(mic) {
     modalTriggerElement = document.activeElement;
     setupFocusTrap(venueModal);
 
-    // 5. TRANSIT - adjust mic date for current viewing mode
-    loadModalArrivals(adjustMicDateForMode(mic));
 }
 
 // Setup focus trap for modal accessibility
