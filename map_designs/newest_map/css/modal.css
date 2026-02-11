@@ -30,13 +30,99 @@
     flex-direction: column;
     border-radius: 24px;
     overflow: hidden;
-    max-height: 90vh;
+    max-height: 90dvh;
     overflow-y: auto;
     transform: scale(0.92) translateY(30px);
     opacity: 0;
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     color: #fff;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.modal-daytime-picker {
+    margin-bottom: 12px;
+}
+
+.modal-picker-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #8e8e93;
+    margin: 6px 0;
+    font-weight: 600;
+}
+
+.modal-chip-row {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+}
+
+.modal-chip-row::-webkit-scrollbar {
+    display: none;
+}
+
+.modal-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #27272a;
+    background: rgba(24, 24, 27, 0.6);
+    color: #e4e4e7;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 10px;
+    white-space: nowrap;
+    cursor: pointer;
+    flex: 0 0 auto;
+}
+
+.modal-chip.active-day {
+    background: #0a84ff;
+    border-color: #0a84ff;
+    color: #fff;
+}
+
+.modal-chip.active-time {
+    background: rgba(40, 174, 133, 0.18);
+    border-color: #41e0b0;
+    color: #bdf7e4;
+}
+
+.modal-chip.more-chip {
+    border-style: dashed;
+    background: transparent;
+    color: #a1a1aa;
+}
+
+.modal-time-more-row {
+    display: none;
+    margin-top: 6px;
+}
+
+.modal-time-more-row.open {
+    display: flex;
+}
+
+.modal-notice {
+    display: none;
+    margin: 8px 0 10px 0;
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    background: rgba(127, 29, 29, 0.24);
+    color: #fecaca;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 8px 10px;
+}
+
+.modal-notice.show {
+    display: block;
 }
 .modal-overlay.active .venue-card {
     transform: scale(1) translateY(0);
@@ -58,7 +144,8 @@
 /* Mobile: 70% size */
 @media (max-width: 639px) {
     .venue-card {
-        width: 280px;
+        width: 100%;
+        max-width: 320px;
         border-radius: 18px;
     }
     /* Swipe indicator bar */
@@ -106,6 +193,10 @@
         padding: 10px;
         font-size: 12px;
         border-radius: 10px;
+    }
+    .modal-chip {
+        font-size: 11px;
+        padding: 6px 9px;
     }
     .content-sheet {
         padding: 12px 10px;
