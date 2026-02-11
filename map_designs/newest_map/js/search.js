@@ -514,15 +514,45 @@ const searchService = {
 
         results.venues = scored.slice(0, 6).map(m => ({ ...m, type: 'venue' }));
 
-        // If no results, find suggestions (close matches for "Did you mean?")
-        if (results.venues.length === 0) {
-            const allVenues = [...new Set(STATE.mics.filter(m => !m.warning && m.day === activeDayName).map(m => m.title || m.venue))];
-            results.suggestions = allVenues
-                .map(name => ({ name, score: this.fuzzyMatch(name, q) }))
-                .filter(v => v.score > 20) // Weak matches
-                .sort((a, b) => b.score - a.score)
-                .slice(0, 2)
-                .map(v => v.name);
+        // Find matching venues on OTHER days (not the active day)
+        const activeDayVenueNames = new Set(results.venues.map(v => (v.title || v.venue || '').toLowerCase().trim()));
+        const otherDaySeenVenues = new Set();
+        const otherDayMatches = STATE.mics
+            .filter(m => !m.warning && m.day !== activeDayName)
+            .map(m => {
+                const title = (m.title || m.venue || '').toLowerCase();
+                const score = this.fuzzyMatch(title, q);
+                return { ...m, score };
+            })
+            .sort((a, b) => b.score - a.score)
+            .filter(m => {
+                if (m.score === 0) return false;
+                const venueName = (m.title || m.venue || '').toLowerCase().trim();
+                // Skip if already shown on active day
+                if (activeDayVenueNames.has(venueName)) return false;
+                if (otherDaySeenVenues.has(venueName)) return false;
+                otherDaySeenVenues.add(venueName);
+                return true;
+            });
+
+        // Group other-day matches by venue name to collect all their days
+        if (otherDayMatches.length > 0) {
+            const venuesByName = {};
+            otherDayMatches.forEach(m => {
+                const venueName = (m.title || m.venue || '').toLowerCase().trim();
+                if (!venuesByName[venueName]) venuesByName[venueName] = { mic: m, days: new Set() };
+                venuesByName[venueName].days.add(m.day);
+            });
+            // Also collect days from all STATE.mics for each venue
+            Object.keys(venuesByName).forEach(venueName => {
+                STATE.mics.filter(m => !m.warning && (m.title || m.venue || '').toLowerCase().trim() === venueName)
+                    .forEach(m => venuesByName[venueName].days.add(m.day));
+            });
+            results.otherDayVenues = Object.values(venuesByName).slice(0, 3).map(v => ({
+                ...v.mic,
+                type: 'other-day-venue',
+                micDays: [...v.days]
+            }));
         }
 
         this.renderDropdown(results, query);
@@ -562,18 +592,34 @@ const searchService = {
 
             // Screen reader announcement
             this.announceResults(`${results.venues.length} venue${results.venues.length === 1 ? '' : 's'} found`);
-        } else {
-            // No results - show suggestions if available
-            if (results.suggestions && results.suggestions.length > 0) {
-                html += `<div class="dropdown-empty" role="status">
-                    <span>No venues found</span>
-                    <div class="did-you-mean">Did you mean: ${results.suggestions.map(s =>
-                        `<button class="suggestion-link" data-suggestion="${this.escapeHtml(s)}">${this.escapeHtml(s)}</button>`
-                    ).join(' or ')}</div>
-                </div>`;
-            } else {
-                html += '<div class="dropdown-empty" role="status">No venues found</div>';
+        }
+
+        // Show other-day venues (venues that match but aren't on the active day)
+        if (results.otherDayVenues && results.otherDayVenues.length > 0) {
+            const dayAbbrs = { Sunday: 'Sun', Monday: 'Mon', Tuesday: 'Tue', Wednesday: 'Wed', Thursday: 'Thu', Friday: 'Fri', Saturday: 'Sat' };
+            const dayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+            if (results.venues.length === 0) {
+                html += `<div class="dropdown-empty" role="status"><span>No mic today</span></div>`;
             }
+            html += `<div class="section-header" role="presentation">Other Days</div>`;
+            results.otherDayVenues.forEach(v => {
+                const title = v.title || v.venue || 'Unknown';
+                const highlightedTitle = this.highlightMatch(title, query);
+                const sortedDays = v.micDays.sort((a, b) => dayOrder.indexOf(a) - dayOrder.indexOf(b));
+                const daysText = sortedDays.map(d => dayAbbrs[d] || d).join(', ');
+                // Find the nearest upcoming day for this venue
+                const nearestDay = this.findNearestDay(v.micDays);
+                html += `
+                    <div class="dropdown-item venue-type other-day" id="search-option-${optionIndex++}" role="option" aria-selected="false" data-action="other-day-venue" data-id="${v.id}" data-day="${nearestDay}">
+                        <div class="item-icon" aria-hidden="true">${this.icons.mic}</div>
+                        <div class="item-text">
+                            <span class="item-name">${highlightedTitle}</span>
+                            <span class="item-subtext">${daysText}</span>
+                        </div>
+                    </div>`;
+            });
+        } else if (results.venues.length === 0) {
+            html += '<div class="dropdown-empty" role="status">No venues found</div>';
             this.announceResults('No venues found');
         }
 
@@ -596,6 +642,22 @@ const searchService = {
         announcer.textContent = message;
     },
 
+    // Find the nearest upcoming day from a list of day names
+    findNearestDay(days) {
+        const now = new Date();
+        const todayIndex = now.getDay(); // 0=Sun
+        const dayNameToIndex = { Sunday: 0, Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6 };
+        let nearest = days[0];
+        let minDist = 8;
+        days.forEach(d => {
+            const idx = dayNameToIndex[d];
+            if (idx === undefined) return;
+            const dist = (idx - todayIndex + 7) % 7 || 7; // days until, at least 1
+            if (dist < minDist) { minDist = dist; nearest = d; }
+        });
+        return nearest;
+    },
+
     // Haptic feedback for selections (iOS/Android)
     triggerHaptic() {
         if (navigator.vibrate) {
@@ -616,6 +678,8 @@ const searchService = {
                 // Venues only (location set via GPS button or map pin drop)
                 if (item.dataset.action === 'venue') {
                     this.selectVenue(item.dataset.id);
+                } else if (item.dataset.action === 'other-day-venue') {
+                    this.switchToDay(item.dataset.day, item.dataset.id);
                 }
             });
         });
@@ -695,6 +759,27 @@ const searchService = {
             // Note: We don't call transitService.calculateFromOrigin here
             // Venues are destinations, not origins. The user's current origin stays unchanged.
         }
+    },
+
+    switchToDay(dayName, micId) {
+        // Find the date for the nearest occurrence of this day
+        const dayNameToIndex = { Sunday: 0, Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6 };
+        const targetIdx = dayNameToIndex[dayName];
+        const now = new Date();
+        const diff = (targetIdx - now.getDay() + 7) % 7 || 7;
+        const targetDate = new Date(now);
+        targetDate.setDate(now.getDate() + diff);
+
+        // Switch to that day via calendar mode
+        STATE.selectedCalendarDate = targetDate.toDateString();
+        STATE.currentMode = 'calendar';
+        if (typeof updateCalendarButtonDisplay === 'function') {
+            updateCalendarButtonDisplay(STATE.selectedCalendarDate);
+        }
+        render('calendar');
+
+        // Now select the venue on the new day
+        this.selectVenue(micId);
     },
 
     selectLocation(lat, lng, name) {
