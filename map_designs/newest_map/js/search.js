@@ -481,18 +481,26 @@ const searchService = {
 
         // Venue search with fuzzy matching
         const q = query.toLowerCase();
-        const currentDayName = CONFIG.dayNames[new Date().getDay()];
+        const now = new Date();
+        // Filter to the currently viewed day
+        let activeDayName;
+        if (STATE.currentMode === 'tomorrow') {
+            activeDayName = CONFIG.dayNames[(now.getDay() + 1) % 7];
+        } else if (STATE.currentMode === 'calendar' && STATE.selectedCalendarDate) {
+            activeDayName = CONFIG.dayNames[new Date(STATE.selectedCalendarDate).getDay()];
+        } else {
+            activeDayName = CONFIG.dayNames[now.getDay()];
+        }
         const seenVenues = new Set();
         const scored = STATE.mics
             .filter(m => !m.warning)
+            .filter(m => m.day === activeDayName)
             .map(m => {
                 const title = (m.title || m.venue || '').toLowerCase();
                 const hood = (m.hood || m.neighborhood || '').toLowerCase();
                 const titleScore = this.fuzzyMatch(title, q);
                 const hoodScore = this.fuzzyMatch(hood, q) * 0.5; // Hood match worth less
-                // Prefer today's entry when deduplicating
-                const dayBonus = m.day === currentDayName ? 0.1 : 0;
-                return { ...m, score: Math.max(titleScore, hoodScore) + dayBonus };
+                return { ...m, score: Math.max(titleScore, hoodScore) };
             })
             .sort((a, b) => b.score - a.score)
             .filter(m => {
@@ -508,7 +516,7 @@ const searchService = {
 
         // If no results, find suggestions (close matches for "Did you mean?")
         if (results.venues.length === 0) {
-            const allVenues = [...new Set(STATE.mics.filter(m => !m.warning).map(m => m.title || m.venue))];
+            const allVenues = [...new Set(STATE.mics.filter(m => !m.warning && m.day === activeDayName).map(m => m.title || m.venue))];
             results.suggestions = allVenues
                 .map(name => ({ name, score: this.fuzzyMatch(name, q) }))
                 .filter(v => v.score > 20) // Weak matches
