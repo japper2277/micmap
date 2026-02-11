@@ -1099,6 +1099,8 @@
 /* New categorized dropdown styles */
 .dropdown-item.venue-type .item-icon { background: rgba(244, 63, 94, 0.15); color: #f43f5e; border-radius: 50%; }
 .dropdown-item.venue-type .item-name { font-weight: 600; }
+.dropdown-item.other-day { opacity: 0.6; }
+.dropdown-item.other-day .item-subtext { font-size: 11px; color: rgba(255, 255, 255, 0.45); }
 
 .dropdown-item.location-type .item-icon { background: rgba(255, 255, 255, 0.08); color: rgba(255, 255, 255, 0.6); border-radius: 50%; }
 .dropdown-item.location-type .item-name { font-weight: 400; color: rgba(255, 255, 255, 0.9); }
