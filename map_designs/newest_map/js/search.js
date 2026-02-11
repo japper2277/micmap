@@ -647,8 +647,16 @@ const searchService = {
     selectVenue(micId) {
         const mic = STATE.mics.find(m => m.id === micId || String(m.id) === String(micId));
         if (mic) {
-            // Find today's mic at this venue for the modal
-            const currentDayName = CONFIG.dayNames[new Date().getDay()];
+            // Find the active day's mic at this venue for the modal
+            const now = new Date();
+            let currentDayName;
+            if (STATE.currentMode === 'tomorrow') {
+                currentDayName = CONFIG.dayNames[(now.getDay() + 1) % 7];
+            } else if (STATE.currentMode === 'calendar' && STATE.selectedCalendarDate) {
+                currentDayName = CONFIG.dayNames[new Date(STATE.selectedCalendarDate).getDay()];
+            } else {
+                currentDayName = CONFIG.dayNames[now.getDay()];
+            }
             const venueName = (mic.title || mic.venue || '').toLowerCase().trim();
             const todayMic = STATE.mics.find(m =>
                 (m.title || m.venue || '').toLowerCase().trim() === venueName &&
