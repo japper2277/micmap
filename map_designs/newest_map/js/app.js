@@ -47,6 +47,7 @@ async function loadData() {
             const tomorrow = new Date(now);
             tomorrow.setDate(tomorrow.getDate() + 1);
             STATE.selectedCalendarDate = tomorrow.toDateString();
+            updateCalendarButtonDisplay(STATE.selectedCalendarDate);
             render('tomorrow');
         } else {
             render('today');
