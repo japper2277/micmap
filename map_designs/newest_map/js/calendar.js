@@ -164,6 +164,7 @@ function setMode(mode) {
         hideDateCarousel();
         STATE.currentMode = mode;
         STATE.selectedCalendarDate = (mode === 'today') ? currentTime.toDateString() : addDays(currentTime, 1).toDateString();
+        updateCalendarButtonDisplay(STATE.selectedCalendarDate);
         render(mode);
 
         // If transit mode is active, recalculate routes for new day's mics (silent = don't move map)

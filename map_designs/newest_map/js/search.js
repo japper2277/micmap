@@ -371,6 +371,7 @@ const searchService = {
 
                 // Get mics with real transit times (from mic.transitMins)
                 const nearbyMics = STATE.mics
+                    .filter(m => !m.warning)
                     .filter(m => m.transitMins !== undefined) // Only mics with calculated transit
                     .map(m => ({
                         ...m,
@@ -483,6 +484,7 @@ const searchService = {
         const currentDayName = CONFIG.dayNames[new Date().getDay()];
         const seenVenues = new Set();
         const scored = STATE.mics
+            .filter(m => !m.warning)
             .map(m => {
                 const title = (m.title || m.venue || '').toLowerCase();
                 const hood = (m.hood || m.neighborhood || '').toLowerCase();
@@ -506,7 +508,7 @@ const searchService = {
 
         // If no results, find suggestions (close matches for "Did you mean?")
         if (results.venues.length === 0) {
-            const allVenues = [...new Set(STATE.mics.map(m => m.title || m.venue))];
+            const allVenues = [...new Set(STATE.mics.filter(m => !m.warning).map(m => m.title || m.venue))];
             results.suggestions = allVenues
                 .map(name => ({ name, score: this.fuzzyMatch(name, q) }))
                 .filter(v => v.score > 20) // Weak matches
