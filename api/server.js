@@ -186,8 +186,13 @@ function getScheduledDeparturesBefore(stopId, line, deadlineMins, count = 3) {
   return departures;
 }
 
+const compression = require('compression');
+
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+// Gzip/Brotli compression - reduces JSON payload ~70-80% for mobile
+app.use(compression({ threshold: 1024 }));
 
 // Enable CORS for all origins (restrict in production)
 app.use(cors());
@@ -204,7 +209,7 @@ app.use(requestLoggingMiddleware);
 const dataPath = process.env.NODE_ENV === 'production'
   ? path.join(__dirname, 'public', 'data')
   : path.join(__dirname, '..', 'public', 'data');
-app.use('/data', express.static(dataPath));
+app.use('/data', express.static(dataPath, { maxAge: '1h' }));
 
 // Connect to MongoDB (skip in test - tests handle their own connection)
 if (process.env.NODE_ENV !== 'test') {
@@ -383,8 +388,8 @@ app.get('/api/v1/mics', cacheMiddleware, async (req, res) => {
         }
       }
 
-      // Execute query
-      let micsQuery = Mic.find(query).lean();
+      // Execute query - exclude fields the frontend doesn't need
+      let micsQuery = Mic.find(query, { location: 0, __v: 0, createdAt: 0, updatedAt: 0 }).lean();
 
       // Sorting
       if (sort === 'time') {
@@ -444,6 +449,9 @@ app.get('/api/v1/mics', cacheMiddleware, async (req, res) => {
     } else {
       throw new Error('No data source available');
     }
+
+    // Allow browser to cache for 5 min, CDN for 10 min
+    res.set('Cache-Control', 'public, max-age=300, s-maxage=600');
 
     res.json({
       success: true,
