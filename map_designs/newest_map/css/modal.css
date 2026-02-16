@@ -76,7 +76,7 @@
     border-radius: 999px;
     font-size: 12px;
     font-weight: 600;
-    padding: 6px 10px;
+    padding: 10px 14px;
     white-space: nowrap;
     cursor: pointer;
     flex: 0 0 auto;
@@ -196,7 +196,7 @@
     }
     .modal-chip {
         font-size: 11px;
-        padding: 6px 9px;
+        padding: 10px 12px;
     }
     .content-sheet {
         padding: 12px 10px;

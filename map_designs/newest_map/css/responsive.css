@@ -62,8 +62,8 @@
     /* Filter icon button - Glass style */
     .mobile-filter-icon {
         flex-shrink: 0;
-        width: 34px;
-        height: 34px;
+        width: 44px;
+        height: 44px;
         border-radius: 100px;
         background: rgba(20, 20, 20, 0.85);
         backdrop-filter: blur(20px) saturate(180%);
@@ -270,9 +270,9 @@
     /* Clear × inside active filter pills */
     .pill-clear {
         display: none;
-        width: 24px;
-        height: 24px;
-        min-width: 24px;
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
         border-radius: 50%;
         background: rgba(255, 255, 255, 0.25);
         border: none;
@@ -424,23 +424,22 @@
    ================================================================= */
 @media (max-width: 430px) {
     .mobile-filter-pill {
-        height: 36px;
-        padding: 0 12px;
+        height: 44px;
+        padding: 0 14px;
         font-size: 13px;
     }
     .mobile-filter-bar {
         gap: 6px;
     }
     .mobile-clear-filters-btn {
-        height: 36px;
-        padding: 0 12px;
+        height: 44px;
+        padding: 0 14px;
         font-size: 13px;
     }
-    /* Larger clear button on small phones for easier tapping */
     .pill-clear {
-        width: 28px;
-        height: 28px;
-        min-width: 28px;
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
     }
     .pill-clear svg {
         width: 14px;

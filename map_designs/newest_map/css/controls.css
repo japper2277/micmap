@@ -130,7 +130,7 @@
 .count-text {
     font-size: 18px;
     font-weight: 500;
-    color: rgba(255, 255, 255, 0.4);
+    color: rgba(255, 255, 255, 0.6);
     letter-spacing: 0;
 }
 
@@ -254,7 +254,7 @@
 
 .commute-toast-progress {
     font-size: 12px;
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.6);
 }
 
 /* Mobile: position above drawer */
@@ -326,7 +326,7 @@
 
 /* Calendar pill button - Glass style (desktop) */
 .calendar-pill-btn {
-    height: 40px;
+    height: 44px;
     padding: 0 14px 0 18px;
     border-radius: var(--radius-full);
     background: var(--bg-card);
@@ -451,10 +451,10 @@
 /* --- DRAWER FILTER BUTTONS (Desktop - Rectangle style) --- */
 .drawer-filter-btn {
     flex-shrink: 0;
-    height: 32px;
-    padding: 0 12px;
+    height: 44px;
+    padding: 0 14px;
     background-color: #1a1a1a;
-    border: 1.5px solid rgba(255, 255, 255, 0.35);
+    border: 1.5px solid rgba(255, 255, 255, 0.5);
     border-radius: 6px;
     color: #FFF;
     font-size: 11px;
@@ -1214,8 +1214,8 @@
    ================================================================= */
 .search-clear-btn {
     display: none; /* Hidden by default */
-    width: 28px;
-    height: 28px;
+    width: 44px;
+    height: 44px;
     padding: 0;
     margin-left: 8px;
     background: transparent;
@@ -1351,8 +1351,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 20px;
-    height: 20px;
+    width: 44px;
+    height: 44px;
     padding: 0;
     margin-left: 2px;
     background: rgba(59, 130, 246, 0.2);
@@ -1529,8 +1529,8 @@
    ================================================================= */
 .voice-search-btn {
     display: flex;
-    width: 32px;
-    height: 32px;
+    width: 44px;
+    height: 44px;
     padding: 0;
     margin-left: 4px;
     background: transparent;
