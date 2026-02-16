@@ -279,6 +279,56 @@
 }
 
 /* BUTTONS (Premium 3D Look) */
+.action-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.btn-full {
+    width: 100%;
+}
+.action-row-secondary {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+.action-stack.single-btn .btn-full {
+    display: none;
+}
+.action-stack.single-btn .action-row-secondary {
+    grid-template-columns: 1fr 1fr;
+}
+/* When IG is hidden, schedule takes full width */
+.action-row-secondary .btn-ig-full[style*="display: none"] ~ .btn-tonight,
+.action-row-secondary .btn-tonight:only-child {
+    grid-column: 1 / -1;
+}
+.action-row-secondary:has(.btn-ig-full[style*="display: none"]) {
+    grid-template-columns: 1fr;
+}
+
+/* IG full button */
+.btn-ig-full {
+    border: none;
+    padding: 12px;
+    border-radius: 14px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    color: white;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #833AB4, #E1306C, #F77737);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 4px 12px rgba(0,0,0,0.4);
+    transition: transform 0.1s;
+}
+.btn-ig-full:active { transform: scale(0.98); opacity: 0.9; }
+
+/* Legacy compat */
 .action-row { display: flex; gap: 10px; }
 .action-row .btn {
     flex: 1 1 0;
@@ -299,6 +349,7 @@
 .btn:active { transform: scale(0.98); opacity: 0.9; }
 .btn-primary { background: linear-gradient(180deg, #2997FF 0%, #007AFF 100%); text-shadow: 0 1px 2px rgba(0,0,0,0.1); }
 .btn-tonight { background: linear-gradient(180deg, #f43f5e 0%, #e11d48 100%); text-shadow: 0 1px 2px rgba(0,0,0,0.15); }
+.btn-tonight.btn-scheduled { background: linear-gradient(180deg, #22c55e 0%, #16a34a 100%); }
 
 /* IG icon button - small circular */
 .btn-ig-icon {

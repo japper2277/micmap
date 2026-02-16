@@ -31,6 +31,15 @@ async function loadData() {
             });
         });
 
+        // Hydrate route from saved schedules for today
+        const todayKey = new Date().toDateString();
+        if (STATE.schedules[todayKey] && STATE.schedules[todayKey].length > 0) {
+            // Only load IDs that exist in current mic data
+            STATE.route = STATE.schedules[todayKey].filter(id =>
+                STATE.mics.some(m => m.id === id)
+            );
+        }
+
         // Check if there are any mics left for today
         const now = new Date();
         const todayName = CONFIG.dayNames[now.getDay()];
@@ -51,6 +60,12 @@ async function loadData() {
             render('tomorrow');
         } else {
             render('today');
+        }
+
+        // Apply marker states for saved schedule
+        if (STATE.route.length > 0) {
+            if (typeof updateRouteClass === 'function') updateRouteClass();
+            if (typeof updateMarkerStates === 'function') updateMarkerStates();
         }
 
         // Check if transit calculation was pending (location arrived before mics loaded)
@@ -341,10 +356,14 @@ function togglePlanMode() {
 
 // Exit plan mode and reset state
 function exitPlanMode() {
+    // Save current route to schedules before clearing
+    if (STATE.route.length > 0 && typeof persistPlanState === 'function') {
+        persistPlanState();
+    }
     STATE.planMode = false;
     STATE.route = [];
     STATE.dismissed = [];
-    clearPlanState(); // Clear localStorage
+    clearPlanState(); // Clear session keys (planRoute, planDismissed) but schedules are already saved
     document.body.classList.remove('plan-mode', 'has-route', 'map-interacted', 'commute-loaded');
     updateMarkerStates(); // Clear marker states
     render(STATE.currentMode); // Restore normal drawer

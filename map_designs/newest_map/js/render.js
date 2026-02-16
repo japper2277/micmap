@@ -441,12 +441,16 @@ function render(mode) {
         let displayTimes;
         if (STATE.planMode && STATE.route.length > 0 && typeof getMicStatus === 'function') {
             const lastMicId = STATE.route[STATE.route.length - 1];
+            const lastMic = STATE.mics.find(m => m.id === lastMicId);
 
             // Group mics by time, check if ANY mic at that time is reachable and not dismissed
             const timeReachability = {};
             cluster.mics.forEach(mic => {
                 const timeStr = formatTime(mic);
-                const status = getMicStatus(mic.id, lastMicId, 20);
+                const commuteMins = (lastMic && typeof getCommuteBetweenMics === 'function')
+                    ? getCommuteBetweenMics(lastMic, mic)
+                    : 20;
+                const status = getMicStatus(mic.id, lastMicId, commuteMins);
                 const isDismissed = STATE.dismissed?.includes(mic.id);
                 // If any mic at this time is reachable AND not dismissed, mark time as reachable
                 if (!timeReachability[timeStr]) {
@@ -458,7 +462,7 @@ function render(mode) {
 
             // Format times with strikethrough for unreachable/dismissed
             displayTimes = allTimes.map(t =>
-                timeReachability[t] ? t : `<s class="time-unreachable">${t}</s>`
+                t
             ).join(', ');
         } else if (STATE.planMode && STATE.dismissed?.length > 0) {
             // Plan mode with dismissed mics but no route - just check dismissed
@@ -473,7 +477,7 @@ function render(mode) {
                 }
             });
             displayTimes = allTimes.map(t =>
-                timeReachability[t] ? t : `<s class="time-unreachable">${t}</s>`
+                t
             ).join(', ');
         } else {
             displayTimes = allTimes.join(', ');
@@ -527,7 +531,7 @@ function render(mode) {
                         else if (status !== 'dimmed' && !isDismissed) timeReach[t] = true;
                     });
                     timesStr = uniqueTimes.map(t =>
-                        timeReach[t] ? t : `<s class="time-unreachable">${t}</s>`
+                        t
                     ).join(', ');
                 } else if (STATE.dismissed?.length > 0) {
                     // No route but have dismissed - just check dismissed
@@ -539,7 +543,7 @@ function render(mode) {
                         else if (!isDismissed) timeReach[t] = true;
                     });
                     timesStr = uniqueTimes.map(t =>
-                        timeReach[t] ? t : `<s class="time-unreachable">${t}</s>`
+                        t
                     ).join(', ');
                 } else {
                     timesStr = uniqueTimes.join(', ');
@@ -704,8 +708,8 @@ function render(mode) {
         container.appendChild(backBtn);
     }
 
-    // Plan mode: render schedule UI (below "Happening Now" in sticky slot)
-    if (scheduleSlot && STATE.planMode && STATE.route && STATE.route.length > 0) {
+    // Render schedule UI in scrollable list (after Happening Now)
+    if (STATE.route && STATE.route.length > 0) {
         const routeMics = STATE.route.map(id => STATE.mics.find(m => m.id === id)).filter(Boolean);
         const setDuration = STATE.setDuration || 45;
 
@@ -761,7 +765,7 @@ function render(mode) {
                 </svg>
             </div>
         `;
-        scheduleSlot.appendChild(scheduleCard);
+        container.appendChild(scheduleCard);
 
         const conflictBanner = conflicts.size
             ? `
@@ -855,7 +859,7 @@ function render(mode) {
         }
 
         expandedList.innerHTML = `${conflictBanner}${itemsHtml}${suggestionsHtml}${toolsRow}`;
-        scheduleSlot.appendChild(expandedList);
+        container.appendChild(expandedList);
 
         if (typeof initScheduleReorder === 'function') {
             initScheduleReorder(expandedList);

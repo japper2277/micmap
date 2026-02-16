@@ -94,23 +94,18 @@ function initModal() {
     modalPlanActions = document.getElementById('modal-plan-actions');
     modalPlanBtn = document.getElementById('modal-plan-btn');
 
-    // "Add to Plan" button click handler - enters plan mode and adds mic
+    // "+ Schedule" button click handler - adds mic to schedule without entering plan mode
     if (modalPlanBtn) {
         modalPlanBtn.addEventListener('click', () => {
             const mic = modalMicsArray[modalActiveMicIndex];
             if (!mic) return;
 
-            // Enter plan mode if not already
-            if (!STATE.planMode) {
-                togglePlanMode();
-            }
-
-            // Add mic to route
+            // Toggle mic in/out of route
             if (typeof toggleMicInRoute === 'function') {
                 toggleMicInRoute(mic.id, true); // skipZoom = true
             }
 
-            // Close modal and let user see the plan
+            // Close modal
             closeVenueModal();
         });
     }
@@ -455,15 +450,14 @@ function populateModalContent(mic, allMicsAtVenue = null) {
         }
     }
 
-    // 3. IG button in title row (not badge row)
+    // 3. IG button in action row
     const igHandleForBadge = mic.contact || mic.host || mic.hostIg;
-    const igTitleBtn = document.getElementById('modal-ig-title');
-    if (igTitleBtn) {
+    if (modalIgBtn) {
         if (igHandleForBadge && igHandleForBadge !== 'TBD') {
-            igTitleBtn.href = `https://instagram.com/${igHandleForBadge.replace(/^@/, '')}`;
-            igTitleBtn.style.display = 'flex';
+            modalIgBtn.href = `https://instagram.com/${igHandleForBadge.replace(/^@/, '')}`;
+            modalIgBtn.style.display = 'flex';
         } else {
-            igTitleBtn.style.display = 'none';
+            modalIgBtn.style.display = 'none';
         }
     }
 
@@ -509,19 +503,21 @@ function populateModalContent(mic, allMicsAtVenue = null) {
 
     const hasSignupAction = hasSignupUrl || hasSignupEmail;
 
-    // + Tonight button always visible (unless in plan mode with time pills)
+    // Schedule button: show current state (unless in plan mode with time pills)
     if (modalPlanBtn) {
-        modalPlanBtn.style.display = STATE.planMode ? 'none' : 'flex';
+        if (STATE.planMode) {
+            modalPlanBtn.style.display = 'none';
+        } else {
+            modalPlanBtn.style.display = 'flex';
+            const isInRoute = STATE.route?.includes(mic.id);
+            modalPlanBtn.textContent = isInRoute ? 'Scheduled \u2713' : '+ Schedule';
+            modalPlanBtn.classList.toggle('btn-scheduled', isInRoute);
+        }
     }
 
-    // Action row layout: 2 columns if both buttons, 1 column if only +Tonight
+    // Action stack layout: hide signup row if no signup action
     modalActions.classList.remove('single-btn');
-    if (hasSignupAction) {
-        modalActions.style.display = 'grid';
-        // 2 columns: Sign Up + Tonight
-    } else {
-        // Only +Tonight button
-        modalActions.style.display = 'grid';
+    if (!hasSignupAction) {
         modalActions.classList.add('single-btn');
         modalSignupBtn.style.display = 'none';
     }
@@ -674,15 +670,14 @@ function openVenueModal(mic) {
         }
     }
 
-    // 3. IG button in title row (not badge row)
+    // 3. IG button in action row
     const igHandleForBadge = mic.contact || mic.host || mic.hostIg;
-    const igTitleBtn = document.getElementById('modal-ig-title');
-    if (igTitleBtn) {
+    if (modalIgBtn) {
         if (igHandleForBadge && igHandleForBadge !== 'TBD') {
-            igTitleBtn.href = `https://instagram.com/${igHandleForBadge.replace(/^@/, '')}`;
-            igTitleBtn.style.display = 'flex';
+            modalIgBtn.href = `https://instagram.com/${igHandleForBadge.replace(/^@/, '')}`;
+            modalIgBtn.style.display = 'flex';
         } else {
-            igTitleBtn.style.display = 'none';
+            modalIgBtn.style.display = 'none';
         }
     }
 
@@ -728,19 +723,21 @@ function openVenueModal(mic) {
 
     const hasSignupAction = hasSignupUrl || hasSignupEmail;
 
-    // + Tonight button always visible (unless in plan mode with time pills)
+    // Schedule button: show current state (unless in plan mode with time pills)
     if (modalPlanBtn) {
-        modalPlanBtn.style.display = STATE.planMode ? 'none' : 'flex';
+        if (STATE.planMode) {
+            modalPlanBtn.style.display = 'none';
+        } else {
+            modalPlanBtn.style.display = 'flex';
+            const isInRoute = STATE.route?.includes(mic.id);
+            modalPlanBtn.textContent = isInRoute ? 'Scheduled \u2713' : '+ Schedule';
+            modalPlanBtn.classList.toggle('btn-scheduled', isInRoute);
+        }
     }
 
-    // Action row layout: 2 columns if both buttons, 1 column if only +Tonight
+    // Action stack layout: hide signup row if no signup action
     modalActions.classList.remove('single-btn');
-    if (hasSignupAction) {
-        modalActions.style.display = 'grid';
-        // 2 columns: Sign Up + Tonight
-    } else {
-        // Only +Tonight button
-        modalActions.style.display = 'grid';
+    if (!hasSignupAction) {
         modalActions.classList.add('single-btn');
         modalSignupBtn.style.display = 'none';
     }

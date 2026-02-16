@@ -3,6 +3,14 @@
    Map-first route planning - click markers to build route
    ================================================================= */
 
+// Confirm before exiting plan mode if route has items
+function confirmExitPlanMode() {
+    if (STATE.route.length > 0) {
+        if (!confirm('Exit plan mode? Your schedule is saved.')) return;
+    }
+    exitPlanMode();
+}
+
 // Handle add button click with animation and toast
 function handleAddClick(btn, micId) {
     if (STATE.route.includes(micId)) return;
@@ -460,8 +468,6 @@ function initScheduleReorder(containerEl) {
 
 // Toggle mic in/out of route (called when marker clicked in plan mode)
 function toggleMicInRoute(micId, skipZoom = false) {
-    if (!STATE.planMode) return;
-
     if (STATE.route.includes(micId)) {
         removeFromRoute(micId);
     } else {
@@ -547,15 +553,17 @@ function updateMarkerStates() {
 
     const todayMics = STATE.mics.filter(m => m.day === targetDay);
 
-    // If not in plan mode, just clear all states
+    // If not in plan mode: just mark scheduled mics, leave others normal
     if (!STATE.planMode) {
         todayMics.forEach(mic => {
             const marker = STATE.markerLookup[mic.id];
             if (!marker) return;
             const el = marker.getElement();
-            if (el) {
-                el.classList.remove('marker-selected', 'marker-glow', 'marker-suggested', 'marker-dimmed', 'marker-dismissed');
-                removeCommuteLabel(el);
+            if (!el) return;
+            el.classList.remove('marker-selected', 'marker-glow', 'marker-suggested', 'marker-dimmed', 'marker-dismissed');
+            removeCommuteLabel(el);
+            if (STATE.route?.includes(mic.id)) {
+                el.classList.add('marker-selected');
             }
         });
         return;
@@ -989,7 +997,7 @@ function initPlanFilterRow() {
                 </div>
                 <span class="plan-duration-unit">min</span>
             </div>
-            <button class="plan-exit-btn" onclick="event.stopPropagation(); exitPlanMode();" aria-label="Exit plan mode">
+            <button class="plan-exit-btn" onclick="event.stopPropagation(); confirmExitPlanMode();" aria-label="Exit plan mode">
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                     <path d="M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                     <path d="M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
