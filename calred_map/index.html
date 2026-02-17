@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cal.Red Map — NYC Events</title>
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- App CSS -->
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <a href="#event-list" class="sr-only sr-only-focusable">Skip to events</a>
+  <div class="app-layout">
+    <!-- Map -->
+    <main id="map" aria-label="Event map"></main>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" aria-label="Event list">
+      <header class="sidebar-header">
+        <h1><a href="https://cal.red" target="_blank" rel="noopener">Cal.Red</a> Map</h1>
+        <div class="subtitle">NYC community events on a map</div>
+        <div id="event-count" aria-live="polite" role="status"></div>
+      </header>
+
+      <!-- Date Carousel -->
+      <div class="date-carousel-wrap">
+        <div class="date-carousel" id="date-carousel" role="tablist" aria-label="Filter by date"></div>
+        <div class="carousel-fade" aria-hidden="true"></div>
+      </div>
+
+      <!-- Filters -->
+      <nav class="filter-bar-wrap" aria-label="Filters">
+        <div class="filter-bar">
+          <div class="filter-group" role="radiogroup" aria-label="Cost filter">
+            <button class="filter-btn active" data-filter="cost" data-value="All" role="radio" aria-checked="true">All</button>
+            <button class="filter-btn" data-filter="cost" data-value="Free" role="radio" aria-checked="false">Free</button>
+            <button class="filter-btn" data-filter="cost" data-value="Paid" role="radio" aria-checked="false">Paid</button>
+          </div>
+          <div class="filter-group" role="radiogroup" aria-label="Category filter">
+            <button class="filter-btn active" data-filter="category" data-value="All" role="radio" aria-checked="true">All</button>
+            <button class="filter-btn" data-filter="category" data-value="music / sound" role="radio" aria-checked="false"><span class="filter-dot filter-dot-music" style="background:#ff6b4a" aria-hidden="true"></span>Music</button>
+            <button class="filter-btn" data-filter="category" data-value="image / performance" role="radio" aria-checked="false"><span class="filter-dot filter-dot-performance" style="background:#9b5de5" aria-hidden="true"></span>Performance</button>
+            <button class="filter-btn" data-filter="category" data-value="political action" role="radio" aria-checked="false"><span class="filter-dot filter-dot-political" style="background:#0077b6" aria-hidden="true"></span>Political</button>
+            <button class="filter-btn" data-filter="category" data-value="mutual aid / community" role="radio" aria-checked="false"><span class="filter-dot filter-dot-community" style="background:#2a9d8f" aria-hidden="true"></span>Community</button>
+            <button class="filter-btn" data-filter="category" data-value="literary / research" role="radio" aria-checked="false"><span class="filter-dot filter-dot-literary" style="background:#e9c46a" aria-hidden="true"></span>Literary</button>
+          </div>
+        </div>
+      </nav>
+
+      <!-- Event list -->
+      <div class="event-list-container" id="event-list" role="feed" aria-label="Events"></div>
+    </aside>
+  </div>
+
+  <!-- Detail panel (slides in from right) -->
+  <div id="detail-panel" role="dialog" aria-modal="true" aria-label="Event details"></div>
+
+  <!-- Scripts (order matters) -->
+  <script src="js/config.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/scraper.js"></script>
+  <script src="js/map.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/app.js"></script>
+
+  <script>
+    // Detect iframe
+    if (window.self !== window.top) {
+      document.body.classList.add('in-iframe');
+    }
+  </script>
+</body>
+</html>
