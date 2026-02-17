@@ -76,6 +76,13 @@ function render() {
   if (date !== 'All') {
     events = events.filter(e => e.startDate && e.startDate.toDateString() === date);
   }
+  if (STATE.searchQuery) {
+    const q = STATE.searchQuery.toLowerCase();
+    events = events.filter(e =>
+      (e.title && e.title.toLowerCase().includes(q)) ||
+      (e.where && e.where.toLowerCase().includes(q))
+    );
+  }
 
   // Sort by date
   events.sort((a, b) => a.startDate - b.startDate);
@@ -83,7 +90,7 @@ function render() {
   STATE.filteredEvents = events;
 
   // Update count
-  document.getElementById('event-count').textContent = `${events.length} event${events.length !== 1 ? 's' : ''}`;
+  document.getElementById('event-count').textContent = `· ${events.length} event${events.length !== 1 ? 's' : ''}`;
 
   // Render markers
   renderMarkers(events);
@@ -141,12 +148,6 @@ function renderCard(event, index = 0) {
   const costBadge = event.isFree
     ? '<span class="badge badge-free">Free</span>'
     : `<span class="badge badge-paid">${escapeHtml(event.priceDisplay)}</span>`;
-  const cats = splitCategories(event.categoryList);
-  const categoryTags = cats.map(c =>
-    `<span class="cat-tag" style="background:${color}20;color:${color}">${escapeHtml(c)}</span>`
-  ).join('');
-  const descId = `desc-${event.id}`;
-
   return `
     <div class="event-card" data-id="${event.id}" role="article" tabindex="0"
          style="animation-delay:${Math.min(index * 30, 300)}ms"
@@ -167,16 +168,10 @@ function renderCard(event, index = 0) {
           <div class="card-where">${escapeHtml(neighborhood || event.where)}</div>
           <div class="card-meta">
             ${costBadge}
-            ${categoryTags}
           </div>
         </div>
         <span class="card-chevron" aria-hidden="true">›</span>
       </div>
-      ${event.description ? `
-        <div class="card-desc" id="${descId}">${escapeHtml(event.description)}</div>
-        ${event.description.length > 100 ? `<button class="desc-toggle" aria-expanded="false" aria-controls="${descId}" onclick="event.stopPropagation();toggleDesc('${descId}')">more</button>` : ''}
-      ` : ''}
-      ${linkHtml ? `<div class="card-actions">${linkHtml}</div>` : ''}
     </div>`;
 }
 
@@ -234,7 +229,7 @@ function showEventDetail(event) {
     <div class="modal-backdrop" onclick="closeDetail()"></div>
     <div class="venue-card">
       <button class="modal-close-btn" onclick="closeDetail()" aria-label="Close">&times;</button>
-      ${event.img ? `<div class="venue-card-img-wrap"><img class="venue-card-img" src="${escapeHtml(event.img)}" alt="" onload="this.classList.add('loaded')" /></div>` : ''}
+      ${event.img ? `<div class="venue-card-img-wrap" onclick="event.stopPropagation();expandImage('${escapeHtml(event.img)}')"><img class="venue-card-img" src="${escapeHtml(event.img)}" alt="" onload="this.classList.add('loaded')" /><div class="img-expand-hint">Tap to expand</div></div>` : ''}
       <div class="header-section">
         <div class="modal-drag-handle"></div>
         <div class="header-top">
@@ -382,6 +377,7 @@ function showClusterPicker(events, lat, lng) {
       <div class="cluster-venue-name">${escapeHtml(e.title)}</div>
       <div class="cluster-venue-where">${escapeHtml(e.where)}</div>
       ${dateInfo}
+      <div class="cluster-venue-cta">View details →</div>
     </div>`;
   }).join('');
 
@@ -407,7 +403,25 @@ function onClusterItemClick(eventId) {
 
 function resetFilters() {
   STATE.activeFilters = { category: 'All', cost: 'All', date: 'All' };
+  STATE.searchQuery = '';
+  const searchInput = document.getElementById('search-input');
+  if (searchInput) { searchInput.value = ''; }
+  const searchClear = document.getElementById('search-clear');
+  if (searchClear) { searchClear.hidden = true; }
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.filter-btn[data-value="All"]').forEach(b => b.classList.add('active'));
   render();
+}
+
+// Fullscreen image lightbox
+function expandImage(src) {
+  const overlay = document.createElement('div');
+  overlay.className = 'image-lightbox';
+  overlay.innerHTML = `
+    <img src="${src}" alt="Full size poster" />
+    <button class="lightbox-close" aria-label="Close">&times;</button>
+  `;
+  overlay.addEventListener('click', () => overlay.remove());
+  document.body.appendChild(overlay);
+  requestAnimationFrame(() => overlay.classList.add('open'));
 }

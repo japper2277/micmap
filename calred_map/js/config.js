@@ -5,8 +5,8 @@ const CONFIG = {
   get apiPath() { return `${this.apiBase}/api/proxy/calred`; },
   get geocodePath() { return `${this.apiBase}/api/proxy/here/geocode`; },
   mapCenter: [40.72, -74.00],
-  mapZoom: 13,
-  mobileMapZoom: 12,
+  mapZoom: 14,
+  mobileMapZoom: 13,
 
   categoryColors: {
     'music / sound': '#ff6b4a',

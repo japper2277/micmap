@@ -11,8 +11,10 @@ function initMap() {
     maxZoom: 19
   }).addTo(map);
 
-  L.control.zoom({ position: 'topright' }).addTo(map);
   markersGroup = L.featureGroup().addTo(map);
+
+  // Request location on load (non-blocking)
+  getUserLocation();
 
   // Re-cluster markers when zoom crosses thresholds
   let lastPrecision = -1;
@@ -24,6 +26,83 @@ function initMap() {
       renderMarkers(STATE.filteredEvents, { skipFitBounds: true });
     }
   });
+}
+
+function getUserLocation() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        STATE.userLocation = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        };
+        // Add user marker (navigation arrow)
+        const navIcon = L.divIcon({
+          className: 'user-location-marker',
+          html: `<div class="nav-arrow-icon">
+                   <svg viewBox="0 0 24 24" fill="white" width="16" height="16">
+                     <path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/>
+                   </svg>
+                 </div>`,
+          iconSize: [28, 28],
+          iconAnchor: [14, 14]
+        });
+        if (STATE.userMarker) map.removeLayer(STATE.userMarker);
+        STATE.userMarker = L.marker(
+          [STATE.userLocation.lat, STATE.userLocation.lng],
+          { icon: navIcon, interactive: false, zIndexOffset: 1000 }
+        ).addTo(map);
+      },
+      () => { /* silently fail */ },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }
+}
+
+function centerOnUser() {
+  const btn = document.getElementById('locate-btn');
+
+  if (STATE.userLocation) {
+    map.flyTo([STATE.userLocation.lat, STATE.userLocation.lng], 15, { duration: 1 });
+    btn.classList.add('active');
+
+    // Update marker position
+    const navIcon = L.divIcon({
+      className: 'user-location-marker',
+      html: `<div class="nav-arrow-icon">
+               <svg viewBox="0 0 24 24" fill="white" width="16" height="16">
+                 <path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/>
+               </svg>
+             </div>`,
+      iconSize: [28, 28],
+      iconAnchor: [14, 14]
+    });
+    if (STATE.userMarker) map.removeLayer(STATE.userMarker);
+    STATE.userMarker = L.marker(
+      [STATE.userLocation.lat, STATE.userLocation.lng],
+      { icon: navIcon, interactive: false, zIndexOffset: 1000 }
+    ).addTo(map);
+  } else {
+    // Don't have location yet — request it
+    btn.style.opacity = '0.5';
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          STATE.userLocation = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          };
+          btn.style.opacity = '1';
+          centerOnUser();
+        },
+        () => {
+          btn.style.opacity = '1';
+          alert('Unable to get your location. Please enable location services.');
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    }
+  }
 }
 
 // Format time like MicFinder: "7p", "10:30a"
@@ -71,7 +150,10 @@ function renderMarkers(events, options = {}) {
     markersGroup.addLayer(marker);
   });
 
-  if (!skipFitBounds && markersGroup.getLayers().length > 0) {
+  if (!skipFitBounds && !renderMarkers._initialDone && markersGroup.getLayers().length > 0) {
+    // Skip fitBounds on first render — use config zoom centered on NYC
+    renderMarkers._initialDone = true;
+  } else if (!skipFitBounds && markersGroup.getLayers().length > 0) {
     map.fitBounds(markersGroup.getBounds().pad(0.1));
   }
 }

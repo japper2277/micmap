@@ -16,15 +16,35 @@
   <a href="#event-list" class="sr-only sr-only-focusable">Skip to events</a>
   <div class="app-layout">
     <!-- Map -->
-    <main id="map" aria-label="Event map"></main>
+    <main id="map" aria-label="Event map">
+      <button onclick="centerOnUser()" id="locate-btn" class="locate-btn" aria-label="Center map on my location" data-tooltip="Current Location">
+        <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0013 3.06V1h-2v2.06A8.994 8.994 0 003.06 11H1v2h2.06A8.994 8.994 0 0011 20.94V23h2v-2.06A8.994 8.994 0 0020.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"></path>
+        </svg>
+      </button>
+      <div class="map-filter-overlay" role="radiogroup" aria-label="Category filter">
+        <button class="filter-btn active" data-filter="category" data-value="All" role="radio" aria-checked="true">All</button>
+        <button class="filter-btn" data-filter="category" data-value="music / sound" role="radio" aria-checked="false"><span class="filter-dot filter-dot-music" style="background:#ff6b4a" aria-hidden="true"></span>Music</button>
+        <button class="filter-btn" data-filter="category" data-value="image / performance" role="radio" aria-checked="false"><span class="filter-dot filter-dot-performance" style="background:#9b5de5" aria-hidden="true"></span>Performance</button>
+        <button class="filter-btn" data-filter="category" data-value="political action" role="radio" aria-checked="false"><span class="filter-dot filter-dot-political" style="background:#0077b6" aria-hidden="true"></span>Political</button>
+        <button class="filter-btn" data-filter="category" data-value="mutual aid / community" role="radio" aria-checked="false"><span class="filter-dot filter-dot-community" style="background:#2a9d8f" aria-hidden="true"></span>Community</button>
+        <button class="filter-btn" data-filter="category" data-value="literary / research" role="radio" aria-checked="false"><span class="filter-dot filter-dot-literary" style="background:#e9c46a" aria-hidden="true"></span>Literary</button>
+      </div>
+    </main>
 
     <!-- Sidebar -->
     <aside class="sidebar" aria-label="Event list">
-      <header class="sidebar-header">
-        <h1><a href="https://cal.red" target="_blank" rel="noopener">Cal.Red</a> Map</h1>
-        <div class="subtitle">NYC community events on a map</div>
-        <div id="event-count" aria-live="polite" role="status"></div>
+      <header class="sidebar-header" id="drawer-handle">
+        <div class="drawer-drag-handle" aria-hidden="true"></div>
+        <h1><a href="https://cal.red" target="_blank" rel="noopener">Cal.Red</a> Map <span id="event-count" aria-live="polite" role="status"></span></h1>
       </header>
+
+      <!-- Search -->
+      <div class="search-bar-wrap" role="search" aria-label="Search events">
+        <svg class="search-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/></svg>
+        <input id="search-input" type="search" placeholder="Search events or venues..." aria-label="Search events by name or venue" autocomplete="off" />
+        <button id="search-clear" class="search-clear" aria-label="Clear search" hidden>&times;</button>
+      </div>
 
       <!-- Date Carousel -->
       <div class="date-carousel-wrap">
@@ -39,14 +59,6 @@
             <button class="filter-btn active" data-filter="cost" data-value="All" role="radio" aria-checked="true">All</button>
             <button class="filter-btn" data-filter="cost" data-value="Free" role="radio" aria-checked="false">Free</button>
             <button class="filter-btn" data-filter="cost" data-value="Paid" role="radio" aria-checked="false">Paid</button>
-          </div>
-          <div class="filter-group" role="radiogroup" aria-label="Category filter">
-            <button class="filter-btn active" data-filter="category" data-value="All" role="radio" aria-checked="true">All</button>
-            <button class="filter-btn" data-filter="category" data-value="music / sound" role="radio" aria-checked="false"><span class="filter-dot filter-dot-music" style="background:#ff6b4a" aria-hidden="true"></span>Music</button>
-            <button class="filter-btn" data-filter="category" data-value="image / performance" role="radio" aria-checked="false"><span class="filter-dot filter-dot-performance" style="background:#9b5de5" aria-hidden="true"></span>Performance</button>
-            <button class="filter-btn" data-filter="category" data-value="political action" role="radio" aria-checked="false"><span class="filter-dot filter-dot-political" style="background:#0077b6" aria-hidden="true"></span>Political</button>
-            <button class="filter-btn" data-filter="category" data-value="mutual aid / community" role="radio" aria-checked="false"><span class="filter-dot filter-dot-community" style="background:#2a9d8f" aria-hidden="true"></span>Community</button>
-            <button class="filter-btn" data-filter="category" data-value="literary / research" role="radio" aria-checked="false"><span class="filter-dot filter-dot-literary" style="background:#e9c46a" aria-hidden="true"></span>Literary</button>
           </div>
         </div>
       </nav>
