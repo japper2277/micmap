@@ -777,32 +777,54 @@ function render(mode) {
             `
             : '';
 
-        const itemsHtml = routeMics.map((mic) => {
+        const itemsHtml = routeMics.map((mic, idx) => {
             const timeStr = mic.start ? fmtTime(mic.start) : '';
             const rawPrice = mic.price || mic.cost || 0;
-            const priceStr = !rawPrice || rawPrice === 'Free' || rawPrice === 0
-                ? 'FREE'
-                : (String(rawPrice).startsWith('$') ? rawPrice : `$${rawPrice}`);
-            const priceClass = priceStr === 'FREE' ? 'free' : '';
+            let priceStr;
+            if (!rawPrice || rawPrice === 'Free' || rawPrice === 0 || rawPrice === '$0') {
+                priceStr = 'Free';
+            } else {
+                const s = String(rawPrice).replace(/^\$/, '').trim();
+                priceStr = s.toLowerCase().startsWith('free') ? s : `$${s}`;
+            }
+            const priceClass = priceStr === 'Free' ? 'free' : '';
             const conflictClass = conflicts.has(mic.id) ? ' conflict' : '';
+            const hood = mic.hood || mic.neighborhood || '';
+
+            // Travel time to next stop
+            let travelHtml = '';
+            if (idx < routeMics.length - 1) {
+                const next = routeMics[idx + 1];
+                if (mic.lat && mic.lng && next.lat && next.lng) {
+                    const miles = calculateDistance(mic.lat, mic.lng, next.lat, next.lng);
+                    const walkMin = Math.max(1, Math.round(miles / 0.05)); // ~3mph = 1mi/20min
+                    travelHtml = `
+                        <div class="my-schedule-travel">
+                            <div class="my-schedule-travel-line"></div>
+                            <span class="my-schedule-travel-badge">${walkMin} min walk</span>
+                            <div class="my-schedule-travel-line"></div>
+                        </div>`;
+                }
+            }
 
             return `
-                <div class="my-schedule-item${conflictClass}" draggable="true" data-mic-id="${mic.id}" aria-label="Scheduled stop">
+                <div class="my-schedule-item${conflictClass}" draggable="true" data-mic-id="${mic.id}" aria-label="Scheduled stop" onclick="event.stopPropagation(); if(typeof openMicModal==='function') openMicModal('${mic.id}');">
                     <div class="my-schedule-item-time">${timeStr}</div>
                     <div class="my-schedule-item-info">
                         <div class="my-schedule-item-venue">${escapeHtml(mic.title || mic.venue || 'Mic')}</div>
-                        <div class="my-schedule-item-price ${priceClass}">${priceStr}</div>
+                        <div class="my-schedule-item-meta">
+                            ${hood ? `<span class="my-schedule-item-hood">${escapeHtml(hood)}</span>` : ''}
+                            <span class="my-schedule-item-price ${priceClass}">${priceStr}</span>
+                        </div>
                     </div>
                     <div class="my-schedule-item-actions">
-                        <button class="schedule-action-btn" onclick="event.stopPropagation(); exportMicToCalendar('${mic.id}')" aria-label="Add to Google Calendar" title="Add to Google Calendar">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><line x1="12" y1="15" x2="12" y2="15"></line></svg>
-                        </button>
                         <button class="schedule-drag-handle" onclick="event.stopPropagation();" aria-label="Drag to reorder" title="Drag to reorder">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M4 8h16M4 16h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
                         </button>
-                        <button class="my-schedule-remove" onclick="event.stopPropagation(); removeFromRoute('${mic.id}')" aria-label="Remove from schedule">✕</button>
+                        <button class="my-schedule-remove" onclick="event.stopPropagation(); undoableRemoveFromRoute('${mic.id}')" aria-label="Remove from schedule">✕</button>
                     </div>
                 </div>
+                ${travelHtml}
             `;
         }).join('');
 
@@ -990,8 +1012,9 @@ function render(mode) {
                 locateMic(mic.lat, mic.lng, mic.id);
             }
         };
-        const isInRoute = STATE.planMode && STATE.route && STATE.route.includes(mic.id);
-        card.className = `stream-item group ${isHappeningNow ? 'is-happening-now' : ''} ${isInRoute ? 'in-route' : ''}`;
+        const isInRoute = STATE.route && STATE.route.includes(mic.id);
+        const isConflict = !isInRoute && STATE.route && STATE.route.length > 0 && typeof getMicStatus === 'function' && getMicStatus(mic.id, STATE.route[STATE.route.length - 1], 20) === 'dimmed';
+        card.className = `stream-item group ${isHappeningNow ? 'is-happening-now' : ''} ${isInRoute ? 'in-route' : ''} ${isConflict ? 'schedule-conflict' : ''}`;
         // Accessibility: make card keyboard navigable
         card.setAttribute('tabindex', '0');
         card.setAttribute('role', 'article');
@@ -1106,6 +1129,8 @@ function render(mode) {
                 ? `<span class="in-schedule-badge" aria-label="In Schedule">✓ In Schedule</span>`
                 : planAddBtn;
 
+        const conflictTag = isConflict ? '<span class="conflict-tag">Conflicts</span>' : '';
+
         // Add live indicator class for styling
         const liveClass = mic.status === 'live' ? ' is-live-mic' : '';
 
@@ -1128,6 +1153,7 @@ function render(mode) {
                             <span class="neighborhood">${safeHood}</span>
                             <span class="meta-dot">·</span>
                             <span class="price-badge">${safePrice}</span>
+                            ${conflictTag}
                         </div>
                     </div>
                     <div class="action-col">
@@ -1153,6 +1179,7 @@ function render(mode) {
                         </div>
                         <div class="meta-row">
                             <span class="price-badge">${safePrice}</span>
+                            ${conflictTag}
                         </div>
                     </div>
                     <div class="action-col">
@@ -1261,8 +1288,8 @@ function render(mode) {
         tomorrowNotice.classList.remove('show');
     }
 
-    // Refresh plan mode marker states (commute badges) after render
-    if (STATE.planMode && typeof updateMarkerStates === 'function') {
+    // Refresh marker states (commute badges in plan mode, dimming for schedule)
+    if ((STATE.planMode || STATE.route?.length > 0) && typeof updateMarkerStates === 'function') {
         updateMarkerStates();
     }
 }

@@ -34,15 +34,21 @@ const toastService = {
         const iconType = (typeof options === 'object' && options.icon) ? options.icon : type;
         const iconHtml = hasEmoji ? '' : `<span class="toast-icon">${icons[iconType] || icons.info}</span>`;
 
+        const actionLabel = (typeof options === 'object' && options.actionLabel) ? options.actionLabel : null;
+
         toast.innerHTML = `
             ${iconHtml}
             <span class="toast-message">${message}</span>
+            ${action && actionLabel ? `<button class="toast-action-btn">${actionLabel}</button>` : ''}
         `;
 
         // Add click handler if action provided
         if (action) {
-            toast.style.cursor = 'pointer';
-            toast.addEventListener('click', () => {
+            const btn = toast.querySelector('.toast-action-btn');
+            const trigger = btn || toast;
+            if (!btn) toast.style.cursor = 'pointer';
+            trigger.addEventListener('click', (e) => {
+                e.stopPropagation();
                 action();
                 toast.classList.remove('show');
                 setTimeout(() => toast.remove(), 300);

@@ -832,28 +832,18 @@
     box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.8), 0 4px 12px rgba(0,0,0,0.3) !important;
 }
 
-/* 4. DIMMED - Unreachable (Grayscale, Faded) */
+/* 4. DIMMED - Unreachable (faded, pushed back) */
 .marker-dimmed {
-    z-index: 100 !important; /* Push to back */
+    z-index: 100 !important;
 }
 
 .marker-dimmed .mic-ticket,
 .marker-dimmed .cluster-pill,
 .marker-dimmed .multi-venue-ticket {
-    opacity: 0.6 !important; /* Increased from 0.4 for outdoor visibility */
-    filter: grayscale(1) contrast(0.9) !important;
+    opacity: 0.5 !important;
     box-shadow: none !important;
-    background: #f3f4f6 !important;
-    color: #6b7280 !important;
-    border-color: #d1d5db !important;
-    pointer-events: none !important;
-    transform: scale(0.95);
-}
-
-.marker-dimmed .ticket-time,
-.marker-dimmed .ticket-venue {
-    background: #f3f4f6 !important;
-    color: #6b7280 !important;
+    filter: saturate(0.4) !important;
+    transform: scale(0.9);
 }
 
 /* 5. DISMISSED - Removed (Strikethrough, Red tint?) */

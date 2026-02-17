@@ -344,10 +344,10 @@ body.plan-mode .happening-now-card-label {
 }
 
 .my-schedule-item-time {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 800;
     color: rgba(255, 255, 255, 0.92);
-    width: 70px;
+    width: 52px;
     flex-shrink: 0;
 }
 
@@ -363,7 +363,24 @@ body.plan-mode .happening-now-card-label {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    margin-bottom: 2px;
+    margin-bottom: 1px;
+}
+
+.my-schedule-item-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+}
+
+.my-schedule-item-hood {
+    color: rgba(255, 255, 255, 0.45);
+}
+
+.my-schedule-item-hood + .my-schedule-item-price::before {
+    content: '·';
+    margin-right: 6px;
+    color: rgba(255, 255, 255, 0.25);
 }
 
 .my-schedule-item-price {
@@ -373,6 +390,45 @@ body.plan-mode .happening-now-card-label {
 
 .my-schedule-item-price.free {
     color: #4ade80;
+}
+
+/* Travel indicator between schedule items */
+.my-schedule-travel {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 2px 0;
+    margin: -2px 0;
+}
+
+.my-schedule-travel-line {
+    flex: 1;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.my-schedule-travel-badge {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.35);
+    white-space: nowrap;
+}
+
+/* Undo button in toast */
+.toast-action-btn {
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-left: 8px;
+    flex-shrink: 0;
+}
+
+.toast-action-btn:active {
+    background: rgba(255, 255, 255, 0.25);
 }
 
 .my-schedule-remove {
@@ -1131,7 +1187,25 @@ body.plan-mode .plan-add-btn {
     margin-left: auto;
 }
 
-/* Visual indicator for mics in route */
+/* Visual indicator for mics in route (works in and out of plan mode) */
+.stream-item.in-route {
+    background: rgba(34, 197, 94, 0.1);
+    border-left: 3px solid #16a34a;
+    box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.15);
+}
+
+/* Conflict tag */
+.conflict-tag {
+    font-size: 10px;
+    font-weight: 600;
+    color: #9ca3af;
+    background: rgba(156, 163, 175, 0.15);
+    padding: 1px 6px;
+    border-radius: 10px;
+    margin-left: 4px;
+    letter-spacing: 0.3px;
+}
+
 body.plan-mode .stream-item.in-route {
     background: rgba(34, 197, 94, 0.1);
     border-left: 3px solid #22c55e;
@@ -2193,6 +2267,22 @@ body.plan-mode .stream-item.in-route .plan-commute-corner {
 
     opacity: 1;
 
+}
+
+/* Schedule conflict - mic conflicts with scheduled route */
+.stream-item.schedule-conflict {
+    opacity: 0.5;
+    transition: opacity 0.3s ease;
+}
+
+.stream-item.schedule-conflict:hover {
+    opacity: 0.75;
+}
+
+/* Hide add button on conflicting cards */
+.stream-item.schedule-conflict .plan-add-btn,
+.stream-item.schedule-conflict .schedule-add-btn {
+    display: none;
 }
 
 

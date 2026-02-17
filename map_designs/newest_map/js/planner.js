@@ -223,6 +223,30 @@ function removeFromRoute(micId) {
     persistPlanState();
 }
 
+function undoableRemoveFromRoute(micId) {
+    const mic = STATE.mics.find(m => m.id === micId);
+    const name = mic ? (mic.title || mic.venue || 'Mic') : 'Mic';
+    const prevRoute = [...STATE.route];
+    const prevDismissed = [...STATE.dismissed];
+    removeFromRoute(micId);
+    if (typeof toastService !== 'undefined') {
+        toastService.show(`Removed ${name}`, 'info', {
+            duration: 5000,
+            action: () => {
+                STATE.route = prevRoute;
+                STATE.dismissed = prevDismissed;
+                updateRouteClass();
+                render(STATE.currentMode);
+                updateMarkerStates();
+                updateRouteLine();
+                persistPlanState();
+                toastService.show(`${name} restored`, 'success', 2000);
+            },
+            actionLabel: 'Undo'
+        });
+    }
+}
+
 // Reorder scheduled items (itinerary-grade)
 function moveRouteItem(micId, direction) {
     const idx = STATE.route.indexOf(micId);
@@ -553,8 +577,9 @@ function updateMarkerStates() {
 
     const todayMics = STATE.mics.filter(m => m.day === targetDay);
 
-    // If not in plan mode: just mark scheduled mics, leave others normal
+    // If not in plan mode: mark scheduled mics as selected, dim conflicting ones
     if (!STATE.planMode) {
+        const hasRoute = STATE.route && STATE.route.length > 0;
         todayMics.forEach(mic => {
             const marker = STATE.markerLookup[mic.id];
             if (!marker) return;
@@ -564,6 +589,14 @@ function updateMarkerStates() {
             removeCommuteLabel(el);
             if (STATE.route?.includes(mic.id)) {
                 el.classList.add('marker-selected');
+            } else if (hasRoute) {
+                // Dim mics that conflict with scheduled ones
+                const lastMicId = STATE.route[STATE.route.length - 1];
+                const commuteMins = 20; // default estimate
+                const status = getMicStatus(mic.id, lastMicId, commuteMins);
+                if (status === 'dimmed') {
+                    el.classList.add('marker-dimmed');
+                }
             }
         });
         return;
@@ -1032,12 +1065,21 @@ function renderPlanDrawer() {
 function getSuggestedMics() {
     if (!STATE.route || STATE.route.length === 0) return [];
 
-    // Get today's mics
+    // Get today's mics (exclude past mics if viewing today)
     const now = new Date();
     const todayName = CONFIG.dayNames[now.getDay()];
     const tomorrowName = CONFIG.dayNames[(now.getDay() + 1) % 7];
     const targetDay = STATE.currentMode === 'tomorrow' ? tomorrowName : todayName;
-    const todayMics = STATE.mics.filter(m => m.day === targetDay);
+    const isToday = STATE.currentMode === 'today';
+    const nowMins = now.getHours() * 60 + now.getMinutes();
+    const todayMics = STATE.mics.filter(m => {
+        if (m.day !== targetDay) return false;
+        if (isToday && m.start) {
+            const micMins = m.start.getHours() * 60 + m.start.getMinutes();
+            if (micMins < nowMins) return false;
+        }
+        return true;
+    });
 
     const routeMics = STATE.route
         .map(id => STATE.mics.find(m => m.id === id))
