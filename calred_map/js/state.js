@@ -8,6 +8,7 @@ const STATE = {
     cost: 'All',
     date: 'All' // 'All' or a dateString like "Tue Feb 17 2026"
   },
+  searchQuery: '',
   selectedEvent: null,
   isMobile: window.innerWidth < 640
 };
