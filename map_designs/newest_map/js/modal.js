@@ -632,11 +632,35 @@ function populateModalContent(mic, allMicsAtVenue = null, activeDayName = null) 
         modalMicTime.innerText = formatModalDayDate(dayName);
     } else if (allMicsAtVenue && allMicsAtVenue.length > 1) {
         // Normal mode with multiple times — clickable pills to switch between times
+        // Check Slotted data to detect cancelled times
+        const slotDataForPills = STATE.slottedSlots?.[mic.title] || STATE.slottedSlots?.[mic.venue];
+        let pillTargetDate = new Date();
+        if (STATE.currentMode === 'tomorrow') pillTargetDate.setDate(pillTargetDate.getDate() + 1);
+        else if (STATE.currentMode === 'calendar' && STATE.selectedCalendarDate) pillTargetDate = new Date(STATE.selectedCalendarDate);
+        const pillDateStr = pillTargetDate.toISOString().split('T')[0];
+
         const pillsHtml = allMicsAtVenue.map(m => {
             const timeStr = m.timeStr || '?';
             const isActive = m.id === mic.id;
-            const activeClass = isActive ? ' active' : '';
-            return `<button class="time-pill${activeClass}" data-mic-id="${m.id}"><span>${timeStr}</span></button>`;
+            let cancelled = false;
+            // If Slotted data exists for this venue, check if this time has a slot
+            if (slotDataForPills && m.start) {
+                const mh = m.start.getHours();
+                const hasSlot = slotDataForPills.slots.some(s => {
+                    if (s.date !== pillDateStr) return false;
+                    const pm = s.time.match(/(\d+):(\d+)(am|pm)/i);
+                    if (!pm) return false;
+                    let sh = parseInt(pm[1]);
+                    if (pm[3].toLowerCase() === 'pm' && sh !== 12) sh += 12;
+                    if (pm[3].toLowerCase() === 'am' && sh === 12) sh = 0;
+                    return sh === mh;
+                });
+                if (!hasSlot) cancelled = true;
+            }
+            const classes = ['time-pill'];
+            if (isActive) classes.push('active');
+            if (cancelled) classes.push('cancelled');
+            return `<button class="${classes.join(' ')}" data-mic-id="${m.id}"${cancelled ? ' disabled' : ''}><span>${timeStr}</span>${cancelled ? '<span class="time-pill-cancelled">cancelled</span>' : ''}</button>`;
         }).join('');
         modalMicTime.innerHTML = pillsHtml;
     } else {
@@ -740,7 +764,9 @@ function populateModalContent(mic, allMicsAtVenue = null, activeDayName = null) 
             return h === micHour;
         });
         if (matchedSlot) {
-            spotsLabel = matchedSlot.spotsLeft === 0 ? ' (FULL)' : ` (${matchedSlot.spotsLeft}/${matchedSlot.capacity} spots)`;
+            spotsLabel = matchedSlot.spotsLeft === 0
+                ? '<br><span class="signup-spots">FULL</span>'
+                : `<br><span class="signup-spots">${matchedSlot.spotsLeft} spots left</span>`;
         }
     }
     const hasSignupUrl = !!mic.signupUrl;
@@ -751,7 +777,7 @@ function populateModalContent(mic, allMicsAtVenue = null, activeDayName = null) 
     if (hasSignupUrl) {
         modalSignupBtn.href = mic.signupUrl;
         modalSignupBtn.target = '_blank';
-        modalSignupBtn.innerText = 'Sign Up Online' + spotsLabel;
+        modalSignupBtn.innerHTML = 'Sign Up Online' + spotsLabel;
         modalSignupBtn.style.display = 'flex';
     } else if (hasSignupEmail) {
         modalSignupBtn.href = `mailto:${mic.signupEmail}`;
