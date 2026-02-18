@@ -46,10 +46,9 @@ function updateDateCarouselHighlight(dateString) {
     });
 }
 
-// Render dots on calendar capsules for days with scheduled items
+// Render dots on calendar capsules for days with scheduled items (disabled)
 function renderCalendarDots() {
-    const container = document.getElementById('cal-grid');
-    if (!container) return;
+    return;
 
     const capsules = container.querySelectorAll('.date-capsule');
     capsules.forEach(cap => {

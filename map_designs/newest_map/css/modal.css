@@ -376,6 +376,74 @@
 .action-row { grid-template-columns: 1fr 1fr; gap: 10px; }
 .action-row.single-btn { grid-template-columns: 1fr; }
 
+/* Clickable time pills (normal mode, for venues with multiple times) */
+.time-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-right: 4px;
+    transition: all 0.15s ease;
+}
+.time-pill:last-child { margin-right: 0; }
+.time-pill:hover {
+    border-color: rgba(74, 222, 128, 0.3);
+    background: rgba(74, 222, 128, 0.06);
+    color: rgba(255, 255, 255, 0.9);
+}
+.time-pill:active { transform: scale(0.97); }
+.time-pill.in-route {
+    background: rgba(74, 222, 128, 0.15);
+    border-color: rgba(74, 222, 128, 0.35);
+    color: #4ade80;
+    font-weight: 700;
+}
+.time-pill svg {
+    width: 13px;
+    height: 13px;
+    flex-shrink: 0;
+    opacity: 0.8;
+}
+.time-pill.in-route svg {
+    opacity: 1;
+    stroke: #4ade80;
+}
+.time-pill-spots {
+    font-size: 10px;
+    font-weight: 500;
+    opacity: 0.4;
+    margin-left: 1px;
+}
+.time-pill.in-route .time-pill-spots {
+    color: #4ade80;
+    opacity: 0.7;
+}
+.time-pill-hint {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.4);
+    text-align: left;
+    margin-top: 4px;
+    width: 100%;
+}
+
+/* "Pick a time" attention animation */
+.time-pill.pick-me,
+.time-add-btn.pick-me {
+    animation: pickMe 0.5s ease both;
+}
+@keyframes pickMe {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.04); border-color: rgba(255,255,255,0.3); }
+    100% { transform: scale(1); }
+}
+
 /* Plan mode: Time add buttons in header */
 .time-add-btn {
     display: inline-flex;

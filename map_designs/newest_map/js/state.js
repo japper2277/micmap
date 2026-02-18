@@ -49,5 +49,8 @@ const STATE = {
     timeWindowEnd: parseInt(localStorage.getItem('planTimeWindowEnd') || '1100', 10),
     planGracePeriod: 5,           // Minutes of overlap allowed between mics
     scheduleExpanded: false,      // Is "My Schedule" dropdown expanded?
-    hideConflicts: false          // Hide mics that conflict with scheduled times?
+    hideConflicts: false,         // Hide mics that conflict with scheduled times?
+
+    // Slotted signup availability
+    slottedSlots: {}              // { venueName: { slots: [...], signupUrl, lastFetched } }
 };

@@ -1075,6 +1075,33 @@ function render(mode) {
             priceDisplay = 'FREE (BUY SMTH)';
         }
         const safePrice = escapeHtml(priceDisplay);
+
+        // Slotted signup spots badge
+        let spotsBadge = '';
+        const slottedData = STATE.slottedSlots?.[mic.title] || STATE.slottedSlots?.[mic.venue];
+        if (slottedData) {
+            // Determine which date we're rendering
+            let targetDate = new Date();
+            if (mode === 'tomorrow') targetDate.setDate(targetDate.getDate() + 1);
+            else if (mode === 'calendar' && STATE.selectedCalendarDate) targetDate = new Date(STATE.selectedCalendarDate);
+            const dateStr = targetDate.toISOString().split('T')[0];
+            // Match slot by date and start time (e.g., mic at "5:00 PM" matches slot "5:00pm – 6:00pm")
+            const micHour = mic.start ? mic.start.getHours() : null;
+            const matchedSlot = slottedData.slots.find(s => {
+                if (s.date !== dateStr) return false;
+                const slotHourMatch = s.time.match(/(\d+):(\d+)(am|pm)/i);
+                if (!slotHourMatch) return false;
+                let slotHour = parseInt(slotHourMatch[1]);
+                if (slotHourMatch[3].toLowerCase() === 'pm' && slotHour !== 12) slotHour += 12;
+                if (slotHourMatch[3].toLowerCase() === 'am' && slotHour === 12) slotHour = 0;
+                return slotHour === micHour;
+            });
+            if (matchedSlot) {
+                const isFull = matchedSlot.spotsLeft === 0;
+                spotsBadge = `<span class="spots-badge ${isFull ? 'spots-full' : ''}">${isFull ? 'FULL' : matchedSlot.spotsLeft + '/' + matchedSlot.capacity + ' spots'}</span>`;
+            }
+        }
+
         const safeBorough = escapeHtml((mic.borough || 'NYC').toUpperCase());
         const boroughAbbrev = { 'MANHATTAN': 'MN', 'BROOKLYN': 'BK', 'QUEENS': 'QN', 'BRONX': 'BX', 'STATEN ISLAND': 'SI' };
         const shortBorough = boroughAbbrev[safeBorough] || safeBorough;
@@ -1153,6 +1180,7 @@ function render(mode) {
                             <span class="neighborhood">${safeHood}</span>
                             <span class="meta-dot">·</span>
                             <span class="price-badge">${safePrice}</span>
+                            ${spotsBadge}
                             ${conflictTag}
                         </div>
                     </div>
@@ -1179,6 +1207,7 @@ function render(mode) {
                         </div>
                         <div class="meta-row">
                             <span class="price-badge">${safePrice}</span>
+                            ${spotsBadge}
                             ${conflictTag}
                         </div>
                     </div>
