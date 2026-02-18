@@ -765,8 +765,8 @@ function populateModalContent(mic, allMicsAtVenue = null, activeDayName = null) 
         });
         if (matchedSlot) {
             spotsLabel = matchedSlot.spotsLeft === 0
-                ? '<br><span class="signup-spots">FULL</span>'
-                : `<br><span class="signup-spots">${matchedSlot.spotsLeft} spots left</span>`;
+                ? '<span class="signup-spots">Full — join waitlist</span>'
+                : `<span class="signup-spots">${matchedSlot.spotsLeft} spots left</span>`;
         }
     }
     const hasSignupUrl = !!mic.signupUrl;
