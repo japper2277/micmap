@@ -765,7 +765,7 @@ function populateModalContent(mic, allMicsAtVenue = null, activeDayName = null) 
         });
         if (matchedSlot) {
             spotsLabel = matchedSlot.spotsLeft === 0
-                ? '<span class="signup-spots">Full — join waitlist</span>'
+                ? '<span class="signup-spots">Full</span>'
                 : `<span class="signup-spots">${matchedSlot.spotsLeft} spots left</span>`;
         }
     }
