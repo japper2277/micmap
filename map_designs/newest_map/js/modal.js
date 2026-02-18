@@ -402,7 +402,12 @@ function renderVenueModalForMic(mic) {
             modalNoMicsNotice.textContent = '';
         }
         modalDayPickerState = null;
-        populateModalContent(mic, [mic], mic.day);
+        // Find all mics at the same venue for this day (enables time pills)
+        const venueName = mic.title || mic.venue;
+        const allAtVenue = (STATE.mics || []).filter(m =>
+            (m.title === venueName || m.venue === venueName) && m.day === mic.day
+        ).sort((a, b) => (a.start?.getTime() || 0) - (b.start?.getTime() || 0));
+        populateModalContent(mic, allAtVenue.length > 0 ? allAtVenue : [mic], mic.day);
         return;
     }
 
@@ -627,30 +632,11 @@ function populateModalContent(mic, allMicsAtVenue = null, activeDayName = null) 
         modalMicTime.innerText = formatModalDayDate(dayName);
     } else if (allMicsAtVenue && allMicsAtVenue.length > 1) {
         // Normal mode with multiple times — clickable pills to switch between times
-        const slotData = STATE.slottedSlots?.[mic.title] || STATE.slottedSlots?.[mic.venue];
-        let targetDate2 = new Date();
-        if (STATE.currentMode === 'tomorrow') targetDate2.setDate(targetDate2.getDate() + 1);
-        else if (STATE.currentMode === 'calendar' && STATE.selectedCalendarDate) targetDate2 = new Date(STATE.selectedCalendarDate);
-        const dateStr2 = targetDate2.toISOString().split('T')[0];
-
         const pillsHtml = allMicsAtVenue.map(m => {
             const timeStr = m.timeStr || '?';
-            let spotsInfo = '';
-            if (slotData && m.start) {
-                const mh = m.start.getHours();
-                const slot = slotData.slots.find(s => {
-                    if (s.date !== dateStr2) return false;
-                    const pm = s.time.match(/(\d+):(\d+)(am|pm)/i);
-                    if (!pm) return false;
-                    let sh = parseInt(pm[1]);
-                    if (pm[3].toLowerCase() === 'pm' && sh !== 12) sh += 12;
-                    return sh === mh;
-                });
-                if (slot) spotsInfo = slot.spotsLeft === 0 ? 'FULL' : `${slot.spotsLeft}/${slot.capacity}`;
-            }
             const isActive = m.id === mic.id;
             const activeClass = isActive ? ' active' : '';
-            return `<button class="time-pill${activeClass}" data-mic-id="${m.id}"><span>${timeStr}</span>${spotsInfo ? `<span class="time-pill-spots">${spotsInfo}</span>` : ''}</button>`;
+            return `<button class="time-pill${activeClass}" data-mic-id="${m.id}"><span>${timeStr}</span></button>`;
         }).join('');
         modalMicTime.innerHTML = pillsHtml;
     } else {
