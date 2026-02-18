@@ -324,6 +324,243 @@
 .btn:active { transform: scale(0.98); opacity: 0.9; }
 .btn-primary { background: linear-gradient(180deg, #2997FF 0%, #007AFF 100%); text-shadow: 0 1px 2px rgba(0,0,0,0.1); }
 .btn-ig { background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%); text-shadow: 0 1px 2px rgba(0,0,0,0.15); }
+.btn-tonight { background: linear-gradient(180deg, #f43f5e 0%, #e11d48 100%); text-shadow: 0 1px 2px rgba(0,0,0,0.15); }
+.btn-tonight.btn-scheduled { background: linear-gradient(180deg, #22c55e 0%, #16a34a 100%); }
+
+/* IG icon button - small circular */
+.btn-ig-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    text-decoration: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    transition: transform 0.1s;
+    flex-shrink: 0;
+}
+.btn-ig-icon:active { transform: scale(0.95); }
+.btn-ig-icon svg {
+    width: 22px;
+    height: 22px;
+}
+
+/* Action row layouts (Sign Up + IG icon) */
+.action-row { grid-template-columns: 1fr 1fr; gap: 10px; }
+.action-row.single-btn { grid-template-columns: 1fr; }
+
+/* Clickable time pills (normal mode, for venues with multiple times) */
+.time-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-right: 4px;
+    transition: all 0.15s ease;
+}
+.time-pill:last-child { margin-right: 0; }
+.time-pill:hover {
+    border-color: rgba(74, 222, 128, 0.3);
+    background: rgba(74, 222, 128, 0.06);
+    color: rgba(255, 255, 255, 0.9);
+}
+.time-pill:active { transform: scale(0.97); }
+.time-pill.in-route {
+    background: rgba(74, 222, 128, 0.15);
+    border-color: rgba(74, 222, 128, 0.35);
+    color: #4ade80;
+    font-weight: 700;
+}
+.time-pill svg {
+    width: 13px;
+    height: 13px;
+    flex-shrink: 0;
+    opacity: 0.8;
+}
+.time-pill.in-route svg {
+    opacity: 1;
+    stroke: #4ade80;
+}
+.time-pill-spots {
+    font-size: 10px;
+    font-weight: 500;
+    opacity: 0.4;
+    margin-left: 1px;
+}
+.time-pill.in-route .time-pill-spots {
+    color: #4ade80;
+    opacity: 0.7;
+}
+.time-pill-hint {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.4);
+    text-align: left;
+    margin-top: 4px;
+    width: 100%;
+}
+
+/* "Pick a time" attention animation */
+.time-pill.pick-me,
+.time-add-btn.pick-me {
+    animation: pickMe 0.5s ease both;
+}
+@keyframes pickMe {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.04); border-color: rgba(255,255,255,0.3); }
+    100% { transform: scale(1); }
+}
+
+/* Plan mode: Time add buttons in header */
+.time-add-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 44px; /* Increased touch target for accessibility */
+    padding: 0 16px;
+    border: 1px solid #3f3f46;
+    border-radius: 100px; /* Pill shape */
+    font-size: 15px; /* Slightly larger text */
+    font-weight: 600;
+    cursor: pointer;
+    color: #e4e4e7;
+    background: rgba(255, 255, 255, 0.05);
+    margin-left: 8px;
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+    overflow: hidden;
+}
+.time-add-btn:first-child {
+    margin-left: 0;
+}
+.time-add-btn:active {
+    transform: scale(0.94);
+}
+
+/* STATE: In Route (Selected) */
+.time-add-btn.in-route {
+    background: #4ade80;
+    border-color: #4ade80;
+    color: #000;
+    font-weight: 700;
+    box-shadow: 0 0 12px rgba(74, 222, 128, 0.4);
+    animation: btnPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* STATE: Conflict (Disabled/Warning) */
+.time-add-btn.conflict {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.4);
+    color: #f87171;
+    opacity: 0.8;
+    pointer-events: none; /* Can't click */
+    text-decoration: line-through;
+}
+
+/* Icons inside buttons */
+.time-add-btn svg {
+    width: 14px;
+    height: 14px;
+    stroke-width: 2.5;
+}
+
+@keyframes btnPop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+/* =================================================================
+   PLAN MODE: Time Add Button Attention Animations
+   ================================================================= */
+
+/* Pulsing green glow - draws eye to clickable buttons */
+@keyframes timeAddPulse {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(74, 222, 128, 0);
+    }
+    50% {
+        box-shadow: 0 0 12px 2px rgba(74, 222, 128, 0.25);
+    }
+}
+
+/* Shimmer sweep across button */
+@keyframes timeAddShimmer {
+    0%, 100% { left: -100%; opacity: 0; }
+    10% { opacity: 1; }
+    50% { left: 100%; opacity: 1; }
+    60%, 100% { opacity: 0; }
+}
+
+/* Plus icon micro-bounce */
+@keyframes plusBounce {
+    0%, 100% { transform: translateY(0); }
+    15% { transform: translateY(-2px); }
+    30% { transform: translateY(0); }
+}
+
+/* Apply idle animations to default state only */
+.time-add-btn:not(.in-route):not(.conflict) {
+    animation: timeAddPulse 2.5s ease-in-out infinite;
+}
+
+/* Shimmer overlay */
+.time-add-btn:not(.in-route):not(.conflict)::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    animation: timeAddShimmer 4s ease-in-out infinite 1s;
+    pointer-events: none;
+    border-radius: inherit;
+}
+
+/* Plus icon bounce */
+.time-add-btn:not(.in-route):not(.conflict) svg {
+    animation: plusBounce 2s ease-in-out infinite 0.5s;
+}
+
+/* Enhanced hover state - preview "added" green state */
+.time-add-btn:not(.in-route):not(.conflict):hover {
+    background: rgba(74, 222, 128, 0.15);
+    border-color: rgba(74, 222, 128, 0.5);
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(74, 222, 128, 0.25);
+    animation: none;
+}
+
+.time-add-btn:not(.in-route):not(.conflict):hover::before {
+    animation: none;
+    opacity: 0;
+}
+
+.time-add-btn:not(.in-route):not(.conflict):hover svg {
+    animation: none;
+    transform: translateY(0);
+}
+
+/* Accessibility: respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+    .time-add-btn,
+    .time-add-btn::before,
+    .time-add-btn svg {
+        animation: none !important;
+    }
+}
 
 /* Button loading state */
 .btn.loading {

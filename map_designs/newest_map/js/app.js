@@ -177,6 +177,9 @@ function init() {
     // Load data and render
     loadData();
 
+    // Load Slotted signup availability
+    loadSlottedData();
+
     // Tomorrow notice button handler
     const tomorrowBtn = document.getElementById('tomorrow-btn');
     if (tomorrowBtn) {
@@ -189,6 +192,20 @@ function init() {
 
     // Refresh statuses every minute
     setInterval(refreshStatuses, 60000);
+}
+
+// Load Slotted.co signup slot availability
+async function loadSlottedData() {
+    try {
+        const res = await fetch(`${CONFIG.apiBase}/api/v1/mics/slots/seshopenmics`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.success) {
+            STATE.slottedSlots[data.venueName] = data;
+        }
+    } catch (e) {
+        // Non-critical — silently fail
+    }
 }
 
 // Load transit station data for arrivals/fallback

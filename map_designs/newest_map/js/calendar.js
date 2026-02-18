@@ -46,6 +46,38 @@ function updateDateCarouselHighlight(dateString) {
     });
 }
 
+// Render dots on calendar capsules for days with scheduled items (disabled)
+function renderCalendarDots() {
+    return;
+
+    const capsules = container.querySelectorAll('.date-capsule');
+    capsules.forEach(cap => {
+        const dateString = cap.dataset.date;
+        const schedule = STATE.schedules[dateString];
+        const hasSchedule = schedule && schedule.length > 0;
+
+        // Remove existing dots
+        const existingDot = cap.querySelector('.calendar-dot');
+        if (existingDot) existingDot.remove();
+
+        if (hasSchedule) {
+            const dot = document.createElement('div');
+            dot.className = 'calendar-dot';
+            dot.style.cssText = `
+                width: 4px;
+                height: 4px;
+                background-color: #22c55e;
+                border-radius: 50%;
+                margin-top: 6px;
+                box-shadow: 0 0 6px rgba(34, 197, 94, 0.6);
+            `;
+            // Append dot to the capsule
+            cap.appendChild(dot);
+        }
+    });
+}
+
+
 function selectDate(dateString) {
     STATE.currentMode = 'calendar';
     STATE.selectedCalendarDate = dateString;

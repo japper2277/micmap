@@ -17,6 +17,9 @@ const Mic = require('./models/Mic');
 const { cacheMiddleware } = require('./middleware/cache');
 const { getCacheStats } = require('./utils/cache-invalidation');
 
+// Slotted.co signup scraper
+const { getSlottedData, startSlottedRefresh } = require('./services/slotted');
+
 // Logging
 const { requestLoggingMiddleware } = require('./middleware/logging');
 const logger = require('./utils/logger');
@@ -1970,6 +1973,142 @@ app.get('/api/subway/routes', async (req, res) => {
   }
 });
 
+// =================================================================
+// CAL.RED PROXY - Scrape and parse cal.red/plain events
+// =================================================================
+
+// In-memory geocode cache (persists across requests, resets on server restart)
+const calredGeocodeCache = {};
+
+async function geocodeVenue(whereStr) {
+  if (calredGeocodeCache[whereStr]) return calredGeocodeCache[whereStr];
+
+  const mapboxToken = process.env.MAPBOX_ACCESS_TOKEN;
+  if (!mapboxToken) return null;
+
+  let addr = whereStr
+    .replace(/^@\s*/, '')
+    .replace(/\(\d+\+\)/g, '')
+    .replace(/\(all ages\)/gi, '')
+    .replace(/,\s*(mnhtn)\b/gi, ', Manhattan')
+    .replace(/,\s*(bklyn)\b/gi, ', Brooklyn')
+    .replace(/,\s*(qns)\b/gi, ', Queens')
+    .trim();
+
+  if (!addr.toLowerCase().includes('new york')) {
+    addr += ', New York, NY';
+  }
+
+  try {
+    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(addr)}.json?access_token=${mapboxToken}&bbox=-74.3,40.45,-73.6,40.95&limit=1`;
+    const response = await fetchWithTimeout(url, {}, 10000);
+    const data = await response.json();
+    if (data.features && data.features.length > 0) {
+      const [lng, lat] = data.features[0].center;
+      const result = { lat, lng };
+      calredGeocodeCache[whereStr] = result;
+      return result;
+    }
+  } catch (e) {
+    console.warn('Cal.red geocode failed for:', addr, e.message);
+  }
+  return null;
+}
+
+app.get('/api/proxy/calred', async (req, res) => {
+  try {
+    const fetch = (await import('node-fetch')).default;
+    const response = await fetch('https://cal.red/plain', {
+      headers: { 'User-Agent': 'CalRedMap/1.0 (event map integration)' }
+    });
+    if (!response.ok) throw new Error(`cal.red returned ${response.status}`);
+    const html = await response.text();
+
+    // Parse HTML table rows into structured events
+    const events = [];
+    const rowRegex = /<tr>\s*<td>([\s\S]*?)<\/tr>/g;
+    let match;
+    let isHeader = true;
+
+    while ((match = rowRegex.exec(html)) !== null) {
+      if (isHeader) { isHeader = false; continue; }
+      const row = match[0];
+
+      const imgMatch = row.match(/src="([^"]+\.webp)"/);
+      const tds = [];
+      const tdRegex = /<td[^>]*>([\s\S]*?)<\/td>/g;
+      let tdMatch;
+      while ((tdMatch = tdRegex.exec(row)) !== null) {
+        tds.push(tdMatch[1].trim());
+      }
+
+      if (tds.length < 7) continue;
+
+      const linkMatch = row.match(/<a\s+href="([^"]+)"[^>]*>\s*([\s\S]*?)\s*<\/a>/);
+      const descFullMatch = row.match(/<span class="desc-full"[^>]*>([\s\S]*?)<\/span>/);
+      const descShortMatch = row.match(/<span class="desc-short">([\s\S]*?)<\/span>/);
+
+      const stripHtml = (s) => s ? s.replace(/<[^>]+>/g, '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').replace(/&#34;/g, '"').replace(/\s+/g, ' ').trim() : '';
+
+      const title = stripHtml(tds[1] || '');
+      const cost = stripHtml(tds[2] || '');
+      const when = stripHtml(tds[3] || '');
+      const where = stripHtml(tds[4] || '');
+      const categories = stripHtml(tds[5] || '');
+      const description = descFullMatch ? stripHtml(descFullMatch[1]) : (descShortMatch ? stripHtml(descShortMatch[1]) : '');
+
+      if (!title) continue;
+
+      events.push({
+        img: imgMatch ? imgMatch[1] : null,
+        title, cost, when, where, categories, description,
+        link: linkMatch ? { url: linkMatch[1], text: stripHtml(linkMatch[2]) } : null
+      });
+    }
+
+    // Server-side geocoding with Mapbox
+    const mapboxToken = process.env.MAPBOX_ACCESS_TOKEN;
+    if (mapboxToken) {
+      const uniqueVenues = [...new Set(events.map(e => e.where))];
+      const uncached = uniqueVenues.filter(v => !calredGeocodeCache[v]);
+      console.log(`📍 Cal.red: ${uniqueVenues.length} unique venues, ${uncached.length} need geocoding`);
+
+      for (const venue of uncached) {
+        await geocodeVenue(venue);
+        await new Promise(r => setTimeout(r, 50));
+      }
+
+      // Attach coords to events
+      for (const event of events) {
+        const coords = calredGeocodeCache[event.where];
+        if (coords) {
+          event.lat = coords.lat;
+          event.lng = coords.lng;
+        }
+      }
+    }
+
+    res.set('Cache-Control', 'public, max-age=900'); // 15 min cache
+    res.json({ success: true, count: events.length, events });
+  } catch (error) {
+    console.error('Cal.red proxy error:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch cal.red data' });
+  }
+});
+
+// Slotted.co signup availability
+app.get('/api/v1/mics/slots/:slottedId', async (req, res) => {
+  try {
+    const data = await getSlottedData(req.params.slottedId);
+    if (!data) return res.status(404).json({ success: false, error: 'Unknown slotted ID' });
+    res.set('Cache-Control', 'public, max-age=300');
+    res.json({ success: true, ...data });
+  } catch (err) {
+    console.error('Slotted endpoint error:', err.message);
+    res.status(500).json({ success: false, error: 'Failed to fetch slot data' });
+  }
+});
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({ error: 'Endpoint not found' });
@@ -1981,6 +2120,7 @@ if (process.env.NODE_ENV !== 'test') {
     console.log(`🎤 MicMap API is running on port ${PORT}`);
     console.log(`📍 Health check: http://localhost:${PORT}/health`);
     console.log(`📋 Mics endpoint: http://localhost:${PORT}/api/v1/mics`);
+    startSlottedRefresh();
   });
 }
 

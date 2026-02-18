@@ -98,6 +98,62 @@ function initModal() {
     modalTimeRow = document.getElementById('modal-time-row');
     modalTimeMoreRow = document.getElementById('modal-time-more-row');
     modalNoMicsNotice = document.getElementById('modal-no-mics-notice');
+    modalPlanActions = document.getElementById('modal-plan-actions');
+    modalPlanBtn = document.getElementById('modal-plan-btn');
+
+    // "+ Schedule" button click handler - adds mic to schedule without entering plan mode
+    if (modalPlanBtn) {
+        modalPlanBtn.addEventListener('click', () => {
+            const mic = modalMicsArray[modalActiveMicIndex];
+            if (!mic) return;
+
+            // Multi-time venue: highlight pills to prompt user to pick a time
+            const pills = modalMicTime?.querySelectorAll('.time-pill, .time-add-btn');
+            if (pills && pills.length > 1) {
+                // Add attention animation to all pills
+                pills.forEach((pill, i) => {
+                    pill.classList.add('pick-me');
+                    pill.style.animationDelay = `${i * 80}ms`;
+                });
+                setTimeout(() => {
+                    pills.forEach(p => {
+                        p.classList.remove('pick-me');
+                        p.style.animationDelay = '';
+                    });
+                }, 800);
+                // Scroll time pills into view
+                modalMicTime.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                return; // Don't add — let user pick a time pill
+            }
+
+            // Single mic: toggle directly
+            if (typeof toggleMicInRoute === 'function') {
+                toggleMicInRoute(mic.id, true);
+            }
+            closeVenueModal();
+        });
+    }
+
+    // Time button click handler in header (event delegation — plan mode + normal mode)
+    if (modalMicTime) {
+        modalMicTime.addEventListener('click', (e) => {
+            const btn = e.target.closest('.time-add-btn') || e.target.closest('.time-pill');
+            if (!btn) return;
+            if (btn.classList.contains('conflict')) return;
+
+            const micId = btn.dataset.micId;
+            if (micId && typeof toggleMicInRoute === 'function') {
+                toggleMicInRoute(micId, true);
+                // Refresh modal to update button states
+                const mic = modalMicsArray[modalActiveMicIndex];
+                if (mic) {
+                    const venueName = mic.title || mic.venue;
+                    const venueMics = modalVenueMap[venueName] || [mic];
+                    populateModalContent(mic, venueMics);
+                }
+            }
+        });
+    }
 
     // Close modal on background click
     venueModal.addEventListener('click', (e) => {
@@ -528,7 +584,106 @@ function populateModalContent(mic, allMicsAtVenue = null, activeDayName = null) 
     modalVenueName.innerText = mic.title || 'Unknown Venue';
     const dayName = activeDayName || mic.day || getModalContextDayName();
     const hasPicker = !!modalDayPickerState;
-    modalMicTime.innerText = hasPicker ? formatModalDayDate(dayName) : (mic.timeStr || '');
+
+    // In plan mode: show clickable time buttons in header
+    const micsForHeader = allMicsAtVenue || [mic];
+    if (STATE.planMode && micsForHeader.length > 0) {
+        // Get times of mics already in route (for conflict detection)
+        const routeTimes = (STATE.route || []).map(id => {
+            const m = STATE.mics.find(mic => mic.id === id);
+            return m?.start?.getTime();
+        }).filter(Boolean);
+
+        const btnsHtml = micsForHeader.map(m => {
+            const inRoute = STATE.route?.includes(m.id);
+            // Check if same time as any mic in route (conflict)
+            const hasConflict = !inRoute && routeTimes.includes(m.start?.getTime());
+
+            // Format time nicely (e.g. "7:00")
+            const h = m.start?.getHours() || 0;
+            const mins = m.start?.getMinutes() || 0;
+            const hour = h > 12 ? h - 12 : (h === 0 ? 12 : h);
+            const timeStr = mins === 0 ? `${hour}:00` : `${hour}:${mins.toString().padStart(2,'0')}`;
+
+            let btnClass = '';
+            let iconSvg = '';
+
+            if (inRoute) {
+                btnClass = ' in-route';
+                // Checkmark icon
+                iconSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+            } else if (hasConflict) {
+                btnClass = ' conflict';
+                // No icon, just text change in CSS
+            } else {
+                // Plus icon
+                iconSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>`;
+            }
+
+            return `<button class="time-add-btn${btnClass}" data-mic-id="${m.id}">${iconSvg}<span>${timeStr}</span></button>`;
+        }).join('');
+        modalMicTime.innerHTML = btnsHtml;
+    } else if (hasPicker) {
+        modalMicTime.innerText = formatModalDayDate(dayName);
+    } else if (allMicsAtVenue && allMicsAtVenue.length > 1) {
+        // Normal mode with multiple times — clickable pills with spots
+        const slotData = STATE.slottedSlots?.[mic.title] || STATE.slottedSlots?.[mic.venue];
+        let targetDate2 = new Date();
+        if (STATE.currentMode === 'tomorrow') targetDate2.setDate(targetDate2.getDate() + 1);
+        else if (STATE.currentMode === 'calendar' && STATE.selectedCalendarDate) targetDate2 = new Date(STATE.selectedCalendarDate);
+        const dateStr2 = targetDate2.toISOString().split('T')[0];
+
+        const pillsHtml = allMicsAtVenue.map(m => {
+            const timeStr = m.timeStr || '?';
+            let spotsInfo = '';
+            if (slotData && m.start) {
+                const mh = m.start.getHours();
+                const slot = slotData.slots.find(s => {
+                    if (s.date !== dateStr2) return false;
+                    const pm = s.time.match(/(\d+):(\d+)(am|pm)/i);
+                    if (!pm) return false;
+                    let sh = parseInt(pm[1]);
+                    if (pm[3].toLowerCase() === 'pm' && sh !== 12) sh += 12;
+                    return sh === mh;
+                });
+                if (slot) spotsInfo = slot.spotsLeft === 0 ? 'FULL' : `${slot.spotsLeft}/${slot.capacity}`;
+            }
+            const inRoute = STATE.route?.includes(m.id);
+            const iconSvg = inRoute
+                ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><polyline points="20 6 9 17 4 12"></polyline></svg>`
+                : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>`;
+            const stateClass = inRoute ? ' in-route' : '';
+            return `<button class="time-pill${stateClass}" data-mic-id="${m.id}">${iconSvg}<span>${timeStr}</span>${spotsInfo ? `<span class="time-pill-spots">${spotsInfo}</span>` : ''}</button>`;
+        }).join('');
+        modalMicTime.innerHTML = pillsHtml + '<div class="time-pill-hint">+ tap to add to schedule</div>';
+    } else {
+        // Single time mic — still show a clickable pill with add-to-schedule
+        const singleTimeStr = mic.timeStr || '';
+        const singleInRoute = STATE.route?.includes(mic.id);
+        const singleIcon = singleInRoute
+            ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><polyline points="20 6 9 17 4 12"></polyline></svg>`
+            : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>`;
+        const singleClass = singleInRoute ? ' in-route' : '';
+        let singleSpots = '';
+        const singleSlotData = STATE.slottedSlots?.[mic.title] || STATE.slottedSlots?.[mic.venue];
+        if (singleSlotData && mic.start) {
+            let td = new Date();
+            if (STATE.currentMode === 'tomorrow') td.setDate(td.getDate() + 1);
+            else if (STATE.currentMode === 'calendar' && STATE.selectedCalendarDate) td = new Date(STATE.selectedCalendarDate);
+            const ds = td.toISOString().split('T')[0];
+            const mh = mic.start.getHours();
+            const slot = singleSlotData.slots.find(s => {
+                if (s.date !== ds) return false;
+                const pm = s.time.match(/(\d+):(\d+)(am|pm)/i);
+                if (!pm) return false;
+                let sh = parseInt(pm[1]);
+                if (pm[3].toLowerCase() === 'pm' && sh !== 12) sh += 12;
+                return sh === mh;
+            });
+            if (slot) singleSpots = slot.spotsLeft === 0 ? 'FULL' : `${slot.spotsLeft}/${slot.capacity}`;
+        }
+        modalMicTime.innerHTML = `<button class="time-pill${singleClass}" data-mic-id="${mic.id}">${singleIcon}<span>${singleTimeStr}</span>${singleSpots ? `<span class="time-pill-spots">${singleSpots}</span>` : ''}</button><div class="time-pill-hint">+ tap to add to schedule</div>`;
+    }
 
     // 2. SUB-HEADER - Address and Maps link
     let address = mic.address || '';
@@ -608,6 +763,28 @@ function populateModalContent(mic, allMicsAtVenue = null, activeDayName = null) 
     }
 
     // 4. ACTION BUTTONS
+    // Build spots label from Slotted data
+    let spotsLabel = '';
+    const slottedData = STATE.slottedSlots?.[mic.title] || STATE.slottedSlots?.[mic.venue];
+    if (slottedData && mic.start) {
+        let targetDate = new Date();
+        if (STATE.currentMode === 'tomorrow') targetDate.setDate(targetDate.getDate() + 1);
+        else if (STATE.currentMode === 'calendar' && STATE.selectedCalendarDate) targetDate = new Date(STATE.selectedCalendarDate);
+        const dateStr = targetDate.toISOString().split('T')[0];
+        const micHour = mic.start.getHours();
+        const matchedSlot = slottedData.slots.find(s => {
+            if (s.date !== dateStr) return false;
+            const m = s.time.match(/(\d+):(\d+)(am|pm)/i);
+            if (!m) return false;
+            let h = parseInt(m[1]);
+            if (m[3].toLowerCase() === 'pm' && h !== 12) h += 12;
+            if (m[3].toLowerCase() === 'am' && h === 12) h = 0;
+            return h === micHour;
+        });
+        if (matchedSlot) {
+            spotsLabel = matchedSlot.spotsLeft === 0 ? ' (FULL)' : ` (${matchedSlot.spotsLeft}/${matchedSlot.capacity} spots)`;
+        }
+    }
     const hasSignupUrl = !!mic.signupUrl;
     const hasSignupEmail = !!mic.signupEmail;
     const igHandle = mic.contact || mic.host || mic.hostIg;
@@ -616,7 +793,7 @@ function populateModalContent(mic, allMicsAtVenue = null, activeDayName = null) 
     if (hasSignupUrl) {
         modalSignupBtn.href = mic.signupUrl;
         modalSignupBtn.target = '_blank';
-        modalSignupBtn.innerText = 'Sign Up Online';
+        modalSignupBtn.innerText = 'Sign Up Online' + spotsLabel;
         modalSignupBtn.style.display = 'flex';
     } else if (hasSignupEmail) {
         modalSignupBtn.href = `mailto:${mic.signupEmail}`;
@@ -636,9 +813,14 @@ function populateModalContent(mic, allMicsAtVenue = null, activeDayName = null) 
     }
 
     const hasSignupAction = hasSignupUrl || hasSignupEmail;
-    if (hasSignupAction && hasIg) {
-        modalActions.classList.remove('single-btn');
-    } else {
+    // Schedule button hidden — time pills handle add-to-schedule now
+    if (modalPlanBtn) {
+        modalPlanBtn.style.display = 'none';
+    }
+
+    // Action stack layout: hide signup row if no signup action
+    modalActions.classList.remove('single-btn');
+    if (!hasSignupAction) {
         modalActions.classList.add('single-btn');
     }
     modalActions.style.display = (hasSignupAction || hasIg) ? 'grid' : 'none';
@@ -646,6 +828,7 @@ function populateModalContent(mic, allMicsAtVenue = null, activeDayName = null) 
     // 5. TRANSIT - adjust mic date for current viewing mode
     loadModalArrivals(adjustMicDateForMode(mic));
 }
+
 
 function openVenueModal(mic) {
     if (!mic) return;
