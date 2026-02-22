@@ -384,7 +384,15 @@ function populateModalContent(mic, allMicsAtVenue = null) {
         else if (STATE.currentMode === 'calendar' && STATE.selectedCalendarDate) targetDate2 = new Date(STATE.selectedCalendarDate);
         const dateStr2 = targetDate2.toISOString().split('T')[0];
 
-        const pillsHtml = allMicsAtVenue.map(m => {
+        // Filter out past mics for today mode (started > 30 min ago)
+        const now2 = new Date();
+        const displayMics = STATE?.currentMode === 'today'
+            ? allMicsAtVenue.filter(m => !m.start || (m.start - now2) / 60000 > -30)
+            : allMicsAtVenue;
+        // If filtering removed all mics, fall back to showing all
+        const pillMics = displayMics.length > 0 ? displayMics : allMicsAtVenue;
+
+        const pillsHtml = pillMics.map(m => {
             const timeStr = m.timeStr || '?';
             let spotsInfo = '';
             if (slotData && m.start) {
