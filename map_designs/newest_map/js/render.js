@@ -1040,6 +1040,33 @@ function render(mode) {
                 // Transit with route data - show line badge(s) + time
                 const rideLegs = mic.route.legs.filter(l => l.type === 'ride');
                 if (rideLegs.length > 0) {
+                    // Recalculate duration using scheduled train times (matches modal logic)
+                    let displayMins = mic.transitMins;
+                    const route = mic.route;
+                    if (route.scheduledDepartureTimes && route.scheduledDepartureTimes.length > 0 && mic.start instanceof Date) {
+                        const now = new Date();
+                        const adjustedTotal = route.adjustedTotalTime ?? route.totalTime ?? 15;
+                        const walkTo = route.walkToStation || 0;
+                        const walkFrom = route.walkToVenue || 0;
+                        const ride = Math.max(0, (route.totalTime || adjustedTotal) - walkTo - walkFrom);
+                        const targetArrival = new Date(mic.start.getTime() - 15 * 60000);
+                        const latestTrain = new Date(targetArrival.getTime() - (ride + walkFrom) * 60000);
+                        const walkBuffer = walkTo <= 3 ? walkTo : (walkTo - 2);
+                        const earliestCatchable = new Date(now.getTime() + walkBuffer * 60000);
+                        const catchable = route.scheduledDepartureTimes.filter(iso => {
+                            const t = new Date(iso);
+                            return t >= earliestCatchable && t <= latestTrain;
+                        });
+                        if (catchable.length > 0) {
+                            const firstTrain = new Date(catchable[0]);
+                            let departure = new Date(firstTrain.getTime() - walkTo * 60000);
+                            if (departure < now) departure = now;
+                            const lastTrain = new Date(catchable[catchable.length - 1]);
+                            const arrival = new Date(lastTrain.getTime() + (ride + walkFrom) * 60000);
+                            displayMins = Math.round((arrival - departure) / 60000);
+                        }
+                    }
+
                     // Get unique lines (max 3 for 3-transfer routes)
                     const lines = [];
                     rideLegs.forEach(leg => {
@@ -1048,7 +1075,7 @@ function render(mode) {
                     const badges = lines.slice(0, 3).map(line =>
                         `<span class="commute-badge b-${escapeHtml(line)}">${escapeHtml(line)}</span>`
                     ).join('');
-                    commuteDisplay = `<div class="commute-live commute-transit">${badges}<span class="commute-time">${mic.transitMins}m</span></div>`;
+                    commuteDisplay = `<div class="commute-live commute-transit">${badges}<span class="commute-time">${displayMins}m</span></div>`;
                 } else {
                     // Fallback if no ride legs found
                     commuteDisplay = `<div class="commute-live commute-estimate">~${mic.transitMins}m</div>`;

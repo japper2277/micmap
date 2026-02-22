@@ -504,7 +504,7 @@ const transitService = {
 
             // Process batch in parallel
             await Promise.all(batch.map(async (venue) => {
-                const { lat, lng, mics: venueMics, representativeMic } = venue;
+                const { lat, lng, mics: venueMics } = venue;
 
                 // Check straight-line distance
                 const distance = calculateDistance(userLat, userLng, lat, lng);
@@ -531,39 +531,47 @@ const transitService = {
                     }
                 }
 
-                // Get exact route via Dijkstra (use representative mic for schedule-based calculation)
-                try {
-                    const route = await this.fetchSubwayRoute(
-                        userLat, userLng,
-                        lat, lng,
-                        representativeMic
-                    );
+                // Group mics by start hour to get accurate per-time routes
+                const timeGroups = {};
+                venueMics.forEach(mic => {
+                    const hourKey = mic.start ? mic.start.getHours() : 'none';
+                    if (!timeGroups[hourKey]) timeGroups[hourKey] = [];
+                    timeGroups[hourKey].push(mic);
+                });
 
-                    // Apply result to all mics at this venue
-                    venueMics.forEach(mic => {
-                        if (route) {
-                            const totalMins = route.adjustedTotalTime || route.totalTime;
-                            mic.transitMins = totalMins;
-                            mic.transitSeconds = totalMins * 60;
-                            mic.transitType = 'transit';
-                            mic.route = route;
-                        } else {
+                // Calculate route for each unique start time at this venue
+                for (const groupMics of Object.values(timeGroups)) {
+                    try {
+                        const route = await this.fetchSubwayRoute(
+                            userLat, userLng,
+                            lat, lng,
+                            groupMics[0]
+                        );
+
+                        groupMics.forEach(mic => {
+                            if (route) {
+                                const totalMins = route.adjustedTotalTime || route.totalTime;
+                                mic.transitMins = totalMins;
+                                mic.transitSeconds = totalMins * 60;
+                                mic.transitType = 'transit';
+                                mic.route = route;
+                            } else {
+                                mic.transitMins = Math.round(distance * WALK_MINS_PER_MILE);
+                                mic.transitSeconds = mic.transitMins * 60;
+                                mic.transitType = 'estimate';
+                                mic.route = null;
+                            }
+                            mic.transitOrigin = { lat: userLat, lng: userLng };
+                        });
+                    } catch (error) {
+                        groupMics.forEach(mic => {
                             mic.transitMins = Math.round(distance * WALK_MINS_PER_MILE);
                             mic.transitSeconds = mic.transitMins * 60;
                             mic.transitType = 'estimate';
                             mic.route = null;
-                        }
-                        mic.transitOrigin = { lat: userLat, lng: userLng };
-                    });
-                } catch (error) {
-                    // Network error, timeout, or server error - use fallback for all mics
-                    venueMics.forEach(mic => {
-                        mic.transitMins = Math.round(distance * WALK_MINS_PER_MILE);
-                        mic.transitSeconds = mic.transitMins * 60;
-                        mic.transitType = 'estimate';
-                        mic.route = null;
-                        mic.transitOrigin = { lat: userLat, lng: userLng };
-                    });
+                            mic.transitOrigin = { lat: userLat, lng: userLng };
+                        });
+                    }
                 }
             }));
 
