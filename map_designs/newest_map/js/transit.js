@@ -94,6 +94,12 @@ const transitService = {
             const data = await response.json();
             const route = data.routes && data.routes.length > 0 ? data.routes[0] : null;
 
+            // Cache ALL routes for carousel use
+            if (data.routes && data.routes.length > 0) {
+                this.allRoutesCache = this.allRoutesCache || {};
+                this.allRoutesCache[cacheKey] = data.routes;
+            }
+
             // Cache the result (success or null)
             this.routeCache[cacheKey] = route;
             return route;
@@ -113,6 +119,18 @@ const transitService = {
             // Don't cache failures - allow retry
             return null;
         }
+    },
+
+    // Fetch multiple subway routes (up to 3) for modal carousel
+    async fetchSubwayRoutes(userLat, userLng, venueLat, venueLng, mic = null) {
+        // First ensure single route is fetched (populates allRoutesCache)
+        await this.fetchSubwayRoute(userLat, userLng, venueLat, venueLng, mic);
+
+        const targetKey = mic?.start instanceof Date ? mic.start.getTime() : 'now';
+        const cacheKey = `${userLat.toFixed(3)},${userLng.toFixed(3)}|${venueLat.toFixed(3)},${venueLng.toFixed(3)}|${targetKey}`;
+
+        const allRoutes = this.allRoutesCache?.[cacheKey] || [];
+        return allRoutes.slice(0, 3);
     },
 
     // Fetch accurate walking time from OSRM foot API (local with public fallback)

@@ -903,12 +903,16 @@ function setupFocusTrap(modal) {
 
 // Get route - always fetch fresh for modal to get current train times
 async function getRouteForModal(mic, userLat, userLng) {
-    // Always fetch fresh route when opening modal
-    // Cached routes from card rendering may have stale scheduledDepartureTimes
-    // Cards use cache for speed, modal uses fresh for accuracy
-    const route = await transitService.fetchSubwayRoute(userLat, userLng, mic.lat, mic.lng, mic);
-    if (route) {
-        return { routes: [route], schedule: null };
+    // Fetch up to 3 fresh routes for carousel
+    const routes = await transitService.fetchSubwayRoutes(userLat, userLng, mic.lat, mic.lng, mic);
+    if (routes.length > 0) {
+        // Sync first route back to mic so drawer badge stays consistent
+        mic.route = routes[0];
+        const totalMins = routes[0].adjustedTotalTime || routes[0].totalTime;
+        mic.transitMins = totalMins;
+        mic.transitSeconds = totalMins * 60;
+        mic.transitType = 'transit';
+        return { routes, schedule: null };
     }
     return { routes: [], schedule: null };
 }
@@ -1243,7 +1247,124 @@ async function displaySubwayRoutes(routes, mic, walkOption = null, schedule = nu
         transitHTML = '<div class="empty-card">No catchable trains</div>';
     }
 
-    modalTransit.innerHTML = transitHTML;
+    // Count cards to decide if we need a carousel
+    const cardCount = (transitHTML.match(/<div class="card-base">/g) || []).length;
+
+    if (cardCount > 1) {
+        // Wrap in swipeable carousel with dot indicators
+        const tmp = document.createElement('div');
+        tmp.innerHTML = transitHTML;
+        const cards = tmp.querySelectorAll('.card-base');
+
+        const carousel = document.createElement('div');
+        carousel.className = 'route-carousel';
+
+        const track = document.createElement('div');
+        track.className = 'route-carousel-track';
+        cards.forEach(card => track.appendChild(card));
+        carousel.appendChild(track);
+
+        // Dot indicators
+        const dots = document.createElement('div');
+        dots.className = 'route-carousel-dots';
+        for (let i = 0; i < cardCount; i++) {
+            const dot = document.createElement('div');
+            dot.className = 'route-carousel-dot' + (i === 0 ? ' active' : '');
+            dot.addEventListener('click', () => goTo(i));
+            dots.appendChild(dot);
+        }
+        carousel.appendChild(dots);
+
+        modalTransit.innerHTML = '';
+        modalTransit.appendChild(carousel);
+
+        // Carousel navigation
+        let currentIdx = 0;
+        const goTo = (idx) => {
+            if (idx === currentIdx || idx < 0 || idx >= cardCount) return;
+            currentIdx = idx;
+            track.style.transform = `translateX(-${idx * 100}%)`;
+            dots.querySelectorAll('.route-carousel-dot').forEach((d, i) =>
+                d.classList.toggle('active', i === idx));
+        };
+
+        // Touch swipe
+        let startX = 0, startY = 0, isDragging = false;
+        carousel.addEventListener('touchstart', e => {
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+            isDragging = false;
+            track.style.transition = 'none';
+        }, { passive: true });
+
+        carousel.addEventListener('touchmove', e => {
+            const dx = e.touches[0].clientX - startX;
+            const dy = e.touches[0].clientY - startY;
+            if (!isDragging && Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 5) {
+                isDragging = true;
+            }
+            if (isDragging) {
+                e.preventDefault();
+                const offset = -currentIdx * 100;
+                const pct = (dx / carousel.offsetWidth) * 100;
+                const dampened = (currentIdx === 0 && dx > 0) || (currentIdx === cardCount - 1 && dx < 0) ? pct * 0.3 : pct;
+                track.style.transform = `translateX(${offset + dampened}%)`;
+            }
+        }, { passive: false });
+
+        carousel.addEventListener('touchend', e => {
+            track.style.transition = 'transform 0.3s ease';
+            if (isDragging) {
+                const dx = e.changedTouches[0].clientX - startX;
+                const threshold = carousel.offsetWidth * 0.2;
+                if (dx < -threshold && currentIdx < cardCount - 1) goTo(currentIdx + 1);
+                else if (dx > threshold && currentIdx > 0) goTo(currentIdx - 1);
+                else track.style.transform = `translateX(-${currentIdx * 100}%)`;
+            }
+        });
+
+        // Mouse drag (desktop)
+        let mouseStartX = 0, mouseDown = false;
+        carousel.addEventListener('mousedown', e => {
+            mouseStartX = e.clientX;
+            mouseDown = true;
+            track.style.transition = 'none';
+            carousel.style.cursor = 'grabbing';
+        });
+        document.addEventListener('mousemove', e => {
+            if (!mouseDown) return;
+            const dx = e.clientX - mouseStartX;
+            const offset = -currentIdx * 100;
+            const pct = (dx / carousel.offsetWidth) * 100;
+            const dampened = (currentIdx === 0 && dx > 0) || (currentIdx === cardCount - 1 && dx < 0) ? pct * 0.3 : pct;
+            track.style.transform = `translateX(${offset + dampened}%)`;
+        });
+        document.addEventListener('mouseup', e => {
+            if (!mouseDown) return;
+            mouseDown = false;
+            track.style.transition = 'transform 0.3s ease';
+            carousel.style.cursor = '';
+            const dx = e.clientX - mouseStartX;
+            const threshold = carousel.offsetWidth * 0.2;
+            if (dx < -threshold && currentIdx < cardCount - 1) goTo(currentIdx + 1);
+            else if (dx > threshold && currentIdx > 0) goTo(currentIdx - 1);
+            else track.style.transform = `translateX(-${currentIdx * 100}%)`;
+        });
+
+        // Keyboard navigation
+        carousel.tabIndex = 0;
+        carousel.setAttribute('role', 'region');
+        carousel.setAttribute('aria-label', `Route options, ${cardCount} routes. Use arrow keys to navigate.`);
+        carousel.addEventListener('keydown', e => {
+            if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+                e.preventDefault(); goTo(currentIdx + 1);
+            } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                e.preventDefault(); goTo(currentIdx - 1);
+            }
+        });
+    } else {
+        modalTransit.innerHTML = transitHTML;
+    }
 }
 
 // Load live train arrivals for venue's nearest stations
