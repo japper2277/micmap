@@ -7,6 +7,20 @@
 const API_BASE = 'https://micmap-production.up.railway.app';
 // const API_BASE = 'http://localhost:3001'; // LOCAL TESTING
 
+const VENUE_IMAGES = {
+    'greenwich-village-comedy-club': 'greenwich-village-comedy-club.png',
+    'the-stand': 'the-stand.png',
+    'grisly-pear': 'grisly-pear.png',
+    'grisly-pear-midtown': 'grisly-pear.png',
+};
+
+function getVenueImage(venueName) {
+    if (!venueName) return null;
+    const key = venueName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    if (VENUE_IMAGES[key]) return `img/venues/${VENUE_IMAGES[key]}`;
+    return null;
+}
+
 const CONFIG = {
     dayNames: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
     apiBase: API_BASE,

@@ -519,6 +519,12 @@ function populateModalContent(mic, allMicsAtVenue = null) {
         }
     }
 
+    // 5. Flyer badge (when venue has a poster image)
+    const venueImg = typeof getVenueImage === 'function' ? getVenueImage(mic.venueName || mic.title) : null;
+    if (venueImg) {
+        infoParts.push(`<div class="info-badge info-badge-flyer" onclick="event.stopPropagation(); openFlyerLightbox('${venueImg}')">Flyer ↗</div>`);
+    }
+
     modalInfoRow.innerHTML = infoParts.join('');
 
     // 4. NOTE TEXT - Description only (if there's meaningful content)
@@ -760,6 +766,12 @@ function openVenueModal(mic) {
         } else {
             infoParts.push(`<div class="info-badge info-badge-walkin">Walk-in</div>`);
         }
+    }
+
+    // 5. Flyer badge (when venue has a poster image)
+    const venueImg = typeof getVenueImage === 'function' ? getVenueImage(mic.venueName || mic.title) : null;
+    if (venueImg) {
+        infoParts.push(`<div class="info-badge info-badge-flyer" onclick="event.stopPropagation(); openFlyerLightbox('${venueImg}')">Flyer ↗</div>`);
     }
 
     modalInfoRow.innerHTML = infoParts.join('');
@@ -1630,6 +1642,22 @@ function findNearestStations(lat, lng, count = 2) {
     stationsWithDist.sort((a, b) => a.dist - b.dist);
 
     return stationsWithDist.slice(0, count);
+}
+
+// Fullscreen flyer lightbox
+function openFlyerLightbox(src) {
+    const overlay = document.createElement('div');
+    overlay.className = 'flyer-lightbox';
+    overlay.innerHTML = `
+        <img src="${src}" alt="Venue flyer" />
+        <button class="flyer-lightbox-close" aria-label="Close">&times;</button>
+    `;
+    overlay.addEventListener('click', () => {
+        overlay.classList.remove('open');
+        setTimeout(() => overlay.remove(), 200);
+    });
+    document.body.appendChild(overlay);
+    requestAnimationFrame(() => overlay.classList.add('open'));
 }
 
 function closeVenueModal() {
