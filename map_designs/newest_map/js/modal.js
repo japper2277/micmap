@@ -532,6 +532,8 @@ function populateModalContent(mic, allMicsAtVenue = null) {
     if (noteText && noteText.length >= 3) {
         noteText = noteText.charAt(0).toUpperCase() + noteText.slice(1);
         modalInstructions.textContent = noteText;
+    } else if (mic.notes) {
+        modalInstructions.textContent = mic.notes;
     } else {
         modalInstructions.textContent = '';
     }

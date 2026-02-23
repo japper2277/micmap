@@ -214,7 +214,8 @@ function processMics(rawMics) {
             address: m.address || '',
             contact: contact,
             borough: m.borough,
-            day: day
+            day: day,
+            notes: m.notes || null
         };
     });
 }
