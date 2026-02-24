@@ -31,8 +31,11 @@ async function loadData() {
             });
         });
 
-        // Hydrate route from saved schedules for today
-        const todayKey = new Date().toDateString();
+        // Hydrate route from saved schedules for the active planning day
+        const activeDate = (typeof getActivePlanningDate === 'function')
+            ? getActivePlanningDate()
+            : new Date();
+        const todayKey = activeDate.toDateString();
         if (STATE.schedules[todayKey] && STATE.schedules[todayKey].length > 0) {
             // Only load IDs that exist in current mic data
             STATE.route = STATE.schedules[todayKey].filter(id =>
@@ -42,7 +45,10 @@ async function loadData() {
 
         // Check if there are any mics left for today
         const now = new Date();
-        const todayName = CONFIG.dayNames[now.getDay()];
+        const planningNow = (typeof getComedyAdjustedNow === 'function')
+            ? getComedyAdjustedNow()
+            : now;
+        const todayName = CONFIG.dayNames[planningNow.getDay()];
         const todayMics = STATE.mics.filter(m => {
             if (m.day !== todayName) return false;
             // Only count mics that haven't started > 30 min ago
@@ -53,8 +59,7 @@ async function loadData() {
         // If no mics left today, switch to tomorrow
         if (todayMics.length === 0) {
             STATE.currentMode = 'tomorrow';
-            const tomorrow = new Date(now);
-            tomorrow.setDate(tomorrow.getDate() + 1);
+            const tomorrow = addDays(planningNow, 1);
             STATE.selectedCalendarDate = tomorrow.toDateString();
             updateCalendarButtonDisplay(STATE.selectedCalendarDate);
             render('tomorrow');

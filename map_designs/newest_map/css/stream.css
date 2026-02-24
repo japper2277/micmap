@@ -326,7 +326,7 @@ body.plan-mode .happening-now-card-label {
 .my-schedule-item {
     display: flex;
     align-items: center;
-    padding: 10px 12px;
+    padding: 11px 14px;
     background: rgba(0, 0, 0, 0.35);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 12px;
@@ -343,12 +343,32 @@ body.plan-mode .happening-now-card-label {
     margin-bottom: 0;
 }
 
-.my-schedule-item-time {
-    font-size: 13px;
-    font-weight: 800;
-    color: rgba(255, 255, 255, 0.92);
-    width: 52px;
+.my-schedule-item-time-col {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 54px;
     flex-shrink: 0;
+    gap: 1px;
+    padding-right: 12px;
+    margin-right: 12px;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.my-schedule-item-time {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+    color: #fff;
+    line-height: 1.1;
+}
+
+.my-schedule-item-set {
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.32);
+    letter-spacing: 0.01em;
 }
 
 .my-schedule-item-info {
@@ -356,40 +376,59 @@ body.plan-mode .happening-now-card-label {
     min-width: 0;
 }
 
+.my-schedule-item-venue-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 2px;
+    min-width: 0;
+    flex-wrap: nowrap;
+}
+
+.my-schedule-item-venue-row .my-schedule-item-venue {
+    flex: 0 1 auto;
+    min-width: 0;
+}
+
 .my-schedule-item-venue {
     font-size: 14px;
     font-weight: 600;
+    letter-spacing: -0.01em;
     color: #fff;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    margin-bottom: 1px;
 }
 
 .my-schedule-item-meta {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 0;
     font-size: 12px;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .my-schedule-item-hood {
-    color: rgba(255, 255, 255, 0.45);
+    color: rgba(255, 255, 255, 0.42);
 }
 
 .my-schedule-item-hood + .my-schedule-item-price::before {
     content: '·';
-    margin-right: 6px;
-    color: rgba(255, 255, 255, 0.25);
+    margin: 0 5px;
+    color: rgba(255, 255, 255, 0.2);
 }
 
 .my-schedule-item-price {
     font-size: 12px;
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.42);
 }
 
 .my-schedule-item-price.free {
     color: #4ade80;
+    font-weight: 500;
 }
 
 /* Travel indicator between schedule items */
@@ -415,20 +454,25 @@ body.plan-mode .happening-now-card-label {
 
 /* Undo button in toast */
 .toast-action-btn {
-    background: rgba(255, 255, 255, 0.15);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.12);
+    border: none;
     color: #fff;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 600;
-    padding: 3px 10px;
-    border-radius: 6px;
+    padding: 5px 14px;
+    border-radius: 8px;
     cursor: pointer;
-    margin-left: 8px;
+    margin-left: 12px;
     flex-shrink: 0;
+    transition: background 0.15s ease;
 }
 
+.toast-action-btn:hover {
+    background: rgba(255, 255, 255, 0.22);
+}
 .toast-action-btn:active {
-    background: rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.30);
+    transform: scale(0.96);
 }
 
 .my-schedule-remove {
@@ -453,6 +497,161 @@ body.plan-mode .happening-now-card-label {
     align-items: center;
     gap: 8px;
     margin-left: 10px;
+}
+
+.my-schedule-item-actions.stacked {
+    flex-direction: column;
+    gap: 4px;
+}
+
+.my-schedule-item-actions.stacked .schedule-drag-handle,
+.my-schedule-item-actions.stacked .my-schedule-remove {
+    margin-left: 0;
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+}
+
+/* Duration picker wrapper */
+.duration-picker-wrap {
+    position: relative;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    z-index: 5;
+}
+
+/* Mobile: hide pill when options are open, show options inline */
+.duration-picker-wrap.picking .my-schedule-item-duration {
+    display: none;
+}
+
+.duration-picker-wrap:not(.picking) .duration-picker-options {
+    max-width: 0;
+    opacity: 0;
+    overflow: hidden;
+}
+
+/* Stay duration pill button */
+.my-schedule-item-duration {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 1px 6px;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    transition: all 0.15s;
+    line-height: 1.4;
+    white-space: nowrap;
+}
+
+.my-schedule-item-duration:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.25);
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.my-schedule-item-duration:active {
+    transform: scale(0.97);
+}
+
+.duration-chevron {
+    opacity: 0.5;
+    transition: transform 0.2s;
+    display: none;
+}
+
+@media (min-width: 640px) {
+    .duration-chevron {
+        display: inline;
+    }
+}
+
+.duration-picker-options.open ~ .my-schedule-item-duration .duration-chevron,
+.duration-picker-wrap:has(.duration-picker-options.open) .duration-chevron {
+    transform: rotate(180deg);
+}
+
+/* Duration picker options — replaces pill inline when open */
+.duration-picker-options {
+    display: flex;
+    gap: 4px;
+    max-width: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-width 0.2s ease, opacity 0.15s ease;
+}
+
+.duration-picker-wrap.picking .duration-picker-options {
+    max-width: 220px;
+    opacity: 1;
+}
+
+.duration-opt {
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    line-height: 1.4;
+}
+
+.duration-opt:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.duration-opt.active {
+    background: rgba(34, 197, 94, 0.15);
+    border-color: rgba(34, 197, 94, 0.3);
+    color: #4ade80;
+}
+
+.duration-opt:active {
+    transform: scale(0.95);
+}
+
+/* Desktop: show as popover below instead of inline */
+@media (min-width: 640px) {
+    .duration-picker-wrap.picking .my-schedule-item-duration {
+        display: inline-flex;
+    }
+
+    .duration-picker-options {
+        position: absolute;
+        top: calc(100% + 6px);
+        left: 0;
+        width: max-content;
+        padding: 6px;
+        background: #1a1a1a;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 10px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        z-index: 50;
+        opacity: 0;
+        transform: translateY(-4px);
+        transition: opacity 0.15s ease, transform 0.15s ease;
+        pointer-events: none;
+        overflow: visible;
+        max-width: none;
+    }
+
+    .duration-picker-wrap.picking .duration-picker-options {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+    }
 }
 
 .schedule-drag-handle {
@@ -491,19 +690,21 @@ body.plan-mode .happening-now-card-label {
 
 .schedule-tools {
     display: flex;
-    justify-content: flex-end;
-    padding-top: 6px;
+    justify-content: center;
+    padding-top: 10px;
+    margin-top: 4px;
 }
 
 .schedule-tool-btn {
     height: 32px;
-    padding: 0 12px;
+    padding: 0 16px;
     border-radius: 10px;
     background: rgba(255, 255, 255, 0.06);
     border: 1px solid rgba(255, 255, 255, 0.12);
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 12px;
-    font-weight: 700;
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
     cursor: pointer;
     transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
 }
@@ -520,6 +721,7 @@ body.plan-mode .happening-now-card-label {
 .schedule-conflict-banner {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 8px;
     padding: 10px 12px;
     margin-bottom: 8px;
@@ -545,6 +747,39 @@ body.plan-mode .happening-now-card-label {
     color: rgba(255, 255, 255, 0.65);
     font-weight: 700;
     white-space: nowrap;
+}
+
+.schedule-conflict-action {
+    height: 28px;
+    padding: 0 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 69, 58, 0.35);
+    background: rgba(255, 69, 58, 0.14);
+    color: rgba(255, 255, 255, 0.92);
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.schedule-conflict-help {
+    width: 100%;
+    color: rgba(255, 255, 255, 0.82);
+    font-size: 11px;
+    font-weight: 600;
+    margin-top: 2px;
+}
+
+.schedule-conflict-details {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.schedule-conflict-row {
+    color: rgba(255, 255, 255, 0.74);
+    font-size: 11px;
+    font-weight: 600;
 }
 
 .my-schedule-remove:hover {
@@ -2007,11 +2242,13 @@ body.plan-mode .stream-item.in-route .plan-commute-corner {
 
     .suggested-mics-section {
 
-        margin-top: 12px;
+        margin-top: 16px;
 
-        padding-top: 12px;
+        padding-top: 14px;
 
-        border-top: 1px dashed rgba(255, 255, 255, 0.15);
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+
+        box-shadow: 0 -1px 0 rgba(0, 0, 0, 0.4);
 
     }
 
@@ -2023,11 +2260,13 @@ body.plan-mode .stream-item.in-route .plan-commute-corner {
 
         text-transform: uppercase;
 
-        color: rgba(255, 255, 255, 0.5);
+        color: rgba(255, 255, 255, 0.35);
 
-        font-weight: 700;
+        font-weight: 600;
 
-        margin-bottom: 8px;
+        letter-spacing: 0.06em;
+
+        margin-bottom: 10px;
 
         padding-left: 4px;
 
@@ -2043,7 +2282,7 @@ body.plan-mode .stream-item.in-route .plan-commute-corner {
 
         justify-content: space-between;
 
-        padding: 8px 12px;
+        padding: 12px 14px;
 
         background: rgba(255, 255, 255, 0.03);
 
@@ -2059,7 +2298,7 @@ body.plan-mode .stream-item.in-route .plan-commute-corner {
 
         /* Improved Touch Target */
 
-        min-height: 48px;
+        min-height: 56px;
 
     }
 
@@ -2083,19 +2322,49 @@ body.plan-mode .stream-item.in-route .plan-commute-corner {
 
         gap: 10px;
 
+        min-width: 0;
+
+        flex: 1;
+
+        overflow: hidden;
+
     }
 
     
 
+    .suggested-mic-time-col {
+
+        display: flex;
+
+        flex-direction: column;
+
+        align-items: flex-start;
+
+        width: 54px;
+
+        flex-shrink: 0;
+
+        padding-right: 12px;
+
+        margin-right: 12px;
+
+        border-right: 1px solid rgba(255, 255, 255, 0.1);
+
+    }
+
     .suggested-mic-time {
 
-        font-size: 13px;
+        font-size: 16px;
 
         font-weight: 700;
 
-        color: rgba(255, 255, 255, 0.7);
+        color: rgba(255, 255, 255, 0.92);
 
-        width: 60px;
+        font-variant-numeric: tabular-nums;
+
+        letter-spacing: -0.02em;
+
+        line-height: 1.1;
 
     }
 
@@ -2107,25 +2376,121 @@ body.plan-mode .stream-item.in-route .plan-commute-corner {
 
         flex-direction: column;
 
+        min-width: 0;
+
+        overflow: hidden;
+
     }
 
     
 
     .suggested-mic-venue {
 
-        font-size: 13px;
+        font-size: 15px;
 
         font-weight: 600;
 
-        color: #fff;
+        letter-spacing: -0.01em;
+
+        color: #4da6ff;
+
+        text-decoration: underline;
+
+        text-decoration-color: rgba(77, 166, 255, 0.35);
+
+        text-underline-offset: 3px;
+
+        white-space: nowrap;
+
+        overflow: hidden;
+
+        text-overflow: ellipsis;
 
     }
 
-    
+    .suggested-mic-item:hover .suggested-mic-venue {
+
+        color: #7dbfff;
+
+        text-decoration-color: rgba(77, 166, 255, 0.6);
+
+    }
+
+    .suggested-mic-meta {
+
+        display: flex;
+
+        align-items: center;
+
+        gap: 0;
+
+        font-size: 13px;
+
+        letter-spacing: 0.01em;
+
+        margin-top: 1px;
+
+        white-space: nowrap;
+
+        overflow: hidden;
+
+    }
+
+    .suggested-mic-hood {
+
+        color: rgba(255, 255, 255, 0.45);
+
+    }
+
+    .suggested-mic-hood + .suggested-mic-price::before {
+
+        content: '·';
+
+        margin: 0 5px;
+
+        color: rgba(255, 255, 255, 0.25);
+
+    }
+
+    .suggested-mic-price {
+
+        color: rgba(255, 255, 255, 0.5);
+
+        overflow: hidden;
+
+        text-overflow: ellipsis;
+
+        max-width: 140px;
+
+    }
+
+    .suggested-mic-price.free {
+
+        color: #4ade80;
+
+    }
+
+    .suggested-mic-set {
+
+        font-size: 11px;
+
+        font-weight: 500;
+
+        letter-spacing: 0.01em;
+
+        color: rgba(255, 255, 255, 0.35);
+
+    }
+
+
 
     .suggested-mic-reason {
 
-        font-size: 11px;
+        font-size: 12px;
+
+        font-weight: 500;
+
+        letter-spacing: 0.01em;
 
         color: var(--green);
 
@@ -2141,17 +2506,21 @@ body.plan-mode .stream-item.in-route .plan-commute-corner {
 
         border: 1px solid rgba(34, 197, 94, 0.2);
 
-        border-radius: 6px;
+        border-radius: 8px;
 
-        padding: 4px 10px;
+        padding: 5px 12px;
 
-        font-size: 12px;
+        font-size: 13px;
 
         font-weight: 700;
 
         cursor: pointer;
 
         transition: all 0.15s;
+
+        flex-shrink: 0;
+
+        white-space: nowrap;
 
     }
 
@@ -2255,13 +2624,21 @@ body.plan-mode .stream-item.in-route .plan-commute-corner {
 
 }
 
+.suggested-empty-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 8px;
+}
+
 
 
 /* Improved Touch Targets */
 
 .suggested-mic-item {
 
-    min-height: 48px; /* Better touch target */
+    min-height: 56px; /* Better touch target */
 
 }
 
@@ -2300,5 +2677,4 @@ body.plan-mode .stream-item.in-route .plan-commute-corner {
 .stream-item.schedule-conflict .schedule-add-btn {
     display: none;
 }
-
 

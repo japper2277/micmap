@@ -4,32 +4,105 @@
    ================================================================= */
 
 const MICMAP_SHARED_KEY = 'micmap.shared.v1';
+const COMEDY_DAY_ROLLOVER_HOUR = 4;
+
+function supportsAfterMidnightPlanning() {
+    return Boolean(CONFIG && CONFIG.supportsAfterMidnightMics);
+}
 
 function getComedyAdjustedNow() {
     const now = new Date();
     const adjusted = new Date(now);
-    if (adjusted.getHours() < 4) {
+    if (supportsAfterMidnightPlanning() && adjusted.getHours() < COMEDY_DAY_ROLLOVER_HOUR) {
         adjusted.setDate(adjusted.getDate() - 1);
     }
     return adjusted;
 }
 
-function getMicMapSelectedDayName() {
+// Returns the active planning date based on current mode.
+function getActivePlanningDate() {
     try {
-        if (STATE.currentMode === 'calendar') {
-            const selectedDate = new Date(STATE.selectedCalendarDate);
-            if (!isNaN(selectedDate.getTime())) {
-                return CONFIG.dayNames[selectedDate.getDay()];
-            }
+        if (STATE.currentMode === 'calendar' && STATE.selectedCalendarDate) {
+            const selected = new Date(STATE.selectedCalendarDate);
+            if (!isNaN(selected.getTime())) return selected;
         }
 
         const adjusted = getComedyAdjustedNow();
         if (STATE.currentMode === 'tomorrow') {
-            const tomorrow = new Date(adjusted);
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            return CONFIG.dayNames[tomorrow.getDay()];
+            return addDays(adjusted, 1);
         }
-        return CONFIG.dayNames[adjusted.getDay()];
+        return adjusted;
+    } catch (_) {
+        return getComedyAdjustedNow();
+    }
+}
+
+function getActivePlanningDayName() {
+    const active = getActivePlanningDate();
+    return CONFIG.dayNames[active.getDay()];
+}
+
+function isActivePlanningDateToday() {
+    const adjustedNow = getComedyAdjustedNow();
+    const active = getActivePlanningDate();
+    return adjustedNow.toDateString() === active.toDateString();
+}
+
+// Converts a date into "comedy day minutes" where 12:30 AM is 24:30.
+function toComedyMinutes(date) {
+    if (!(date instanceof Date) || isNaN(date.getTime())) return 0;
+    let hours = date.getHours();
+    if (supportsAfterMidnightPlanning() && hours < COMEDY_DAY_ROLLOVER_HOUR) hours += 24;
+    return (hours * 60) + date.getMinutes();
+}
+
+function normalizeToComedyHour(hour) {
+    const parsed = Number(hour);
+    if (Number.isNaN(parsed)) return NaN;
+    const wrapped = ((parsed % 24) + 24) % 24;
+    if (!supportsAfterMidnightPlanning()) {
+        if (parsed === 24) return 24;
+        return wrapped;
+    }
+    if (parsed >= 24) return parsed;
+    return wrapped < COMEDY_DAY_ROLLOVER_HOUR ? wrapped + 24 : wrapped;
+}
+
+function isWithinTimeRange(comedyMinutes, range) {
+    if (!range) return true;
+
+    const explicitStartComedyHour = Number(range.startComedyHour);
+    const explicitEndComedyHour = Number(range.endComedyHour);
+    const hasExplicitComedyHours = !Number.isNaN(explicitStartComedyHour) && !Number.isNaN(explicitEndComedyHour);
+
+    const startHour = hasExplicitComedyHours
+        ? explicitStartComedyHour
+        : normalizeToComedyHour(range.start);
+    const endHour = hasExplicitComedyHours
+        ? explicitEndComedyHour
+        : normalizeToComedyHour(range.end);
+
+    if (Number.isNaN(startHour) || Number.isNaN(endHour)) return true;
+
+    const start = startHour * 60;
+    let end = endHour * 60;
+
+    const crossesMidnight = supportsAfterMidnightPlanning() && (Boolean(range.crossesMidnight) || (end <= start));
+    if (crossesMidnight && end <= start) {
+        end += (24 * 60);
+    }
+
+    const candidate = comedyMinutes < start ? comedyMinutes + (24 * 60) : comedyMinutes;
+    return candidate >= start && candidate < end;
+}
+
+function isMicInActivePlanningDay(mic) {
+    return Boolean(mic && mic.day === getActivePlanningDayName());
+}
+
+function getMicMapSelectedDayName() {
+    try {
+        return getActivePlanningDayName();
     } catch (_) {
         return null;
     }
@@ -120,7 +193,7 @@ function parseTime(timeStr) {
 
     // If time is 00:00 - 04:00, it belongs to the "next day" of the comedy night
     // (e.g. Friday Night 12:30 AM is Saturday morning)
-    if (hours < 4) {
+    if (supportsAfterMidnightPlanning() && hours < COMEDY_DAY_ROLLOVER_HOUR) {
         d.setDate(d.getDate() + 1);
     }
     
@@ -252,27 +325,13 @@ function formatDistance(miles) {
    ========================================================================= */
 function isMicVisible(mic) {
     const currentTime = new Date();
-
-    // COMEDY DAY LOGIC: Day ends at 4AM, not midnight
-    const adjustedTime = new Date(currentTime);
-    if (adjustedTime.getHours() < 4) {
-        adjustedTime.setDate(adjustedTime.getDate() - 1);
-    }
-
-    const todayName = CONFIG.dayNames[adjustedTime.getDay()];
-    const tomorrowName = CONFIG.dayNames[(adjustedTime.getDay() + 1) % 7];
+    const activeDayName = getActivePlanningDayName();
 
     // Day filter
+    if (activeDayName && mic.day !== activeDayName) return false;
     if (STATE.currentMode === 'today') {
-        if (mic.day !== todayName) return false;
         const diffMins = mic.start ? (mic.start - currentTime) / 60000 : 999;
-        if (diffMins < -60) return false;
-    }
-    if (STATE.currentMode === 'tomorrow' && mic.day !== tomorrowName) return false;
-    if (STATE.currentMode === 'calendar') {
-        const selectedDate = new Date(STATE.selectedCalendarDate);
-        const selectedDayName = CONFIG.dayNames[selectedDate.getDay()];
-        if (mic.day !== selectedDayName) return false;
+        if (diffMins < -30) return false;
     }
 
     // Price filter
@@ -285,11 +344,9 @@ function isMicVisible(mic) {
 
     // Time filter
     if (STATE.activeFilters.time !== 'All' && mic.start) {
-        let hour = mic.start.getHours();
-        if (hour < 4) hour += 24; // Comedy hour adjustment
-
         const range = CONFIG.timeRanges[STATE.activeFilters.time];
-        if (range && (hour < range.start || hour >= range.end)) return false;
+        const comedyMins = toComedyMinutes(mic.start);
+        if (range && !isWithinTimeRange(comedyMins, range)) return false;
     }
 
     return true;

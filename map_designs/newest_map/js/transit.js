@@ -326,9 +326,11 @@ const transitService = {
         // Wait 2 seconds before starting background loading
         await new Promise(r => setTimeout(r, 2000));
 
-        const currentTime = new Date();
-        const todayName = CONFIG.dayNames[currentTime.getDay()];
-        const tomorrowName = CONFIG.dayNames[(currentTime.getDay() + 1) % 7];
+        const planningBase = (typeof getComedyAdjustedNow === 'function')
+            ? getComedyAdjustedNow()
+            : new Date();
+        const todayName = CONFIG.dayNames[planningBase.getDay()];
+        const tomorrowName = CONFIG.dayNames[addDays(planningBase, 1).getDay()];
 
         // Determine which days to preload based on current mode
         const modesMap = {
@@ -428,10 +430,14 @@ const transitService = {
         this.abortController = new AbortController();
         const signal = this.abortController.signal;
 
-        // OPTIMIZATION: Filter by current mode AND skip already-calculated routes
+        // OPTIMIZATION: Filter by active planning day and skip already-calculated routes
         const currentTime = new Date();
-        const todayName = CONFIG.dayNames[currentTime.getDay()];
-        const tomorrowName = CONFIG.dayNames[(currentTime.getDay() + 1) % 7];
+        const activeDayName = (typeof getActivePlanningDayName === 'function')
+            ? getActivePlanningDayName()
+            : CONFIG.dayNames[((typeof getComedyAdjustedNow === 'function' ? getComedyAdjustedNow() : currentTime).getDay())];
+        const isCurrentPlanningDay = (typeof isActivePlanningDateToday === 'function')
+            ? isActivePlanningDateToday()
+            : (STATE.currentMode === 'today');
 
         const mics = STATE.mics.filter(m => {
             // Skip if already has route data from this location
@@ -444,20 +450,9 @@ const transitService = {
 
             const diffMins = m.start ? (m.start - currentTime) / 60000 : 999;
 
-            // Filter by current mode
-            if (STATE.currentMode === 'today') {
-                if (diffMins < -60) return false; // Skip deep past
-                return m.day === todayName;
-            }
-            if (STATE.currentMode === 'tomorrow') {
-                return m.day === tomorrowName;
-            }
-            if (STATE.currentMode === 'calendar') {
-                const selectedDate = new Date(STATE.selectedCalendarDate);
-                const selectedDayName = CONFIG.dayNames[selectedDate.getDay()];
-                return m.day === selectedDayName;
-            }
-            return true; // 'all' mode
+            if (activeDayName && m.day !== activeDayName) return false;
+            if (isCurrentPlanningDay && diffMins < -60) return false; // Skip deep past
+            return true;
         });
 
         // VENUE DEDUPLICATION: Group mics by venue coordinates to avoid duplicate API calls

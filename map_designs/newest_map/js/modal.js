@@ -185,16 +185,9 @@ let modalVenueMap = {};
 function adjustMicDateForMode(mic) {
     if (!mic?.start || !(mic.start instanceof Date)) return mic;
 
-    const mode = STATE?.currentMode || 'today';
-    const now = new Date();
-
-    // Calculate target date based on mode
-    let targetDate = new Date(now);
-    if (mode === 'tomorrow') {
-        targetDate.setDate(targetDate.getDate() + 1);
-    } else if (mode === 'calendar' && STATE?.selectedCalendarDate) {
-        targetDate = new Date(STATE.selectedCalendarDate);
-    }
+    const targetDate = (typeof getActivePlanningDate === 'function')
+        ? getActivePlanningDate()
+        : new Date();
 
     // Create new date with target date but original time
     const adjusted = new Date(targetDate);
@@ -314,6 +307,9 @@ function openVenueModalWithMics(mics) {
             // Update modal content with all mics at this venue
             const venueMics = modalVenueMap[venueName] || [];
             if (venueMics.length > 0) {
+                // Update active index so time pill clicks resolve to correct venue
+                const idx = modalMicsArray.findIndex(m => m.id === venueMics[0].id);
+                if (idx !== -1) modalActiveMicIndex = idx;
                 populateModalContent(venueMics[0], venueMics);
             }
         });
@@ -379,9 +375,9 @@ function populateModalContent(mic, allMicsAtVenue = null) {
     } else if (allMicsAtVenue && allMicsAtVenue.length > 1) {
         // Normal mode with multiple times — clickable pills to switch between times
         const slotData = STATE.slottedSlots?.[mic.title] || STATE.slottedSlots?.[mic.venue];
-        let targetDate2 = new Date();
-        if (STATE.currentMode === 'tomorrow') targetDate2.setDate(targetDate2.getDate() + 1);
-        else if (STATE.currentMode === 'calendar' && STATE.selectedCalendarDate) targetDate2 = new Date(STATE.selectedCalendarDate);
+        const targetDate2 = (typeof getActivePlanningDate === 'function')
+            ? getActivePlanningDate()
+            : new Date();
         const dateStr2 = targetDate2.toISOString().split('T')[0];
 
         // Filter out past mics for today mode (started > 30 min ago)
@@ -492,10 +488,8 @@ function populateModalContent(mic, allMicsAtVenue = null) {
         const priceLower = mic.price.toLowerCase();
         if (priceLower === 'free' || priceLower.includes('free')) {
             infoParts.push(`<div class="info-badge info-badge-price">FREE</div>`);
-        } else if (mic.price.includes('$')) {
-            const priceMatch = mic.price.match(/\$[\d]+(?:\.\d{2})?/);
-            const priceAmount = priceMatch ? priceMatch[0] : mic.price.replace(/\.$/, '');
-            infoParts.push(`<div class="info-badge info-badge-price">${escapeHtml(priceAmount)}</div>`);
+        } else {
+            infoParts.push(`<div class="info-badge info-badge-price">${escapeHtml(mic.price)}</div>`);
         }
     }
 
@@ -543,9 +537,9 @@ function populateModalContent(mic, allMicsAtVenue = null) {
     let spotsLabel = '';
     const slottedData = STATE.slottedSlots?.[mic.title] || STATE.slottedSlots?.[mic.venue];
     if (slottedData && mic.start) {
-        let targetDate = new Date();
-        if (STATE.currentMode === 'tomorrow') targetDate.setDate(targetDate.getDate() + 1);
-        else if (STATE.currentMode === 'calendar' && STATE.selectedCalendarDate) targetDate = new Date(STATE.selectedCalendarDate);
+        const targetDate = (typeof getActivePlanningDate === 'function')
+            ? getActivePlanningDate()
+            : new Date();
         const dateStr = targetDate.toISOString().split('T')[0];
         const micHour = mic.start.getHours();
         const matchedSlot = slottedData.slots.find(s => {
@@ -743,10 +737,8 @@ function openVenueModal(mic) {
         const priceLower = mic.price.toLowerCase();
         if (priceLower === 'free' || priceLower.includes('free')) {
             infoParts.push(`<div class="info-badge info-badge-price">FREE</div>`);
-        } else if (mic.price.includes('$')) {
-            const priceMatch = mic.price.match(/\$[\d]+(?:\.\d{2})?/);
-            const priceAmount = priceMatch ? priceMatch[0] : mic.price.replace(/\.$/, '');
-            infoParts.push(`<div class="info-badge info-badge-price">${escapeHtml(priceAmount)}</div>`);
+        } else {
+            infoParts.push(`<div class="info-badge info-badge-price">${escapeHtml(mic.price)}</div>`);
         }
     }
 
@@ -792,9 +784,9 @@ function openVenueModal(mic) {
     let spotsLabel = '';
     const slottedData2 = STATE.slottedSlots?.[mic.title] || STATE.slottedSlots?.[mic.venue];
     if (slottedData2 && mic.start) {
-        let targetDate = new Date();
-        if (STATE.currentMode === 'tomorrow') targetDate.setDate(targetDate.getDate() + 1);
-        else if (STATE.currentMode === 'calendar' && STATE.selectedCalendarDate) targetDate = new Date(STATE.selectedCalendarDate);
+        const targetDate = (typeof getActivePlanningDate === 'function')
+            ? getActivePlanningDate()
+            : new Date();
         const dateStr = targetDate.toISOString().split('T')[0];
         const micHour = mic.start.getHours();
         const matchedSlot = slottedData2.slots.find(s => {

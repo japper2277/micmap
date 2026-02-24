@@ -50,6 +50,10 @@ const STATE = {
     planGracePeriod: 5,           // Minutes of overlap allowed between mics
     scheduleExpanded: false,      // Is "My Schedule" dropdown expanded?
     hideConflicts: false,         // Hide mics that conflict with scheduled times?
+    showConflictWhy: false,       // Show conflict explanation/details in schedule UI
+
+    // Per-mic stay durations (overrides global setDuration)
+    micDurations: JSON.parse(localStorage.getItem('planMicDurations') || '{}'), // { micId: minutes }
 
     // Slotted signup availability
     slottedSlots: {}              // { venueName: { slots: [...], signupUrl, lastFetched } }

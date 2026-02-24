@@ -227,9 +227,12 @@ function render(mode) {
     // Use fresh timestamp for accurate calculations
     const currentTime = new Date();
 
-    // Get day names for filtering
-    const todayName = CONFIG.dayNames[currentTime.getDay()];
-    const tomorrowName = CONFIG.dayNames[(currentTime.getDay() + 1) % 7];
+    const activeDayName = (typeof getActivePlanningDayName === 'function')
+        ? getActivePlanningDayName()
+        : null;
+    const isCurrentPlanningDay = (typeof isActivePlanningDateToday === 'function')
+        ? isActivePlanningDateToday()
+        : (mode === 'today');
 
     // Base filter for day/time (used for both map and list)
     let baseMics = STATE.mics.filter(m => {
@@ -238,14 +241,8 @@ function render(mode) {
         // Hide mics started >30 min ago (too late to catch from start)
         if (mode === 'today' && diffMins < -30) return false;
 
-        // Filter by day of week
-        if (mode === 'today' && m.day !== todayName) return false;
-        if (mode === 'tomorrow' && m.day !== tomorrowName) return false;
-        if (mode === 'calendar') {
-            const selectedDate = new Date(STATE.selectedCalendarDate);
-            const selectedDayName = CONFIG.dayNames[selectedDate.getDay()];
-            if (m.day !== selectedDayName) return false;
-        }
+        // Filter by active planning day (today/tomorrow/calendar-selected).
+        if (activeDayName && m.day !== activeDayName) return false;
 
         return true;
     });
@@ -264,9 +261,14 @@ function render(mode) {
 
         // Filter by time
         if (STATE.activeFilters.time !== 'All' && m.start) {
-            const hour = m.start.getHours();
             const range = CONFIG.timeRanges[STATE.activeFilters.time];
-            if (range && (hour < range.start || hour >= range.end)) return false;
+            const comedyMins = (typeof toComedyMinutes === 'function')
+                ? toComedyMinutes(m.start)
+                : (m.start.getHours() * 60 + m.start.getMinutes());
+            const isInTimeRange = (typeof isWithinTimeRange === 'function')
+                ? isWithinTimeRange(comedyMins, range)
+                : true;
+            if (range && !isInTimeRange) return false;
         }
 
         // Filter by commute (only when transit mode active)
@@ -292,7 +294,7 @@ function render(mode) {
     // Recalculate status based on mode
     // Simplified 3-tier: live (green), upcoming (red, <2hrs), future (gray)
     const calcStatus = (m) => {
-        if (mode !== 'today') return 'future'; // Tomorrow+ = gray
+        if (!isCurrentPlanningDay) return 'future';
         const diffMins = m.start ? (m.start - currentTime) / 60000 : 999;
         if (diffMins > -90 && diffMins <= 0) return 'live';      // Green pulsing
         if (diffMins > 0 && diffMins <= 120) return 'upcoming';  // Red (<2 hours)
@@ -713,28 +715,31 @@ function render(mode) {
         const routeMics = STATE.route.map(id => STATE.mics.find(m => m.id === id)).filter(Boolean);
         const setDuration = STATE.setDuration || 45;
 
-        const fmtTime = (d) => {
+        const fmtTime = (d, showAmPm = false) => {
             const h = d?.getHours?.() || 0;
             const m = d?.getMinutes?.() || 0;
             const displayH = h > 12 ? h - 12 : (h === 0 ? 12 : h);
             const ampm = h >= 12 ? 'PM' : 'AM';
-            return `${displayH}:${m.toString().padStart(2, '0')} ${ampm}`;
+            return showAmPm ? `${displayH}:${m.toString().padStart(2, '0')} ${ampm}` : `${displayH}:${m.toString().padStart(2, '0')}`;
         };
 
-        const startTime = routeMics[0]?.start ? fmtTime(routeMics[0].start) : '';
-        const endTime = routeMics[routeMics.length - 1]?.start ? fmtTime(routeMics[routeMics.length - 1].start) : '';
+        const startTime = routeMics[0]?.start ? fmtTime(routeMics[0].start, true) : '';
+        const endTime = routeMics[routeMics.length - 1]?.start ? fmtTime(routeMics[routeMics.length - 1].start, true) : '';
         const rangeText = startTime && endTime && startTime !== endTime ? `${startTime}–${endTime}` : startTime;
 
         // Conflict detection (adjacent overlap in current itinerary order)
         const conflicts = new Set();
+        const conflictPairs = [];
         for (let i = 1; i < routeMics.length; i++) {
             const prev = routeMics[i - 1];
             const cur = routeMics[i];
             if (!prev?.start || !cur?.start) continue;
-            const prevEnd = prev.start.getTime() + (setDuration * 60 * 1000);
+            const prevDuration = typeof getMicDuration === 'function' ? getMicDuration(prev.id) : setDuration;
+            const prevEnd = prev.start.getTime() + (prevDuration * 60 * 1000);
             if (cur.start.getTime() < prevEnd) {
                 conflicts.add(prev.id);
                 conflicts.add(cur.id);
+                conflictPairs.push([prev, cur]);
             }
         }
 
@@ -767,12 +772,28 @@ function render(mode) {
         `;
         container.appendChild(scheduleCard);
 
+        const routeOutOfOrder = (typeof isRouteChronological === 'function')
+            ? !isRouteChronological(STATE.route)
+            : false;
+
+        const conflictDetailRows = conflictPairs.map(([a, b]) => {
+            const aName = escapeHtml(a.title || a.venue || 'Mic');
+            const bName = escapeHtml(b.title || b.venue || 'Mic');
+            const aTime = a.start ? fmtTime(a.start, true) : '';
+            const bTime = b.start ? fmtTime(b.start, true) : '';
+            return `<div class="schedule-conflict-row">${aTime} ${aName} overlaps ${bTime} ${bName}</div>`;
+        }).join('');
+
         const conflictBanner = conflicts.size
             ? `
-                <div class="schedule-conflict-banner" onclick="event.stopPropagation(); toggleHideConflicts();" role="button">
+                <div class="schedule-conflict-banner" onclick="event.stopPropagation()">
                     <span class="schedule-conflict-dot"></span>
                     <span><strong>${conflicts.size}</strong> conflict${conflicts.size === 1 ? '' : 's'} in your itinerary</span>
-                    <span class="schedule-conflict-cta">${STATE.hideConflicts ? 'Showing conflicts' : 'Hide conflicts in list'}</span>
+                    <span class="schedule-conflict-cta">${STATE.hideConflicts ? 'Conflicts hidden' : 'Conflicts visible'}</span>
+                    <button class="schedule-conflict-action" onclick="event.stopPropagation(); toggleHideConflicts();" aria-label="Toggle hide conflicts">${STATE.hideConflicts ? 'Show All' : 'Hide Conflicts'}</button>
+                    <button class="schedule-conflict-action" onclick="event.stopPropagation(); toggleConflictWhy();" aria-label="Explain conflict logic">Why</button>
+                    ${STATE.showConflictWhy ? `<div class="schedule-conflict-help">Conflicts mean your planned stay time overlaps the next mic start.</div>` : ''}
+                    ${STATE.showConflictWhy ? `<div class="schedule-conflict-details">${conflictDetailRows}</div>` : ''}
                 </div>
             `
             : '';
@@ -790,6 +811,7 @@ function render(mode) {
             const priceClass = priceStr === 'Free' ? 'free' : '';
             const conflictClass = conflicts.has(mic.id) ? ' conflict' : '';
             const hood = mic.hood || mic.neighborhood || '';
+            const stayMins = typeof getMicDuration === 'function' ? getMicDuration(mic.id) : (STATE.setDuration || 45);
 
             // Travel time to next stop
             let travelHtml = '';
@@ -809,15 +831,29 @@ function render(mode) {
 
             return `
                 <div class="my-schedule-item${conflictClass}" draggable="true" data-mic-id="${mic.id}" aria-label="Scheduled stop" onclick="event.stopPropagation(); if(typeof openMicModal==='function') openMicModal('${mic.id}');">
-                    <div class="my-schedule-item-time">${timeStr}</div>
+                    <div class="my-schedule-item-time-col">
+                        <div class="my-schedule-item-time">${timeStr}</div>
+                        ${mic.setTime ? `<div class="my-schedule-item-set">${escapeHtml(formatSetTime(mic.setTime))}</div>` : ''}
+                    </div>
                     <div class="my-schedule-item-info">
-                        <div class="my-schedule-item-venue">${escapeHtml(mic.title || mic.venue || 'Mic')}</div>
+                        <div class="my-schedule-item-venue-row">
+                            <div class="my-schedule-item-venue">${escapeHtml(mic.title || mic.venue || 'Mic')}</div>
+                            <div class="duration-picker-wrap" data-mic-id="${mic.id}">
+                                <button class="my-schedule-item-duration" onclick="event.stopPropagation(); toggleDurationPicker('${mic.id}', this)" aria-label="Change stay duration" title="How long you'll stay">
+                                    <span>${stayMins}m</span>
+                                    <svg class="duration-chevron" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+                                </button>
+                                <div class="duration-picker-options" id="dur-opts-${mic.id}">
+                                    ${[30, 45, 60, 90].map(v => `<button class="duration-opt${v === stayMins ? ' active' : ''}" onclick="event.stopPropagation(); selectMicDuration('${mic.id}', ${v})">${v}m</button>`).join('')}
+                                </div>
+                            </div>
+                        </div>
                         <div class="my-schedule-item-meta">
                             ${hood ? `<span class="my-schedule-item-hood">${escapeHtml(hood)}</span>` : ''}
                             <span class="my-schedule-item-price ${priceClass}">${priceStr}</span>
                         </div>
                     </div>
-                    <div class="my-schedule-item-actions">
+                    <div class="my-schedule-item-actions stacked">
                         <button class="schedule-drag-handle" onclick="event.stopPropagation();" aria-label="Drag to reorder" title="Drag to reorder">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M4 8h16M4 16h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
                         </button>
@@ -828,11 +864,11 @@ function render(mode) {
             `;
         }).join('');
 
-        const toolsRow = `
+        const toolsRow = routeOutOfOrder ? `
             <div class="schedule-tools" onclick="event.stopPropagation()">
                 <button class="schedule-tool-btn" onclick="event.stopPropagation(); sortRouteByTime();" aria-label="Sort schedule by time">Sort by time</button>
             </div>
-        `;
+        ` : '';
 
         // Suggested Mics Section
         let suggestionsHtml = '';
@@ -847,21 +883,33 @@ function render(mode) {
                                 const mic = item.mic;
                                 const timeStr = mic.start ? fmtTime(mic.start) : '';
                                 const venueName = escapeHtml(mic.title || mic.venue || 'Mic');
-                                
+                                const hood = mic.hood || mic.neighborhood || '';
+                                const rawPrice = mic.price || mic.cost || 0;
+                                const priceStr = rawPrice === 0 || rawPrice === '0' || rawPrice === 'Free' || rawPrice === 'free' ? 'Free' : (typeof rawPrice === 'number' ? `$${rawPrice}` : rawPrice);
+                                const priceClass = priceStr === 'Free' ? 'free' : '';
+                                const setTime = mic.setTime ? formatSetTime(mic.setTime) : '';
+
                                 return `
-                                    <div class="suggested-mic-item" 
+                                    <div class="suggested-mic-item"
                                          data-id="${mic.id}"
-                                         onclick="event.stopPropagation(); addSuggestedMic('${mic.id}')" 
+                                         onclick="event.stopPropagation(); var m = STATE.mics.find(x => x.id === '${mic.id}'); if (m && typeof openVenueModal === 'function') openVenueModal(m);"
                                          role="button"
                                          style="animation-delay: ${index * 60}ms">
                                         <div class="suggested-mic-left">
-                                            <div class="suggested-mic-time">${timeStr}</div>
+                                            <div class="suggested-mic-time-col">
+                                                <div class="suggested-mic-time">${timeStr}</div>
+                                                ${setTime ? `<div class="suggested-mic-set">${escapeHtml(setTime)}</div>` : ''}
+                                            </div>
                                             <div class="suggested-mic-info">
                                                 <div class="suggested-mic-venue">${venueName}</div>
+                                                <div class="suggested-mic-meta">
+                                                    ${hood ? `<span class="suggested-mic-hood">${escapeHtml(hood)}</span>` : ''}
+                                                    ${priceStr ? `<span class="suggested-mic-price ${priceClass}">${priceStr}</span>` : ''}
+                                                </div>
                                                 <div class="suggested-mic-reason">${item.reason}</div>
                                             </div>
                                         </div>
-                                        <button class="suggested-mic-add-btn" aria-label="Add to schedule">+ Add</button>
+                                        <button class="suggested-mic-add-btn" onclick="event.stopPropagation(); addSuggestedMic('${mic.id}')" aria-label="Add to schedule">+ Add</button>
                                     </div>
                                 `;
                             }).join('')}
@@ -873,7 +921,11 @@ function render(mode) {
                 suggestionsHtml = `
                     <div class="suggested-mics-section empty">
                         <div class="suggested-empty-msg">
-                            <span>🎉</span> Schedule looks tight! No gaps found.
+                            <span>Info:</span> No additional mics fit this schedule right now.
+                        </div>
+                        <div class="suggested-empty-actions">
+                            <button class="schedule-tool-btn" onclick="event.stopPropagation(); widenScheduleTimeFilter();" aria-label="Widen time filter">Widen time filter</button>
+                            <button class="schedule-tool-btn" onclick="event.stopPropagation(); shortenScheduleStay();" aria-label="Shorten stay duration">Shorten stay time</button>
                         </div>
                     </div>
                 `;
@@ -926,27 +978,28 @@ function render(mode) {
 
     // Filter out conflicting mics when hideConflicts is enabled (plan mode)
     let hiddenConflictCount = 0;
-    if (STATE.planMode && STATE.hideConflicts && STATE.route && STATE.route.length > 0) {
-        const setDuration = STATE.setDuration || 45;
-        const routeTimes = STATE.route.map(id => {
+    if (STATE.hideConflicts && STATE.route && STATE.route.length > 0) {
+        const routeData = STATE.route.map(id => {
             const m = STATE.mics.find(mic => mic.id === id);
-            return m?.start ? m.start.getTime() : null;
+            const dur = typeof getMicDuration === 'function' ? getMicDuration(id) : (STATE.setDuration || 45);
+            return m?.start ? { time: m.start.getTime(), duration: dur } : null;
         }).filter(Boolean);
 
         const beforeFilter = visibleMics.length;
+        const globalDuration = STATE.setDuration || 45;
         visibleMics = visibleMics.filter(mic => {
             // Always show mics in the route
             if (STATE.route.includes(mic.id)) return true;
             if (!mic.start) return true;
 
             const micTime = mic.start.getTime();
-            const micEndTime = micTime + (setDuration * 60 * 1000);
+            const micEndTime = micTime + (globalDuration * 60 * 1000);
 
             // Check if this mic conflicts with any scheduled mic
-            for (const routeTime of routeTimes) {
-                const routeEndTime = routeTime + (setDuration * 60 * 1000);
+            for (const rd of routeData) {
+                const routeEndTime = rd.time + (rd.duration * 60 * 1000);
                 // Conflict if times overlap
-                const overlaps = (micTime < routeEndTime) && (micEndTime > routeTime);
+                const overlaps = (micTime < routeEndTime) && (micEndTime > rd.time);
                 if (overlaps) return false;
             }
             return true;
@@ -1107,10 +1160,10 @@ function render(mode) {
         let spotsBadge = '';
         const slottedData = STATE.slottedSlots?.[mic.title] || STATE.slottedSlots?.[mic.venue];
         if (slottedData) {
-            // Determine which date we're rendering
-            let targetDate = new Date();
-            if (mode === 'tomorrow') targetDate.setDate(targetDate.getDate() + 1);
-            else if (mode === 'calendar' && STATE.selectedCalendarDate) targetDate = new Date(STATE.selectedCalendarDate);
+            // Determine which date we're rendering from shared planning context.
+            const targetDate = (typeof getActivePlanningDate === 'function')
+                ? getActivePlanningDate()
+                : new Date();
             const dateStr = targetDate.toISOString().split('T')[0];
             // Match slot by date and start time (e.g., mic at "5:00 PM" matches slot "5:00pm – 6:00pm")
             const micHour = mic.start ? mic.start.getHours() : null;
@@ -1209,6 +1262,7 @@ function render(mode) {
                             <span class="price-badge">${safePrice}</span>
                             ${spotsBadge}
                             ${conflictTag}
+                            ${commuteDisplay}
                         </div>
                     </div>
                     <div class="action-col">
@@ -1236,6 +1290,7 @@ function render(mode) {
                             <span class="price-badge">${safePrice}</span>
                             ${spotsBadge}
                             ${conflictTag}
+                            ${commuteDisplay}
                         </div>
                     </div>
                     <div class="action-col">
@@ -1411,4 +1466,3 @@ function flipCard(btn) {
         card.classList.toggle('flipped');
     }
 }
-

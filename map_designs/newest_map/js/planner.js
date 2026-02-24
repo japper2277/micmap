@@ -40,7 +40,13 @@ function handleAddClick(btn, micId) {
 // Persist plan state to localStorage
 function persistPlanState() {
     // Save current route to the specific date in schedules
-    const dateKey = STATE.selectedCalendarDate || new Date().toDateString();
+    const dateKey = (typeof getActivePlanningDate === 'function')
+        ? getActivePlanningDate().toDateString()
+        : (STATE.selectedCalendarDate || new Date().toDateString());
+
+    if (dateKey && STATE.currentMode !== 'calendar') {
+        STATE.selectedCalendarDate = dateKey;
+    }
 
     if (dateKey) {
         if (STATE.route.length > 0) {
@@ -145,12 +151,12 @@ function fitMapToReachableMics() {
     const lastMic = STATE.mics.find(m => m.id === lastMicId);
     if (!lastMic) return;
 
-    // Get today's mics
-    const now = new Date();
-    const todayName = CONFIG.dayNames[now.getDay()];
-    const tomorrowName = CONFIG.dayNames[(now.getDay() + 1) % 7];
-    const targetDay = STATE.currentMode === 'tomorrow' ? tomorrowName : todayName;
-    const todayMics = STATE.mics.filter(m => m.day === targetDay);
+    const activeDayName = (typeof getActivePlanningDayName === 'function')
+        ? getActivePlanningDayName()
+        : null;
+    const dayMics = activeDayName
+        ? STATE.mics.filter(m => m.day === activeDayName)
+        : [];
 
     // Collect bounds: selected mics + reachable mics (glow/suggested)
     const points = [];
@@ -164,7 +170,7 @@ function fitMapToReachableMics() {
     });
 
     // Add reachable mics (check marker state)
-    todayMics.forEach(mic => {
+    dayMics.forEach(mic => {
         if (STATE.route.includes(mic.id)) return; // Already added
         if (!mic.lat || !mic.lng) return;
 
@@ -279,6 +285,18 @@ function sortRouteByTime() {
     persistPlanState();
 }
 
+// Validate that a reordered route is in chronological time order
+function isRouteChronological(order) {
+    let prevTime = -Infinity;
+    for (const id of order) {
+        const mic = STATE.mics.find(m => m.id === id);
+        const t = mic?.start?.getTime?.() ?? 0;
+        if (t < prevTime) return false;
+        prevTime = t;
+    }
+    return true;
+}
+
 // Desktop drag-and-drop reorder for schedule (HTML5 DnD)
 function initScheduleDragAndDrop(containerEl) {
     if (!containerEl || containerEl.dataset.dndBound === '1') return;
@@ -327,6 +345,13 @@ function initScheduleDragAndDrop(containerEl) {
 
         const newOrder = getOrder();
         if (!newOrder.length) return;
+
+        if (!isRouteChronological(newOrder)) {
+            // Revert — re-render with current order
+            if (typeof toastService !== 'undefined') toastService.show('Can\u2019t reorder \u2014 times must be chronological', 'error');
+            render(STATE.currentMode);
+            return;
+        }
 
         STATE.route = newOrder;
         persistPlanState();
@@ -460,6 +485,13 @@ function initScheduleTouchReorder(containerEl) {
         cleanup();
 
         if (!newOrder.length) return;
+
+        if (!isRouteChronological(newOrder)) {
+            if (typeof toastService !== 'undefined') toastService.show('Can\u2019t reorder \u2014 times must be chronological', 'error');
+            render(STATE.currentMode);
+            return;
+        }
+
         STATE.route = newOrder;
         persistPlanState();
         updateRouteClass();
@@ -569,18 +601,17 @@ function getCommuteFromUser(mic) {
 
 // Update marker visual states based on route
 function updateMarkerStates() {
-    // Get today's mics only (same day as current mode)
-    const now = new Date();
-    const todayName = CONFIG.dayNames[now.getDay()];
-    const tomorrowName = CONFIG.dayNames[(now.getDay() + 1) % 7];
-    const targetDay = STATE.currentMode === 'tomorrow' ? tomorrowName : todayName;
-
-    const todayMics = STATE.mics.filter(m => m.day === targetDay);
+    const activeDayName = (typeof getActivePlanningDayName === 'function')
+        ? getActivePlanningDayName()
+        : null;
+    const dayMics = activeDayName
+        ? STATE.mics.filter(m => m.day === activeDayName)
+        : [];
 
     // If not in plan mode: mark scheduled mics as selected, dim conflicting ones
     if (!STATE.planMode) {
         const hasRoute = STATE.route && STATE.route.length > 0;
-        todayMics.forEach(mic => {
+        dayMics.forEach(mic => {
             const marker = STATE.markerLookup[mic.id];
             if (!marker) return;
             const el = marker.getElement();
@@ -605,7 +636,7 @@ function updateMarkerStates() {
     // In plan mode with empty route - show commute from user location
     if (STATE.route.length === 0) {
         // Sort by start time so earliest mic is processed first
-        const sortedMics = [...todayMics].sort((a, b) => (a.start || 0) - (b.start || 0));
+        const sortedMics = [...dayMics].sort((a, b) => (a.start || 0) - (b.start || 0));
         const labeledMarkers = new Set();
         let earliestGlobalTime = Infinity;
 
@@ -648,7 +679,7 @@ function updateMarkerStates() {
 
     // Group mics by their marker (venues with multiple mics share a marker)
     const markerMics = new Map();
-    todayMics.forEach(mic => {
+    dayMics.forEach(mic => {
         const marker = STATE.markerLookup[mic.id];
         if (!marker) return;
         if (!markerMics.has(marker)) markerMics.set(marker, []);
@@ -749,10 +780,9 @@ function updateMarkerStates() {
 
 // Get time in minutes from midnight (for comparison)
 function getTimeInMinutes(date) {
-    if (!(date instanceof Date)) return 0;
-    let h = date.getHours();
-    if (h < 4) h += 24;
-    return h * 60 + date.getMinutes();
+    return (typeof toComedyMinutes === 'function')
+        ? toComedyMinutes(date)
+        : 0;
 }
 
 // Calculate if a mic is reachable - can it fit anywhere in the route?
@@ -764,7 +794,7 @@ function getMicStatus(candidateId, lastMicId, commuteMins) {
     if (STATE.route.includes(candidateId)) return 'in-route';
 
     const candidateTime = getTimeInMinutes(candidate.start);
-    const setDuration = STATE.setDuration || 30;
+    const candidateDuration = getMicDuration(candidateId);
     const travelMins = commuteMins || 20;
     const grace = STATE.planGracePeriod || 5;
 
@@ -774,43 +804,43 @@ function getMicStatus(candidateId, lastMicId, commuteMins) {
     // Only apply time window filtering if a specific time range is selected
     if (timeFilter !== 'All' && CONFIG.timeRanges && CONFIG.timeRanges[timeFilter]) {
         const range = CONFIG.timeRanges[timeFilter];
-        const windowStartMins = range.start * 60;  // CONFIG uses 24-hour format (17 = 5pm)
-        const windowEndMins = (range.end === 24 ? 24 : range.end) * 60;
-
-        // Dim mics outside the user's availability window
-        if (candidateTime < windowStartMins || candidateTime > windowEndMins) {
+        const isInTimeRange = (typeof isWithinTimeRange === 'function')
+            ? isWithinTimeRange(candidateTime, range)
+            : true;
+        if (!isInTimeRange) {
             return 'dimmed';
         }
     }
 
-    // Get sorted route mics with their times
+    // Get sorted route mics with their times and per-mic durations
     const routeMics = STATE.route
         .map(id => STATE.mics.find(m => m.id === id))
         .filter(m => m && m.start)
         .map(m => ({
             id: m.id,
-            time: getTimeInMinutes(m.start)
+            time: getTimeInMinutes(m.start),
+            duration: getMicDuration(m.id)
         }));
 
     if (routeMics.length === 0) return 'visible';
 
     // Check if candidate can fit BEFORE the first mic
     const firstMicTime = routeMics[0].time;
-    const candidateEndTime = candidateTime + setDuration + travelMins;
+    const candidateEndTime = candidateTime + candidateDuration + travelMins;
     if (candidateEndTime <= firstMicTime + grace) {
         return 'visible';
     }
 
     // Check if candidate can fit AFTER the last mic
-    const lastMicTime = routeMics[routeMics.length - 1].time;
-    const lastMicEndTime = lastMicTime + setDuration + travelMins;
+    const lastRouteMic = routeMics[routeMics.length - 1];
+    const lastMicEndTime = lastRouteMic.time + lastRouteMic.duration + travelMins;
     if (candidateTime >= lastMicEndTime - grace) {
         return 'visible';
     }
 
     // Check if candidate can fit BETWEEN any two consecutive mics
     for (let i = 0; i < routeMics.length - 1; i++) {
-        const prevMicEndTime = routeMics[i].time + setDuration + travelMins;
+        const prevMicEndTime = routeMics[i].time + routeMics[i].duration + travelMins;
         const nextMicTime = routeMics[i + 1].time;
 
         // Candidate must start after prev mic ends and end before next mic starts
@@ -924,6 +954,52 @@ function exportMicToCalendar(micId) {
     const url = generateGoogleCalendarUrl(mic);
     window.open(url, '_blank');
 }
+
+// Get duration for a specific mic (per-mic override or global fallback)
+function getMicDuration(micId) {
+    if (micId && STATE.micDurations[micId]) return STATE.micDurations[micId];
+    return STATE.setDuration || 45;
+}
+
+// Toggle duration picker open/close
+function toggleDurationPicker(micId, btnEl) {
+    const wrap = btnEl.closest('.duration-picker-wrap');
+    if (!wrap) return;
+
+    const isOpen = wrap.classList.contains('picking');
+
+    // Close all other open pickers first
+    document.querySelectorAll('.duration-picker-wrap.picking').forEach(el => {
+        el.classList.remove('picking');
+    });
+
+    if (!isOpen) {
+        wrap.classList.add('picking');
+        if ('vibrate' in navigator) navigator.vibrate(6);
+    }
+}
+
+// Select a specific duration for a mic
+function selectMicDuration(micId, value) {
+    STATE.micDurations[micId] = value;
+    localStorage.setItem('planMicDurations', JSON.stringify(STATE.micDurations));
+    if ('vibrate' in navigator) navigator.vibrate(8);
+
+    // Close picker
+    const wrap = document.querySelector(`.duration-picker-wrap[data-mic-id="${micId}"]`);
+    if (wrap) wrap.classList.remove('picking');
+
+    render(STATE.currentMode);
+}
+
+// Close duration pickers when clicking outside
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.duration-picker-wrap')) {
+        document.querySelectorAll('.duration-picker-wrap.picking').forEach(el => {
+            el.classList.remove('picking');
+        });
+    }
+});
 
 // Handle set duration change
 function onSetDurationChange(value) {
@@ -1056,6 +1132,40 @@ function toggleHideConflicts() {
     render(STATE.currentMode);
 }
 
+function toggleConflictWhy() {
+    STATE.showConflictWhy = !STATE.showConflictWhy;
+    render(STATE.currentMode);
+}
+
+function widenScheduleTimeFilter() {
+    if (STATE.activeFilters.time === 'All') {
+        if (typeof toastService !== 'undefined') toastService.show('Time filter is already wide open', 'info');
+        return;
+    }
+    STATE.activeFilters.time = 'All';
+    if (typeof updateFilterPillUI === 'function') updateFilterPillUI('time', 'All');
+    if (typeof toastService !== 'undefined') toastService.show('Showing all times', 'success');
+    render(STATE.currentMode);
+}
+
+function shortenScheduleStay() {
+    const options = [30, 45, 60, 90];
+    const current = STATE.setDuration || 45;
+    const currentIndex = options.indexOf(current);
+    const nextValue = currentIndex > 0 ? options[currentIndex - 1] : options[0];
+
+    if (nextValue === current) {
+        if (typeof toastService !== 'undefined') toastService.show('Stay time is already at minimum', 'info');
+        return;
+    }
+
+    STATE.setDuration = nextValue;
+    if (typeof toastService !== 'undefined') toastService.show(`Stay time set to ${nextValue}m`, 'success');
+    updateMarkerStates();
+    render(STATE.currentMode);
+    persistPlanState();
+}
+
 // Legacy function - now just calls render() since My Schedule is inline
 function renderPlanDrawer() {
     render(STATE.currentMode);
@@ -1065,17 +1175,19 @@ function renderPlanDrawer() {
 function getSuggestedMics() {
     if (!STATE.route || STATE.route.length === 0) return [];
 
-    // Get today's mics (exclude past mics if viewing today)
+    // Get mics from the currently active planning day.
     const now = new Date();
-    const todayName = CONFIG.dayNames[now.getDay()];
-    const tomorrowName = CONFIG.dayNames[(now.getDay() + 1) % 7];
-    const targetDay = STATE.currentMode === 'tomorrow' ? tomorrowName : todayName;
+    const activeDayName = (typeof getActivePlanningDayName === 'function')
+        ? getActivePlanningDayName()
+        : null;
     const isToday = STATE.currentMode === 'today';
-    const nowMins = now.getHours() * 60 + now.getMinutes();
-    const todayMics = STATE.mics.filter(m => {
-        if (m.day !== targetDay) return false;
+    const nowMins = (typeof toComedyMinutes === 'function')
+        ? toComedyMinutes(now)
+        : (now.getHours() * 60 + now.getMinutes());
+    const dayMics = STATE.mics.filter(m => {
+        if (activeDayName && m.day !== activeDayName) return false;
         if (isToday && m.start) {
-            const micMins = m.start.getHours() * 60 + m.start.getMinutes();
+            const micMins = getTimeInMinutes(m.start);
             if (micMins < nowMins) return false;
         }
         return true;
@@ -1089,7 +1201,6 @@ function getSuggestedMics() {
     if (routeMics.length === 0) return [];
 
     const suggestions = [];
-    const setDuration = STATE.setDuration || 30;
     const grace = STATE.planGracePeriod || 5;
 
     // Helper to check if a mic is already in route or dismissed
@@ -1101,7 +1212,7 @@ function getSuggestedMics() {
     const getReason = (type, travelMins) => {
         const mode = travelMins <= 15 ? 'walk' : 'travel';
         const timeStr = `${travelMins}m ${mode}`;
-        
+
         if (travelMins <= 10) return `Nearby • ${timeStr}`;
         if (type === 'gap') return `Fits gap • ${timeStr}`;
         return `Up next • ${timeStr}`;
@@ -1111,24 +1222,24 @@ function getSuggestedMics() {
     for (let i = 0; i < routeMics.length - 1; i++) {
         const prevMic = routeMics[i];
         const nextMic = routeMics[i+1];
-        
-        const prevEnd = getTimeInMinutes(prevMic.start) + setDuration;
+
+        const prevEnd = getTimeInMinutes(prevMic.start) + getMicDuration(prevMic.id);
         const nextStart = getTimeInMinutes(nextMic.start);
 
         // Find mics that start after prevEnd + travel and end before nextStart - travel
-        todayMics.forEach(mic => {
+        dayMics.forEach(mic => {
             if (!isAvailable(mic)) return;
-            
+
             const micStart = getTimeInMinutes(mic.start);
-            const micEnd = micStart + setDuration;
+            const micEnd = micStart + getMicDuration(mic.id);
 
             // Travel times
             const travelTo = getCommuteBetweenMics(prevMic, mic);
             const travelFrom = getCommuteBetweenMics(mic, nextMic);
 
-            if (micStart >= prevEnd + travelTo - grace && 
+            if (micStart >= prevEnd + travelTo - grace &&
                 micEnd + travelFrom <= nextStart + grace) {
-                
+
                 suggestions.push({
                     mic: mic,
                     type: 'gap',
@@ -1141,9 +1252,9 @@ function getSuggestedMics() {
 
     // 2. Check for slots AFTER the last mic
     const lastMic = routeMics[routeMics.length - 1];
-    const lastEnd = getTimeInMinutes(lastMic.start) + setDuration;
+    const lastEnd = getTimeInMinutes(lastMic.start) + getMicDuration(lastMic.id);
     
-    todayMics.forEach(mic => {
+    dayMics.forEach(mic => {
         if (!isAvailable(mic)) return;
 
         const micStart = getTimeInMinutes(mic.start);

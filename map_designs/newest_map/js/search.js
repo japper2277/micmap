@@ -481,16 +481,10 @@ const searchService = {
 
         // Venue search with fuzzy matching
         const q = query.toLowerCase();
-        const now = new Date();
         // Filter to the currently viewed day
-        let activeDayName;
-        if (STATE.currentMode === 'tomorrow') {
-            activeDayName = CONFIG.dayNames[(now.getDay() + 1) % 7];
-        } else if (STATE.currentMode === 'calendar' && STATE.selectedCalendarDate) {
-            activeDayName = CONFIG.dayNames[new Date(STATE.selectedCalendarDate).getDay()];
-        } else {
-            activeDayName = CONFIG.dayNames[now.getDay()];
-        }
+        const activeDayName = (typeof getActivePlanningDayName === 'function')
+            ? getActivePlanningDayName()
+            : CONFIG.dayNames[((typeof getComedyAdjustedNow === 'function' ? getComedyAdjustedNow() : new Date()).getDay())];
         const seenVenues = new Set();
         const scored = STATE.mics
             .filter(m => !m.warning)
@@ -644,7 +638,9 @@ const searchService = {
 
     // Find the nearest upcoming day from a list of day names
     findNearestDay(days) {
-        const now = new Date();
+        const now = (typeof getComedyAdjustedNow === 'function')
+            ? getComedyAdjustedNow()
+            : new Date();
         const todayIndex = now.getDay(); // 0=Sun
         const dayNameToIndex = { Sunday: 0, Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6 };
         let nearest = days[0];
@@ -712,15 +708,9 @@ const searchService = {
         const mic = STATE.mics.find(m => m.id === micId || String(m.id) === String(micId));
         if (mic) {
             // Find the active day's mic at this venue for the modal
-            const now = new Date();
-            let currentDayName;
-            if (STATE.currentMode === 'tomorrow') {
-                currentDayName = CONFIG.dayNames[(now.getDay() + 1) % 7];
-            } else if (STATE.currentMode === 'calendar' && STATE.selectedCalendarDate) {
-                currentDayName = CONFIG.dayNames[new Date(STATE.selectedCalendarDate).getDay()];
-            } else {
-                currentDayName = CONFIG.dayNames[now.getDay()];
-            }
+            const currentDayName = (typeof getActivePlanningDayName === 'function')
+                ? getActivePlanningDayName()
+                : CONFIG.dayNames[((typeof getComedyAdjustedNow === 'function' ? getComedyAdjustedNow() : new Date()).getDay())];
             const venueName = (mic.title || mic.venue || '').toLowerCase().trim();
             const todayMic = STATE.mics.find(m =>
                 (m.title || m.venue || '').toLowerCase().trim() === venueName &&
@@ -765,18 +755,25 @@ const searchService = {
         // Find the date for the nearest occurrence of this day
         const dayNameToIndex = { Sunday: 0, Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6 };
         const targetIdx = dayNameToIndex[dayName];
-        const now = new Date();
+        const now = (typeof getComedyAdjustedNow === 'function')
+            ? getComedyAdjustedNow()
+            : new Date();
         const diff = (targetIdx - now.getDay() + 7) % 7 || 7;
         const targetDate = new Date(now);
         targetDate.setDate(now.getDate() + diff);
 
-        // Switch to that day via calendar mode
-        STATE.selectedCalendarDate = targetDate.toDateString();
-        STATE.currentMode = 'calendar';
-        if (typeof updateCalendarButtonDisplay === 'function') {
-            updateCalendarButtonDisplay(STATE.selectedCalendarDate);
+        // Switch via central calendar selector so route/day state stays consistent.
+        const targetDateString = targetDate.toDateString();
+        if (typeof selectDate === 'function') {
+            selectDate(targetDateString);
+        } else {
+            STATE.selectedCalendarDate = targetDateString;
+            STATE.currentMode = 'calendar';
+            if (typeof updateCalendarButtonDisplay === 'function') {
+                updateCalendarButtonDisplay(STATE.selectedCalendarDate);
+            }
+            render('calendar');
         }
-        render('calendar');
 
         // Now select the venue on the new day
         this.selectVenue(micId);

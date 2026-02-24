@@ -631,12 +631,18 @@ function initTimePickerDropdowns() {
 
     if (!startOptions || !endOptions) return;
 
-    // Generate hour options (12pm to 2am next day)
+    const allowAfterMidnight = (typeof supportsAfterMidnightPlanning === 'function')
+        ? supportsAfterMidnightPlanning()
+        : true;
+
+    // Generate hour options (12pm to 11pm; optionally include after-midnight slots)
     const hours = [];
     for (let h = 12; h <= 23; h++) hours.push(h);
-    hours.push(24); // Midnight
-    hours.push(25); // 1am
-    hours.push(26); // 2am
+    if (allowAfterMidnight) {
+        hours.push(24); // Midnight
+        hours.push(25); // 1am
+        hours.push(26); // 2am
+    }
 
     const createOptions = (container, selectedHour, type) => {
         container.innerHTML = hours.map(h => {
@@ -755,18 +761,44 @@ function showCustomTimeInputs() {
 
 // Apply custom time range
 function applyCustomTime() {
-    let startHour = customTimePickerState.startHour;
-    let endHour = customTimePickerState.endHour;
+    const startHour = Number(customTimePickerState.startHour);
+    const endHour = Number(customTimePickerState.endHour);
+    if (Number.isNaN(startHour) || Number.isNaN(endHour)) return;
+    const allowAfterMidnight = (typeof supportsAfterMidnightPlanning === 'function')
+        ? supportsAfterMidnightPlanning()
+        : true;
 
-    // Normalize hours for the filter (handle past-midnight times)
-    const normalizedStart = startHour > 24 ? startHour - 24 : startHour;
-    const normalizedEnd = endHour > 24 ? endHour - 24 : (endHour === 24 ? 0 : endHour);
+    // Normalize to display hours (0-23) and preserve comedy-day ordering (late-night crosses midnight).
+    const normalizedStart = ((startHour % 24) + 24) % 24;
+    let normalizedEnd = ((endHour % 24) + 24) % 24;
+    const startComedyHour = (typeof normalizeToComedyHour === 'function')
+        ? normalizeToComedyHour(startHour)
+        : (normalizedStart < 4 ? normalizedStart + 24 : normalizedStart);
+    let endComedyHour = (typeof normalizeToComedyHour === 'function')
+        ? normalizeToComedyHour(endHour)
+        : (normalizedEnd < 4 ? normalizedEnd + 24 : normalizedEnd);
+    if (!allowAfterMidnight && endComedyHour <= startComedyHour) {
+        if (typeof toastService !== 'undefined') {
+            toastService.show('End time must be after start time', 'error');
+        }
+        return;
+    }
+    const crossesMidnight = allowAfterMidnight && endComedyHour <= startComedyHour;
+    if (crossesMidnight && endComedyHour <= startComedyHour) {
+        endComedyHour += 24;
+    }
+    if (endComedyHour >= 24) {
+        normalizedEnd = endComedyHour % 24;
+    }
+    const endForLegacyRange = normalizedEnd === 0 ? 24 : normalizedEnd;
 
     // Update the custom range in config
     CONFIG.timeRanges.custom = {
         start: normalizedStart,
-        end: normalizedEnd === 0 ? 24 : normalizedEnd,
-        crossesMidnight: endHour > 24 || endHour < startHour
+        end: endForLegacyRange,
+        crossesMidnight,
+        startComedyHour,
+        endComedyHour
     };
 
     // Format label for display
@@ -960,4 +992,3 @@ function updateTransitButtonUI(isActive) {
     // Show/hide commute filter based on transit mode
     updateCommuteFilterVisibility(isActive);
 }
-

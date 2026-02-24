@@ -23,6 +23,7 @@ function getVenueImage(venueName) {
 
 const CONFIG = {
     dayNames: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+    supportsAfterMidnightMics: false,
     apiBase: API_BASE,
     apiPath: `${API_BASE}/api/v1/mics`,
     mapCenter: [40.725, -73.985],
@@ -48,10 +49,10 @@ const CONFIG = {
         borough: { All: 'Borough', Manhattan: 'Manhattan', Brooklyn: 'Brooklyn', Queens: 'Queens', Bronx: 'Bronx' }
     },
     timeRanges: {
-        All: { start: 0, end: 29 },
+        All: { start: 0, end: 24 },
         afternoon: { start: 12, end: 17 },   // 12pm - 5pm
         evening: { start: 17, end: 21 },     // 5pm - 9pm
-        latenight: { start: 21, end: 29 },   // 9pm - 5am
-        custom: { start: 0, end: 29 }        // User-defined (updated dynamically)
+        latenight: { start: 21, end: 24 },   // 9pm - midnight
+        custom: { start: 0, end: 24 }        // User-defined (updated dynamically)
     }
 };

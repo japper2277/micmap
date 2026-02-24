@@ -46,11 +46,20 @@ function updateDateCarouselHighlight(dateString) {
     });
 }
 
-// Render dots on calendar capsules for days with scheduled items (disabled)
-function renderCalendarDots() {
-    return;
+function loadScheduleForDate(dateString) {
+    const savedRoute = STATE.schedules?.[dateString] || [];
+    STATE.route = savedRoute.filter(id => STATE.mics.some(m => m.id === id));
+    STATE.dismissed = [];
+    localStorage.setItem('planRoute', JSON.stringify(STATE.route));
+    updateRouteClass();
+    updateRouteLine();
+}
 
-    const capsules = container.querySelectorAll('.date-capsule');
+// Render dots on calendar capsules for days with scheduled items
+function renderCalendarDots() {
+    const capsules = document.querySelectorAll('#cal-grid .date-capsule');
+    if (!capsules.length) return;
+
     capsules.forEach(cap => {
         const dateString = cap.dataset.date;
         const schedule = STATE.schedules[dateString];
@@ -81,22 +90,8 @@ function selectDate(dateString) {
     STATE.currentMode = 'calendar';
     STATE.selectedCalendarDate = dateString;
 
-    // Load schedule for this date
-    if (STATE.planMode) {
-        const savedRoute = STATE.schedules[dateString] || [];
-        STATE.route = [...savedRoute];
-        // Reset dismissed for new day
-        STATE.dismissed = [];
-        
-        // Update local storage
-        localStorage.setItem('planRoute', JSON.stringify(STATE.route));
-        
-        // Update UI
-        updateRouteClass();
-        updateRouteLine();
-        
-        // Note: updateMarkerStates will be called by render() below
-    }
+    // Always load schedule for selected date (plan and non-plan modes).
+    loadScheduleForDate(dateString);
 
     // Update visual highlight
     document.querySelectorAll('.date-capsule').forEach(cap => {
@@ -113,9 +108,9 @@ function selectDate(dateString) {
 
     // Render immediately with the selected date
     render('calendar');
-    
+
     // Explicitly update markers for the new schedule
-    if (STATE.planMode) {
+    if (typeof updateMarkerStates === 'function') {
         updateMarkerStates();
     }
 
@@ -178,7 +173,9 @@ function setModeFromToggle(mode) {
     if (btnCalendar) btnCalendar.classList.remove('active');
 
     // Update selected date based on mode
-    const currentTime = new Date();
+    const currentTime = (typeof getComedyAdjustedNow === 'function')
+        ? getComedyAdjustedNow()
+        : new Date();
     if (mode === 'today') {
         STATE.selectedCalendarDate = currentTime.toDateString();
     } else if (mode === 'tomorrow') {
@@ -198,7 +195,9 @@ function setModeFromToggle(mode) {
 }
 
 function setMode(mode) {
-    const currentTime = new Date();
+    const currentTime = (typeof getComedyAdjustedNow === 'function')
+        ? getComedyAdjustedNow()
+        : new Date();
     const carousel = document.getElementById('date-carousel');
     const isCarouselOpen = carousel && carousel.classList.contains('active');
 
@@ -219,6 +218,7 @@ function setMode(mode) {
         hideDateCarousel();
         STATE.currentMode = mode;
         STATE.selectedCalendarDate = (mode === 'today') ? currentTime.toDateString() : addDays(currentTime, 1).toDateString();
+        loadScheduleForDate(STATE.selectedCalendarDate);
         updateCalendarButtonDisplay(STATE.selectedCalendarDate);
         render(mode);
 
@@ -247,8 +247,12 @@ function generateDateCarousel() {
 
     const monthAbbrs = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
 
+    const baseDate = (typeof getComedyAdjustedNow === 'function')
+        ? getComedyAdjustedNow()
+        : new Date();
+
     for (let i = 0; i < 7; i++) {
-        const date = addDays(new Date(), i);
+        const date = addDays(baseDate, i);
         const dayStr = days[date.getDay()];
         const dateNum = date.getDate();
         const dateString = date.toDateString();
@@ -318,4 +322,3 @@ function generateDateCarousel() {
     `;
     document.head.appendChild(style);
 }
-
