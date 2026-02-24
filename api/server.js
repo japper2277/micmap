@@ -18,7 +18,14 @@ const { cacheMiddleware } = require('./middleware/cache');
 const { getCacheStats } = require('./utils/cache-invalidation');
 
 // Slotted.co signup scraper
-const { getSlottedData, startSlottedRefresh } = require('./services/slotted');
+let getSlottedData, startSlottedRefresh;
+try {
+  ({ getSlottedData, startSlottedRefresh } = require('./services/slotted'));
+} catch (e) {
+  console.warn('⚠️ Slotted service not available:', e.message);
+  getSlottedData = async () => null;
+  startSlottedRefresh = () => {};
+}
 
 // Logging
 const { requestLoggingMiddleware } = require('./middleware/logging');
@@ -497,6 +504,11 @@ app.post('/api/proxy/transit', async (req, res) => {
 
   if (!isValidCoord(originLat, originLng)) {
     return res.status(400).json({ error: 'Origin outside NYC area' });
+  }
+
+  const invalidDests = destinations.filter(d => !isValidCoord(d.lat, d.lng));
+  if (invalidDests.length > 0) {
+    return res.status(400).json({ error: 'One or more destinations outside NYC area' });
   }
 
   // Check API key exists
@@ -1226,7 +1238,8 @@ app.get('/api/subway/routes', async (req, res) => {
 
     // Fetch more routes than requested, then filter by real-time validation
     // This ensures we find valid alternatives when E/F/M don't run at certain times
-    const fetchLimit = Math.max(parseInt(limit) * 4, 10);
+    const parsedLimit = parseInt(limit) || 3;
+    const fetchLimit = Math.max(parsedLimit * 4, 10);
     const routes = await subwayRouter.findTopRoutes(
       parseFloat(userLat),
       parseFloat(userLng),
@@ -1629,7 +1642,7 @@ app.get('/api/subway/routes', async (req, res) => {
     // Return only the requested number of routes (sorted by adjusted time with wait)
     let finalRoutes = validatedRoutes
       .sort((a, b) => (a.adjustedTotalTime || a.totalTime) - (b.adjustedTotalTime || b.totalTime))
-      .slice(0, parseInt(limit));
+      .slice(0, parsedLimit);
 
     // RETRY: If all routes failed validation, try nearby stations within 1 mile
     if (finalRoutes.length === 0 && routes.length > 0) {
@@ -1823,7 +1836,7 @@ app.get('/api/subway/routes', async (req, res) => {
 
           finalRoutes = altValidatedRoutes
             .sort((a, b) => (a.adjustedTotalTime || a.totalTime) - (b.adjustedTotalTime || b.totalTime))
-            .slice(0, parseInt(limit));
+            .slice(0, parsedLimit);
           break; // Found valid routes, stop trying other stations
         }
       }
@@ -1833,7 +1846,7 @@ app.get('/api/subway/routes', async (req, res) => {
         console.log('⚠️ No validated routes found from nearby stations - returning unvalidated routes with GTFS wait times');
         finalRoutes = routes
           .sort((a, b) => a.totalTime - b.totalTime)
-          .slice(0, parseInt(limit));
+          .slice(0, parsedLimit);
 
         // Calculate GTFS-based wait times for unvalidated routes
         await Promise.all(finalRoutes.map(async (route) => {
