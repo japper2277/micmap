@@ -50,7 +50,6 @@ function loadScheduleForDate(dateString) {
     const savedRoute = STATE.schedules?.[dateString] || [];
     STATE.route = savedRoute.filter(id => STATE.mics.some(m => m.id === id));
     STATE.dismissed = [];
-    localStorage.setItem('planRoute', JSON.stringify(STATE.route));
     updateRouteClass();
     updateRouteLine();
 }

@@ -57,23 +57,13 @@ function persistPlanState() {
         localStorage.setItem('planSchedules', JSON.stringify(STATE.schedules));
     }
 
-    // Keep legacy/session storage for recovery
-    localStorage.setItem('planRoute', JSON.stringify(STATE.route));
-    localStorage.setItem('planDismissed', JSON.stringify(STATE.dismissed));
+    // Persist active planner settings
     localStorage.setItem('planSetDuration', STATE.setDuration.toString());
-    if (STATE.timeWindowStart) localStorage.setItem('planTimeWindowStart', STATE.timeWindowStart.toString());
-    if (STATE.timeWindowEnd) localStorage.setItem('planTimeWindowEnd', STATE.timeWindowEnd.toString());
 
     // Update calendar dots to reflect changes
     if (typeof renderCalendarDots === 'function') {
         renderCalendarDots();
     }
-}
-
-// Clear plan state from localStorage
-function clearPlanState() {
-    localStorage.removeItem('planRoute');
-    localStorage.removeItem('planDismissed');
 }
 
 // Update body class based on route state (for overlay visibility)
@@ -885,76 +875,6 @@ function updateRouteLine() {
     }).addTo(map);
 }
 
-// Google Calendar Integration
-function formatGoogleTime(date) {
-    if (!date) return '';
-    return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-}
-
-function generateGoogleCalendarUrl(mic) {
-    if (!mic) return '';
-    
-    const venueName = mic.title || mic.venue || 'Open Mic';
-    const title = encodeURIComponent(`Open Mic @ ${venueName}`);
-    
-    // Default duration 90 mins if not specified
-    const start = mic.start || new Date();
-    const durationMins = STATE.setDuration || 90;
-    const end = new Date(start.getTime() + durationMins * 60000);
-    
-    const startTime = formatGoogleTime(start);
-    const endTime = formatGoogleTime(end);
-    
-    const address = mic.address || mic.location || (mic.neighborhood ? `${mic.venue}, ${mic.neighborhood}, NY` : 'New York, NY');
-    const location = encodeURIComponent(address);
-    
-    const price = mic.price || 'Free';
-    const signup = mic.signupInstructions || 'Check app for signup details';
-    const details = encodeURIComponent(`Price: ${price}\nSignup: ${signup}\n\nPlan your night with MicFinder NYC`);
-
-    return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startTime}/${endTime}&location=${location}&details=${details}`;
-}
-
-function exportScheduleToGoogleCalendar() {
-    if (!STATE.route || STATE.route.length === 0) {
-        if (typeof toastService !== 'undefined') toastService.show('No mics in schedule', 'error');
-        return;
-    }
-
-    // Since we can't batch add via URL scheme, we'll export the *first* mic 
-    // or maybe open multiple tabs? Opening multiple tabs is often blocked.
-    // Let's just export the first one for now, or maybe prompt?
-    // BETTER: Export the whole itinerary as one event or provide links for each?
-    // The requirement says "Creates events for each scheduled mic".
-    // But URL scheme only does one. 
-    // Let's try to add "Add to Calendar" button *per mic* in the schedule list,
-    // OR just open the first one and let user handle it.
-    
-    // Actually, for "Add to Google Calendar" button on the schedule card, 
-    // maybe we create a combined event "Mic Crawl: Venue 1, Venue 2..."?
-    // Or we just add the button to each item in the list.
-    
-    // Let's look at the plan: "Add to Google Calendar button... Creates events for each scheduled mic".
-    // If I click one button and it creates multiple events, that requires API.
-    // If I use URL scheme, I can only do one.
-    
-    // Strategy: Add an export button *next to* the schedule that opens a modal with links for each?
-    // OR add a small calendar icon to each item in the schedule list.
-    
-    // Let's go with adding a small calendar icon to each item in the list in `render.js`.
-    // And maybe a "Export All" that tries to open multiple windows (might be blocked).
-    
-    // For this function, let's make it handle a specific mic ID.
-}
-
-function exportMicToCalendar(micId) {
-    const mic = STATE.mics.find(m => m.id === micId);
-    if (!mic) return;
-    
-    const url = generateGoogleCalendarUrl(mic);
-    window.open(url, '_blank');
-}
-
 // Get duration for a specific mic (per-mic override or global fallback)
 function getMicDuration(micId) {
     if (micId && STATE.micDurations[micId]) return STATE.micDurations[micId];
@@ -1001,25 +921,6 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// Handle set duration change
-function onSetDurationChange(value) {
-    STATE.setDuration = parseInt(value, 10);
-    updateMarkerStates();
-    renderPlanDrawer();
-    persistPlanState();
-}
-
-// Handle time window change
-function onTimeWindowChange() {
-    const startEl = document.getElementById('planTimeStart');
-    const endEl = document.getElementById('planTimeEnd');
-    if (startEl) STATE.timeWindowStart = parseInt(startEl.value, 10);
-    if (endEl) STATE.timeWindowEnd = parseInt(endEl.value, 10);
-    updateMarkerStates();  // Re-evaluate which mics are reachable
-    renderPlanDrawer();
-    persistPlanState();
-}
-
 // Duration options for Plan My Night
 const planDurationOptions = [
     { value: 30, label: '30' },
@@ -1059,7 +960,7 @@ function handleDurationClick(value, event) {
 
         // Update markers and persist
         updateMarkerStates();
-        renderPlanDrawer();
+        render(STATE.currentMode);
         persistPlanState();
     }
 }
@@ -1164,11 +1065,6 @@ function shortenScheduleStay() {
     updateMarkerStates();
     render(STATE.currentMode);
     persistPlanState();
-}
-
-// Legacy function - now just calls render() since My Schedule is inline
-function renderPlanDrawer() {
-    render(STATE.currentMode);
 }
 
 // Find mics that fit in the current schedule gaps

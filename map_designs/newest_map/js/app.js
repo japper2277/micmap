@@ -142,6 +142,12 @@ window.addEventListener('resize', () => {
 
 // Initialize everything
 function init() {
+    // Cleanup legacy schedule/session keys now replaced by planSchedules.
+    localStorage.removeItem('planRoute');
+    localStorage.removeItem('planDismissed');
+    localStorage.removeItem('planTimeWindowStart');
+    localStorage.removeItem('planTimeWindowEnd');
+
     // Set calendar date buttons to current day + date
     const now = new Date();
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -369,7 +375,7 @@ function togglePlanMode() {
         if (typeof resetPlanOverlayTimer === 'function') resetPlanOverlayTimer(); // Start overlay timer
         setupPlanMapListeners(); // Setup map interaction listeners
         initPlanFilterRow(); // Initialize the time filter row in header
-        renderPlanDrawer(); // Render drawer first (may call render() which recreates markers)
+        render(STATE.currentMode);
         updateMarkerStates(); // Show commute labels on markers AFTER render (adds commute-loaded)
     } else {
         exitPlanMode();
@@ -385,7 +391,6 @@ function exitPlanMode() {
     STATE.planMode = false;
     STATE.route = [];
     STATE.dismissed = [];
-    clearPlanState(); // Clear session keys (planRoute, planDismissed) but schedules are already saved
     document.body.classList.remove('plan-mode', 'has-route', 'map-interacted', 'commute-loaded');
     updateMarkerStates(); // Clear marker states
     render(STATE.currentMode); // Restore normal drawer
