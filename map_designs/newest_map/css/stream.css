@@ -244,6 +244,12 @@ body.plan-mode .happening-now-card-label {
     transform: scale(0.99);
 }
 
+.my-schedule-card:focus-visible {
+    outline: 2px solid #60a5fa;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.25);
+}
+
 .my-schedule-card-left {
     display: flex;
     align-items: center;
@@ -336,9 +342,13 @@ body.plan-mode .happening-now-card-label {
 }
 
 .my-schedule-expanded.is-open {
-    max-height: 520px;
+    max-height: min(72vh, 760px);
     opacity: 1;
     transform: translateY(0);
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
 }
 
 @keyframes expandDown {
@@ -519,8 +529,8 @@ body.plan-mode .happening-now-card-label {
 }
 
 .my-schedule-remove {
-    width: 32px;
-    height: 32px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.06);
     border: 1px solid rgba(255, 255, 255, 0.12);
@@ -544,15 +554,15 @@ body.plan-mode .happening-now-card-label {
 
 .my-schedule-item-actions.stacked {
     flex-direction: column;
-    gap: 4px;
+    gap: 6px;
 }
 
 .my-schedule-item-actions.stacked .schedule-drag-handle,
 .my-schedule-item-actions.stacked .my-schedule-remove {
     margin-left: 0;
-    width: 28px;
-    height: 28px;
-    font-size: 12px;
+    width: 44px;
+    height: 44px;
+    font-size: 14px;
 }
 
 /* Duration picker wrapper */
@@ -698,8 +708,8 @@ body.plan-mode .happening-now-card-label {
 }
 
 .schedule-drag-handle {
-    width: 32px;
-    height: 32px;
+    width: 44px;
+    height: 44px;
     border-radius: 10px;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.12);

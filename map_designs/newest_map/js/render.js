@@ -226,6 +226,7 @@ function render(mode) {
 
     // Use fresh timestamp for accurate calculations
     const currentTime = new Date();
+    const LIVE_LOOKBACK_MINUTES = 90;
 
     const activeDayName = (typeof getActivePlanningDayName === 'function')
         ? getActivePlanningDayName()
@@ -238,8 +239,8 @@ function render(mode) {
     let baseMics = STATE.mics.filter(m => {
         const diffMins = m.start ? (m.start - currentTime) / 60000 : 999;
 
-        // Hide mics started >30 min ago (too late to catch from start)
-        if (mode === 'today' && diffMins < -30) return false;
+        // Hide mics that started before the live lookback window.
+        if (mode === 'today' && diffMins < -LIVE_LOOKBACK_MINUTES) return false;
 
         // Filter by active planning day (today/tomorrow/calendar-selected).
         if (activeDayName && m.day !== activeDayName) return false;
@@ -296,7 +297,7 @@ function render(mode) {
     const calcStatus = (m) => {
         if (!isCurrentPlanningDay) return 'future';
         const diffMins = m.start ? (m.start - currentTime) / 60000 : 999;
-        if (diffMins > -90 && diffMins <= 0) return 'live';      // Green pulsing
+        if (diffMins > -LIVE_LOOKBACK_MINUTES && diffMins <= 0) return 'live';      // Green pulsing
         if (diffMins > 0 && diffMins <= 120) return 'upcoming';  // Red (<2 hours)
         return 'future';                                          // Gray (tonight)
     };
@@ -645,7 +646,7 @@ function render(mode) {
         return aStart - bStart;
     });
 
-    // Split into upcoming and happening now (started within last 30 min)
+    // Split into upcoming and happening now (within live lookback window)
     const upcomingMics = [];
     const happeningNowMics = [];
 
@@ -665,6 +666,7 @@ function render(mode) {
     // Render "Happening Now" collapsed card at top (only if there are in-progress mics)
     // In plan mode: render to sticky scheduleSlot; otherwise render to scrollable container
     const happeningNowTarget = (STATE.planMode && scheduleSlot) ? scheduleSlot : container;
+    const scheduleMountTarget = (STATE.planMode && scheduleSlot) ? scheduleSlot : container;
 
     if (mode === 'today' && happeningNowMics.length > 0 && !STATE.happeningNowExpanded) {
         const venueNames = happeningNowMics.slice(0, 2).map(m => m.title || m.venue || 'Mic').join(', ');
@@ -707,7 +709,7 @@ function render(mode) {
             <span>Back to Upcoming</span>
             <span class="happening-now-back-count">${upcomingMics.length} mics</span>
         `;
-        container.appendChild(backBtn);
+        happeningNowTarget.appendChild(backBtn);
     }
 
     // Render schedule UI in scrollable list (after Happening Now)
@@ -723,7 +725,7 @@ function render(mode) {
         const scheduleContextLabel = document.createElement('div');
         scheduleContextLabel.className = 'schedule-context-label';
         scheduleContextLabel.textContent = `Editing ${scheduleDayLabel} schedule`;
-        container.appendChild(scheduleContextLabel);
+        scheduleMountTarget.appendChild(scheduleContextLabel);
 
         const fmtTime = (d, showAmPm = false) => {
             const h = d?.getHours?.() || 0;
@@ -757,15 +759,24 @@ function render(mode) {
         scheduleCard.className = `my-schedule-card${STATE.scheduleExpanded ? ' expanded' : ''}`;
         scheduleCard.setAttribute('role', 'button');
         scheduleCard.setAttribute('aria-expanded', STATE.scheduleExpanded ? 'true' : 'false');
+        scheduleCard.setAttribute('tabindex', '0');
+        scheduleCard.setAttribute('aria-label', `Toggle schedule details for ${scheduleDayLabel}`);
         const expandedList = document.createElement('div');
         expandedList.className = `my-schedule-expanded${STATE.scheduleExpanded ? ' is-open' : ''}`;
 
-        scheduleCard.onclick = () => {
+        const toggleScheduleExpanded = () => {
             if ('vibrate' in navigator) navigator.vibrate(8);
             STATE.scheduleExpanded = !STATE.scheduleExpanded;
             scheduleCard.classList.toggle('expanded', STATE.scheduleExpanded);
             scheduleCard.setAttribute('aria-expanded', STATE.scheduleExpanded ? 'true' : 'false');
             expandedList.classList.toggle('is-open', STATE.scheduleExpanded);
+        };
+        scheduleCard.onclick = toggleScheduleExpanded;
+        scheduleCard.onkeydown = (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                toggleScheduleExpanded();
+            }
         };
         scheduleCard.innerHTML = `
             <div class="my-schedule-card-left">
@@ -780,7 +791,7 @@ function render(mode) {
                 </svg>
             </div>
         `;
-        container.appendChild(scheduleCard);
+        scheduleMountTarget.appendChild(scheduleCard);
 
         const routeOutOfOrder = (typeof isRouteChronological === 'function')
             ? !isRouteChronological(STATE.route)
@@ -943,7 +954,7 @@ function render(mode) {
         }
 
         expandedList.innerHTML = `${conflictBanner}${itemsHtml}${suggestionsHtml}${toolsRow}`;
-        container.appendChild(expandedList);
+        scheduleMountTarget.appendChild(expandedList);
 
         if (typeof initScheduleReorder === 'function') {
             initScheduleReorder(expandedList);
