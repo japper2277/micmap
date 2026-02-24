@@ -148,18 +148,12 @@ function init() {
     localStorage.removeItem('planTimeWindowStart');
     localStorage.removeItem('planTimeWindowEnd');
 
-    // Set calendar date buttons to current day + date
-    const now = new Date();
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const displayText = `${days[now.getDay()]} ${now.getDate()}`;
-
-    // Desktop calendar
-    const calText = document.getElementById('cal-text');
-    if (calText) calText.textContent = displayText;
-
-    // Mobile calendar
-    const mobileCalText = document.getElementById('mobile-cal-text');
-    if (mobileCalText) mobileCalText.textContent = displayText;
+    // Seed calendar chip labels from the active selected date.
+    const seedDate = STATE.selectedCalendarDate || ((typeof getComedyAdjustedNow === 'function') ? getComedyAdjustedNow().toDateString() : new Date().toDateString());
+    STATE.selectedCalendarDate = seedDate;
+    if (typeof updateCalendarButtonDisplay === 'function') {
+        updateCalendarButtonDisplay(seedDate);
+    }
 
     // Initialize modal DOM references
     initModal();

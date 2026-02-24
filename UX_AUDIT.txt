@@ -1,0 +1,708 @@
+================================================================================
+                     BRUTAL UX AUDIT: planner-prototype.html
+================================================================================
+
+OVERVIEW
+--------
+Comprehensive UX analysis of every interaction in the Plan My Night mic crawl
+planner. Each interaction graded 1-100 on 10 factors.
+
+TARGET: 90+ on all factors before completion.
+
+================================================================================
+                           GRADING FACTORS (1-100)
+================================================================================
+
+#  | Factor            | Description
+---|-------------------|-----------------------------------------------------
+1  | Visual Hierarchy  | Is importance/order clear?
+2  | Affordance        | Does it look clickable/interactive?
+3  | Feedback          | Does it respond when interacted with?
+4  | Accessibility     | Keyboard nav, focus states, ARIA labels?
+5  | Touch Target      | >= 44x44px for mobile?
+6  | Error Handling    | Graceful failures?
+7  | Loading States    | Clear progress indication?
+8  | Responsiveness    | Works on all screen sizes?
+9  | Consistency       | Matches rest of UI patterns?
+10 | Delight           | Animations, micro-interactions?
+
+================================================================================
+                    IDENTIFIED INTERACTIONS (23 Total)
+================================================================================
+
+--------------------------------------------------------------------------------
+                              FORM INPUTS
+--------------------------------------------------------------------------------
+
+[1] DAY OF WEEK SELECT
+Current State: Standard select with custom arrow styling
+
+Factor            | Score | Issue
+------------------|-------|------------------------------------------------------
+Visual Hierarchy  |   85  | Good - "font-semibold text-lg" makes it prominent
+Affordance        |   75  | Custom arrow visible but select doesn't look clickable
+Feedback          |   60  | No hover animation, no focus ring glow
+Accessibility     |   40  | FAIL - No label association, no aria-describedby
+Touch Target      |   90  | 52px height is good
+Error Handling    |   70  | Can't really error, but no validation feedback
+Loading States    |  N/A  | Static element
+Responsiveness    |   85  | Full width, works on mobile
+Consistency       |   80  | Matches other selects
+Delight           |   50  | FAIL - Boring, no transition on option change
+AVERAGE           |   70  | FAIL
+
+Fixes Needed:
+- Add `for` attribute on label connecting to input ID
+- Add focus ring glow effect
+- Add subtle scale/shadow on hover
+- Add aria-describedby for helper text
+
+--------------------------------------------------------------------------------
+
+[2] START TIME INPUT
+Current State: Native time picker with custom styling
+
+Factor            | Score | Issue
+------------------|-------|------------------------------------------------------
+Visual Hierarchy  |   80  | Smaller than day select, appropriate
+Affordance        |   65  | Clock icon barely visible (filter: invert 0.7)
+Feedback          |   55  | FAIL - No visual response on value change
+Accessibility     |   35  | FAIL - No aria-label, no connection to end time
+Touch Target      |   90  | 52px height
+Error Handling    |   40  | FAIL - No validation for weird times (3 AM)
+Loading States    |  N/A  |
+Responsiveness    |   80  | Works but could be larger on mobile
+Consistency       |   75  | Matches other inputs
+Delight           |   40  | FAIL - Native picker is ugly, no animation
+AVERAGE           |   62  | CRITICAL FAIL
+
+Fixes Needed:
+- Add aria-label="Start time"
+- Add aria-describedby pointing to end time preview
+- Validate time range (show warning for early/late)
+- Add animation when end time preview updates
+- Consider custom time picker modal
+
+--------------------------------------------------------------------------------
+
+[3] DURATION SELECT
+
+Factor            | Score | Issue
+------------------|-------|------------------------------------------------------
+Visual Hierarchy  |   75  | Similar to other selects
+Affordance        |   75  | Same as day select
+Feedback          |   70  | Updates end-time-preview on change
+Accessibility     |   40  | FAIL - Missing label association
+Touch Target      |   90  | 52px
+Error Handling    |  N/A  | Can't fail
+Loading States    |  N/A  |
+Responsiveness    |   85  |
+Consistency       |   85  |
+Delight           |   60  | End time preview update is nice but not animated
+AVERAGE           |   73  | FAIL
+
+--------------------------------------------------------------------------------
+
+[4] USE MY LOCATION BUTTON
+
+Factor            | Score | Issue
+------------------|-------|------------------------------------------------------
+Visual Hierarchy  |   90  | Large, prominent blue button
+Affordance        |   95  | Clear button with icon
+Feedback          |   75  | Text changes to "Locating..." but no spinner
+Accessibility     |   50  | FAIL - Missing aria-live for status updates
+Touch Target      |   95  | Full width, tall
+Error Handling    |   60  | Shows toast on denial but no recovery option
+Loading States    |   65  | Text change only, no visual spinner
+Responsiveness    |   90  | Full width
+Consistency       |   85  | Matches primary button style
+Delight           |   80  | Success state with color change
+AVERAGE           |   79  | WARNING
+
+Fixes Needed:
+- Add spinner during geolocation
+- Add aria-live="polite" region for status
+- Add pulsing animation while locating
+- Offer "try again" on error
+
+--------------------------------------------------------------------------------
+
+[5] ORIGIN SEARCH INPUT
+
+Factor            | Score | Issue
+------------------|-------|------------------------------------------------------
+Visual Hierarchy  |   85  | Search icon + input prominent
+Affordance        |   90  | Search icon, placeholder text
+Feedback          |   80  | Dropdown appears, clear button shows
+Accessibility     |   45  | FAIL - No aria-expanded, aria-autocomplete
+Touch Target      |   90  | 52px height
+Error Handling    |   60  | "No results" message shown
+Loading States    |   50  | FAIL - No loading indicator while index builds
+Responsiveness    |   85  | Full width
+Consistency       |   85  |
+Delight           |   75  | Nice dropdown animation
+AVERAGE           |   75  | WARNING
+
+Fixes Needed:
+- Add role="combobox", aria-expanded, aria-autocomplete="list"
+- Add aria-activedescendant for keyboard navigation
+- Add loading skeleton while fetching
+- Add highlight animation on selection
+
+--------------------------------------------------------------------------------
+
+[6] SEARCH CLEAR BUTTON (X)
+
+Factor            | Score | Issue
+------------------|-------|------------------------------------------------------
+Visual Hierarchy  |   70  | Small, subtle
+Affordance        |   60  | FAIL - Tiny, not obviously clickable
+Feedback          |   75  | Clears input, hides dropdown
+Accessibility     |   30  | FAIL - Has aria-label but no focus visible state
+Touch Target      |   35  | FAIL - Only 24x24px, way too small
+Error Handling    |  N/A  |
+Loading States    |  N/A  |
+Responsiveness    |   50  | Too small on mobile
+Consistency       |   70  | Matches pattern but needs work
+Delight           |   40  | No animation
+AVERAGE           |   54  | CRITICAL FAIL
+
+Fixes Needed:
+- Increase to 36x36px minimum
+- Add visible focus ring
+- Add scale animation on hover/tap
+- Consider larger hit area
+
+--------------------------------------------------------------------------------
+
+[7] DROPDOWN ITEMS (Search Results)
+
+Factor            | Score | Issue
+------------------|-------|------------------------------------------------------
+Visual Hierarchy  |   80  | Icon + text hierarchy good
+Affordance        |   85  | Clear hover state
+Feedback          |   70  | Hover highlight, no keyboard selection visible
+Accessibility     |   40  | FAIL - No role="option", no aria-selected
+Touch Target      |   75  | Mobile padding 14px, item height ~56px = OK
+Error Handling    |  N/A  |
+Loading States    |  N/A  |
+Responsiveness    |   80  | max-height 50vh on mobile
+Consistency       |   85  |
+Delight           |   70  | Scroll behavior smooth
+AVERAGE           |   73  | FAIL
+
+Fixes Needed:
+- Add role="listbox" to dropdown, role="option" to items
+- Add aria-selected for keyboard navigation
+- Add subtle entrance animation (stagger)
+
+--------------------------------------------------------------------------------
+
+[8] SELECTED ORIGIN DISPLAY (Chip)
+
+Factor            | Score | Issue
+------------------|-------|------------------------------------------------------
+Visual Hierarchy  |   75  | Rose accent, clear
+Affordance        |   65  | X button visible but could be bigger
+Feedback          |   70  | Disappears on clear
+Accessibility     |   35  | FAIL - No role, no aria-label for clear button
+Touch Target      |   50  | FAIL - Clear button is small text
+Error Handling    |  N/A  |
+Loading States    |  N/A  |
+Responsiveness    |   80  |
+Consistency       |   75  |
+Delight           |   50  | No animation on appear/disappear
+AVERAGE           |   60  | CRITICAL FAIL
+
+Fixes Needed:
+- Add role="status" or aria-live
+- Make X button a proper button with 44px touch target
+- Add slide-in animation on appear
+- Add fade-out on remove
+
+--------------------------------------------------------------------------------
+                          COLLAPSIBLE FILTERS
+--------------------------------------------------------------------------------
+
+[9] CUSTOMIZE EXPERIENCE ACCORDION
+
+Factor            | Score | Issue
+------------------|-------|------------------------------------------------------
+Visual Hierarchy  |   70  | +/- indicator is tiny
+Affordance        |   65  | "summary" element not obviously clickable
+Feedback          |   60  | No animation on open/close
+Accessibility     |   55  | Native details/summary is accessible
+Touch Target      |   60  | Summary row full width but cramped
+Error Handling    |  N/A  |
+Loading States    |  N/A  |
+Responsiveness    |   75  |
+Consistency       |   70  |
+Delight           |   40  | FAIL - Content just appears, no transition
+AVERAGE           |   62  | CRITICAL FAIL
+
+Fixes Needed:
+- Add chevron icon instead of +/-
+- Add rotate animation on chevron
+- Add smooth height transition on content
+- Increase touch target height
+
+--------------------------------------------------------------------------------
+
+[10] RADIO PILLS (All filter groups)
+
+Factor            | Score | Issue
+------------------|-------|------------------------------------------------------
+Visual Hierarchy  |   80  | Active state is clear with rose color
+Affordance        |   85  | Pill shape implies tappable
+Feedback          |   85  | Active class toggles with rose glow
+Accessibility     |   50  | FAIL - Radio inputs hidden but no focus indication
+Touch Target      |   70  | 40px height but some are narrow (like "20m")
+Error Handling    |  N/A  |
+Loading States    |  N/A  |
+Responsiveness    |   70  | Wraps but can get cramped
+Consistency       |   90  | Consistent across all filter groups
+Delight           |   75  | Has box-shadow glow effect
+AVERAGE           |   76  | WARNING
+
+Fixes Needed:
+- Add visible focus ring on keyboard navigation
+- Ensure minimum width of 44px on mobile
+- Add slight scale animation on selection
+
+--------------------------------------------------------------------------------
+
+[11] BOROUGH CHIPS
+
+Factor            | Score | Issue
+------------------|-------|------------------------------------------------------
+Visual Hierarchy  |   80  | Clear selected/expanded states
+Affordance        |   75  | Chip shape is tappable
+Feedback          |   70  | Color changes, expanded arrow is text-based
+Accessibility     |   35  | FAIL - No aria-expanded, no role
+Touch Target      |   80  | 32px height, good padding
+Error Handling    |  N/A  |
+Loading States    |  N/A  |
+Responsiveness    |   75  | Wraps OK
+Consistency       |   80  |
+Delight           |   60  | No animation on expand/collapse
+AVERAGE           |   69  | FAIL
+
+Fixes Needed:
+- Add aria-expanded attribute
+- Add role="button"
+- Replace text arrow with SVG chevron that rotates
+- Add slide-down animation for neighborhoods row
+
+--------------------------------------------------------------------------------
+
+[12] NEIGHBORHOOD CHIPS
+
+Factor            | Score | Issue
+------------------|-------|------------------------------------------------------
+Visual Hierarchy  |   70  | Smaller, secondary to boroughs
+Affordance        |   70  | Less prominent but still chip-shaped
+Feedback          |   75  | Selection highlight with rose
+Accessibility     |   35  | FAIL - No role, hidden when not needed
+Touch Target      |   55  | FAIL - Only 26px height! Too small for mobile
+Error Handling    |  N/A  |
+Loading States    |  N/A  |
+Responsiveness    |   65  | Many chips can overflow
+Consistency       |   80  |
+Delight           |   50  | Just appears, no animation
+AVERAGE           |   62  | CRITICAL FAIL
+
+Fixes Needed:
+- Increase height to 36px minimum
+- Add role="checkbox" or "button"
+- Add staggered fade-in animation
+- Add scroll indicators if overflow
+
+--------------------------------------------------------------------------------
+
+[13] ANCHOR DROPDOWNS (Start/End With)
+
+Factor            | Score | Issue
+------------------|-------|------------------------------------------------------
+Visual Hierarchy  |   70  | Smaller text, feels secondary
+Affordance        |   70  | Standard select
+Feedback          |   50  | FAIL - Options filtered by day, no visual indication
+Accessibility     |   40  | FAIL - No label association
+Touch Target      |   80  | 52px height
+Error Handling    |   60  | Graceful if anchor can't be reached
+Loading States    |  N/A  |
+Responsiveness    |   75  |
+Consistency       |   75  |
+Delight           |   40  | FAIL - Option text very long, truncated poorly
+AVERAGE           |   62  | CRITICAL FAIL
+
+Fixes Needed:
+- Add `for` attributes on labels
+- Truncate option text better
+- Show count of available mics per day
+- Add preview of selected mic info
+
+--------------------------------------------------------------------------------
+                              MAIN ACTION
+--------------------------------------------------------------------------------
+
+[14] FIND OPEN MICS BUTTON (Primary CTA)
+
+Factor            | Score | Issue
+------------------|-------|------------------------------------------------------
+Visual Hierarchy  |   95  | Large, gradient, prominent
+Affordance        |   95  | Clearly a button
+Feedback          |   80  | Disabled state exists, hover lift effect
+Accessibility     |   60  | Missing aria-busy during loading
+Touch Target      |   95  | Full width, 56px+ height
+Error Handling    |   70  | Catches errors, shows toast
+Loading States    |   75  | Disabled during load, separate loading card
+Responsiveness    |   90  |
+Consistency       |   90  | Primary action style
+Delight           |   85  | Gradient, shadow, lift effect
+AVERAGE           |   84  | PASS (needs polish)
+
+Fixes Needed:
+- Add aria-busy="true" during loading
+- Add loading spinner inside button or subtle pulse
+
+--------------------------------------------------------------------------------
+                             RESULTS SECTION
+--------------------------------------------------------------------------------
+
+[15] LOADING STATE
+
+Factor            | Score | Issue
+------------------|-------|------------------------------------------------------
+Visual Hierarchy  |   80  | Centered, clear
+Affordance        |  N/A  |
+Feedback          |   70  | Text updates with progress
+Accessibility     |   50  | FAIL - No aria-live for loading messages
+Touch Target      |  N/A  |
+Error Handling    |  N/A  |
+Loading States    |   85  | Spinner + text updates
+Responsiveness    |   80  |
+Consistency       |   80  |
+Delight           |   65  | Basic spinner, could be more engaging
+AVERAGE           |   73  | FAIL
+
+Fixes Needed:
+- Add aria-live="polite" to loading-detail
+- Add route-specific animation
+- Add estimated progress if possible
+
+--------------------------------------------------------------------------------
+
+[16] RESULTS MAP
+
+Factor            | Score | Issue
+------------------|-------|------------------------------------------------------
+Visual Hierarchy  |   85  | Prominent, good size
+Affordance        |   75  | Markers are clickable but not obviously so
+Feedback          |   80  | Markers highlight, scroll to card on click
+Accessibility     |   30  | FAIL - No keyboard nav, no alt text for markers
+Touch Target      |   70  | Markers are 24px, slightly small
+Error Handling    |   50  | No fallback if map fails to load
+Loading States    |   50  | FAIL - Map just appears, no skeleton
+Responsiveness    |   80  | Fixed 300px height
+Consistency       |   75  | Dark tiles match theme
+Delight           |   85  | Ghost marker animation is nice
+AVERAGE           |   68  | FAIL
+
+Fixes Needed:
+- Add skeleton loader for map
+- Increase marker size to 32px
+- Add focus indication for markers
+- Add error fallback ("Map unavailable")
+- Add marker tooltips
+
+--------------------------------------------------------------------------------
+
+[17] MAP RECENTER BUTTON
+
+Factor            | Score | Issue
+------------------|-------|------------------------------------------------------
+Visual Hierarchy  |   70  | Small, bottom right
+Affordance        |   75  | Button-like with icon
+Feedback          |   80  | Hover state, recenters map
+Accessibility     |   40  | FAIL - No aria-label
+Touch Target      |   70  | ~36x44px, borderline
+Error Handling    |  N/A  |
+Loading States    |  N/A  |
+Responsiveness    |   75  |
+Consistency       |   75  | Glassmorphism style
+Delight           |   70  | Hover lift effect
+AVERAGE           |   69  | FAIL
+
+Fixes Needed:
+- Add aria-label="Recenter map on route"
+- Increase touch target
+- Add rotation animation on icon when clicked
+
+--------------------------------------------------------------------------------
+
+[18] RESULT CARDS (Timeline)
+
+Factor            | Score | Issue
+------------------|-------|------------------------------------------------------
+Visual Hierarchy  |   85  | Time prominent, venue name clear
+Affordance        |   75  | Buttons visible but could be clearer
+Feedback          |   80  | Hover highlight, click from map scrolls
+Accessibility     |   40  | FAIL - No landmark roles, cards not focusable
+Touch Target      |   70  | Action buttons are small
+Error Handling    |   60  | Remove mic confirms
+Loading States    |  N/A  |
+Responsiveness    |   75  | Gets cramped on mobile
+Consistency       |   85  | Timeline dots, consistent card layout
+Delight           |   75  | Timeline dots glow, scroll animation
+AVERAGE           |   72  | FAIL
+
+Fixes Needed:
+- Add role="article" or use semantic elements
+- Make cards focusable with tab
+- Increase button sizes
+- Add card entrance animations (stagger)
+
+--------------------------------------------------------------------------------
+
+[19] CARD ACTION BUTTONS (Directions, Remove, Sign Up)
+
+Factor            | Score | Issue
+------------------|-------|------------------------------------------------------
+Visual Hierarchy  |   70  | Stacked, somewhat small
+Affordance        |   75  | Button-like with colors
+Feedback          |   70  | Hover states exist
+Accessibility     |   35  | FAIL - No aria-labels, rely on text
+Touch Target      |   55  | FAIL - py-1.5 px-3 = ~32px height
+Error Handling    |   60  | Confirm on remove
+Loading States    |   40  | FAIL - Directions button doesn't show loading
+Responsiveness    |   60  | Squeeze on mobile
+Consistency       |   80  | Color coding makes sense
+Delight           |   50  | Basic hover
+AVERAGE           |   60  | CRITICAL FAIL
+
+Fixes Needed:
+- Increase padding to py-2.5 px-4 minimum
+- Add aria-labels ("Get directions to [venue]")
+- Add loading state for directions
+- Add success animation on remove
+
+--------------------------------------------------------------------------------
+
+[20] SHOW LIVE TIMES BUTTON
+
+Factor            | Score | Issue
+------------------|-------|------------------------------------------------------
+Visual Hierarchy  |   65  | Small, inline link
+Affordance        |   70  | Underlined, blue
+Feedback          |   60  | Shows "Loading..." then times
+Accessibility     |   45  | FAIL - No role, aria-live for result
+Touch Target      |   50  | FAIL - Just text, no padding
+Error Handling    |   70  | Shows "Unable to fetch" on error
+Loading States    |   70  | "Loading..." text
+Responsiveness    |   70  |
+Consistency       |   65  | Feels like afterthought
+Delight           |   45  | Static, no animation
+AVERAGE           |   61  | CRITICAL FAIL
+
+Fixes Needed:
+- Make a proper button with padding
+- Add aria-live for arrival times
+- Add skeleton loader
+- Add pulse animation while loading
+
+--------------------------------------------------------------------------------
+                             FOOTER ACTIONS
+--------------------------------------------------------------------------------
+
+[21] COPY/SHARE/SAVE BUTTONS
+
+Factor            | Score | Issue
+------------------|-------|------------------------------------------------------
+Visual Hierarchy  |   70  | Row of 3, equal weight
+Affordance        |   80  | Button-like
+Feedback          |   75  | Toast on success
+Accessibility     |   50  | FAIL - Missing aria-labels
+Touch Target      |   85  | py-3 full height
+Error Handling    |   70  | Toast on failure
+Loading States    |   50  | FAIL - No loading indication for share
+Responsiveness    |   80  | Grid layout works
+Consistency       |   85  | Match other secondary buttons
+Delight           |   65  | Save changes text briefly
+AVERAGE           |   71  | FAIL
+
+Fixes Needed:
+- Add aria-labels
+- Add loading state for share
+- Add icons that animate on success
+
+--------------------------------------------------------------------------------
+                            FEEDBACK SYSTEMS
+--------------------------------------------------------------------------------
+
+[22] TOAST NOTIFICATIONS
+
+Factor            | Score | Issue
+------------------|-------|------------------------------------------------------
+Visual Hierarchy  |   80  | Center bottom, prominent
+Affordance        |  N/A  |
+Feedback          |   85  | Slides in/out
+Accessibility     |   40  | FAIL - No role="alert", no aria-live
+Touch Target      |  N/A  |
+Error Handling    |  N/A  |
+Loading States    |  N/A  |
+Responsiveness    |   80  |
+Consistency       |   80  |
+Delight           |   75  | Nice bounce animation
+AVERAGE           |   73  | FAIL
+
+Fixes Needed:
+- Add role="alert" and aria-live="polite"
+- Add dismiss button
+- Add different colors for error/success/info
+
+--------------------------------------------------------------------------------
+
+[23] NO RESULTS STATE
+
+Factor            | Score | Issue
+------------------|-------|------------------------------------------------------
+Visual Hierarchy  |   80  | Centered, emoji attention-grabber
+Affordance        |   50  | FAIL - No action to take
+Feedback          |  N/A  |
+Accessibility     |   60  | Could use better text structure
+Touch Target      |  N/A  |
+Error Handling    |   75  | Suggests widening search
+Loading States    |  N/A  |
+Responsiveness    |   80  |
+Consistency       |   75  | Matches card style
+Delight           |   65  | Moon emoji is nice
+AVERAGE           |   69  | FAIL
+
+Fixes Needed:
+- Add "Try again" button
+- Add specific suggestions (different day, borough, time)
+- Add animation on appear
+
+================================================================================
+                       SUMMARY SCORES BY INTERACTION
+================================================================================
+
+#  | Interaction                    | Average | Status
+---|--------------------------------|---------|--------
+1  | Day of Week Select             |   70    | FAIL
+2  | Start Time Input               |   62    | CRITICAL
+3  | Duration Select                |   73    | FAIL
+4  | Use My Location Button         |   79    | WARNING
+5  | Origin Search Input            |   75    | WARNING
+6  | Search Clear Button            |   54    | CRITICAL
+7  | Dropdown Items                 |   73    | FAIL
+8  | Selected Origin Display        |   60    | CRITICAL
+9  | Customize Experience Accordion |   62    | CRITICAL
+10 | Radio Pills                    |   76    | WARNING
+11 | Borough Chips                  |   69    | FAIL
+12 | Neighborhood Chips             |   62    | CRITICAL
+13 | Anchor Dropdowns               |   62    | CRITICAL
+14 | Find Open Mics Button          |   84    | PASS
+15 | Loading State                  |   73    | FAIL
+16 | Results Map                    |   68    | FAIL
+17 | Map Recenter Button            |   69    | FAIL
+18 | Result Cards                   |   72    | FAIL
+19 | Card Action Buttons            |   60    | CRITICAL
+20 | Show Live Times Button         |   61    | CRITICAL
+21 | Copy/Share/Save Buttons        |   71    | FAIL
+22 | Toast Notifications            |   73    | FAIL
+23 | No Results State               |   69    | FAIL
+
+================================================================================
+                       OVERALL SCORES BY FACTOR
+================================================================================
+
+Factor           | Average | Status
+-----------------|---------|------------------
+Visual Hierarchy |   77    | WARNING
+Affordance       |   74    | WARNING
+Feedback         |   71    | FAIL
+ACCESSIBILITY    |   43    | CRITICAL DISASTER
+Touch Target     |   71    | FAIL
+Error Handling   |   62    | CRITICAL
+Loading States   |   60    | CRITICAL
+Responsiveness   |   76    | WARNING
+Consistency      |   79    | WARNING
+Delight          |   60    | CRITICAL
+
+================================================================================
+                       CRITICAL ISSUES (Must Fix First)
+================================================================================
+
+1. ACCESSIBILITY IS BROKEN (avg 43/100)
+   - No ARIA labels on most interactive elements
+   - Hidden radio inputs have no focus indication
+   - Search dropdown lacks combobox pattern
+   - Toasts lack role="alert"
+   - Map is completely inaccessible
+
+2. TOUCH TARGETS TOO SMALL (6 interactions below 44px)
+   - Search clear button: 24px
+   - Neighborhood chips: 26px
+   - Card action buttons: ~32px
+   - Show live times: no padding
+
+3. LOADING STATES MISSING
+   - Geolocation has no spinner
+   - Search has no loading skeleton
+   - Map has no skeleton
+   - Directions button has no feedback
+
+4. ERROR HANDLING WEAK
+   - No recovery options on failures
+   - No validation on time inputs
+   - No specific guidance on no results
+
+================================================================================
+                          IMPLEMENTATION PHASES
+================================================================================
+
+PHASE 1: Accessibility (Critical)
+---------------------------------
+1. Add proper ARIA attributes to all form controls
+2. Add role="alert" and aria-live to toasts
+3. Add combobox pattern to search
+4. Add focus-visible rings to all interactive elements
+5. Add aria-labels to icon-only buttons
+
+PHASE 2: Touch Targets
+----------------------
+1. Increase all buttons to minimum 44px
+2. Increase clear button to 36px
+3. Increase neighborhood chips to 36px
+4. Add proper padding to inline buttons
+
+PHASE 3: Loading & Feedback
+---------------------------
+1. Add skeleton loaders (search, map)
+2. Add spinners to async buttons
+3. Add progress animations
+4. Add success/error feedback animations
+
+PHASE 4: Delight & Polish
+-------------------------
+1. Add staggered animations for lists
+2. Add micro-interactions on selection
+3. Smooth accordion transitions
+4. Card entrance animations
+
+PHASE 5: Error Handling
+-----------------------
+1. Add validation to time inputs
+2. Add recovery buttons on errors
+3. Add specific "No Results" suggestions
+4. Add "Try Again" flows
+
+================================================================================
+                              VERIFICATION
+================================================================================
+
+After each phase, re-grade all 23 interactions on all 10 factors.
+Continue iterating until ALL interactions score 90+ on ALL factors.
+
+================================================================================

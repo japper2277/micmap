@@ -64,6 +64,11 @@ function persistPlanState() {
     if (typeof renderCalendarDots === 'function') {
         renderCalendarDots();
     }
+
+    // Keep date chip schedule count in sync after add/remove/reorder actions.
+    if (typeof updateCalendarButtonDisplay === 'function' && STATE.selectedCalendarDate) {
+        updateCalendarButtonDisplay(STATE.selectedCalendarDate);
+    }
 }
 
 // Update body class based on route state (for overlay visibility)
@@ -222,12 +227,20 @@ function removeFromRoute(micId) {
 function undoableRemoveFromRoute(micId) {
     const mic = STATE.mics.find(m => m.id === micId);
     const name = mic ? (mic.title || mic.venue || 'Mic') : 'Mic';
+    const activeDate = (typeof getActivePlanningDate === 'function')
+        ? getActivePlanningDate()
+        : new Date(STATE.selectedCalendarDate || Date.now());
+    const dayLabel = Number.isNaN(activeDate.getTime())
+        ? 'selected'
+        : activeDate.toLocaleDateString('en-US', { weekday: 'long' });
     const prevRoute = [...STATE.route];
     const prevDismissed = [...STATE.dismissed];
     removeFromRoute(micId);
     if (typeof toastService !== 'undefined') {
-        toastService.show(`Removed ${name}`, 'info', {
-            duration: 5000,
+        toastService.show(`Removed ${name} from ${dayLabel} schedule`, 'warning', {
+            duration: 7000,
+            pulsate: true,
+            className: 'toast-undo-remove',
             action: () => {
                 STATE.route = prevRoute;
                 STATE.dismissed = prevDismissed;
@@ -236,9 +249,9 @@ function undoableRemoveFromRoute(micId) {
                 updateMarkerStates();
                 updateRouteLine();
                 persistPlanState();
-                toastService.show(`${name} restored`, 'success', 2000);
+                toastService.show(`${name} restored to ${dayLabel} schedule`, 'success', 2200);
             },
-            actionLabel: 'Undo'
+            actionLabel: 'Undo remove'
         });
     }
 }

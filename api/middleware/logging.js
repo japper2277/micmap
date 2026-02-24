@@ -31,16 +31,22 @@ function requestLoggingMiddleware(req, res, next) {
   // Intercept res.json to log after response is sent
   const originalJson = res.json.bind(res);
   res.json = function(data) {
-    const duration = Date.now() - startTime;
-    logRequest(req, res, duration);
+    if (!res._logged) {
+      res._logged = true;
+      const duration = Date.now() - startTime;
+      logRequest(req, res, duration);
+    }
     return originalJson(data);
   };
 
   // Also handle res.send
   const originalSend = res.send.bind(res);
   res.send = function(data) {
-    const duration = Date.now() - startTime;
-    logRequest(req, res, duration);
+    if (!res._logged) {
+      res._logged = true;
+      const duration = Date.now() - startTime;
+      logRequest(req, res, duration);
+    }
     return originalSend(data);
   };
 

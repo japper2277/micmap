@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Time Pill Demo</title>
+<style>
+  body { background: #1a1a2e; color: #fff; font-family: -apple-system, sans-serif; display: flex; justify-content: center; padding: 60px 20px; }
+  .modal { background: #16213e; border-radius: 16px; padding: 24px; width: 340px; }
+  .header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 4px; }
+  .venue { font-size: 22px; font-weight: 700; }
+  .pills { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+  .pill { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; border: 1.5px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.8); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; }
+  .pill:hover { border-color: rgba(74,222,128,0.5); background: rgba(74,222,128,0.1); }
+  .pill.added { background: #4ade80; border-color: #4ade80; color: #000; font-weight: 700; }
+  .pill svg { width: 14px; height: 14px; flex-shrink: 0; }
+  .pill .spots { font-size: 11px; opacity: 0.6; }
+  .pill.added .spots { color: #000; opacity: 0.7; }
+  .hint { text-align: right; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.3); margin-top: 6px; margin-bottom: 12px; }
+  .address { color: #60a5fa; font-size: 14px; margin-bottom: 12px; }
+  .info { display: flex; gap: 8px; margin-bottom: 16px; }
+  .tag { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 4px 10px; font-size: 13px; }
+  .btn { width: 100%; padding: 14px; border-radius: 12px; border: none; font-size: 15px; font-weight: 600; cursor: pointer; text-align: center; }
+  .signup { background: linear-gradient(135deg, #3b82f6, #6366f1); color: #fff; margin-bottom: 10px; }
+  .ig { background: linear-gradient(135deg, #f43f5e, #ec4899); color: #fff; }
+</style>
+</head>
+<body>
+<div class="modal">
+  <div class="header">
+    <div class="venue">Sesh Comedy</div>
+    <div class="pills" id="pills">
+      <button class="pill" onclick="toggle(this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        <span>5:00</span>
+        <span class="spots">10/12</span>
+      </button>
+      <button class="pill" onclick="toggle(this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        <span>6:00</span>
+        <span class="spots">2/12</span>
+      </button>
+    </div>
+  </div>
+  <div class="hint">tap to schedule</div>
+  <div class="address">◎ 55 Chrystie St, NY →</div>
+  <div class="info">
+    <span class="tag">⏱ 5min</span>
+    <span class="tag">$5</span>
+  </div>
+  <button class="btn signup">Sign Up Online (10/12 spots)</button>
+  <button class="btn ig">◎ Instagram</button>
+</div>
+<script>
+const plus = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>`;
+const check = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+function toggle(btn) {
+  btn.classList.toggle('added');
+  const isAdded = btn.classList.contains('added');
+  btn.querySelector('svg').outerHTML = isAdded ? check : plus;
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Commute Badge Demo</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            background: #1a1a1a;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro', system-ui, sans-serif;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+        }
+        h2 { margin: 0 0 16px; font-size: 14px; color: #888; font-weight: 400; }
+        .card {
+            background: #000;
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 360px;
+        }
+        .venue-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4ade80;
+        }
+        .venue-name {
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        /* ========== CURRENT (BEFORE) ========== */
+        .commute-current {
+            color: #4da6ff;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            font-size: 13px;
+        }
+        .commute-current svg {
+            width: 14px;
+            height: 14px;
+            margin-right: 4px;
+            fill: currentColor;
+        }
+
+        /* ========== NEW OPTIONS ========== */
+
+        /* Option A: Subtle dark pill */
+        .commute-pill-dark {
+            color: #4da6ff;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            font-size: 12px;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 4px 10px;
+            border-radius: 12px;
+            gap: 5px;
+        }
+        .commute-pill-dark svg {
+            width: 13px;
+            height: 13px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+        }
+
+        /* Option B: Border only pill */
+        .commute-pill-border {
+            color: #4da6ff;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            font-size: 12px;
+            border: 1px solid rgba(77, 166, 255, 0.3);
+            padding: 3px 9px;
+            border-radius: 12px;
+            gap: 5px;
+        }
+        .commute-pill-border svg {
+            width: 13px;
+            height: 13px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+        }
+
+        /* Option C: Blue tinted pill */
+        .commute-pill-blue {
+            color: #4da6ff;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            font-size: 12px;
+            background: rgba(77, 166, 255, 0.12);
+            padding: 4px 10px;
+            border-radius: 12px;
+            gap: 5px;
+        }
+        .commute-pill-blue svg {
+            width: 13px;
+            height: 13px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+        }
+
+        /* Option D: No pill, just new icon */
+        .commute-no-pill {
+            color: #4da6ff;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            font-size: 13px;
+            gap: 4px;
+        }
+        .commute-no-pill svg {
+            width: 14px;
+            height: 14px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+        }
+
+        /* Option E: Emoji + dark pill */
+        .commute-emoji-pill {
+            color: #4da6ff;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            font-size: 12px;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 4px 10px;
+            border-radius: 12px;
+            gap: 4px;
+        }
+        .commute-emoji-pill .emoji {
+            font-size: 11px;
+        }
+
+        /* Option F: Emoji no pill */
+        .commute-emoji {
+            color: #4da6ff;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            font-size: 13px;
+            gap: 4px;
+        }
+        .commute-emoji .emoji {
+            font-size: 12px;
+        }
+
+        /* Option H: MTA Line Badge */
+        .commute-mta {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #8e8e93;
+        }
+        .commute-mta .mta-badge {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+            color: #fff;
+        }
+        /* MTA Colors - OFFICIAL (for comparison) */
+        .b-L { background: #A7A9AC; }
+        .b-G { background: #6CBE45; }
+        .b-N, .b-Q, .b-R, .b-W { background: #FCCC0A; color: #000; }
+        .b-1, .b-2, .b-3 { background: #EE352E; }
+        .b-4, .b-5, .b-6 { background: #00933C; }
+        .b-7 { background: #B933AD; }
+        .b-A, .b-C, .b-E { background: #0039A6; }
+        .b-B, .b-D, .b-F, .b-M { background: #FF6319; }
+        .b-J, .b-Z { background: #996633; }
+        .b-S { background: #808183; }
+
+        /* CUSTOM Colors - Legally distinct, still recognizable */
+        .c-L { background: #8a8c8f; }  /* Darker gray */
+        .c-G { background: #4a9e2f; }  /* Deeper green */
+        .c-N, .c-Q, .c-R, .c-W { background: #e8b800; color: #000; }  /* Deeper gold */
+        .c-1, .c-2, .c-3 { background: #d42a2a; }  /* Deeper red */
+        .c-4, .c-5, .c-6 { background: #007a32; }  /* Darker green */
+        .c-7 { background: #9c2a91; }  /* Deeper purple */
+        .c-A, .c-C, .c-E { background: #003087; }  /* Darker blue */
+        .c-B, .c-D, .c-F, .c-M { background: #e85a10; }  /* Deeper orange */
+        .c-J, .c-Z { background: #7a5229; }  /* Darker brown */
+        .c-S { background: #6a6b6d; }  /* Darker gray */
+
+        /* Option I: MTA Badge + pill */
+        .commute-mta-pill {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #8e8e93;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 3px 10px 3px 5px;
+            border-radius: 14px;
+        }
+        .commute-mta-pill .mta-badge {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        /* Option J: Multi-line MTA */
+        .commute-mta-multi {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #8e8e93;
+        }
+        .commute-mta-multi .mta-badge {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 700;
+            color: #fff;
+        }
+        .commute-mta-multi .time {
+            margin-left: 2px;
+        }
+
+        .label {
+            font-size: 11px;
+            color: #666;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <h2>CURRENT (BEFORE)</h2>
+        <div class="card">
+            <div class="venue-info">
+                <div class="dot"></div>
+                <div class="venue-name">Easy Lover BK</div>
+            </div>
+            <div class="commute-current">
+                <svg viewBox="0 0 24 24"><path d="M12 2c-4 0-8 .5-8 4v9.5C4 17.43 5.57 19 7.5 19L6 20.5v.5h2.23l2-2H14l2 2h2v-.5L16.5 19c1.93 0 3.5-1.57 3.5-3.5V6c0-3.5-3.58-4-8-4zM7.5 17c-.83 0-1.5-.67-1.5-1.5S6.67 14 7.5 14s1.5.67 1.5 1.5S8.33 17 7.5 17zm3.5-6H6V8h5v3zm2 0V8h5v3h-5zm3.5 6c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+                25m
+            </div>
+        </div>
+        <div class="label">Chunky filled icon, no container</div>
+    </div>
+
+    <div>
+        <h2>OPTION A: Subtle dark pill (recommended)</h2>
+        <div class="card">
+            <div class="venue-info">
+                <div class="dot"></div>
+                <div class="venue-name">Easy Lover BK</div>
+            </div>
+            <div class="commute-pill-dark">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="4" y="3" width="16" height="16" rx="2"/>
+                    <path d="M4 11h16"/>
+                    <path d="M12 3v8"/>
+                    <path d="m8 19-2 3"/>
+                    <path d="m18 22-2-3"/>
+                    <path d="M8 15h.01"/>
+                    <path d="M16 15h.01"/>
+                </svg>
+                25m
+            </div>
+        </div>
+        <div class="label">Clean stroke icon + rgba(255,255,255,0.08) background</div>
+    </div>
+
+    <div>
+        <h2>OPTION B: Border only</h2>
+        <div class="card">
+            <div class="venue-info">
+                <div class="dot"></div>
+                <div class="venue-name">Easy Lover BK</div>
+            </div>
+            <div class="commute-pill-border">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="4" y="3" width="16" height="16" rx="2"/>
+                    <path d="M4 11h16"/>
+                    <path d="M12 3v8"/>
+                    <path d="m8 19-2 3"/>
+                    <path d="m18 22-2-3"/>
+                    <path d="M8 15h.01"/>
+                    <path d="M16 15h.01"/>
+                </svg>
+                25m
+            </div>
+        </div>
+        <div class="label">Border with blue tint, no fill</div>
+    </div>
+
+    <div>
+        <h2>OPTION C: Blue tinted pill</h2>
+        <div class="card">
+            <div class="venue-info">
+                <div class="dot"></div>
+                <div class="venue-name">Easy Lover BK</div>
+            </div>
+            <div class="commute-pill-blue">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="4" y="3" width="16" height="16" rx="2"/>
+                    <path d="M4 11h16"/>
+                    <path d="M12 3v8"/>
+                    <path d="m8 19-2 3"/>
+                    <path d="m18 22-2-3"/>
+                    <path d="M8 15h.01"/>
+                    <path d="M16 15h.01"/>
+                </svg>
+                25m
+            </div>
+        </div>
+        <div class="label">Blue-tinted background rgba(77,166,255,0.12)</div>
+    </div>
+
+    <div>
+        <h2>OPTION D: New icon only (no pill)</h2>
+        <div class="card">
+            <div class="venue-info">
+                <div class="dot"></div>
+                <div class="venue-name">Easy Lover BK</div>
+            </div>
+            <div class="commute-no-pill">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="4" y="3" width="16" height="16" rx="2"/>
+                    <path d="M4 11h16"/>
+                    <path d="M12 3v8"/>
+                    <path d="m8 19-2 3"/>
+                    <path d="m18 22-2-3"/>
+                    <path d="M8 15h.01"/>
+                    <path d="M16 15h.01"/>
+                </svg>
+                25m
+            </div>
+        </div>
+        <div class="label">Just the cleaner Lucide icon, no background</div>
+    </div>
+
+    <div>
+        <h2>OPTION E: Emoji + dark pill</h2>
+        <div class="card">
+            <div class="venue-info">
+                <div class="dot"></div>
+                <div class="venue-name">Easy Lover BK</div>
+            </div>
+            <div class="commute-emoji-pill">
+                <span class="emoji">🚇</span>
+                25m
+            </div>
+        </div>
+        <div class="label">Subway emoji + subtle pill background</div>
+    </div>
+
+    <div>
+        <h2>OPTION F: Emoji only (no pill)</h2>
+        <div class="card">
+            <div class="venue-info">
+                <div class="dot"></div>
+                <div class="venue-name">Easy Lover BK</div>
+            </div>
+            <div class="commute-emoji">
+                <span class="emoji">🚇</span>
+                25m
+            </div>
+        </div>
+        <div class="label">Just emoji, no container - simplest option</div>
+    </div>
+
+    <div>
+        <h2>OPTION G: Train emoji variant</h2>
+        <div class="card">
+            <div class="venue-info">
+                <div class="dot"></div>
+                <div class="venue-name">Easy Lover BK</div>
+            </div>
+            <div class="commute-emoji-pill">
+                <span class="emoji">🚆</span>
+                25m
+            </div>
+        </div>
+        <div class="label">Alternative train emoji (🚆 vs 🚇)</div>
+    </div>
+
+    <hr style="border: none; border-top: 1px solid #333; margin: 40px 0;">
+    <h1 style="font-size: 16px; color: #4da6ff; margin-bottom: 24px;">⭐ MTA LINE BADGE OPTIONS</h1>
+
+    <div>
+        <h2>OFFICIAL vs CUSTOM COLORS (side by side)</h2>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap; margin: 12px 0;">
+            <div style="text-align: center;">
+                <div class="mta-badge b-L" style="width:24px;height:24px;font-size:14px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;font-weight:700;color:#fff;">L</div>
+                <div style="font-size:10px;color:#666;margin-top:4px;">Official</div>
+            </div>
+            <div style="text-align: center;">
+                <div class="mta-badge c-L" style="width:24px;height:24px;font-size:14px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;font-weight:700;color:#fff;">L</div>
+                <div style="font-size:10px;color:#4da6ff;margin-top:4px;">Custom</div>
+            </div>
+            <div style="width:20px;"></div>
+            <div style="text-align: center;">
+                <div class="mta-badge b-N" style="width:24px;height:24px;font-size:14px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;font-weight:700;color:#000;">N</div>
+                <div style="font-size:10px;color:#666;margin-top:4px;">Official</div>
+            </div>
+            <div style="text-align: center;">
+                <div class="mta-badge c-N" style="width:24px;height:24px;font-size:14px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;font-weight:700;color:#000;">N</div>
+                <div style="font-size:10px;color:#4da6ff;margin-top:4px;">Custom</div>
+            </div>
+            <div style="width:20px;"></div>
+            <div style="text-align: center;">
+                <div class="mta-badge b-A" style="width:24px;height:24px;font-size:14px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;font-weight:700;color:#fff;">A</div>
+                <div style="font-size:10px;color:#666;margin-top:4px;">Official</div>
+            </div>
+            <div style="text-align: center;">
+                <div class="mta-badge c-A" style="width:24px;height:24px;font-size:14px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;font-weight:700;color:#fff;">A</div>
+                <div style="font-size:10px;color:#4da6ff;margin-top:4px;">Custom</div>
+            </div>
+            <div style="width:20px;"></div>
+            <div style="text-align: center;">
+                <div class="mta-badge b-1" style="width:24px;height:24px;font-size:14px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;font-weight:700;color:#fff;">1</div>
+                <div style="font-size:10px;color:#666;margin-top:4px;">Official</div>
+            </div>
+            <div style="text-align: center;">
+                <div class="mta-badge c-1" style="width:24px;height:24px;font-size:14px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;font-weight:700;color:#fff;">1</div>
+                <div style="font-size:10px;color:#4da6ff;margin-top:4px;">Custom</div>
+            </div>
+            <div style="width:20px;"></div>
+            <div style="text-align: center;">
+                <div class="mta-badge b-G" style="width:24px;height:24px;font-size:14px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;font-weight:700;color:#fff;">G</div>
+                <div style="font-size:10px;color:#666;margin-top:4px;">Official</div>
+            </div>
+            <div style="text-align: center;">
+                <div class="mta-badge c-G" style="width:24px;height:24px;font-size:14px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;font-weight:700;color:#fff;">G</div>
+                <div style="font-size:10px;color:#4da6ff;margin-top:4px;">Custom</div>
+            </div>
+            <div style="width:20px;"></div>
+            <div style="text-align: center;">
+                <div class="mta-badge b-7" style="width:24px;height:24px;font-size:14px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;font-weight:700;color:#fff;">7</div>
+                <div style="font-size:10px;color:#666;margin-top:4px;">Official</div>
+            </div>
+            <div style="text-align: center;">
+                <div class="mta-badge c-7" style="width:24px;height:24px;font-size:14px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;font-weight:700;color:#fff;">7</div>
+                <div style="font-size:10px;color:#4da6ff;margin-top:4px;">Custom</div>
+            </div>
+            <div style="width:20px;"></div>
+            <div style="text-align: center;">
+                <div class="mta-badge b-B" style="width:24px;height:24px;font-size:14px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;font-weight:700;color:#fff;">B</div>
+                <div style="font-size:10px;color:#666;margin-top:4px;">Official</div>
+            </div>
+            <div style="text-align: center;">
+                <div class="mta-badge c-B" style="width:24px;height:24px;font-size:14px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;font-weight:700;color:#fff;">B</div>
+                <div style="font-size:10px;color:#4da6ff;margin-top:4px;">Custom</div>
+            </div>
+        </div>
+        <div class="label">Custom colors are ~10-15% darker/deeper. Still instantly recognizable, legally distinct.</div>
+    </div>
+
+    <div>
+        <h2>CUSTOM COLORS IN CONTEXT</h2>
+        <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-top: 12px;">
+            <div class="card" style="flex: 1; min-width: 200px;">
+                <div class="venue-info">
+                    <div class="dot"></div>
+                    <div class="venue-name">Easy Lover BK</div>
+                </div>
+                <div class="commute-mta">
+                    <div class="mta-badge c-L">L</div>
+                    25m
+                </div>
+            </div>
+            <div class="card" style="flex: 1; min-width: 200px;">
+                <div class="venue-info">
+                    <div class="dot" style="background: #f87171;"></div>
+                    <div class="venue-name">Comedy Cellar</div>
+                </div>
+                <div class="commute-mta">
+                    <div class="mta-badge c-A">A</div>
+                    18m
+                </div>
+            </div>
+            <div class="card" style="flex: 1; min-width: 200px;">
+                <div class="venue-info">
+                    <div class="dot"></div>
+                    <div class="venue-name">QED Astoria</div>
+                </div>
+                <div class="commute-mta">
+                    <div class="mta-badge c-N">N</div>
+                    32m
+                </div>
+            </div>
+        </div>
+        <div class="label">Your custom palette in action - still reads as L, A, N trains</div>
+    </div>
+
+    <hr style="border: none; border-top: 1px solid #333; margin: 40px 0;">
+    <h1 style="font-size: 14px; color: #666; margin-bottom: 24px;">OFFICIAL MTA COLORS (for reference)</h1>
+
+    <div>
+        <h2>OPTION H: Single MTA line badge</h2>
+        <div class="card">
+            <div class="venue-info">
+                <div class="dot"></div>
+                <div class="venue-name">Easy Lover BK</div>
+            </div>
+            <div class="commute-mta">
+                <div class="mta-badge b-L">L</div>
+                25m
+            </div>
+        </div>
+        <div class="label">Shows the primary line you'd take - instantly recognizable</div>
+    </div>
+
+    <div>
+        <h2>OPTION I: MTA badge + pill background</h2>
+        <div class="card">
+            <div class="venue-info">
+                <div class="dot"></div>
+                <div class="venue-name">Easy Lover BK</div>
+            </div>
+            <div class="commute-mta-pill">
+                <div class="mta-badge b-L">L</div>
+                25m
+            </div>
+        </div>
+        <div class="label">Badge + subtle container</div>
+    </div>
+
+    <div>
+        <h2>OPTION J: Multi-line transfer (N→L)</h2>
+        <div class="card">
+            <div class="venue-info">
+                <div class="dot"></div>
+                <div class="venue-name">Easy Lover BK</div>
+            </div>
+            <div class="commute-mta-multi">
+                <div class="mta-badge b-N">N</div>
+                <div class="mta-badge b-L">L</div>
+                <span class="time">25m</span>
+            </div>
+        </div>
+        <div class="label">Shows both lines when there's a transfer</div>
+    </div>
+
+    <div>
+        <h2>Various lines examples</h2>
+        <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-top: 12px;">
+            <div class="card" style="flex: 1; min-width: 200px;">
+                <div class="venue-info">
+                    <div class="dot" style="background: #f87171;"></div>
+                    <div class="venue-name">Comedy Cellar</div>
+                </div>
+                <div class="commute-mta">
+                    <div class="mta-badge b-A">A</div>
+                    18m
+                </div>
+            </div>
+            <div class="card" style="flex: 1; min-width: 200px;">
+                <div class="venue-info">
+                    <div class="dot"></div>
+                    <div class="venue-name">QED Astoria</div>
+                </div>
+                <div class="commute-mta">
+                    <div class="mta-badge b-N">N</div>
+                    32m
+                </div>
+            </div>
+            <div class="card" style="flex: 1; min-width: 200px;">
+                <div class="venue-info">
+                    <div class="dot"></div>
+                    <div class="venue-name">The Stand</div>
+                </div>
+                <div class="commute-mta-multi">
+                    <div class="mta-badge b-4">4</div>
+                    <div class="mta-badge b-6">6</div>
+                    <span class="time">14m</span>
+                </div>
+            </div>
+        </div>
+        <div class="label">Real MTA colors - users instantly know which train</div>
+    </div>
+</body>
+</html>

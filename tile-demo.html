@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NYC Subway Map Demo</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+        }
+        #map {
+            width: 100vw;
+            height: 100vh;
+        }
+        .status {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.8);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <div class="status" id="status">Loading subway lines...</div>
+
+    <script>
+        const NYC = [40.7580, -73.9855];
+        const ZOOM = 13;
+
+        // MTA subway line colors
+        const LINE_COLORS = {
+            '1': '#EE352E', '2': '#EE352E', '3': '#EE352E',
+            '4': '#00933C', '5': '#00933C', '6': '#00933C',
+            '7': '#B933AD',
+            'A': '#2850AD', 'C': '#2850AD', 'E': '#2850AD',
+            'B': '#FF6319', 'D': '#FF6319', 'F': '#FF6319', 'M': '#FF6319',
+            'G': '#6CBE45',
+            'J': '#996633', 'Z': '#996633',
+            'L': '#A7A9AC',
+            'N': '#FCCC0A', 'Q': '#FCCC0A', 'R': '#FCCC0A', 'W': '#FCCC0A',
+            'S': '#808183', 'SIR': '#2850AD'
+        };
+
+        // Create map
+        const map = L.map('map').setView(NYC, ZOOM);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            maxZoom: 19
+        }).addTo(map);
+
+        // Load subway lines
+        async function loadSubwayLines() {
+            const statusEl = document.getElementById('status');
+
+            try {
+                const response = await fetch('./public/data/subway-lines.geojson');
+                const geojson = await response.json();
+
+                L.geoJSON(geojson, {
+                    style: function(feature) {
+                        const route = feature.properties.rt_symbol || 'S';
+                        return {
+                            color: LINE_COLORS[route] || '#888',
+                            weight: 4,
+                            opacity: 0.85
+                        };
+                    }
+                }).addTo(map);
+
+                statusEl.textContent = `Loaded ${geojson.features.length} subway segments`;
+                setTimeout(() => statusEl.style.opacity = '0', 2000);
+
+            } catch (err) {
+                console.error(err);
+                statusEl.textContent = 'Failed to load subway data';
+            }
+        }
+
+        loadSubwayLines();
+    </script>
+</body>
+</html>

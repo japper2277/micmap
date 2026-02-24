@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mic Card Info Row - Design Comparison</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+            background: #1a1a1a;
+            color: white;
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 40px;
+            color: #888;
+        }
+
+        .comparison {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: #000;
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px solid #333;
+        }
+
+        .label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #666;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #333;
+        }
+
+        /* ============ BEFORE (Current) ============ */
+        .before .address-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .before .pin-icon {
+            color: #64D2FF;
+            font-size: 16px;
+        }
+
+        .before .address {
+            color: #64D2FF;
+            font-size: 14px;
+            flex: 1;
+        }
+
+        .before .arrow {
+            color: #64D2FF;
+            opacity: 0.7;
+        }
+
+        .before .info-row {
+            color: #8e8e93;
+            font-size: 12px;
+            margin-bottom: 16px;
+        }
+
+        /* ============ AFTER (Redesigned) ============ */
+        .after .address-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .after .pin-icon {
+            color: #64D2FF;
+            font-size: 16px;
+        }
+
+        .after .address {
+            color: #64D2FF;
+            font-size: 14px;
+            flex: 1;
+        }
+
+        .after .arrow {
+            color: #64D2FF;
+            opacity: 0.7;
+        }
+
+        .after .info-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .pill-price {
+            background: rgba(52, 199, 89, 0.15);
+            color: #34C759;
+        }
+
+        .pill-price.free {
+            background: rgba(52, 199, 89, 0.2);
+            color: #30D158;
+        }
+
+        .pill-set {
+            background: rgba(255, 255, 255, 0.08);
+            color: #e5e5e5;
+        }
+
+        .pill-set svg {
+            width: 14px;
+            height: 14px;
+            opacity: 0.7;
+        }
+
+        /* ============ OPTION 2: Minimal pills ============ */
+        .option2 .info-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.1);
+            color: #ccc;
+        }
+
+        .chip-green {
+            background: rgba(52, 199, 89, 0.2);
+            color: #34C759;
+        }
+
+        .chip-label {
+            font-size: 11px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        /* ============ OPTION 3: Icon-led ============ */
+        .option3 .info-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .info-item svg {
+            width: 16px;
+            height: 16px;
+            color: #8e8e93;
+        }
+
+        .info-item .value {
+            font-size: 14px;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .info-item .value.green {
+            color: #34C759;
+        }
+
+        /* ============ Info Text ============ */
+        .info-text {
+            font-size: 13px;
+            color: #8e8e93;
+            margin-bottom: 14px;
+            line-height: 1.4;
+        }
+
+        .info-text-highlight {
+            font-size: 13px;
+            color: #aaa;
+            margin-bottom: 14px;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border-left: 3px solid #64D2FF;
+        }
+
+        /* ============ Buttons (same for all) ============ */
+        .buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 14px;
+            border-radius: 14px;
+            font-size: 14px;
+            font-weight: 600;
+            text-align: center;
+            border: none;
+            cursor: pointer;
+            color: white;
+        }
+
+        .btn-primary {
+            background: linear-gradient(180deg, #2997FF 0%, #007AFF 100%);
+        }
+
+        .btn-ig {
+            background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fd5949 45%, #d6249f 60%, #285AEB 90%);
+        }
+
+        /* Divider */
+        .divider {
+            height: 1px;
+            background: #333;
+            margin: 40px 0;
+        }
+
+        .grade {
+            text-align: center;
+            margin-top: 8px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .grade span {
+            font-weight: 700;
+        }
+
+        .grade .bad { color: #FF453A; }
+        .grade .good { color: #34C759; }
+    </style>
+</head>
+<body>
+    <h1>Info Row Redesign Options</h1>
+
+    <div class="comparison">
+
+        <!-- BEFORE -->
+        <div class="card before">
+            <div class="label">Before (Current)</div>
+            <div class="address-row">
+                <span class="pin-icon">📍</span>
+                <span class="address">94 St Marks Pl, NY, USA</span>
+                <span class="arrow">→</span>
+            </div>
+            <div class="info-row">
+                7min · $10 · Online signup
+            </div>
+            <div class="buttons">
+                <button class="btn btn-primary">Sign Up</button>
+                <button class="btn btn-ig">IG</button>
+            </div>
+            <div class="grade">Clarity: <span class="bad">58/100</span></div>
+        </div>
+
+        <!-- OPTION 1: Pills + Info Text -->
+        <div class="card after">
+            <div class="label">Option 1: Pills + Useful Info</div>
+            <div class="address-row">
+                <span class="pin-icon">📍</span>
+                <span class="address">94 St Marks Pl, NY, USA</span>
+                <span class="arrow">→</span>
+            </div>
+            <div class="info-row">
+                <span class="pill pill-price">$10</span>
+                <span class="pill pill-set">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 6v6l4 2"/>
+                    </svg>
+                    5 min set
+                </span>
+            </div>
+            <div class="info-text">Sign up 30 min before</div>
+            <div class="buttons">
+                <button class="btn btn-primary">Sign Up</button>
+                <button class="btn btn-ig">IG</button>
+            </div>
+            <div class="grade">Clarity: <span class="good">85/100</span></div>
+        </div>
+
+        <!-- OPTION 2: Highlighted info box -->
+        <div class="card after option2">
+            <div class="label">Option 2: Highlighted Info Box</div>
+            <div class="address-row">
+                <span class="pin-icon">📍</span>
+                <span class="address">94 St Marks Pl, NY, USA</span>
+                <span class="arrow">→</span>
+            </div>
+            <div class="info-row">
+                <span class="chip chip-green">$10</span>
+                <span class="chip">5 min</span>
+            </div>
+            <div class="info-text-highlight">Email list@venue.com by 5pm to sign up</div>
+            <div class="buttons">
+                <button class="btn btn-primary">Email</button>
+                <button class="btn btn-ig">IG</button>
+            </div>
+            <div class="grade">Clarity: <span class="good">88/100</span></div>
+        </div>
+
+        <!-- OPTION 3: In-person signup -->
+        <div class="card after option3">
+            <div class="label">Option 3: In-Person Signup</div>
+            <div class="address-row">
+                <span class="pin-icon">📍</span>
+                <span class="address">94 St Marks Pl, NY, USA</span>
+                <span class="arrow">→</span>
+            </div>
+            <div class="info-row">
+                <div class="info-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
+                    </svg>
+                    <span class="value green">$10</span>
+                </div>
+                <div class="info-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 6v6l4 2"/>
+                    </svg>
+                    <span class="value">5 min</span>
+                </div>
+            </div>
+            <div class="info-text">Sign up in person 30 min before</div>
+            <div class="buttons">
+                <button class="btn btn-ig" style="grid-column: span 2;">IG</button>
+            </div>
+            <div class="grade">Clarity: <span class="good">82/100</span></div>
+        </div>
+
+        <!-- OPTION 4: FREE variant -->
+        <div class="card after">
+            <div class="label">Option 4: Free Mic + Drink Min</div>
+            <div class="address-row">
+                <span class="pin-icon">📍</span>
+                <span class="address">790 Metropolitan Ave, Brooklyn</span>
+                <span class="arrow">→</span>
+            </div>
+            <div class="info-row">
+                <span class="pill pill-price free">FREE</span>
+                <span class="pill pill-set">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 6v6l4 2"/>
+                    </svg>
+                    5 min set
+                </span>
+            </div>
+            <div class="info-text">1 drink minimum · Sign up in person</div>
+            <div class="buttons">
+                <button class="btn btn-ig" style="grid-column: span 2;">IG</button>
+            </div>
+            <div class="grade">Clarity: <span class="good">90/100</span></div>
+        </div>
+
+    </div>
+</body>
+</html>

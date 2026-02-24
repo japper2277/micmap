@@ -176,6 +176,29 @@ body.plan-mode .happening-now-card-label {
 }
 
 /* --- MY SCHEDULE CARD (Plan Mode) --- */
+.schedule-context-label {
+    position: sticky;
+    top: 6px;
+    z-index: 6;
+    margin: 10px 12px 2px;
+    padding: 6px 11px;
+    width: fit-content;
+    max-width: calc(100% - 24px);
+    border-radius: 999px;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    background: rgba(8, 26, 15, 0.78);
+    color: rgba(187, 247, 208, 0.95);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+    text-transform: uppercase;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .my-schedule-card {
     display: flex;
     align-items: center;
@@ -473,6 +496,26 @@ body.plan-mode .happening-now-card-label {
 .toast-action-btn:active {
     background: rgba(255, 255, 255, 0.30);
     transform: scale(0.96);
+}
+
+.toast-undo-remove {
+    border-color: rgba(34, 197, 94, 0.45);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.44), 0 0 0 1px rgba(34, 197, 94, 0.2) inset;
+}
+
+.toast-undo-remove .toast-message {
+    font-weight: 600;
+}
+
+.toast-undo-remove .toast-action-btn {
+    border: 1px solid rgba(34, 197, 94, 0.45);
+    background: rgba(34, 197, 94, 0.2);
+    color: rgba(187, 247, 208, 0.98);
+    font-weight: 700;
+}
+
+.toast-undo-remove .toast-action-btn:hover {
+    background: rgba(34, 197, 94, 0.3);
 }
 
 .my-schedule-remove {
@@ -2677,4 +2720,3 @@ body.plan-mode .stream-item.in-route .plan-commute-corner {
 .stream-item.schedule-conflict .schedule-add-btn {
     display: none;
 }
-

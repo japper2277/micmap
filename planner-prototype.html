@@ -1,0 +1,4185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plan My Night - MicFinder (UI Upgrade)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap">
+    <style>
+        :root {
+            --rose: #f43f5e;
+            --rose-glow: rgba(244, 63, 94, 0.6);
+            --bg-grad-start: #18181b;
+            --bg-grad-end: #050505;
+        }
+        * { box-sizing: border-box; }
+        
+        body {
+            background-color: var(--bg-grad-end);
+            background-image: radial-gradient(circle at 50% 0%, #27272a 0%, #050505 80%);
+            color: #fff;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            min-height: 100vh;
+            background-attachment: fixed;
+        }
+
+        /* --- GLASSMORPHISM CARD --- */
+        .card {
+            background: rgba(20, 20, 25, 0.65);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 24px;
+            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5);
+        }
+
+        /* --- INPUTS --- */
+        .input-field {
+            background: rgba(30, 30, 35, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
+            padding: 14px 16px;
+            color: #fff;
+            width: 100%;
+            height: 52px;
+            font-size: 16px;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.15s ease;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.15);
+        }
+        .input-field:hover {
+            background: rgba(40, 40, 45, 0.7);
+            border-color: rgba(255, 255, 255, 0.18);
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: var(--rose);
+            background: rgba(35, 35, 40, 0.8);
+            box-shadow: 0 0 0 2px rgba(244, 63, 94, 0.25), inset 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .input-field::placeholder { color: #71717a; }
+
+        /* Fix time input typography */
+        input[type="time"].input-field {
+            font-family: 'Inter', sans-serif;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 0;
+        }
+        input[type="time"].input-field::-webkit-calendar-picker-indicator {
+            filter: invert(0.8);
+            opacity: 0.8;
+            cursor: pointer;
+            padding: 8px;
+            margin-right: -4px;
+        }
+        input[type="time"].input-field::-webkit-calendar-picker-indicator:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        /* --- LABELS & HELPERS --- (FIXED: 12px minimum for mobile readability) */
+        .form-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #a1a1aa;
+            margin-bottom: 8px;
+            margin-left: 2px;
+        }
+        .form-helper {
+            display: block;
+            font-size: 12px;
+            color: #71717a;
+            margin-top: 6px;
+            margin-left: 2px;
+        }
+
+        /* Select styling */
+        select.input-field {
+            appearance: none;
+            background: rgba(30, 30, 35, 0.6) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23a1a1aa' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 14px center / 14px 14px;
+            padding-right: 40px;
+            cursor: pointer;
+        }
+        select.input-field:hover {
+            background: rgba(40, 40, 45, 0.7) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 14px center / 14px 14px;
+        }
+        select.input-field:focus {
+            background: rgba(35, 35, 40, 0.8) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 14px center / 14px 14px;
+        }
+        select.input-field option { background: #1c1c1e; color: #fff; padding: 12px; }
+
+        /* Select option change animation */
+        select.input-field {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        select.input-field:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        select.input-field:active {
+            transform: scale(0.99);
+        }
+
+        /* --- BUTTONS --- */
+        .btn-primary {
+            background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 14px;
+            padding: 18px 24px;
+            color: #fff;
+            font-weight: 700;
+            font-size: 16px;
+            letter-spacing: 0.02em;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 20px rgba(244, 63, 94, 0.4), inset 0 1px 0 rgba(255,255,255,0.2);
+        }
+        .btn-primary:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 8px 25px rgba(244, 63, 94, 0.5), inset 0 1px 0 rgba(255,255,255,0.2);
+        }
+        .btn-primary:active { transform: translateY(0); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; filter: grayscale(1); }
+
+        /* --- RADIO PILLS --- (FIXED: minimum 44px touch targets) */
+        .radio-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+        .radio-pill {
+            height: 44px;
+            min-width: 44px;
+            padding: 0 16px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 13px;
+            font-weight: 600;
+            color: #a1a1aa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .radio-pill:hover {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.2);
+            transform: translateY(-1px);
+        }
+        .radio-pill:active {
+            transform: scale(0.97);
+        }
+        .radio-pill.active {
+            background: rgba(244, 63, 94, 0.2);
+            border-color: var(--rose);
+            color: #fff;
+            box-shadow: 0 0 15px rgba(244, 63, 94, 0.2);
+            animation: pillPop 0.2s ease-out;
+        }
+        @keyframes pillPop {
+            0% { transform: scale(0.95); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+        .radio-pill input { display: none; }
+        /* Focus-visible for radio pills - keyboard accessibility */
+        .radio-pill:focus-within {
+            outline: 2px solid var(--rose);
+            outline-offset: 2px;
+            box-shadow: 0 0 0 4px rgba(244, 63, 94, 0.15);
+        }
+        .radio-pill:has(input:focus-visible) {
+            outline: 2px solid var(--rose);
+            outline-offset: 2px;
+            box-shadow: 0 0 0 4px rgba(244, 63, 94, 0.15);
+        }
+
+        /* Global focus-visible styles */
+        *:focus-visible {
+            outline: 2px solid var(--rose);
+            outline-offset: 2px;
+        }
+        button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible {
+            box-shadow: 0 0 0 4px rgba(244, 63, 94, 0.2);
+        }
+
+        /* Skip link for accessibility */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: var(--rose);
+            color: white;
+            padding: 8px 16px;
+            z-index: 10000;
+            border-radius: 0 0 8px 0;
+            font-weight: 600;
+            transition: top 0.3s;
+        }
+        .skip-link:focus {
+            top: 0;
+        }
+
+        /* --- DROPDOWNS (Google-style attached) --- */
+        .dropdown-container { position: relative; }
+        .dropdown-list {
+            position: absolute; top: 100%; left: 0; right: 0;
+            background: #1a1a1a;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-top: none;
+            border-radius: 0 0 12px 12px;
+            /* Show exactly 5 items (each ~56px) */
+            max-height: 280px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            z-index: 100;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+            /* Smooth animations */
+            opacity: 0;
+            transform: scaleY(0.95);
+            transform-origin: top;
+            transition: opacity 120ms ease, transform 120ms ease;
+            pointer-events: none;
+            visibility: hidden;
+        }
+        .dropdown-list.visible {
+            opacity: 1;
+            transform: scaleY(1);
+            pointer-events: auto;
+            visibility: visible;
+        }
+        .dropdown-list::-webkit-scrollbar { width: 6px; }
+        .dropdown-list::-webkit-scrollbar-track { background: transparent; }
+        .dropdown-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+        /* Round input when dropdown open */
+        .dropdown-container.dropdown-open .input-field {
+            border-radius: 12px 12px 0 0;
+            border-bottom-color: transparent;
+        }
+
+        /* Search input wrapper with icon and clear button */
+        .search-input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .search-input-wrapper .search-icon {
+            position: absolute;
+            left: 14px;
+            width: 20px;
+            height: 20px;
+            color: rgba(255, 255, 255, 0.5);
+            pointer-events: none;
+            z-index: 1;
+        }
+        .search-input-wrapper .input-field {
+            padding-left: 40px;
+            padding-right: 36px;
+        }
+        .search-input-wrapper .clear-btn {
+            position: absolute;
+            right: 4px;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 50%;
+            color: rgba(255, 255, 255, 0.6);
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 20px;
+            line-height: 1;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .search-input-wrapper .clear-btn.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .search-input-wrapper .clear-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            transform: scale(1.1);
+        }
+        .search-input-wrapper .clear-btn:active {
+            transform: scale(0.95);
+        }
+        .search-input-wrapper .clear-btn:focus-visible {
+            outline: 2px solid var(--rose);
+            outline-offset: 2px;
+        }
+
+        /* Google-style dropdown items */
+        .dropdown-item {
+            padding: 10px 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: background 0.1s;
+        }
+        .dropdown-item:hover, .dropdown-item.selected {
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .dropdown-item .item-icon {
+            width: 20px;
+            text-align: center;
+            font-size: 14px;
+            opacity: 0.6;
+        }
+        .dropdown-item .item-text {
+            flex: 1;
+            min-width: 0;
+        }
+        .dropdown-item .item-name {
+            font-size: 14px;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .dropdown-item .item-detail {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.4);
+            margin-top: 1px;
+        }
+        .dropdown-item:last-child {
+            border-radius: 0 0 12px 12px;
+        }
+        .match-highlight { color: var(--rose); font-weight: 600; }
+
+        /* Anchor mic bottom sheet modal */
+        .anchor-modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
+        }
+        .anchor-modal-backdrop.open {
+            opacity: 1;
+            visibility: visible;
+        }
+        .anchor-modal {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            max-height: 70vh;
+            background: #1a1a1a;
+            border-radius: 20px 20px 0 0;
+            z-index: 1000;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+            display: flex;
+            flex-direction: column;
+            padding-bottom: env(safe-area-inset-bottom, 0);
+            overflow: hidden;
+        }
+        .anchor-modal-backdrop.open .anchor-modal {
+            transform: translateY(0);
+        }
+        @media (min-width: 640px) {
+            .anchor-modal {
+                left: 50%;
+                right: auto;
+                transform: translateX(-50%) translateY(100%);
+                max-width: 480px;
+                width: 100%;
+            }
+            .anchor-modal-backdrop.open .anchor-modal {
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+        .anchor-modal-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .anchor-modal-header h3 {
+            font-size: 17px;
+            font-weight: 600;
+            color: #fff;
+            margin: 0;
+        }
+        .anchor-modal-close {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 50%;
+            color: #a1a1aa;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .anchor-modal-close:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+        }
+        .anchor-modal-search {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .anchor-modal-search input {
+            width: 100%;
+            height: 48px;
+            padding: 0 16px 0 44px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 16px;
+        }
+        .anchor-modal-search input:focus {
+            outline: none;
+            border-color: var(--rose);
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .anchor-modal-search input::placeholder {
+            color: #71717a;
+        }
+        .anchor-search-wrapper {
+            position: relative;
+        }
+        .anchor-search-wrapper::before {
+            content: '';
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2371717a' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'/%3E%3C/svg%3E") no-repeat center/contain;
+            pointer-events: none;
+        }
+        .anchor-modal-results {
+            flex: 1;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            padding: 8px 0;
+            min-height: 0;
+        }
+        .anchor-modal-results::-webkit-scrollbar { width: 6px; }
+        .anchor-modal-results::-webkit-scrollbar-track { background: transparent; }
+        .anchor-modal-results::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+        .anchor-result-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            gap: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .anchor-result-item:last-child {
+            border-bottom: none;
+        }
+        .anchor-result-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .anchor-result-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .anchor-result-meta {
+            font-size: 12px;
+            color: #71717a;
+            margin-top: 2px;
+        }
+        .anchor-result-actions {
+            display: flex;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+        .anchor-action-btn {
+            min-width: 36px;
+            height: 32px;
+            padding: 0 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #a1a1aa;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+        }
+        .anchor-action-btn:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+        }
+        .anchor-action-btn.selected {
+            background: rgba(244, 63, 94, 0.2);
+            border-color: rgba(244, 63, 94, 0.4);
+            color: #fda4af;
+        }
+        .anchor-action-btn .icon {
+            font-size: 14px;
+        }
+
+        /* Selected anchors chips */
+        .anchor-chips-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .anchor-chips-container:empty {
+            display: none;
+        }
+        .anchor-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(244, 63, 94, 0.12);
+            border: 1px solid rgba(244, 63, 94, 0.25);
+            border-radius: 10px;
+            padding: 8px 10px 8px 12px;
+            min-height: 44px;
+        }
+        .anchor-chip-icon {
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        .anchor-chip-content {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+        .anchor-chip-role {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #71717a;
+        }
+        .anchor-chip-name {
+            font-size: 13px;
+            font-weight: 500;
+            color: #fda4af;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 140px;
+        }
+        .anchor-chip-clear {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 50%;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 16px;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: all 0.15s ease;
+        }
+        .anchor-chip-clear:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+        }
+
+        /* Trigger button */
+        .anchor-trigger-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            height: 48px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: #a1a1aa;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .anchor-trigger-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+            color: #fff;
+        }
+        .anchor-trigger-btn .icon {
+            font-size: 18px;
+        }
+
+        /* Empty state in results */
+        .anchor-empty-state {
+            padding: 40px 20px;
+            text-align: center;
+            color: #71717a;
+        }
+        .anchor-empty-state .icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+
+        /* Hidden inputs for form */
+        .anchor-hidden-inputs {
+            display: none;
+        }
+
+        /* --- UTILS --- */
+        .loader { width: 40px; height: 40px; border: 3px solid rgba(255, 255, 255, 0.1); border-top-color: var(--rose); border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Inline spinner for buttons */
+        .spinner-inline {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+
+        /* Skeleton loading animation */
+        .skeleton {
+            background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%);
+            background-size: 200% 100%;
+            animation: skeleton-shimmer 1.5s infinite;
+            border-radius: 8px;
+        }
+        @keyframes skeleton-shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* Map skeleton */
+        .map-skeleton {
+            height: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            background: rgba(20, 20, 25, 0.6);
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .map-skeleton-text {
+            color: rgba(255,255,255,0.4);
+            font-size: 14px;
+        }
+
+        /* Pulse animation for loading buttons */
+        .btn-loading {
+            animation: pulse-glow 1.5s ease-in-out infinite;
+        }
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        /* Success/error flash animation */
+        @keyframes success-flash {
+            0% { box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.7); }
+            50% { box-shadow: 0 0 0 8px rgba(52, 199, 89, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(52, 199, 89, 0); }
+        }
+        .success-flash {
+            animation: success-flash 0.5s ease-out;
+        }
+        
+        /* Collapse/Expand for Filters - IMPROVED with chevron animation */
+        details summary {
+            list-style: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #a1a1aa;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 16px 0;
+            min-height: 48px;
+            transition: color 0.2s;
+            user-select: none;
+        }
+        details summary:hover { color: #fff; }
+        details summary::before {
+            content: '';
+            width: 24px;
+            height: 24px;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23a1a1aa' stroke-width='2'%3E%3Cpath d='M9 18l6-6-6-6'/%3E%3C/svg%3E") center/20px no-repeat;
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            flex-shrink: 0;
+        }
+        details[open] summary::before {
+            transform: rotate(90deg);
+        }
+        details summary::-webkit-details-marker { display: none; }
+
+        /* Smooth content reveal (FIXED: faster animation) */
+        details > div {
+            animation: slideDown 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Card entrance animations */
+        .card-enter {
+            animation: cardEnter 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            opacity: 0;
+        }
+        @keyframes cardEnter {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Stagger animation for lists */
+        .stagger-item {
+            opacity: 0;
+            animation: staggerIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        @keyframes staggerIn {
+            from { opacity: 0; transform: translateX(-8px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Slide in from right for selected origin */
+        .slide-in-right {
+            animation: slideInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Dropdown item hover/active micro-interactions */
+        .dropdown-item {
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .dropdown-item:hover {
+            transform: translateX(4px);
+        }
+        .dropdown-item:active {
+            transform: scale(0.98);
+        }
+        details[open] summary { color: #fff; border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 16px; padding-bottom: 14px; }
+
+        /* Results & Timeline */
+        .timeline-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--rose); box-shadow: 0 0 10px var(--rose); }
+        .timeline-line { width: 2px; flex-grow: 1; background: rgba(255,255,255,0.1); margin: 4px 0; }
+        .result-card { background: transparent; transition: all 0.2s; }
+        .result-card:hover { opacity: 0.9; }
+
+        /* Timeline Card - New Design */
+        .tl-card {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            padding: 16px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .tl-card:last-child {
+            border-bottom: none;
+        }
+        .tl-time-col {
+            flex-shrink: 0;
+            width: 56px;
+            text-align: center;
+        }
+        .tl-time {
+            font-size: 22px;
+            font-weight: 700;
+            color: #fff;
+            line-height: 1.1;
+            font-variant-numeric: tabular-nums;
+        }
+        .tl-transit-badge {
+            display: inline-block;
+            margin-top: 6px;
+            padding: 4px 8px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #a1a1aa;
+        }
+        .tl-content {
+            flex: 1;
+            min-width: 0;
+        }
+        .tl-row1 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+        .tl-venue {
+            font-size: 18px;
+            font-weight: 600;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px;
+        }
+        .tl-borough-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+        .tl-row2 {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .tl-neighborhood {
+            font-size: 13px;
+            font-weight: 500;
+            color: #a1a1aa;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+        }
+        .tl-price-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            background: transparent;
+            border: 1px solid #22c55e;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #22c55e;
+        }
+        .tl-price-badge.free {
+            border-color: #22c55e;
+            color: #22c55e;
+        }
+        .tl-price-badge.paid {
+            border-color: #22c55e;
+            color: #22c55e;
+        }
+        .tl-line-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            font-size: 12px;
+            font-weight: 700;
+            color: #fff;
+        }
+        .tl-line-badge.dark-text {
+            color: #000;
+        }
+        .tl-commute {
+            font-size: 13px;
+            font-weight: 500;
+            color: #a1a1aa;
+        }
+        .tl-stage-time {
+            font-size: 12px;
+            font-weight: 500;
+            color: #a1a1aa;
+            padding: 3px 8px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 4px;
+        }
+        .tl-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+        .tl-action-btn {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.08);
+            border: none;
+            border-radius: 50%;
+            color: #a1a1aa;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            text-decoration: none;
+        }
+        .tl-action-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+        }
+        .tl-action-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+        .tl-action-btn.ig-btn:hover {
+            background: linear-gradient(135deg, #833AB4 0%, #FD1D1D 50%, #F77737 100%);
+            color: #fff;
+        }
+
+        /* Transit connector between cards */
+        .tl-connector {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 0 8px 72px;
+            color: #52525b;
+            font-size: 12px;
+        }
+        .tl-connector-line {
+            flex: 1;
+            max-width: 120px;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+            margin: 0 12px;
+        }
+
+        /* ========== NEW TIMELINE UI ========== */
+
+        /* Trip Summary Bar - Clean minimal design */
+        .trip-summary {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 18px;
+            margin-bottom: 16px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .trip-summary-duration {
+            font-size: 18px;
+            font-weight: 700;
+            color: #fff;
+            font-variant-numeric: tabular-nums;
+        }
+        .trip-summary-details {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #71717a;
+            font-size: 14px;
+        }
+
+        /* Departure Card */
+        .departure-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 16px 24px;
+            margin-bottom: 20px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px dashed rgba(255, 255, 255, 0.15);
+        }
+        .departure-label {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #71717a;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .departure-time {
+            font-size: 28px;
+            font-weight: 700;
+            color: #fff;
+            font-variant-numeric: tabular-nums;
+        }
+        .departure-location {
+            font-size: 13px;
+            color: #a1a1aa;
+            max-width: 200px;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Timeline Container with vertical line */
+        .timeline-container {
+            position: relative;
+            padding-left: 28px;
+        }
+        .timeline-container::before {
+            content: '';
+            position: absolute;
+            left: 6px;
+            top: 24px;
+            bottom: 24px;
+            width: 2px;
+            background: linear-gradient(to bottom, var(--rose), rgba(244, 63, 94, 0.15));
+            border-radius: 1px;
+        }
+
+        /* Timeline dots on cards */
+        .tl-card {
+            position: relative;
+        }
+        .tl-card::before {
+            content: '';
+            position: absolute;
+            left: -28px;
+            top: 20px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--rose);
+            border: 3px solid #18181b;
+            box-shadow: 0 0 12px rgba(244, 63, 94, 0.4);
+            z-index: 2;
+        }
+
+        /* First stop - green */
+        .tl-card.first-stop::before {
+            width: 20px;
+            height: 20px;
+            left: -30px;
+            top: 18px;
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            box-shadow: 0 0 14px rgba(34, 197, 94, 0.5);
+        }
+
+        /* Last stop - orange */
+        .tl-card.last-stop::before {
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            box-shadow: 0 0 14px rgba(249, 115, 22, 0.5);
+        }
+
+        /* Stop badge labels */
+        .tl-stop-badge {
+            position: absolute;
+            left: -30px;
+            top: -8px;
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 2px 6px;
+            border-radius: 4px;
+            z-index: 3;
+        }
+        .tl-stop-badge.start {
+            background: #22c55e;
+            color: #fff;
+        }
+        .tl-stop-badge.end {
+            background: #f97316;
+            color: #fff;
+        }
+
+        /* Transit Connector between stops */
+        .transit-connector {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 12px 0;
+            position: relative;
+        }
+        .transit-connector::before {
+            content: '';
+            position: absolute;
+            left: -22px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .transit-connector-content {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .transit-connector .transit-icon {
+            font-size: 14px;
+        }
+        .transit-connector .transit-lines {
+            display: flex;
+            gap: 3px;
+        }
+        .transit-connector .transit-line {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+        }
+        .transit-connector .transit-line.dark-text {
+            color: #000;
+        }
+        .transit-connector .transit-duration {
+            font-size: 13px;
+            font-weight: 600;
+            color: #a1a1aa;
+        }
+
+        /* Mobile responsive for new timeline */
+        @media (max-width: 640px) {
+            .trip-summary {
+                padding: 12px 14px;
+            }
+            .trip-summary-duration {
+                font-size: 16px;
+            }
+            .trip-summary-details {
+                font-size: 13px;
+            }
+            .departure-card {
+                padding: 14px 20px;
+            }
+            .departure-time {
+                font-size: 24px;
+            }
+            .departure-location {
+                font-size: 12px;
+            }
+            .timeline-container {
+                padding-left: 24px;
+            }
+            .timeline-container::before {
+                left: 5px;
+            }
+            .tl-card::before {
+                left: -24px;
+                width: 14px;
+                height: 14px;
+            }
+            .tl-card.first-stop::before {
+                width: 18px;
+                height: 18px;
+                left: -26px;
+            }
+            .tl-stop-badge {
+                left: -26px;
+                font-size: 8px;
+                padding: 2px 5px;
+            }
+            .transit-connector {
+                padding: 8px 0;
+            }
+            .transit-connector::before {
+                left: -19px;
+            }
+            .transit-connector-content {
+                padding: 6px 12px;
+                gap: 6px;
+            }
+            .transit-connector .transit-line {
+                width: 18px;
+                height: 18px;
+                font-size: 10px;
+            }
+            .transit-connector .transit-duration {
+                font-size: 12px;
+            }
+        }
+
+        /* ========== END NEW TIMELINE UI ========== */
+
+        /* Badges */
+        .line-badge { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 4px; font-size: 11px; font-weight: 800; color: #000; margin-right: 2px; }
+
+        /* Scrollable filter row */
+        .filter-scroll-wrapper {
+            position: relative;
+        }
+        .filter-scroll-wrapper::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 8px;
+            width: 32px;
+            background: linear-gradient(to right, transparent, rgba(20, 20, 25, 0.95));
+            pointer-events: none;
+        }
+        .filter-scroll {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            margin: 0 -8px;
+            padding: 0 8px 8px;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        .filter-scroll::-webkit-scrollbar { display: none; }
+
+        /* Area chips - compact */
+        .area-chip {
+            height: 28px;
+            padding: 0 10px;
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.04);
+            font-size: 11px;
+            font-weight: 500;
+            color: #a1a1aa;
+            display: inline-flex;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.15s;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .area-chip:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); color: #fff; }
+        .area-chip.selected { background: var(--rose); border-color: var(--rose); color: white; }
+
+        /* Borough chips - primary level (FIXED: 44px touch target) */
+        .borough-chip {
+            height: 44px;
+            min-width: 44px;
+            padding: 0 18px;
+            border-radius: 22px;
+            border: 1px solid rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.05);
+            font-size: 14px;
+            font-weight: 500;
+            color: #a1a1aa;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .borough-chip:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.25); color: #fff; }
+        .borough-chip.selected { background: var(--rose); border-color: var(--rose); color: white; }
+        .borough-chip.expanded { border-color: var(--rose); color: var(--rose); }
+        .borough-chip.expanded::after { content: ' ▼'; font-size: 10px; }
+
+        /* Neighborhood chips - secondary level (FIXED: 44px touch target) */
+        .neighborhood-chip {
+            height: 44px;
+            min-width: 44px;
+            padding: 0 16px;
+            border-radius: 22px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: transparent;
+            font-size: 13px;
+            font-weight: 500;
+            color: #71717a;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .neighborhood-chip:hover {
+            background: rgba(255,255,255,0.08);
+            color: #a1a1aa;
+            transform: translateY(-1px);
+        }
+        .neighborhood-chip:active {
+            transform: scale(0.97);
+        }
+        .neighborhood-chip.selected {
+            background: rgba(244, 63, 94, 0.2);
+            border-color: var(--rose);
+            color: var(--rose);
+            box-shadow: 0 0 12px rgba(244, 63, 94, 0.2);
+        }
+        .neighborhood-chip:focus-visible {
+            outline: 2px solid var(--rose);
+            outline-offset: 2px;
+        }
+
+        /* Line badges on result cards (informational) */
+        .mic-lines {
+            display: flex;
+            gap: 3px;
+            margin-top: 4px;
+        }
+        .mic-line-badge {
+            width: 18px;
+            height: 18px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+        }
+        .mic-line-badge.dark-text { color: #000; }
+
+        .geo-btn-primary {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 16px 20px;
+            border-radius: 14px;
+            background: linear-gradient(180deg, #0A84FF 0%, #0070E0 100%);
+            border: none;
+            color: #fff;
+            font-weight: 600;
+            font-size: 17px;
+            letter-spacing: -0.2px;
+            cursor: pointer;
+            transition: all 0.2s ease-out;
+            box-shadow: 0 2px 8px rgba(10, 132, 255, 0.3), inset 0 1px 0 rgba(255,255,255,0.15);
+        }
+        .geo-btn-primary:hover {
+            background: linear-gradient(180deg, #3399FF 0%, #0A84FF 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(10, 132, 255, 0.4), inset 0 1px 0 rgba(255,255,255,0.2);
+        }
+        .geo-btn-primary:active {
+            transform: translateY(0);
+            background: linear-gradient(180deg, #0070E0 0%, #005BC0 100%);
+            box-shadow: 0 1px 4px rgba(10, 132, 255, 0.3), inset 0 1px 0 rgba(255,255,255,0.1);
+        }
+        .geo-btn-primary.success {
+            background: linear-gradient(180deg, #34C759 0%, #28A745 100%);
+            box-shadow: 0 2px 8px rgba(52, 199, 89, 0.3), inset 0 1px 0 rgba(255,255,255,0.15);
+            color: #fff;
+        }
+
+        /* Toast - with success/error variants */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #18181b;
+            border: 1px solid #3f3f46;
+            color: white;
+            padding: 14px 24px;
+            border-radius: 50px;
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 999;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            font-weight: 500;
+            font-size: 14px;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        .toast.toast-success {
+            background: linear-gradient(135deg, #065f46 0%, #064e3b 100%);
+            border-color: #10b981;
+        }
+        .toast.toast-error {
+            background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%);
+            border-color: #ef4444;
+        }
+
+        /* --- MOBILE RESPONSIVE --- */
+        @media (max-width: 640px) {
+            .dropdown-list {
+                /* Keep attached on mobile too */
+                max-height: 40vh;
+            }
+
+            .dropdown-item {
+                padding: 14px 16px;
+            }
+
+            /* Sticky submit button on mobile */
+            .sticky-submit-wrapper {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                padding: 12px 16px;
+                padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+                background: linear-gradient(to top, rgba(5, 5, 5, 0.98) 70%, transparent);
+                z-index: 50;
+            }
+
+            .sticky-submit-wrapper .btn-primary {
+                box-shadow: 0 -4px 20px rgba(244, 63, 94, 0.3), 0 4px 20px rgba(244, 63, 94, 0.4);
+            }
+
+            /* Add padding at bottom of form to account for sticky button */
+            .form-card-mobile-padding {
+                padding-bottom: 80px;
+            }
+
+            /* Reduce card blur on mobile for performance */
+            .card {
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+            }
+
+            /* Timeline cards - mobile adjustments */
+            .tl-card {
+                gap: 12px;
+                padding: 14px 0;
+            }
+            .tl-time-col {
+                width: 48px;
+            }
+            .tl-time {
+                font-size: 18px;
+            }
+            .tl-transit-badge {
+                font-size: 11px;
+                padding: 3px 6px;
+            }
+            .tl-venue {
+                font-size: 16px;
+                max-width: 150px;
+            }
+            .tl-borough-badge {
+                font-size: 10px;
+                padding: 3px 8px;
+            }
+            .tl-row2 {
+                gap: 6px;
+            }
+            .tl-neighborhood {
+                font-size: 11px;
+            }
+            .tl-price-badge {
+                font-size: 11px;
+                padding: 3px 8px;
+            }
+            .tl-line-badge {
+                width: 20px;
+                height: 20px;
+                font-size: 11px;
+            }
+            .tl-commute {
+                font-size: 12px;
+            }
+            .tl-stage-time {
+                font-size: 11px;
+                padding: 2px 6px;
+            }
+            .tl-actions {
+                gap: 8px;
+            }
+            .tl-action-btn {
+                width: 40px;
+                height: 40px;
+            }
+            .tl-action-btn svg {
+                width: 18px;
+                height: 18px;
+            }
+        }
+
+        /* Accessibility: Reduce motion for users who prefer it */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* Performance: will-change hints for frequently animated elements */
+        .radio-pill, .borough-chip, .neighborhood-chip, .dropdown-item, .btn-primary {
+            will-change: transform;
+        }
+        .dropdown-list {
+            will-change: opacity, transform;
+        }
+    </style>
+</head>
+<body class="px-4 py-4 md:px-8 md:py-8 flex justify-center" style="padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));">
+
+    <div class="w-full max-w-full sm:max-w-lg">
+        <!-- Header -->
+        <div class="text-center mb-8 pt-4">
+            <h1 class="text-4xl font-extrabold mb-1 tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-rose-400 to-orange-300">Plan My Night</h1>
+            <p class="text-zinc-500 font-medium text-sm">MicFinder Intelligent Routing</p>
+        </div>
+
+        <!-- Main Card -->
+        <div class="card p-6 md:p-8 mb-6 relative overflow-visible form-card-mobile-padding">
+            <!-- Glow Effect -->
+            <div class="absolute top-0 right-0 w-64 h-64 bg-rose-500 rounded-full mix-blend-overlay filter blur-[100px] opacity-10 pointer-events-none"></div>
+
+            <!-- 1. HERO INPUTS (When) -->
+            <div class="grid grid-cols-2 gap-x-4 gap-y-5 mb-6">
+                <div class="col-span-2">
+                    <label for="day-select" class="form-label" id="day-label">Day of Week</label>
+                    <select id="day-select" class="input-field font-semibold text-lg" aria-labelledby="day-label">
+                        <option value="Monday">Monday</option>
+                        <option value="Tuesday">Tuesday</option>
+                        <option value="Wednesday">Wednesday</option>
+                        <option value="Thursday">Thursday</option>
+                        <option value="Friday">Friday</option>
+                        <option value="Saturday">Saturday</option>
+                        <option value="Sunday">Sunday</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="start-time" class="form-label" id="start-time-label">Start Time</label>
+                    <input type="time" id="start-time" value="19:00" class="input-field" aria-labelledby="start-time-label" aria-describedby="end-time-preview">
+                </div>
+                <div>
+                    <label for="duration-select" class="form-label" id="duration-label">Duration</label>
+                    <select id="duration-select" class="input-field font-semibold" aria-labelledby="duration-label">
+                        <option value="120">2 hours</option>
+                        <option value="180" selected>3 hours</option>
+                        <option value="240">4 hours</option>
+                        <option value="300">5 hours</option>
+                        <option value="360">6 hours</option>
+                        <option value="999">All Night</option>
+                    </select>
+                    <span id="end-time-preview" class="form-helper"></span>
+                </div>
+            </div>
+
+            <!-- 2. LOCATION (Where) -->
+            <div class="mb-6">
+                <label for="origin-search" class="form-label" id="origin-label">Starting From</label>
+                
+                <button onclick="useMyLocation()" class="geo-btn-primary mb-3" id="geo-btn" aria-label="Use my current location" aria-live="polite">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0013 3.06V1h-2v2.06A8.994 8.994 0 003.06 11H1v2h2.06A8.994 8.994 0 0011 20.94V23h2v-2.06A8.994 8.994 0 0020.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg>
+                    <span id="geo-btn-text">Use My Location</span>
+                </button>
+
+                <div class="relative dropdown-container">
+                    <div class="search-input-wrapper">
+                        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"/>
+                            <path d="m21 21-4.35-4.35"/>
+                        </svg>
+                        <input type="text" id="origin-search" class="input-field" placeholder="Address or subway station" autocomplete="off" role="combobox" aria-labelledby="origin-label" aria-expanded="false" aria-autocomplete="list" aria-controls="origin-dropdown" aria-haspopup="listbox">
+                        <button id="search-clear-btn" class="clear-btn" aria-label="Clear search">&times;</button>
+                    </div>
+                    <div id="origin-dropdown" class="dropdown-list" role="listbox" aria-label="Search results"></div>
+                </div>
+
+                <!-- Hidden Selected Origin State -->
+                <div id="selected-origin" class="hidden mt-3 p-3 rounded-xl bg-zinc-800/50 border border-zinc-700 flex items-center justify-between" role="status" aria-live="polite">
+                    <span id="selected-origin-text" class="text-sm font-medium text-rose-200"></span>
+                    <button onclick="clearOrigin()" class="text-zinc-400 hover:text-white w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors" aria-label="Clear selected location" title="Clear selected location">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                    </button>
+                </div>
+                <select id="origin-select" class="hidden"><option value="custom">Custom</option></select>
+            </div>
+
+            <!-- 3. COLLAPSIBLE FILTERS (Reduce Cognitive Load) -->
+            <details class="mb-8 group" id="filters-details">
+                <summary>Filters & Preferences <span id="filter-count-badge" class="ml-2 px-2 py-0.5 rounded-full text-xs font-bold bg-rose-500/20 text-rose-400 hidden"></span></summary>
+                
+                <div class="space-y-6 pt-2 pl-1 animate-in slide-in-from-top-2 duration-200">
+                    
+                    <!-- Optimize For -->
+                    <div>
+                        <div class="text-xs text-zinc-500 uppercase font-bold mb-2">Priority</div>
+                        <div class="radio-pills">
+                            <label class="radio-pill active"><input type="radio" name="priority" value="most_mics" checked> Most Mics</label>
+                            <label class="radio-pill"><input type="radio" name="priority" value="least_travel"> Less Travel</label>
+                            <label class="radio-pill"><input type="radio" name="priority" value="best_timing"> Best Timing</label>
+                        </div>
+                    </div>
+
+                    <!-- Areas - Hierarchical Borough/Neighborhood -->
+                    <div class="area-filter">
+                        <div class="text-xs text-zinc-500 uppercase font-bold mb-2">Areas</div>
+                        <div id="area-suggestion" class="hidden text-xs text-rose-400 mb-2"></div>
+
+                        <!-- Borough Row -->
+                        <div class="flex flex-wrap gap-2 mb-2">
+                            <button type="button" class="borough-chip selected" data-borough="all" id="all-areas-chip" onclick="clearAllAreas()">All NYC</button>
+                            <button type="button" class="borough-chip" data-borough="Manhattan" aria-expanded="false" aria-controls="neighborhood-row">Manhattan</button>
+                            <button type="button" class="borough-chip" data-borough="Brooklyn" aria-expanded="false" aria-controls="neighborhood-row">Brooklyn</button>
+                            <button type="button" class="borough-chip" data-borough="Queens" aria-expanded="false" aria-controls="neighborhood-row">Queens</button>
+                            <button type="button" class="borough-chip" data-borough="Bronx" aria-expanded="false" aria-controls="neighborhood-row">Bronx</button>
+                        </div>
+
+                        <!-- Neighborhood Row (populated dynamically) -->
+                        <div id="neighborhood-row" class="flex flex-wrap gap-1.5 hidden"></div>
+
+                        <!-- Hidden checkboxes for form submission (populated by JS) -->
+                        <div id="area-checkboxes" class="hidden"></div>
+                    </div>
+
+                    <!-- Price Filter -->
+                    <div>
+                        <div class="text-xs text-zinc-500 uppercase font-bold mb-2">Price</div>
+                        <div class="radio-pills">
+                            <label class="radio-pill active"><input type="radio" name="price" value="all" checked>All Mics</label>
+                            <label class="radio-pill"><input type="radio" name="price" value="free">Free Only</label>
+                        </div>
+                    </div>
+
+                    <!-- Signup Filter -->
+                    <div>
+                        <div class="text-xs text-zinc-500 uppercase font-bold mb-2">Signup Method</div>
+                        <div class="radio-pills">
+                            <label class="radio-pill active"><input type="radio" name="signup" value="all" checked>All Mics</label>
+                            <label class="radio-pill"><input type="radio" name="signup" value="walk-in">Walk-In</label>
+                            <label class="radio-pill"><input type="radio" name="signup" value="advance">Advance Signup</label>
+                        </div>
+                    </div>
+
+                    <!-- Pin Specific Mics -->
+                    <div>
+                        <div class="text-xs text-zinc-500 uppercase font-bold mb-2">Pin Specific Mics</div>
+                        <button type="button" class="anchor-trigger-btn" onclick="openAnchorModal()">
+                            <span class="icon">📌</span>
+                            <span>Search mics to pin...</span>
+                        </button>
+                        <!-- Selected anchors display as chips -->
+                        <div id="anchor-chips" class="anchor-chips-container"></div>
+                        <!-- Hidden inputs for form submission -->
+                        <div class="anchor-hidden-inputs">
+                            <input type="hidden" id="anchor-start-id" value="">
+                            <input type="hidden" id="anchor-must-id" value="">
+                            <input type="hidden" id="anchor-end-id" value="">
+                        </div>
+                    </div>
+
+                    <!-- Mic Count Controls -->
+                    <div>
+                        <div class="text-xs text-zinc-500 uppercase font-bold mb-2">Number of Mics</div>
+                        <div class="radio-pills">
+                            <label class="radio-pill active"><input type="radio" name="mic-count" value="flexible" checked>Flexible</label>
+                            <label class="radio-pill"><input type="radio" name="mic-count" value="min-2">At least 2</label>
+                            <label class="radio-pill"><input type="radio" name="mic-count" value="min-3">At least 3</label>
+                        </div>
+                    </div>
+
+                    <!-- Commute & Time (FIXED: stacks on mobile) -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <div class="text-xs text-zinc-500 uppercase font-bold mb-2">Max Commute</div>
+                            <div class="radio-pills">
+                                <label class="radio-pill active"><input type="radio" name="max-commute" value="999" checked>Any</label>
+                                <label class="radio-pill"><input type="radio" name="max-commute" value="20">20m</label>
+                                <label class="radio-pill"><input type="radio" name="max-commute" value="40">40m</label>
+                                <label class="radio-pill"><input type="radio" name="max-commute" value="60">60m+</label>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-zinc-500 uppercase font-bold mb-2">Time per Venue</div>
+                            <div class="radio-pills">
+                                <label class="radio-pill"><input type="radio" name="time-per-venue" value="30">30m</label>
+                                <label class="radio-pill"><input type="radio" name="time-per-venue" value="45">45m</label>
+                                <label class="radio-pill active"><input type="radio" name="time-per-venue" value="60" checked>60m</label>
+                                <label class="radio-pill"><input type="radio" name="time-per-venue" value="90">90m</label>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </details>
+
+            <!-- 4. ACTION (hidden on mobile - using sticky footer instead) -->
+            <div class="hidden sm:block">
+                <button id="plan-btn-desktop" onclick="planMyNight()" class="btn-primary">
+                    Find Open Mics
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Sticky Submit Button -->
+        <div class="sticky-submit-wrapper sm:hidden">
+            <button id="plan-btn" onclick="planMyNight()" class="btn-primary">
+                Find Open Mics
+            </button>
+        </div>
+
+        <!-- Anchor Mic Modal (Bottom Sheet) -->
+        <div id="anchor-modal-backdrop" class="anchor-modal-backdrop" onclick="closeAnchorModal(event)">
+            <div class="anchor-modal" onclick="event.stopPropagation()">
+                <div class="anchor-modal-header">
+                    <h3>Pin a Mic</h3>
+                    <button class="anchor-modal-close" onclick="closeAnchorModal()" aria-label="Close">
+                        &times;
+                    </button>
+                </div>
+                <div class="anchor-modal-search">
+                    <div class="anchor-search-wrapper">
+                        <input type="text" id="anchor-search-input" placeholder="Search by venue name..." autocomplete="off">
+                    </div>
+                </div>
+                <div id="anchor-modal-results" class="anchor-modal-results">
+                    <div class="anchor-empty-state">
+                        <div class="icon">📍</div>
+                        <div>Search for a mic to pin it as your start, must-hit, or end point</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- LOADING STATE -->
+        <div id="loading" class="hidden card p-12 text-center mb-6" role="status" aria-live="polite" aria-label="Loading route">
+            <div class="loader mx-auto mb-6" aria-hidden="true"></div>
+            <div class="text-xl font-semibold mb-2">Routing your night</div>
+            <div id="loading-detail" class="text-zinc-500 text-sm" aria-live="polite">Calculating transit...</div>
+        </div>
+
+        <!-- RESULTS SECTION -->
+        <div id="results" class="hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div class="flex items-center justify-between mb-4 px-2">
+                <h2 class="text-xl font-bold">Your Itinerary</h2>
+                <div id="summary" class="text-zinc-400 font-mono text-sm"></div>
+            </div>
+
+            <!-- TIMELINE -->
+            <div id="timeline" class="space-y-0"></div>
+
+            <!-- Action Buttons (FIXED: larger touch targets, consistent icons) -->
+            <div class="grid grid-cols-3 gap-3 mt-6" role="group" aria-label="Route actions">
+                <button onclick="quickCopyRoute()" class="h-12 rounded-xl bg-zinc-800 border border-zinc-700 hover:bg-zinc-700 active:scale-[0.98] font-semibold text-sm transition-all flex items-center justify-center gap-2" aria-label="Copy route to clipboard">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                    <span>Copy</span>
+                </button>
+                <button onclick="shareRoute()" class="h-12 rounded-xl bg-zinc-800 border border-zinc-700 hover:bg-zinc-700 active:scale-[0.98] font-semibold text-sm transition-all flex items-center justify-center gap-2" aria-label="Share route">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                    <span>Share</span>
+                </button>
+                <button onclick="saveRoute()" class="h-12 rounded-xl bg-zinc-800 border border-zinc-700 hover:bg-zinc-700 active:scale-[0.98] font-semibold text-sm transition-all flex items-center justify-center gap-2" aria-label="Save route to history">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                    <span>Save</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- NO RESULTS - IMPROVED with actionable suggestions -->
+        <div id="no-results" class="hidden card p-10 text-center card-enter" role="alert">
+            <div class="text-5xl mb-4">🌑</div>
+            <div class="text-xl font-bold mb-2">No Mics Found</div>
+            <div class="text-zinc-400 mb-6 max-w-sm mx-auto">We couldn't find any mics matching your filters for this time and location.</div>
+
+            <div class="text-left max-w-xs mx-auto mb-6">
+                <div class="text-xs uppercase font-semibold text-zinc-500 mb-3">Try these:</div>
+                <ul class="space-y-2 text-sm text-zinc-400">
+                    <li class="flex items-center gap-2">
+                        <span class="text-rose-400">→</span> Try a different day of the week
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <span class="text-rose-400">→</span> Expand to more boroughs
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <span class="text-rose-400">→</span> Start earlier or end later
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <span class="text-rose-400">→</span> Include paid mics too
+                    </li>
+                </ul>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                <button onclick="resetFiltersAndRetry()" class="h-12 px-6 rounded-xl bg-rose-500/20 text-rose-300 border border-rose-500/30 hover:bg-rose-500/30 active:scale-[0.98] transition-all font-semibold text-sm">
+                    Reset Filters & Retry
+                </button>
+                <button onclick="tryDifferentDay()" class="h-12 px-6 rounded-xl bg-zinc-700 text-zinc-200 border border-zinc-600 hover:bg-zinc-600 active:scale-[0.98] transition-all font-semibold text-sm">
+                    Try Tomorrow
+                </button>
+            </div>
+        </div>
+
+        <!-- TOAST -->
+        <div id="toast" class="toast" role="alert" aria-live="polite" aria-atomic="true"></div>
+
+    </div>
+
+    <!-- SCRIPT (Logic Preserved, Map Updated) -->
+    <script>
+        // --- CONSTANTS & DATA ---
+        const API_BASE = 'https://micmap-production.up.railway.app';
+        const CONFIG = {
+            bufferTime: 60,
+            maxLateArrival: 15,
+            walkSpeed: 20,
+            dayNames: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+        };
+        const LINE_COLORS = {
+            '1': '#EE352E', '2': '#EE352E', '3': '#EE352E', '4': '#00933C', '5': '#00933C', '6': '#00933C',
+            '7': '#B933AD', 'A': '#0039A6', 'C': '#0039A6', 'E': '#0039A6', 'B': '#FF6319', 'D': '#FF6319',
+            'F': '#FF6319', 'M': '#FF6319', 'G': '#6CBE45', 'J': '#996633', 'Z': '#996633', 'L': '#A7A9AC',
+            'N': '#FCCC0A', 'Q': '#FCCC0A', 'R': '#FCCC0A', 'W': '#FCCC0A', 'S': '#808183'
+        };
+
+        // Minimal neighborhood data for demo
+        const NEIGHBORHOODS = [
+            { name: 'Bushwick', borough: 'Brooklyn', lat: 40.6944, lng: -73.9213 },
+            { name: 'Williamsburg', borough: 'Brooklyn', lat: 40.7081, lng: -73.9571 },
+            { name: 'East Village', borough: 'Manhattan', lat: 40.7265, lng: -73.9815 },
+            { name: 'West Village', borough: 'Manhattan', lat: 40.7358, lng: -74.0036 },
+            { name: 'Astoria', borough: 'Queens', lat: 40.7720, lng: -73.9300 },
+            { name: 'Lower East Side', borough: 'Manhattan', lat: 40.7150, lng: -73.9843 }
+        ];
+
+        let allMics = [];
+        let subwayStations = [];
+        let transitCache = {};
+        let selectedOrigin = null;
+        let searchableItems = [];
+        let fuse = null;
+        let selectedSearchIndex = -1;
+        let currentQuery = '';
+        let searchFilter = 'all'; // 'all' | 'neighborhoods' | 'mics' | 'stations'
+
+        // --- UI HELPERS ---
+        function showToast(msg, type = 'info') {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.remove('toast-success', 'toast-error');
+            if (type === 'success') t.classList.add('toast-success');
+            if (type === 'error') t.classList.add('toast-error');
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        // --- NO RESULTS RECOVERY ACTIONS ---
+        function resetFiltersAndRetry() {
+            // Reset all filter pills to "All"
+            document.querySelectorAll('.radio-pills').forEach(group => {
+                const allPill = group.querySelector('[data-value="all"], [data-value="All"]') ||
+                               group.querySelector('.radio-pill:first-child');
+                if (allPill) {
+                    group.querySelectorAll('.radio-pill').forEach(p => p.classList.remove('active'));
+                    allPill.classList.add('active');
+                }
+            });
+
+            // Clear borough selections
+            selectedAreas.clear();
+            expandedBorough = null;
+            document.querySelectorAll('.borough-chip').forEach(c => c.classList.remove('selected', 'expanded'));
+            document.getElementById('neighborhood-row').classList.add('hidden');
+
+            // Hide no results
+            document.getElementById('no-results').classList.add('hidden');
+
+            showToast('Filters reset! Try searching again', 'success');
+        }
+
+        function tryDifferentDay() {
+            const daySelect = document.getElementById('day-select');
+            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const currentDay = daySelect.value;
+            const currentIndex = days.indexOf(currentDay);
+            const nextIndex = (currentIndex + 1) % 7;
+
+            daySelect.value = days[nextIndex];
+
+            // Hide no results
+            document.getElementById('no-results').classList.add('hidden');
+
+            showToast(`Switched to ${days[nextIndex]}`, 'success');
+
+            // Auto-trigger search if origin is set
+            if (selectedOrigin) {
+                document.getElementById('find-btn').click();
+            }
+        }
+
+        // Radio Pills Logic
+        document.querySelectorAll('.radio-pill').forEach(pill => {
+            pill.addEventListener('click', () => {
+                const group = pill.closest('.radio-pills');
+                group.querySelectorAll('.radio-pill').forEach(p => p.classList.remove('active'));
+                pill.classList.add('active');
+                pill.querySelector('input').checked = true;
+            });
+        });
+
+        // --- HIERARCHICAL AREA FILTER ---
+        const BOROUGH_NEIGHBORHOODS = {
+            Manhattan: ['East Village', 'LES', 'West Village', 'Chelsea', 'Midtown', 'Harlem', 'UWS', 'UES', 'FiDi', 'Tribeca', 'SoHo'],
+            Brooklyn: ['Williamsburg', 'Bushwick', 'Greenpoint', 'Park Slope', 'DUMBO', 'Bed-Stuy', 'Crown Heights', 'Prospect Heights'],
+            Queens: ['Astoria', 'LIC', 'Jackson Heights', 'Flushing', 'Forest Hills'],
+            Bronx: ['South Bronx', 'Fordham', 'Riverdale']
+        };
+
+        const selectedAreas = new Set(); // Tracks all selected boroughs/neighborhoods
+        let expandedBorough = null;
+
+        function renderNeighborhoods() {
+            const row = document.getElementById('neighborhood-row');
+            if (!expandedBorough) {
+                row.classList.add('hidden');
+                row.innerHTML = '';
+                return;
+            }
+
+            const neighborhoods = BOROUGH_NEIGHBORHOODS[expandedBorough] || [];
+            row.innerHTML = neighborhoods.map(n =>
+                `<button type="button" class="neighborhood-chip ${selectedAreas.has(n) ? 'selected' : ''}" data-neighborhood="${n}">${n}</button>`
+            ).join('');
+            row.classList.remove('hidden');
+
+            // Add click handlers
+            row.querySelectorAll('.neighborhood-chip').forEach(chip => {
+                chip.addEventListener('click', () => toggleNeighborhood(chip.dataset.neighborhood));
+            });
+        }
+
+        // Clear all area selections (reset to "All NYC")
+        function clearAllAreas() {
+            selectedAreas.clear();
+            expandedBorough = null;
+            document.querySelectorAll('.borough-chip').forEach(c => {
+                c.classList.remove('selected', 'expanded');
+                c.setAttribute('aria-expanded', 'false');
+            });
+            document.getElementById('all-areas-chip')?.classList.add('selected');
+            document.getElementById('neighborhood-row').classList.add('hidden');
+            document.getElementById('neighborhood-row').innerHTML = '';
+            updateAreaCheckboxes();
+            if (typeof updateFilterCountBadge === 'function') updateFilterCountBadge();
+        }
+
+        // Update "All NYC" chip state based on selections
+        function updateAllNycChip() {
+            const allChip = document.getElementById('all-areas-chip');
+            if (allChip) {
+                if (selectedAreas.size === 0) {
+                    allChip.classList.add('selected');
+                } else {
+                    allChip.classList.remove('selected');
+                }
+            }
+        }
+
+        function toggleBorough(borough) {
+            const chip = document.querySelector(`.borough-chip[data-borough="${borough}"]`);
+
+            if (selectedAreas.has(borough)) {
+                // Deselect borough and all its neighborhoods
+                selectedAreas.delete(borough);
+                BOROUGH_NEIGHBORHOODS[borough]?.forEach(n => selectedAreas.delete(n));
+                chip.classList.remove('selected', 'expanded');
+                chip.setAttribute('aria-expanded', 'false');
+                if (expandedBorough === borough) expandedBorough = null;
+            } else if (expandedBorough === borough) {
+                // Clicking expanded borough selects whole borough
+                selectedAreas.add(borough);
+                BOROUGH_NEIGHBORHOODS[borough]?.forEach(n => selectedAreas.delete(n)); // Clear individual neighborhoods
+                chip.classList.add('selected');
+                chip.classList.remove('expanded');
+                chip.setAttribute('aria-expanded', 'false');
+                expandedBorough = null;
+            } else {
+                // Expand to show neighborhoods
+                document.querySelectorAll('.borough-chip:not([data-borough="all"])').forEach(c => {
+                    c.classList.remove('expanded');
+                    c.setAttribute('aria-expanded', 'false');
+                });
+                chip.classList.add('expanded');
+                chip.setAttribute('aria-expanded', 'true');
+                expandedBorough = borough;
+            }
+
+            renderNeighborhoods();
+            updateAreaCheckboxes();
+            updateAllNycChip();
+            if (typeof updateFilterCountBadge === 'function') updateFilterCountBadge();
+        }
+
+        function toggleNeighborhood(neighborhood) {
+            if (selectedAreas.has(neighborhood)) {
+                selectedAreas.delete(neighborhood);
+            } else {
+                selectedAreas.add(neighborhood);
+                // If selecting a neighborhood, deselect the whole-borough selection
+                if (expandedBorough) selectedAreas.delete(expandedBorough);
+            }
+            renderNeighborhoods();
+            updateAreaCheckboxes();
+            updateAllNycChip();
+            // Update borough chip visual
+            const chip = document.querySelector(`.borough-chip[data-borough="${expandedBorough}"]`);
+            if (chip) {
+                const hasNeighborhoodSelected = BOROUGH_NEIGHBORHOODS[expandedBorough]?.some(n => selectedAreas.has(n));
+                chip.classList.toggle('selected', hasNeighborhoodSelected);
+            }
+            if (typeof updateFilterCountBadge === 'function') updateFilterCountBadge();
+        }
+
+        function updateAreaCheckboxes() {
+            // Create hidden checkboxes for form compatibility
+            const container = document.getElementById('area-checkboxes');
+            container.innerHTML = [...selectedAreas].map(area =>
+                `<input type="checkbox" class="area-checkbox" value="${area}" checked>`
+            ).join('');
+        }
+
+        function getSelectedAreas() {
+            return [...selectedAreas];
+        }
+
+        // Borough chip click handlers
+        document.querySelectorAll('.borough-chip').forEach(chip => {
+            chip.addEventListener('click', () => toggleBorough(chip.dataset.borough));
+        });
+
+        // --- AUTO-SUGGEST AREA FROM ORIGIN ---
+        function suggestAreaFromOrigin(lat, lng) {
+            // Simple bounding boxes for NYC boroughs
+            if (lat > 40.7 && lat < 40.82 && lng > -74.02 && lng < -73.93) return 'Manhattan';
+            if (lat > 40.57 && lat < 40.74 && lng > -74.04 && lng < -73.83) return 'Brooklyn';
+            if (lat > 40.68 && lat < 40.81 && lng > -73.96 && lng < -73.7) return 'Queens';
+            if (lat > 40.78 && lng > -73.93 && lng < -73.76) return 'Bronx';
+            return null;
+        }
+
+        function showAreaSuggestion(text) {
+            const el = document.getElementById('area-suggestion');
+            if (text) {
+                el.textContent = text;
+                el.classList.remove('hidden');
+            } else {
+                el.classList.add('hidden');
+            }
+        }
+
+        // --- SUBWAY LINE BADGE HELPERS ---
+        const DARK_TEXT_LINES = ['N', 'Q', 'R', 'W'];
+
+        function getLineColor(line) {
+            return LINE_COLORS[line] || '#666';
+        }
+
+        function renderLineBadges(lines) {
+            if (!lines || lines.length === 0) return '';
+            return lines.slice(0, 5).map(line => {
+                const color = getLineColor(line);
+                const darkText = DARK_TEXT_LINES.includes(line) ? 'dark-text' : '';
+                return `<span class="mic-line-badge ${darkText}" style="background:${color}">${line}</span>`;
+            }).join('');
+        }
+
+        // --- CALCULATE NEARBY LINES FOR MICS ---
+        function haversineDistance(lat1, lng1, lat2, lng2) {
+            const R = 6371; // km
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLng = (lng2 - lng1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLng/2) * Math.sin(dLng/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+        }
+
+        function addNearbyLinesToMics(mics, stations) {
+            if (!stations || stations.length === 0) return mics;
+            return mics.map(mic => {
+                if (!mic.lat || !mic.lng) return mic;
+                const nearbyLines = new Set();
+                stations.forEach(station => {
+                    const dist = haversineDistance(mic.lat, mic.lng, station.lat, station.lng);
+                    if (dist < 0.8) { // ~10 min walk (0.8 km)
+                        (station.lines || []).forEach(line => nearbyLines.add(line));
+                    }
+                });
+                return { ...mic, nearbyLines: [...nearbyLines].sort() };
+            });
+        }
+
+        // Global to store stations for later use
+        let loadedStations = [];
+
+        // --- SHOW LIVE ARRIVALS ---
+        async function showLiveArrivals(line, stopId, legId) {
+            const container = document.getElementById(`${legId}-arrivals`);
+            if (!container) return;
+
+            // Show skeleton loading
+            container.innerHTML = '<div class="flex items-center gap-2"><div class="spinner-inline" style="width: 14px; height: 14px;"></div><span class="text-zinc-400">Fetching live times...</span></div>';
+
+            try {
+                const arrivals = await fetchMTAArrivals(line, stopId);
+
+                if (!arrivals || arrivals.length === 0) {
+                    container.innerHTML = '<span class="text-zinc-500">No arrivals data available</span>';
+                    return;
+                }
+
+                // Show next 3 arrivals as actual times (3:18 PM, 3:23 PM, 3:31 PM)
+                const now = new Date();
+                const times = arrivals.slice(0, 3).map(a => {
+                    const mins = Math.round(a.minutes);
+                    const arrivalTime = new Date(now.getTime() + mins * 60000);
+                    let hours = arrivalTime.getHours();
+                    const minutes = arrivalTime.getMinutes();
+                    const ampm = hours >= 12 ? 'PM' : 'AM';
+                    hours = hours % 12 || 12;
+                    const timeStr = `${hours}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+
+                    if (mins === 0) return `<span class="text-emerald-400 font-bold">Now!</span>`;
+                    if (mins <= 3) return `<span class="text-orange-400 font-semibold">${timeStr}</span>`;
+                    return `<span class="text-white">${timeStr}</span>`;
+                }).join(', ');
+
+                container.innerHTML = times;
+            } catch (e) {
+                container.innerHTML = '<span class="text-red-400">Unable to fetch arrivals</span>';
+                console.error('Arrivals error:', e);
+            }
+        }
+
+
+        // --- PLANNING LOGIC (With Price Filter & Anchored Planning) ---
+        async function planMyNight() {
+            // Get both mobile and desktop buttons
+            const btnMobile = document.getElementById('plan-btn');
+            const btnDesktop = document.getElementById('plan-btn-desktop');
+            const originalMobileHTML = btnMobile?.innerHTML;
+            const originalDesktopHTML = btnDesktop?.innerHTML;
+
+            // Show loading state in buttons
+            const loadingHTML = '<div class="spinner-inline"></div> <span>Finding...</span>';
+            if (btnMobile) {
+                btnMobile.innerHTML = loadingHTML;
+                btnMobile.disabled = true;
+                btnMobile.classList.add('btn-loading');
+            }
+            if (btnDesktop) {
+                btnDesktop.innerHTML = loadingHTML;
+                btnDesktop.disabled = true;
+                btnDesktop.classList.add('btn-loading');
+            }
+
+            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('results').classList.add('hidden');
+            document.getElementById('no-results').classList.add('hidden');
+
+            // Helper to reset buttons
+            function resetButtons() {
+                if (btnMobile) {
+                    btnMobile.innerHTML = originalMobileHTML;
+                    btnMobile.disabled = false;
+                    btnMobile.classList.remove('btn-loading');
+                }
+                if (btnDesktop) {
+                    btnDesktop.innerHTML = originalDesktopHTML;
+                    btnDesktop.disabled = false;
+                    btnDesktop.classList.remove('btn-loading');
+                }
+            }
+
+            try {
+                // Check Data
+                if (allMics.length === 0) {
+                    document.getElementById('loading-detail').textContent = 'Fetching Mics...';
+                    const [micsData, stationsData] = await Promise.all([loadMics(), loadSubwayStations()]);
+                    loadedStations = stationsData;
+                    // Add nearby subway lines to each mic
+                    allMics = addNearbyLinesToMics(micsData, loadedStations);
+                    populateAnchorDropdowns(); // Populate anchors after loading
+                    buildSearchIndex(); // Build search index after data loads
+                }
+
+                document.getElementById('loading-detail').textContent = 'Calculating optimal route...';
+
+                // Gather Inputs
+                const day = document.getElementById('day-select').value;
+                const startTime = document.getElementById('start-time').value;
+                const startMins = parseInt(startTime.split(':')[0]) * 60 + parseInt(startTime.split(':')[1]);
+
+                // Get duration from selector
+                const durationMins = parseInt(document.getElementById('duration-select').value);
+                const endMins = durationMins === 999 ? 1439 : startMins + durationMins; // 1439 = 11:59 PM (end of day)
+
+                // Time per venue (how long you spend at each mic)
+                const timePerVenue = parseInt(document.querySelector('input[name="time-per-venue"]:checked').value);
+
+                // Price Filter
+                const priceFilter = document.querySelector('input[name="price"]:checked').value;
+
+                // Signup Filter
+                const signupFilter = document.querySelector('input[name="signup"]:checked').value;
+
+                // Area Filter (boroughs & neighborhoods)
+                const selectedAreas = Array.from(document.querySelectorAll('.area-checkbox:checked')).map(cb => cb.value);
+
+                // Max Commute Filter
+                const maxCommuteMins = parseInt(document.querySelector('input[name="max-commute"]:checked').value);
+
+                // Mic Count Constraints
+                const micCountMode = document.querySelector('input[name="mic-count"]:checked').value;
+                let minMics = 1;
+                let maxMics = 99;
+                let exactMics = null;
+
+                switch(micCountMode) {
+                    case 'min-2':
+                        minMics = 2;
+                        maxMics = 99;
+                        break;
+                    case 'min-3':
+                        minMics = 3;
+                        maxMics = 99;
+                        break;
+                    default: // flexible
+                        minMics = 1;
+                        maxMics = 99;
+                }
+
+                // Anchors
+                const anchorStartId = document.getElementById('anchor-start-id').value;
+                const anchorMustId = document.getElementById('anchor-must-id').value;
+                const anchorEndId = document.getElementById('anchor-end-id').value;
+
+                // Origin
+                let origin = selectedOrigin || NEIGHBORHOODS[0]; // Default to Bushwick if null
+
+                // Filter Mics
+                let eligible = allMics.filter(m => {
+                    if (m.day !== day) return false;
+                    if (m.startMins < startMins || m.startMins > endMins) return false;
+
+                    // Price Filter
+                    if (priceFilter === 'free') {
+                        const cost = m.cost || m.price || 0;
+                        if (cost > 0) return false;
+                    }
+
+                    // Signup Filter
+                    if (signupFilter === 'walk-in') {
+                        if (m.requiresAdvanceSignup) return false;
+                    } else if (signupFilter === 'advance') {
+                        if (!m.requiresAdvanceSignup) return false;
+                    }
+
+                    // Area Filter (borough or neighborhood)
+                    if (selectedAreas.length > 0) {
+                        const matchesBorough = m.borough && selectedAreas.includes(m.borough);
+                        const matchesNeighborhood = m.neighborhood && selectedAreas.includes(m.neighborhood);
+                        if (!matchesBorough && !matchesNeighborhood) return false;
+                    }
+
+                    return true;
+                });
+
+                // Find anchor mics if specified
+                const anchorStart = anchorStartId ? eligible.find(m => m.id === anchorStartId) : null;
+                const anchorMust = anchorMustId ? eligible.find(m => m.id === anchorMustId) : null;
+                const anchorEnd = anchorEndId ? eligible.find(m => m.id === anchorEndId) : null;
+
+                // Simple Routing Algorithm (Greedy with Anchors)
+                let sequence = [];
+                let current = { lat: origin.lat, lng: origin.lng, mins: startMins };
+                let pool = [...eligible];
+
+                // Remove anchors from pool initially
+                if (anchorStart) pool = pool.filter(m => m.id !== anchorStart.id);
+                if (anchorMust) pool = pool.filter(m => m.id !== anchorMust.id);
+                if (anchorEnd) pool = pool.filter(m => m.id !== anchorEnd.id);
+
+                // 1. Start with anchor start if specified
+                if (anchorStart) {
+                    const distToStart = haversine(current.lat, current.lng, anchorStart.lat, anchorStart.lng);
+                    const travelToStart = Math.round(distToStart * 20);
+
+                    // Check if anchor exceeds max commute
+                    if (maxCommuteMins < 999 && travelToStart > maxCommuteMins) {
+                        throw new Error(`Starting mic exceeds max commute time (${Math.round(travelToStart)}m > ${maxCommuteMins}m)`);
+                    }
+
+                    sequence.push({
+                        mic: anchorStart,
+                        arriveBy: anchorStart.startMins,
+                        transitFromPrev: { mins: travelToStart, type: travelToStart < 10 ? 'walk' : 'transit', subwayRoute: null },
+                        isAnchorStart: true
+                    });
+                    current = { lat: anchorStart.lat, lng: anchorStart.lng, mins: anchorStart.startMins + 60 };
+                }
+
+                // 2. Find middle mics (greedy) - respecting min/max constraints
+                // Calculate how many more mics we need
+                const anchorCount = (anchorStart ? 1 : 0) + (anchorMust ? 1 : 0) + (anchorEnd ? 1 : 0);
+                let targetMaxMics = maxMics - anchorCount; // Leave room for anchors
+                let targetMinMics = Math.max(0, minMics - anchorCount);
+                let mustHitInserted = false;
+
+                while(sequence.length < (anchorStart ? 1 : 0) + (mustHitInserted ? 1 : 0) + targetMaxMics && pool.length > 0) {
+                    // Check if must-hit mic should be inserted now (before picking next greedy mic)
+                    if (anchorMust && !mustHitInserted && anchorMust.startMins >= current.mins + 20) {
+                        const distToMust = haversine(current.lat, current.lng, anchorMust.lat, anchorMust.lng);
+                        const travelToMust = Math.round(distToMust * 20);
+                        const arrivalAtMust = current.mins + travelToMust;
+
+                        // Insert must-hit if it's the next best time slot or no pool mics start before it
+                        const nextPoolMic = pool.find(m => m.startMins >= current.mins + 20);
+                        const shouldInsertNow = !nextPoolMic ||
+                            anchorMust.startMins <= (nextPoolMic ? nextPoolMic.startMins : Infinity) ||
+                            arrivalAtMust <= anchorMust.startMins + 30;
+
+                        if (shouldInsertNow && arrivalAtMust <= anchorMust.startMins + 30) {
+                            sequence.push({
+                                mic: anchorMust,
+                                arriveBy: anchorMust.startMins,
+                                transitFromPrev: { mins: travelToMust, type: travelToMust < 10 ? 'walk' : 'transit', subwayRoute: null },
+                                isAnchorMust: true
+                            });
+                            current = { lat: anchorMust.lat, lng: anchorMust.lng, mins: anchorMust.startMins + 60 };
+                            mustHitInserted = true;
+                            continue;
+                        }
+                    }
+
+                    let best = null;
+                    let minCost = Infinity;
+
+                    for(let mic of pool) {
+                        if(mic.startMins < current.mins + 20) continue; // Must be at least 20 mins after current
+
+                        // If must-hit isn't inserted yet, skip pool mics that start after it
+                        // (we need to leave room to reach the must-hit)
+                        if (anchorMust && !mustHitInserted && mic.startMins > anchorMust.startMins) continue;
+
+                        const dist = haversine(current.lat, current.lng, mic.lat, mic.lng);
+                        const travelMins = dist * 20; // rough estimate
+
+                        // Apply max commute filter
+                        if (maxCommuteMins < 999 && travelMins > maxCommuteMins) continue;
+
+                        const arrival = current.mins + travelMins;
+
+                        // Heuristic: Distance + Wait Time
+                        const cost = travelMins + (mic.startMins - arrival);
+
+                        if(cost < minCost && arrival <= mic.startMins + 30) {
+                            minCost = cost;
+                            best = { mic, travel: Math.round(travelMins) };
+                        }
+                    }
+
+                    if(best) {
+                        sequence.push({
+                            mic: best.mic,
+                            arriveBy: best.mic.startMins,
+                            transitFromPrev: { mins: best.travel, type: best.travel < 10 ? 'walk' : 'transit', subwayRoute: null }
+                        });
+                        current = { lat: best.mic.lat, lng: best.mic.lng, mins: best.mic.startMins + 60 };
+                        pool = pool.filter(m => m.id !== best.mic.id);
+                    } else {
+                        break;
+                    }
+                }
+
+                // If must-hit mic wasn't inserted during greedy loop, force it at the end (before anchor end)
+                if (anchorMust && !mustHitInserted) {
+                    const distToMust = haversine(current.lat, current.lng, anchorMust.lat, anchorMust.lng);
+                    const travelToMust = Math.round(distToMust * 20);
+                    const arrivalAtMust = current.mins + travelToMust;
+                    if (arrivalAtMust <= anchorMust.startMins + 30) {
+                        sequence.push({
+                            mic: anchorMust,
+                            arriveBy: anchorMust.startMins,
+                            transitFromPrev: { mins: travelToMust, type: travelToMust < 10 ? 'walk' : 'transit', subwayRoute: null },
+                            isAnchorMust: true
+                        });
+                        current = { lat: anchorMust.lat, lng: anchorMust.lng, mins: anchorMust.startMins + 60 };
+                        mustHitInserted = true;
+                    } else {
+                        showToast(`Can't reach must-hit mic ${anchorMust.venueName || anchorMust.venue} in time`);
+                    }
+                }
+
+                // 3. End with anchor end if specified and reachable
+                if (anchorEnd && anchorEnd.startMins >= current.mins + 20) {
+                    const distToEnd = haversine(current.lat, current.lng, anchorEnd.lat, anchorEnd.lng);
+                    const travelToEnd = Math.round(distToEnd * 20);
+                    const arrivalAtEnd = current.mins + travelToEnd;
+
+                    // Check if we can make it in time
+                    if (arrivalAtEnd <= anchorEnd.startMins + 30) {
+                        sequence.push({
+                            mic: anchorEnd,
+                            arriveBy: anchorEnd.startMins,
+                            transitFromPrev: { mins: travelToEnd, type: travelToEnd < 10 ? 'walk' : 'transit', subwayRoute: null },
+                            isAnchorEnd: true
+                        });
+                    } else {
+                        showToast(`Can't reach ${anchorEnd.venueName || anchorEnd.venue} in time from previous mic`);
+                    }
+                }
+
+                // Fetch detailed subway routes for all transit segments
+                if (sequence.length > 0) {
+                    document.getElementById('loading-detail').textContent = 'Fetching subway routes...';
+                    let prevLocation = { lat: origin.lat, lng: origin.lng };
+                    for(let i = 0; i < sequence.length; i++) {
+                        const entry = sequence[i];
+                        if(entry.transitFromPrev.type === 'transit') {
+                            const subwayRoute = await fetchSubwayRoute(prevLocation.lat, prevLocation.lng, entry.mic.lat, entry.mic.lng);
+                            if(subwayRoute) {
+                                entry.transitFromPrev.subwayRoute = subwayRoute;
+                                entry.transitFromPrev.mins = subwayRoute.duration;
+                            }
+                        }
+                        prevLocation = { lat: entry.mic.lat, lng: entry.mic.lng };
+                    }
+                }
+
+                // Check if we met the minimum mic requirement
+                if (sequence.length > 0) {
+                    if (sequence.length < minMics) {
+                        document.getElementById('no-results').classList.remove('hidden');
+                        showToast(`Only found ${sequence.length} mic${sequence.length > 1 ? 's' : ''}, but you requested ${minMics}. Try widening your filters.`);
+                    } else {
+                        await renderResults(sequence, origin, timePerVenue);
+                        document.getElementById('results').classList.remove('hidden');
+
+                        // Show success message for exact count
+                        if (exactMics && sequence.length === exactMics) {
+                            showToast(`✓ Found exactly ${exactMics} mics!`);
+                        }
+                    }
+                } else {
+                    document.getElementById('no-results').classList.remove('hidden');
+                }
+
+            } catch (e) {
+                console.error(e);
+                showToast("Error planning route");
+            } finally {
+                document.getElementById('loading').classList.add('hidden');
+                resetButtons();
+            }
+        }
+
+        // Anchor mic data
+        let anchorMicsByDay = {};
+        let anchorCurrentDayMics = [];
+
+        // Populate anchor mic data from loaded mics
+        function populateAnchorDropdowns() {
+            anchorMicsByDay = {};
+            allMics.forEach(m => {
+                if (!anchorMicsByDay[m.day]) anchorMicsByDay[m.day] = [];
+                anchorMicsByDay[m.day].push(m);
+            });
+            // Sort each day by start time
+            Object.keys(anchorMicsByDay).forEach(day => {
+                anchorMicsByDay[day].sort((a, b) => a.startMins - b.startMins);
+            });
+            updateAnchorOptions();
+        }
+
+        // Update available mics when day changes
+        function updateAnchorOptions() {
+            const selectedDay = document.getElementById('day-select').value;
+            anchorCurrentDayMics = anchorMicsByDay[selectedDay] || [];
+            // Clear selections if they don't match the new day
+            ['start', 'must', 'end'].forEach(role => {
+                const hiddenInput = document.getElementById(`anchor-${role}-id`);
+                if (hiddenInput.value) {
+                    const stillValid = anchorCurrentDayMics.some(m => m.id === hiddenInput.value);
+                    if (!stillValid) clearAnchorMic(role);
+                }
+            });
+            renderAnchorChips();
+        }
+
+        // Simple HTML escaper
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        // Anchor role icons and labels
+        const ANCHOR_ROLES = {
+            start: { icon: '🎯', label: 'Start' },
+            must: { icon: '📌', label: 'Must Hit' },
+            end: { icon: '🏁', label: 'End' }
+        };
+
+        // Open anchor modal
+        function openAnchorModal() {
+            // Scroll to top so modal is visible
+            window.scrollTo(0, 0);
+
+            const backdrop = document.getElementById('anchor-modal-backdrop');
+            const searchInput = document.getElementById('anchor-search-input');
+            backdrop.classList.add('open');
+            document.body.style.overflow = 'hidden';
+
+            // Render initial results (all mics for day)
+            renderAnchorResults('');
+
+            // Focus search after animation
+            setTimeout(() => searchInput.focus(), 300);
+        }
+
+        // Close anchor modal
+        function closeAnchorModal(event) {
+            // If event is passed, only close if clicking backdrop (not modal content)
+            if (event && event.target !== event.currentTarget) return;
+
+            const backdrop = document.getElementById('anchor-modal-backdrop');
+            const searchInput = document.getElementById('anchor-search-input');
+            backdrop.classList.remove('open');
+            document.body.style.overflow = '';
+            searchInput.value = '';
+        }
+
+        // Render anchor search results in modal
+        function renderAnchorResults(query) {
+            const resultsEl = document.getElementById('anchor-modal-results');
+            const q = (query || '').toLowerCase().trim();
+
+            let mics = anchorCurrentDayMics;
+            if (q) {
+                mics = mics.filter(m => {
+                    const name = (m.venueName || m.venue || '').toLowerCase();
+                    const hood = (m.neighborhood || '').toLowerCase();
+                    return name.includes(q) || hood.includes(q);
+                });
+            }
+
+            if (mics.length === 0) {
+                resultsEl.innerHTML = `
+                    <div class="anchor-empty-state">
+                        <div class="icon">🔍</div>
+                        <div>No mics found${q ? ` for "${escapeHtml(q)}"` : ''}</div>
+                    </div>
+                `;
+                return;
+            }
+
+            // Get current selections
+            const startId = document.getElementById('anchor-start-id').value;
+            const mustId = document.getElementById('anchor-must-id').value;
+            const endId = document.getElementById('anchor-end-id').value;
+
+            resultsEl.innerHTML = mics.map(mic => {
+                const name = mic.venueName || mic.venue || 'Unknown';
+                const time = minsToTime(mic.startMins);
+                const hood = mic.neighborhood && mic.neighborhood !== 'NYC' ? mic.neighborhood : '';
+                const price = mic.cost > 0 ? `$${mic.cost}` : 'Free';
+                const meta = [time, hood, price].filter(Boolean).join(' · ');
+
+                // Highlight matching text in name
+                let displayName = escapeHtml(name);
+                if (q) {
+                    const idx = name.toLowerCase().indexOf(q);
+                    if (idx >= 0) {
+                        displayName = escapeHtml(name.slice(0, idx)) +
+                            '<span class="match-highlight">' + escapeHtml(name.slice(idx, idx + q.length)) + '</span>' +
+                            escapeHtml(name.slice(idx + q.length));
+                    }
+                }
+
+                // Determine which role buttons are selected for this mic
+                const isStart = startId === mic.id;
+                const isMust = mustId === mic.id;
+                const isEnd = endId === mic.id;
+
+                return `
+                    <div class="anchor-result-item">
+                        <div class="anchor-result-info">
+                            <div class="anchor-result-name">${displayName}</div>
+                            <div class="anchor-result-meta">${escapeHtml(meta)}</div>
+                        </div>
+                        <div class="anchor-result-actions">
+                            <button class="anchor-action-btn${isStart ? ' selected' : ''}"
+                                    onclick="selectAnchorMic('start', '${mic.id}')"
+                                    title="Start with this mic">
+                                <span class="icon">🎯</span>
+                            </button>
+                            <button class="anchor-action-btn${isMust ? ' selected' : ''}"
+                                    onclick="selectAnchorMic('must', '${mic.id}')"
+                                    title="Must hit this mic">
+                                <span class="icon">📌</span>
+                            </button>
+                            <button class="anchor-action-btn${isEnd ? ' selected' : ''}"
+                                    onclick="selectAnchorMic('end', '${mic.id}')"
+                                    title="End with this mic">
+                                <span class="icon">🏁</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Select an anchor mic with a specific role
+        function selectAnchorMic(role, micId) {
+            const hiddenInput = document.getElementById(`anchor-${role}-id`);
+
+            // Toggle: if same mic is already selected, deselect it
+            if (hiddenInput.value === micId) {
+                hiddenInput.value = '';
+            } else {
+                hiddenInput.value = micId;
+            }
+
+            // Re-render results to update button states
+            const searchInput = document.getElementById('anchor-search-input');
+            renderAnchorResults(searchInput?.value || '');
+
+            // Update chips display
+            renderAnchorChips();
+
+            // Update filter count badge
+            updateFilterCountBadge();
+        }
+
+        // Clear anchor mic selection
+        function clearAnchorMic(role) {
+            const hiddenInput = document.getElementById(`anchor-${role}-id`);
+            hiddenInput.value = '';
+            renderAnchorChips();
+            updateFilterCountBadge();
+        }
+
+        // Render selected anchor chips
+        function renderAnchorChips() {
+            const container = document.getElementById('anchor-chips');
+            if (!container) return;
+
+            const chips = [];
+
+            ['start', 'must', 'end'].forEach(role => {
+                const micId = document.getElementById(`anchor-${role}-id`)?.value;
+                if (!micId) return;
+
+                const mic = anchorCurrentDayMics.find(m => m.id === micId);
+                if (!mic) return;
+
+                const name = mic.venueName || mic.venue || 'Unknown';
+                const time = minsToTime(mic.startMins);
+                const roleInfo = ANCHOR_ROLES[role];
+
+                chips.push(`
+                    <div class="anchor-chip">
+                        <span class="anchor-chip-icon">${roleInfo.icon}</span>
+                        <div class="anchor-chip-content">
+                            <span class="anchor-chip-role">${roleInfo.label}</span>
+                            <span class="anchor-chip-name" title="${escapeHtml(name)}">${escapeHtml(name)} · ${time}</span>
+                        </div>
+                        <button class="anchor-chip-clear" onclick="clearAnchorMic('${role}')" aria-label="Remove ${roleInfo.label}">
+                            &times;
+                        </button>
+                    </div>
+                `);
+            });
+
+            container.innerHTML = chips.join('');
+        }
+
+        // Setup anchor modal event listeners
+        function setupAnchorModal() {
+            const searchInput = document.getElementById('anchor-search-input');
+
+            if (searchInput) {
+                // Search as you type
+                searchInput.addEventListener('input', (e) => {
+                    renderAnchorResults(e.target.value);
+                });
+
+                // Close on Escape
+                searchInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        closeAnchorModal();
+                    }
+                });
+            }
+        }
+
+        async function renderResults(sequence, origin, timePerVenue = 60) {
+            // Store current route for sharing/saving
+            currentRoute = { sequence, origin, timePerVenue };
+
+            // Helper function to parse stage time strings like "5min" or "3-5min"
+            const parseStageTime = (stageTimeStr) => {
+                if (!stageTimeStr) return 5;
+                const match = stageTimeStr.match(/(\d+)(?:-(\d+))?min/);
+                if (!match) return 5;
+                // If range like "3-5min", take the max
+                return match[2] ? parseInt(match[2]) : parseInt(match[1]);
+            };
+
+            // Calculate trip statistics
+            const totalTransitMins = sequence.reduce((sum, e) => sum + (e.transitFromPrev?.mins || 0), 0);
+
+            // Calculate total venue time using user-selected time per venue
+            const totalVenueTime = sequence.length * timePerVenue;
+
+            const totalTripMins = totalTransitMins + totalVenueTime;
+
+            // Calculate total distance
+            let totalDistanceMiles = 0;
+            let prevLat = origin.lat;
+            let prevLng = origin.lng;
+            sequence.forEach(entry => {
+                if (entry.mic.lat && entry.mic.lng) {
+                    totalDistanceMiles += haversine(prevLat, prevLng, entry.mic.lat, entry.mic.lng);
+                    prevLat = entry.mic.lat;
+                    prevLng = entry.mic.lng;
+                }
+            });
+
+            // Calculate end time
+            const firstMicStartMins = sequence[0]?.mic.startMins || 0;
+            const endMins = firstMicStartMins + totalTripMins;
+            const endTime = minsToTime(endMins);
+
+            const tl = document.getElementById('timeline');
+
+            // Fetch MTA alerts
+            const mtaAlerts = await fetchMTAAlerts();
+
+            // Extract all subway lines from route
+            const routeLines = new Set();
+            sequence.forEach(entry => {
+                if (entry.transitFromPrev.subwayRoute && entry.transitFromPrev.subwayRoute.legs) {
+                    entry.transitFromPrev.subwayRoute.legs.forEach(leg => {
+                        if (leg.type === 'subway' && leg.line) {
+                            routeLines.add(leg.line);
+                        }
+                    });
+                }
+            });
+
+            // Filter alerts for lines in this route
+            const relevantAlerts = mtaAlerts.filter(alert =>
+                alert.lines && alert.lines.some(line => routeLines.has(line))
+            ).slice(0, 2); // Max 2 alerts
+
+            // MTA ALERTS (if any)
+            let alertsHtml = '';
+            if (relevantAlerts.length > 0) {
+                alertsHtml = `
+                    <div class="mb-4 p-3 rounded-xl bg-yellow-500/10 border border-yellow-500/30">
+                        <div class="text-yellow-400 font-bold text-xs mb-2">⚠️ SERVICE ALERTS</div>
+                        ${relevantAlerts.map(alert => {
+                            const lineColors = alert.lines.map(l => LINE_COLORS[l] || '#808183');
+                            return `
+                                <div class="text-xs text-yellow-200 mb-2 last:mb-0">
+                                    <div class="flex items-center gap-1 mb-1">
+                                        ${alert.lines.map((line, idx) => `
+                                            <span class="line-badge" style="background: ${lineColors[idx]}; width: 18px; height: 18px; border-radius: 3px; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; color: white; font-size: 10px;">${line}</span>
+                                        `).join('')}
+                                    </div>
+                                    <div class="text-zinc-300">${alert.text || alert.header}</div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+            }
+
+            // Helper to format duration nicely
+            const formatDuration = (totalMins) => {
+                const hours = Math.floor(totalMins / 60);
+                const mins = totalMins % 60;
+                if (hours === 0) return `${mins}m`;
+                if (mins === 0) return `${hours}h`;
+                return `${hours}h ${mins}m`;
+            };
+
+            // Calculate departure time
+            let departureHtml = '';
+            if (sequence.length > 0) {
+                const firstMic = sequence[0].mic;
+                const firstTransitMins = sequence[0].transitFromPrev?.mins || 0;
+                const firstArriveByMins = firstMic.startMins - 15;
+                if (!isNaN(firstArriveByMins) && !isNaN(firstTransitMins)) {
+                    const departOriginMins = firstArriveByMins - firstTransitMins;
+                    const departTime = minsToTime(departOriginMins);
+                    const locationName = origin.name || 'My Location';
+                    departureHtml = `
+                        <div class="departure-card">
+                            <span class="departure-label">🚶 Depart</span>
+                            <span class="departure-time">${departTime}</span>
+                            <span class="departure-location">from ${locationName}</span>
+                        </div>
+                    `;
+                }
+            }
+
+            // Clean trip summary
+            let html = alertsHtml + `
+                <div class="trip-summary">
+                    <span class="trip-summary-duration">${formatDuration(totalTripMins)}</span>
+                    <span class="trip-summary-details">${totalDistanceMiles.toFixed(1)} mi · Done by ${endTime}</span>
+                </div>
+
+                ${departureHtml}
+
+                <div class="timeline-container">
+            `;
+
+            sequence.forEach((entry, i) => {
+                const mic = entry.mic;
+                const isFirst = i === 0;
+                const isLast = i === sequence.length - 1;
+                
+                // Transit Segment
+                const transitMins = entry.transitFromPrev?.mins || 0;
+                const transitType = entry.transitFromPrev?.type || 'walk';
+                const subwayRoute = entry.transitFromPrev?.subwayRoute;
+
+                // Calculate distance from previous stop
+                const prevLat = i === 0 ? origin.lat : sequence[i-1].mic.lat;
+                const prevLng = i === 0 ? origin.lng : sequence[i-1].mic.lng;
+                const segmentDistance = haversine(prevLat, prevLng, mic.lat, mic.lng);
+
+                // Calculate arrival time (15min buffer before start)
+                const arriveByMins = mic.startMins - 15;
+
+                // Choose icon based on type
+                const transitIcon = transitType === 'walk' ? '🚶' : '🚇';
+
+                // Transit is now shown as simple text between cards
+
+                // Mic Card - times
+                const arriveByTime = minsToTime(arriveByMins);
+                const startTime = minsToTime(mic.startMins);
+
+                // Full address
+                const fullAddress = mic.address || mic.fullAddress || `${mic.neighborhood || ''}, ${mic.borough || 'NYC'}`.replace(/^, |, $/g, '');
+
+                // Price display with notes
+                let priceDisplay = '';
+                if (mic.cost > 0) {
+                    priceDisplay = `$${mic.cost}${mic.priceNote ? ` ${mic.priceNote}` : ''}`;
+                } else {
+                    priceDisplay = 'Free';
+                }
+
+                // Extract Instagram handle
+                let igHandle = '';
+                if (mic.host || mic.contact) {
+                    const hostStr = mic.host || mic.contact || '';
+                    const igMatch = hostStr.match(/@([a-zA-Z0-9_.]+)/);
+                    if (igMatch) {
+                        igHandle = igMatch[1];
+                    }
+                }
+                // Also check for instagram field
+                if (!igHandle && mic.instagram) {
+                    igHandle = mic.instagram.replace('@', '');
+                }
+
+                // Price display with note
+                let priceText = '';
+                if (mic.cost > 0) {
+                    priceText = `$${mic.cost}${mic.priceNote ? ` ${mic.priceNote.toUpperCase()}` : ' CASH'}`;
+                } else {
+                    priceText = 'FREE';
+                }
+                const priceClass = mic.cost > 0 ? 'paid' : 'free';
+
+                // Get nearby subway lines for this venue
+                const nearbyLines = mic.nearbyLines || [];
+                const primaryLine = nearbyLines[0] || null;
+                const primaryLineColor = primaryLine ? (LINE_COLORS[primaryLine] || '#666') : null;
+                const isDarkTextLine = primaryLine && DARK_TEXT_LINES.includes(primaryLine);
+
+                // Email/signup link
+                const signupEmail = mic.signupEmail || mic.email || null;
+                const signupUrl = mic.signupUrl || mic.url || null;
+
+                // Stage time (how many minutes you get)
+                const stageTime = mic.stageTime || null;
+
+                // Build transit connector (between stops)
+                let transitConnectorHtml = '';
+                if (!isFirst && transitMins > 0) {
+                    // Get subway lines used for this leg
+                    const transitInfo = entry.transitFromPrev;
+                    let transitLinesHtml = '';
+                    let transitMode = '🚇'; // default subway
+
+                    if (transitInfo.subwayRoute && transitInfo.subwayRoute.legs) {
+                        const subwayLegs = transitInfo.subwayRoute.legs.filter(leg => leg.type === 'subway');
+                        if (subwayLegs.length > 0) {
+                            transitLinesHtml = subwayLegs.map(leg => {
+                                const lineColor = LINE_COLORS[leg.line] || '#666';
+                                const isDark = DARK_TEXT_LINES.includes(leg.line);
+                                return `<span class="transit-line ${isDark ? 'dark-text' : ''}" style="background: ${lineColor}">${leg.line}</span>`;
+                            }).join('');
+                        } else {
+                            transitMode = '🚶';
+                        }
+                    }
+
+                    transitConnectorHtml = `
+                        <div class="transit-connector">
+                            <div class="transit-connector-content">
+                                ${transitLinesHtml ? `
+                                    <span class="transit-icon">${transitMode}</span>
+                                    <div class="transit-lines">${transitLinesHtml}</div>
+                                ` : `
+                                    <span class="transit-icon">🚶</span>
+                                `}
+                                <span class="transit-duration">${transitMins} min</span>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // Add transit connector before the card (except for first stop)
+                html += transitConnectorHtml;
+
+                // Card classes for first/last stop styling
+                const cardClasses = ['tl-card'];
+                if (isFirst) cardClasses.push('first-stop');
+                if (isLast) cardClasses.push('last-stop');
+
+                html += `
+                    <div class="${cardClasses.join(' ')}">
+                        <!-- Left: Time column -->
+                        <div class="tl-time-col">
+                            <div class="tl-time">${startTime.replace(/\s*(AM|PM)/i, '').replace(':', ':')}</div>
+                            ${stageTime ? `<div class="tl-transit-badge">${stageTime}</div>` : ''}
+                        </div>
+
+                        <!-- Middle: Content -->
+                        <div class="tl-content">
+                            <div class="tl-row1">
+                                <span class="tl-venue">${mic.venueName || mic.venue || 'Unknown Venue'}</span>
+                                ${mic.borough ? `<span class="tl-borough-badge">${mic.borough.toUpperCase()}</span>` : ''}
+                            </div>
+                            <div class="tl-row2">
+                                ${mic.neighborhood ? `<span class="tl-neighborhood">${mic.neighborhood.toUpperCase()}</span>` : ''}
+                                <span class="tl-price-badge ${priceClass}">${priceText}</span>
+                                ${primaryLine ? `
+                                    <span class="tl-line-badge ${isDarkTextLine ? 'dark-text' : ''}" style="background: ${primaryLineColor}">${primaryLine}</span>
+                                ` : ''}
+                            </div>
+                        </div>
+
+                        <!-- Right: Action buttons -->
+                        <div class="tl-actions">
+                            ${signupEmail ? `
+                                <a href="mailto:${signupEmail}" class="tl-action-btn" title="Email signup">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                    </svg>
+                                </a>
+                            ` : signupUrl ? `
+                                <a href="${signupUrl}" target="_blank" class="tl-action-btn" title="Sign up">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                    </svg>
+                                </a>
+                            ` : ''}
+                            ${igHandle ? `
+                                <a href="https://instagram.com/${igHandle}" target="_blank" class="tl-action-btn ig-btn" title="Instagram">
+                                    <svg fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                                    </svg>
+                                </a>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+
+            // Close timeline container
+            html += `</div>`;
+
+            // TRIP COST FOOTER (only show if there's a cost)
+            const totalCost = sequence.reduce((sum, e) => sum + (e.mic.cost || 0), 0);
+            if (totalCost > 0) {
+                html += `
+                    <div class="mt-6 py-4 px-5 rounded-xl bg-zinc-800/50 border border-zinc-700 flex items-center justify-between">
+                        <span class="text-zinc-400">Total Cost</span>
+                        <span class="text-white font-bold text-lg">$${totalCost}</span>
+                    </div>
+                `;
+            }
+
+            tl.innerHTML = html;
+
+            // Update summary (now redundant with header, but keep for compatibility)
+            const summary = document.getElementById('summary');
+            summary.textContent = `${sequence.length} stop${sequence.length > 1 ? 's' : ''}`;
+        }
+
+
+        // --- DATA PROCESSING (Synced with Main Map) ---
+
+        // Always get fresh time
+        function getNow() {
+            return new Date();
+        }
+
+        // Parse time string to Date object for today
+        function parseTime(timeStr) {
+            const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+            if (!match) return null;
+            let hours = parseInt(match[1]);
+            const mins = parseInt(match[2]);
+            const period = match[3].toUpperCase();
+            if (period === 'PM' && hours !== 12) hours += 12;
+            if (period === 'AM' && hours === 12) hours = 0;
+            const d = new Date();
+            d.setHours(hours, mins, 0, 0);
+            return d;
+        }
+
+        // Extract URL from signup text
+        function extractSignupUrl(signupText) {
+            if (!signupText) return null;
+            const fullUrlMatch = signupText.match(/(https?:\/\/[^\s]+)/);
+            if (fullUrlMatch) return fullUrlMatch[1];
+            const domainMatch = signupText.match(/(?:^|\s)((?:www\.)?[a-zA-Z0-9-]+\.[a-zA-Z]{2,}(?:\/[^\s]*)?)/i);
+            if (domainMatch) return 'https://' + domainMatch[1];
+            return null;
+        }
+
+        // Extract email from signup text
+        function extractSignupEmail(signupText) {
+            if (!signupText) return null;
+            const emailMatch = signupText.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
+            return emailMatch ? emailMatch[1] : null;
+        }
+
+        // Calculate status: live, upcoming, future
+        function getStatus(startDate) {
+            const diffMins = startDate ? (startDate - getNow()) / 60000 : 999;
+            if (diffMins > -90 && diffMins <= 0) return 'live';
+            if (diffMins > 0 && diffMins <= 120) return 'upcoming';
+            return 'future';
+        }
+
+        // Detect signup type from signup details text
+        function detectSignupType(signupText) {
+            if (!signupText) return { type: 'unknown', requiresAdvance: false };
+
+            const text = signupText.toLowerCase();
+
+            // Check for advance signup requirements
+            const advanceKeywords = [
+                'email', 'dm ', '@', 'instagram', 'ig ', 'https://', 'http://',
+                'slotted.co', 'jotform', 'google form', 'form goes up',
+                'in advance', 'beforehand', 'day before', 'comment on'
+            ];
+
+            const requiresAdvance = advanceKeywords.some(keyword => text.includes(keyword));
+
+            // Determine specific type
+            let type = 'unknown';
+            if (text.includes('sign up in person') || text.includes('sign up at venue') || text.includes('sign up there')) {
+                type = 'in-person';
+            } else if (text.includes('email') || text.includes('@') && text.includes('.com')) {
+                type = 'email';
+            } else if (text.includes('dm ') || text.includes('instagram') || text.includes('ig ') || text.includes('@')) {
+                type = 'instagram';
+            } else if (text.includes('http')) {
+                type = 'online';
+            } else if (text.includes('sign up')) {
+                type = 'in-person';
+            }
+
+            return { type, requiresAdvance };
+        }
+
+        // Process mic data from API (SYNCED WITH MAIN MAP)
+        function processMics(rawMics) {
+            return rawMics.map(m => {
+                const startDate = parseTime(m.startTime);
+                const diffMins = startDate ? (startDate - getNow()) / 60000 : 999;
+
+                // 3-tier status: live, upcoming, future
+                let status = 'future';
+                if (diffMins > -90 && diffMins <= 0) status = 'live';
+                else if (diffMins > 0 && diffMins <= 120) status = 'upcoming';
+
+                // API field mapping
+                const signup = m.signUpDetails || m.signup || '';
+                const signupType = detectSignupType(signup);
+
+                // Extract IG handle from host
+                let contact = '';
+                const hostStr = m.host || m.contact || '';
+                const igMatch = hostStr.match(/@([a-zA-Z0-9_.]+)/);
+                if (igMatch) {
+                    contact = igMatch[1];
+                }
+
+                // Shorten venue names: "Comedy Club" → "CC"
+                let venueName = m.venueName || m.venue || m.name || 'Unknown Venue';
+                venueName = venueName.replace(/Comedy Club/gi, 'CC');
+
+                // Derive day from API data
+                let day = m.day;
+                if (!day && m.date) {
+                    const dateObj = new Date(m.date);
+                    if (!isNaN(dateObj.getTime())) {
+                        day = CONFIG.dayNames[dateObj.getDay()];
+                    }
+                }
+                if (!day) {
+                    day = CONFIG.dayNames[new Date().getDay()];
+                }
+
+                return {
+                    ...m,
+                    id: m._id || m.id,
+                    venueName: venueName,
+                    venue: venueName,
+                    neighborhood: m.neighborhood || 'NYC',
+                    cost: m.cost || 0,
+                    price: m.cost || 'Free',
+                    status: status,
+                    signupUrl: extractSignupUrl(signup),
+                    signupEmail: extractSignupEmail(signup),
+                    signupInstructions: signup || 'No signup info available',
+                    signupType: signupType.type,
+                    requiresAdvanceSignup: signupType.requiresAdvance,
+                    lng: m.lon || m.lng,
+                    lat: m.lat,
+                    address: m.address || '',
+                    contact: contact,
+                    borough: m.borough,
+                    day: day,
+                    startMins: timeToMins(m.startTime),
+                    start: startDate,
+                    stageTime: m.stageTime || m.stage_time || null,
+                    instagram: contact || m.instagram || null
+                };
+            });
+        }
+
+        // --- DATA LOADERS ---
+        async function loadMics() {
+            try {
+                const resp = await fetch(`${API_BASE}/api/v1/mics`);
+                const data = await resp.json();
+                return processMics(data.mics);
+            } catch(e) {
+                console.error('Failed to load mics:', e);
+                return [];
+            }
+        }
+
+        async function loadSubwayStations() {
+            try {
+                const resp = await fetch(`${API_BASE}/data/stations.json`);
+                const stationsObj = await resp.json();
+
+                // Transform object to array with gtfsStopId and lines
+                const stations = Object.entries(stationsObj).map(([id, station]) => {
+                    // Extract lines from nodes (e.g., "101S_1" -> "1")
+                    const lines = new Set();
+                    (station.nodes || []).forEach(node => {
+                        const match = node.match(/_([A-Z0-9]+)$/);
+                        if (match) lines.add(match[1]);
+                    });
+
+                    // Build name with lines like "Station Name (1 2 3)"
+                    const lineStr = [...lines].sort().join(' ');
+                    const nameWithLines = lineStr ? `${station.name} (${lineStr})` : station.name;
+
+                    return {
+                        ...station,
+                        gtfsStopId: id,
+                        name: nameWithLines,
+                        lines: [...lines]
+                    };
+                });
+
+                return stations;
+            } catch(e) {
+                console.error('Failed to load subway stations:', e);
+                return [];
+            }
+        }
+
+        // --- GEOLOCATION & SEARCH ---
+        async function useMyLocation() {
+            const btn = document.getElementById('geo-btn');
+            const originalContent = btn.innerHTML;
+
+            // Show loading state with spinner
+            btn.innerHTML = '<div class="spinner-inline"></div> <span>Locating...</span>';
+            btn.classList.add('btn-loading');
+            btn.disabled = true;
+
+            if (!navigator.geolocation) {
+                btn.innerHTML = originalContent;
+                btn.classList.remove('btn-loading');
+                btn.disabled = false;
+                showToast('Geolocation not supported');
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    selectedOrigin = { lat: pos.coords.latitude, lng: pos.coords.longitude, name: "My Location" };
+                    selectOriginUI(selectedOrigin);
+                    btn.innerHTML = '<span class="text-emerald-400">✓</span> Location Found';
+                    btn.classList.remove('btn-loading');
+                    btn.classList.add('success', 'success-flash');
+                    btn.disabled = false;
+                },
+                (error) => {
+                    btn.innerHTML = originalContent;
+                    btn.classList.remove('btn-loading');
+                    btn.disabled = false;
+
+                    let errorMsg = 'Location denied';
+                    if (error.code === 1) errorMsg = 'Location permission denied';
+                    else if (error.code === 2) errorMsg = 'Location unavailable';
+                    else if (error.code === 3) errorMsg = 'Location request timed out';
+
+                    showToast(errorMsg);
+                },
+                { timeout: 10000, enableHighAccuracy: true }
+            );
+        }
+
+        // --- SEARCH HELPER FUNCTIONS ---
+
+        // Debounce function
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Build unified search index
+        function buildSearchIndex() {
+            searchableItems = [];
+
+            // Add neighborhoods
+            if (Array.isArray(NEIGHBORHOODS)) {
+                NEIGHBORHOODS.forEach(n => {
+                    searchableItems.push({
+                        type: 'neighborhood',
+                        name: n.name,
+                        subtitle: n.borough,
+                        icon: '📍',
+                        lat: n.lat,
+                        lng: n.lng,
+                        data: n,
+                        searchTerms: `${n.name.toLowerCase()} ${n.borough.toLowerCase()}`
+                    });
+                });
+            }
+
+            // Add subway stations
+            if (Array.isArray(subwayStations)) {
+                subwayStations.forEach(s => {
+                    const lines = s.lines || [];
+                    searchableItems.push({
+                        type: 'subway',
+                        name: s.name,
+                        subtitle: lines.join(' '),
+                        icon: '🚇',
+                        lat: s.lat,
+                        lng: s.lng,
+                        data: s,
+                        searchTerms: `${s.name.toLowerCase()} ${lines.map(l => `${l.toLowerCase()} ${l.toLowerCase()} train`).join(' ')}`
+                    });
+                });
+            }
+
+            // Add subway lines
+            const subwayLines = ['A', 'C', 'E', 'B', 'D', 'F', 'M', 'G', 'J', 'Z', 'L', 'N', 'Q', 'R', 'W', 'S', '1', '2', '3', '4', '5', '6', '7'];
+            subwayLines.forEach(line => {
+                searchableItems.push({
+                    type: 'line',
+                    name: `${line} Train`,
+                    subtitle: 'Subway Line',
+                    icon: '🚇',
+                    line: line,
+                    searchTerms: `${line.toLowerCase()} ${line.toLowerCase()} train ${line.toLowerCase()} line`
+                });
+            });
+
+            // Add mics
+            if (Array.isArray(allMics)) {
+                allMics.forEach(m => {
+                    const name = m.venueName || m.venue || 'Unknown';
+                    const neighborhood = m.neighborhood || '';
+                    const borough = m.borough || '';
+                    searchableItems.push({
+                        type: 'mic',
+                        name: name,
+                        subtitle: `${neighborhood}${neighborhood && borough ? ', ' : ''}${borough}`.trim(),
+                        icon: '🎤',
+                        lat: m.lat,
+                        lng: m.lng,
+                        meta: `${m.day || ''} • ${m.startTime || ''}`,
+                        data: m,
+                        searchTerms: `${name.toLowerCase()} ${neighborhood.toLowerCase()} ${borough.toLowerCase()}`
+                    });
+                });
+            }
+
+            // Initialize Fuse.js
+            fuse = new Fuse(searchableItems, {
+                keys: ['searchTerms'],
+                threshold: 0.3,
+                distance: 100,
+                minMatchCharLength: 2,
+                ignoreLocation: true
+            });
+        }
+
+        // Save recent search
+        function saveRecentSearch(item) {
+            try {
+                let recents = JSON.parse(localStorage.getItem('recentSearches') || '[]');
+                recents = recents.filter(r => r.name !== item.name);
+                recents.unshift(item);
+                recents = recents.slice(0, 5);
+                localStorage.setItem('recentSearches', JSON.stringify(recents));
+            } catch (e) {
+                console.warn('Failed to save recent search:', e);
+            }
+        }
+
+        // Add distances to results
+        function addDistances(results, userLat, userLng) {
+            return results.map(item => {
+                if (item.lat && item.lng && userLat && userLng) {
+                    const dist = haversine(userLat, userLng, item.lat, item.lng);
+                    item.distance = dist < 1 ? `${(dist * 5280).toFixed(0)} ft` : `${dist.toFixed(1)} mi`;
+                }
+                return item;
+            });
+        }
+
+        // Highlight matched text
+        function highlightMatch(text, query) {
+            if (!query) return text;
+            const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+            return text.replace(regex, '<strong class="font-bold">$1</strong>');
+        }
+
+        // Render single item (Google-style simple with accessibility)
+        function renderSearchItem(item, index) {
+            const escapedItem = JSON.stringify(item).replace(/'/g, '&apos;');
+            const detail = item.subtitle || item.type;
+            const isSelected = index === selectedSearchIndex;
+            return `
+                <div class="dropdown-item ${isSelected ? 'selected' : ''}"
+                     data-index="${index}"
+                     role="option"
+                     aria-selected="${isSelected}"
+                     id="search-option-${index}"
+                     onclick='selectSearchItem(${escapedItem})'>
+                    <span class="item-icon" aria-hidden="true">${item.icon}</span>
+                    <div class="item-text">
+                        <div class="item-name">${highlightMatch(item.name, currentQuery)}</div>
+                        ${detail ? `<div class="item-detail">${detail}</div>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Render dropdown (Google-style simple list, scrollable)
+        function renderSearchDropdown(results) {
+            // No results
+            if (!results || results.length === 0) {
+                dropdown.innerHTML = `
+                    <div class="dropdown-item" style="justify-content: center; color: rgba(255,255,255,0.4);">
+                        No results found
+                    </div>
+                `;
+                showDropdown();
+                return;
+            }
+
+            // Show ALL results (CSS handles showing 5 at a time with scroll)
+            let html = '';
+            results.forEach((item, index) => {
+                html += renderSearchItem(item, index);
+            });
+
+            dropdown.innerHTML = html;
+            showDropdown();
+        }
+
+        // Update keyboard selection highlight with accessibility
+        function updateSearchSelection() {
+            const items = dropdown.querySelectorAll('.dropdown-item');
+            items.forEach((item, i) => {
+                const isSelected = i === selectedSearchIndex;
+                item.classList.toggle('selected', isSelected);
+                item.setAttribute('aria-selected', isSelected);
+                if (isSelected) {
+                    item.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                    // Set aria-activedescendant on the combobox
+                    searchInput.setAttribute('aria-activedescendant', `search-option-${i}`);
+                }
+            });
+            // Clear aria-activedescendant if nothing selected
+            if (selectedSearchIndex < 0) {
+                searchInput.removeAttribute('aria-activedescendant');
+            }
+        }
+
+        // Origin Search Logic
+        const searchInput = document.getElementById('origin-search');
+        const dropdown = document.getElementById('origin-dropdown');
+        const clearBtn = document.getElementById('search-clear-btn');
+
+        // Helper functions for dropdown visibility (with animations)
+        const dropdownContainer = document.querySelector('.dropdown-container');
+        function showDropdown() {
+            dropdown.classList.add('visible');
+            dropdownContainer.classList.add('dropdown-open');
+            searchInput.setAttribute('aria-expanded', 'true');
+        }
+        function hideDropdown() {
+            dropdown.classList.remove('visible');
+            dropdownContainer.classList.remove('dropdown-open');
+            searchInput.setAttribute('aria-expanded', 'false');
+        }
+
+        // Click-outside handler to close dropdown
+        document.addEventListener('click', (e) => {
+            const container = document.querySelector('.dropdown-container');
+            if (container && !container.contains(e.target)) {
+                hideDropdown();
+            }
+        });
+
+        // Clear button logic
+        function updateClearButton() {
+            if (searchInput.value.length > 0) {
+                clearBtn.classList.add('visible');
+            } else {
+                clearBtn.classList.remove('visible');
+            }
+        }
+
+        clearBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            searchInput.value = '';
+            updateClearButton();
+            hideDropdown();
+            searchInput.focus();
+        });
+
+        // Update clear button on input
+        searchInput.addEventListener('input', () => updateClearButton());
+
+        // Search with fuzzy matching (instant, no loading spinner)
+        const performSearch = debounce((query) => {
+            currentQuery = query;
+            selectedSearchIndex = -1;
+
+            // Hide if query too short
+            if (query.length < 1) {
+                hideDropdown();
+                return;
+            }
+
+            // Search index not ready
+            if (!fuse) {
+                console.warn('Search index not ready');
+                return;
+            }
+
+            // Instant search - no loading needed for local data
+            const results = fuse.search(query, { limit: 50 });
+            const items = results.map(r => r.item);
+            renderSearchDropdown(items);
+        }, 80); // Faster debounce for snappier feel
+
+        searchInput.addEventListener('input', (e) => {
+            performSearch(e.target.value.trim());
+        });
+
+        // On focus - show quick suggestions
+        searchInput.addEventListener('focus', () => {
+            if (searchInput.value.trim().length > 0) {
+                performSearch(searchInput.value.trim());
+            } else {
+                showQuickSuggestions();
+            }
+        });
+
+        // Show quick suggestions (recent history first, then variety - scrollable)
+        function showQuickSuggestions() {
+            let suggestions = [];
+
+            // 1. Add ALL recent searches first (up to 5)
+            const recent = getRecentSearches().slice(0, 5);
+            recent.forEach(item => {
+                suggestions.push({ ...item, icon: '🕐' }); // Clock icon for recent
+            });
+
+            // 2. Add variety from each category
+            if (searchableItems && searchableItems.length > 0) {
+                const neighborhoods = searchableItems.filter(i => i.type === 'neighborhood').slice(0, 8);
+                const lines = searchableItems.filter(i => i.type === 'line').slice(0, 6);
+                const mics = searchableItems.filter(i => i.type === 'mic').slice(0, 8);
+
+                // Add all - interleaved for variety
+                const maxLen = Math.max(neighborhoods.length, lines.length, mics.length);
+                for (let i = 0; i < maxLen; i++) {
+                    if (neighborhoods[i]) suggestions.push(neighborhoods[i]);
+                    if (lines[i]) suggestions.push(lines[i]);
+                    if (mics[i]) suggestions.push(mics[i]);
+                }
+            }
+
+            // Show dropdown (CSS shows 5 at a time, rest scrollable)
+            if (suggestions.length > 0) {
+                renderSearchDropdown(suggestions);
+            } else {
+                dropdown.innerHTML = `
+                    <div class="dropdown-item" style="justify-content: center; color: rgba(255,255,255,0.5); font-size: 13px;">
+                        Start typing to search...
+                    </div>
+                `;
+                showDropdown();
+            }
+        }
+
+        // Get recent searches from localStorage
+        function getRecentSearches() {
+            try {
+                return JSON.parse(localStorage.getItem('recentSearches') || '[]');
+            } catch {
+                return [];
+            }
+        }
+
+        // Keyboard navigation
+        searchInput.addEventListener('keydown', (e) => {
+            const items = dropdown.querySelectorAll('.dropdown-item');
+            if (items.length === 0) return;
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                selectedSearchIndex = Math.min(selectedSearchIndex + 1, items.length - 1);
+                updateSearchSelection();
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                selectedSearchIndex = Math.max(selectedSearchIndex - 1, 0);
+                updateSearchSelection();
+            } else if (e.key === 'Enter' && selectedSearchIndex >= 0) {
+                e.preventDefault();
+                items[selectedSearchIndex].click();
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                hideDropdown();
+                selectedSearchIndex = -1;
+            }
+        });
+
+        // Select search item
+        window.selectSearchItem = (item) => {
+            // Save to recent searches
+            saveRecentSearch(item);
+
+            // Set as origin based on type
+            if (item.type === 'neighborhood') {
+                selectedOrigin = item.data;
+            } else if (item.type === 'subway') {
+                selectedOrigin = { lat: item.lat, lng: item.lng, name: item.name };
+            } else if (item.type === 'line') {
+                // For subway lines, just use the first station on that line as origin
+                const stationsOnLine = subwayStations.filter(s => s.lines && s.lines.includes(item.line));
+                if (stationsOnLine.length > 0) {
+                    selectedOrigin = { lat: stationsOnLine[0].lat, lng: stationsOnLine[0].lng, name: item.name };
+                } else {
+                    showToast(`No stations found for ${item.name}`);
+                    return;
+                }
+            } else if (item.type === 'mic') {
+                selectedOrigin = { lat: item.lat, lng: item.lng, name: item.name };
+            }
+
+            selectOriginUI(selectedOrigin);
+        };
+
+        // Legacy support for old neighborhood selector
+        window.selectOriginByName = (name) => {
+            const n = NEIGHBORHOODS.find(x => x.name === name);
+            if(n) {
+                selectedOrigin = n;
+                selectOriginUI(n);
+            }
+        };
+
+        function selectOriginUI(origin) {
+            const selectedOriginEl = document.getElementById('selected-origin');
+            selectedOriginEl.classList.remove('hidden');
+            selectedOriginEl.classList.add('slide-in-right');
+            document.getElementById('selected-origin-text').textContent = origin.name;
+            document.getElementById('origin-search').value = '';
+            hideDropdown();
+
+            // Remove animation class after it completes
+            setTimeout(() => selectedOriginEl.classList.remove('slide-in-right'), 300);
+
+            // Auto-suggest area based on origin location
+            if (origin.lat && origin.lng && selectedAreas.size === 0) {
+                const suggestedBorough = suggestAreaFromOrigin(origin.lat, origin.lng);
+                if (suggestedBorough) {
+                    showAreaSuggestion(`Showing mics in ${suggestedBorough}`);
+                    // Auto-select the borough
+                    selectedAreas.add(suggestedBorough);
+                    const chip = document.querySelector(`.borough-chip[data-borough="${suggestedBorough}"]`);
+                    if (chip) chip.classList.add('selected');
+                    updateAreaCheckboxes();
+                }
+            }
+        }
+
+        window.clearOrigin = () => {
+            selectedOrigin = null;
+            document.getElementById('selected-origin').classList.add('hidden');
+            showAreaSuggestion(null); // Hide area suggestion
+            const btn = document.getElementById('geo-btn');
+            btn.classList.remove('success');
+            btn.innerHTML = '<svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0013 3.06V1h-2v2.06A8.994 8.994 0 003.06 11H1v2h2.06A8.994 8.994 0 0011 20.94V23h2v-2.06A8.994 8.994 0 0020.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg> <span id="geo-btn-text">Use My Location</span>';
+        };
+
+        // --- UTILS ---
+        function timeToMins(str) {
+            if(!str) return 0;
+            const [t, amp] = str.split(' ');
+            let [h, m] = t.split(':').map(Number);
+            if(amp === 'PM' && h!==12) h+=12;
+            if(amp === 'AM' && h===12) h=0;
+            return h*60 + m;
+        }
+
+        function minsToTime(mins) {
+            let h = Math.floor(mins/60);
+            let m = mins%60;
+            let am = h >= 12 ? 'PM' : 'AM';
+            if(h>12) h-=12;
+            return `${h}:${m.toString().padStart(2,'0')} ${am}`;
+        }
+
+        function haversine(lat1, lon1, lat2, lon2) {
+            const R = 3959;
+            const dLat = (lat2-lat1) * Math.PI/180;
+            const dLon = (lon2-lon1) * Math.PI/180;
+            const a = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)*Math.sin(dLon/2);
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        }
+
+        // --- SHARE & SAVE FUNCTIONALITY ---
+        let currentRoute = null; // Store current route for sharing/saving
+
+        async function shareRoute() {
+            if (!currentRoute || currentRoute.sequence.length === 0) {
+                showToast('No route to share');
+                return;
+            }
+
+            // Check if Web Share API is supported
+            if (!navigator.share) {
+                // Fallback: Copy to clipboard
+                copyRouteToClipboard();
+                return;
+            }
+
+            try {
+                const { sequence, origin } = currentRoute;
+
+                // Build share text
+                let shareText = `🎤 My Mic Crawl - ${new Date().toLocaleDateString()}\n\n`;
+                shareText += `📍 Starting from: ${origin.name || 'My Location'}\n\n`;
+
+                sequence.forEach((entry, i) => {
+                    const mic = entry.mic;
+                    shareText += `${i + 1}. ${mic.venueName || mic.venue}\n`;
+                    shareText += `   ⏰ ${minsToTime(entry.arriveBy)}`;
+                    if (mic.neighborhood && mic.neighborhood !== 'NYC') shareText += ` • ${mic.neighborhood}`;
+                    if (mic.cost > 0) shareText += ` • $${mic.cost}`;
+                    else shareText += ` • Free`;
+                    if (mic.status === 'live') shareText += ` 🟢 Live`;
+                    if (mic.status === 'upcoming') shareText += ` 🔴 Soon`;
+                    if (entry.isAnchorStart) shareText += ` 🎯`;
+                    if (entry.isAnchorMust) shareText += ` 📌`;
+                    if (entry.isAnchorEnd) shareText += ` 🏁`;
+                    shareText += `\n`;
+                    if (i < sequence.length - 1) {
+                        shareText += `   🚇 ${entry.transitFromPrev.mins} min ${entry.transitFromPrev.type}\n`;
+                    }
+                    shareText += `\n`;
+                });
+
+                // Calculate totals
+                const totalTransit = sequence.reduce((sum, e) => sum + (e.transitFromPrev?.mins || 0), 0);
+                shareText += `📊 ${sequence.length} mic${sequence.length > 1 ? 's' : ''} • ${totalTransit} min total transit\n\n`;
+                shareText += `Planned with MicFinder NYC 🗽`;
+
+                await navigator.share({
+                    title: 'My Mic Crawl Route',
+                    text: shareText
+                });
+
+                showToast('Route shared!');
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    console.error('Share failed:', err);
+                    copyRouteToClipboard();
+                }
+            }
+        }
+
+        function copyRouteToClipboard() {
+            if (!currentRoute || currentRoute.sequence.length === 0) {
+                showToast('No route to copy');
+                return;
+            }
+
+            const { sequence, origin } = currentRoute;
+
+            let text = `🎤 My Mic Crawl\n\n📍 From: ${origin.name || 'My Location'}\n\n`;
+            sequence.forEach((entry, i) => {
+                const mic = entry.mic;
+                text += `${i + 1}. ${mic.venueName || mic.venue} (${minsToTime(entry.arriveBy)})\n`;
+            });
+
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('Route copied to clipboard!');
+            }).catch(() => {
+                showToast('Could not copy route');
+            });
+        }
+
+        // --- QUICK COPY ROUTE (Simpler version) ---
+        function quickCopyRoute() {
+            if (!currentRoute || currentRoute.sequence.length === 0) {
+                showToast('No route to copy');
+                return;
+            }
+
+            const { sequence, origin } = currentRoute;
+
+            // Build concise text
+            let text = `🎤 MIC CRAWL\n`;
+            text += `Start: ${origin.name || 'My Location'}\n\n`;
+
+            sequence.forEach((entry, i) => {
+                const mic = entry.mic;
+                text += `${i + 1}. ${minsToTime(entry.arriveBy)} - ${mic.venueName || mic.venue}\n`;
+                if (mic.neighborhood) text += `   ${mic.neighborhood}`;
+                if (mic.cost > 0) text += ` • $${mic.cost}`;
+                else text += ` • Free`;
+                text += '\n';
+            });
+
+            // Calculate totals
+            const totalTransit = sequence.reduce((sum, e) => sum + (e.transitFromPrev?.mins || 0), 0);
+            const totalCost = sequence.reduce((sum, e) => sum + (e.mic.cost || 0), 0);
+
+            text += `\n📊 ${sequence.length} stops • ${totalTransit}min travel`;
+            if (totalCost > 0) text += ` • $${totalCost} total`;
+
+            // Copy to clipboard
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('✓ Route copied to clipboard!');
+            }).catch(() => {
+                showToast('Could not copy route');
+            });
+        }
+
+        function saveRoute() {
+            if (!currentRoute || currentRoute.sequence.length === 0) {
+                showToast('No route to save');
+                return;
+            }
+
+            try {
+                // Get existing saved routes
+                const saved = JSON.parse(localStorage.getItem('savedRoutes') || '[]');
+
+                // Add current route
+                const routeToSave = {
+                    id: Date.now(),
+                    date: new Date().toISOString(),
+                    day: document.getElementById('day-select').value,
+                    sequence: currentRoute.sequence.map(e => ({
+                        venueName: e.mic.venueName || e.mic.venue,
+                        neighborhood: e.mic.neighborhood,
+                        startTime: minsToTime(e.arriveBy),
+                        transitMins: e.transitFromPrev.mins,
+                        isAnchorStart: e.isAnchorStart,
+                        isAnchorMust: e.isAnchorMust,
+                        isAnchorEnd: e.isAnchorEnd
+                    })),
+                    origin: currentRoute.origin.name || 'My Location'
+                };
+
+                saved.push(routeToSave);
+
+                // Keep only last 10 routes
+                if (saved.length > 10) {
+                    saved.shift();
+                }
+
+                localStorage.setItem('savedRoutes', JSON.stringify(saved));
+                showToast('✓ Route saved to history!');
+
+                // Update button to show saved state
+                const saveBtn = document.querySelector('button[onclick="saveRoute()"]');
+                saveBtn.textContent = 'Saved ✓';
+                setTimeout(() => {
+                    saveBtn.textContent = 'Save to History';
+                }, 2000);
+
+            } catch (err) {
+                console.error('Save failed:', err);
+                showToast('Could not save route');
+            }
+        }
+
+        // --- END TIME PREVIEW (with animation) ---
+        function updateEndTimePreview() {
+            const startTime = document.getElementById('start-time').value;
+            const durationMins = parseInt(document.getElementById('duration-select').value);
+            const preview = document.getElementById('end-time-preview');
+
+            if (!startTime) {
+                preview.textContent = '';
+                return;
+            }
+
+            const [h, m] = startTime.split(':').map(Number);
+            const startMins = h * 60 + m;
+
+            let newText;
+            if (durationMins === 999) {
+                newText = 'Ends at midnight';
+            } else {
+                const endMins = startMins + durationMins;
+                const endTime = minsToTime(endMins);
+                newText = `Ends ${endTime}`;
+            }
+
+            // Animate the change
+            if (preview.textContent !== newText) {
+                preview.style.transition = 'opacity 0.15s, transform 0.15s';
+                preview.style.opacity = '0';
+                preview.style.transform = 'translateY(-4px)';
+
+                setTimeout(() => {
+                    preview.textContent = newText;
+                    preview.style.opacity = '1';
+                    preview.style.transform = 'translateY(0)';
+                    preview.classList.add('text-emerald-400');
+                    preview.classList.remove('text-zinc-500');
+                }, 150);
+            }
+        }
+
+        // --- DIRECTIONS BUTTON ---
+        function openDirections(venueName, lat, lng) {
+            if (!lat || !lng) {
+                showToast('Location not available');
+                return;
+            }
+
+            // Detect if user is on iOS or Android
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            const isAndroid = /Android/.test(navigator.userAgent);
+
+            let url;
+            if (isIOS) {
+                // Apple Maps
+                url = `maps://maps.apple.com/?daddr=${lat},${lng}&dirflg=r`; // r = transit
+            } else if (isAndroid) {
+                // Google Maps
+                url = `google.navigation:q=${lat},${lng}&mode=transit`;
+            } else {
+                // Desktop - open Google Maps in browser
+                url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=transit`;
+                window.open(url, '_blank');
+                return;
+            }
+
+            // Try to open native app, fallback to web
+            window.location.href = url;
+            setTimeout(() => {
+                // Fallback to web Google Maps if native app doesn't open
+                window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=transit`, '_blank');
+            }, 2000);
+        }
+
+        // --- REMOVE MIC FROM ROUTE ---
+        async function removeMicFromRoute(micId) {
+            if (!currentRoute || !currentRoute.sequence) {
+                showToast('No route to modify');
+                return;
+            }
+
+            if (!confirm('Remove this mic from your route?')) {
+                return;
+            }
+
+            // Filter out the mic
+            const micIndex = currentRoute.sequence.findIndex(e => e.mic.id === micId);
+            if (micIndex === -1) {
+                showToast('Mic not found');
+                return;
+            }
+
+            const removedMic = currentRoute.sequence[micIndex];
+            currentRoute.sequence = currentRoute.sequence.filter(e => e.mic.id !== micId);
+
+            // If route is now empty
+            if (currentRoute.sequence.length === 0) {
+                document.getElementById('results').classList.add('hidden');
+                showToast('Route is now empty');
+                return;
+            }
+
+            // Recalculate transit times
+            await recalculateTransitTimes(currentRoute.sequence, currentRoute.origin);
+
+            // Re-render (use stored timePerVenue or default to 60)
+            await renderResults(currentRoute.sequence, currentRoute.origin, currentRoute.timePerVenue || 60);
+
+            showToast(`✓ Removed ${removedMic.mic.venueName || removedMic.mic.venue}`);
+        }
+
+        // --- FETCH SUBWAY ROUTE DETAILS ---
+        async function fetchSubwayRoute(fromLat, fromLng, toLat, toLng) {
+            try {
+                const url = `${API_BASE}/api/subway/routes?userLat=${fromLat}&userLng=${fromLng}&venueLat=${toLat}&venueLng=${toLng}&limit=1`;
+                const res = await fetch(url);
+                if (!res.ok) throw new Error('Failed to fetch subway route');
+                const data = await res.json();
+                return data.routes && data.routes.length > 0 ? data.routes[0] : null;
+            } catch (e) {
+                console.warn('Subway route fetch error:', e);
+                return null;
+            }
+        }
+
+        // --- FETCH MTA ARRIVALS ---
+        async function fetchMTAArrivals(line, stopId) {
+            try {
+                const url = `${API_BASE}/api/mta/arrivals/${line}/${stopId}`;
+                const res = await fetch(url);
+                if (!res.ok) throw new Error('Failed to fetch arrivals');
+                const data = await res.json();
+                return data.arrivals || [];
+            } catch (e) {
+                console.warn('MTA arrivals fetch error:', e);
+                return [];
+            }
+        }
+
+        // --- FETCH MTA ALERTS ---
+        async function fetchMTAAlerts() {
+            try {
+                const url = `${API_BASE}/api/mta/alerts`;
+                const res = await fetch(url);
+                if (!res.ok) throw new Error('Failed to fetch alerts');
+                const data = await res.json();
+                return data || [];
+            } catch (e) {
+                console.warn('MTA alerts fetch error:', e);
+                return [];
+            }
+        }
+
+        // --- RECALCULATE TRANSIT TIMES (with detailed routing) ---
+        async function recalculateTransitTimes(sequence, origin) {
+            if (sequence.length === 0) return;
+
+            // Recalculate transit from origin to first mic
+            let current = { lat: origin.lat, lng: origin.lng };
+
+            for (let i = 0; i < sequence.length; i++) {
+                const entry = sequence[i];
+                const mic = entry.mic;
+                const dist = haversine(current.lat, current.lng, mic.lat, mic.lng);
+                const travelMins = Math.round(dist * 20); // 20 mins per mile estimate
+
+                // Try to fetch detailed subway route
+                const subwayRoute = await fetchSubwayRoute(current.lat, current.lng, mic.lat, mic.lng);
+
+                entry.transitFromPrev = {
+                    mins: subwayRoute ? subwayRoute.duration : travelMins,
+                    type: travelMins < 10 ? 'walk' : 'transit',
+                    subwayRoute: subwayRoute // Store detailed route data
+                };
+
+                current = { lat: mic.lat, lng: mic.lng };
+            }
+        }
+
+        // Init
+        const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+        document.getElementById('day-select').value = today;
+
+        // Update anchor options when day changes
+        document.getElementById('day-select').addEventListener('change', updateAnchorOptions);
+
+        // Setup anchor modal
+        setupAnchorModal();
+
+        // Update end time preview when start time or duration changes
+        document.getElementById('start-time').addEventListener('change', updateEndTimePreview);
+        document.getElementById('duration-select').addEventListener('change', updateEndTimePreview);
+        updateEndTimePreview(); // Initial update
+
+        // Initialize search on page load
+        async function initializeSearch() {
+            try {
+                // Load data if not already loaded
+                if (allMics.length === 0 || subwayStations.length === 0) {
+                    const [micsData, stationsData] = await Promise.all([loadMics(), loadSubwayStations()]);
+                    loadedStations = stationsData;
+                    subwayStations = stationsData;
+                    // Add nearby subway lines to each mic
+                    allMics = addNearbyLinesToMics(micsData, loadedStations);
+                    populateAnchorDropdowns();
+                }
+                // Build search index
+                buildSearchIndex();
+                console.log('Search initialized:', searchableItems.length, 'items');
+            } catch (e) {
+                console.error('Failed to initialize search:', e);
+            }
+        }
+
+        // Run initialization
+        initializeSearch();
+
+        // Update active filter count badge
+        function updateFilterCountBadge() {
+            let count = 0;
+
+            // Check priority (default is "most_mics")
+            const priority = document.querySelector('input[name="priority"]:checked')?.value;
+            if (priority && priority !== 'most_mics') count++;
+
+            // Check areas (default is none = All NYC)
+            if (selectedAreas.size > 0) count++;
+
+            // Check price (default is "all")
+            const price = document.querySelector('input[name="price"]:checked')?.value;
+            if (price && price !== 'all') count++;
+
+            // Check signup (default is "all")
+            const signup = document.querySelector('input[name="signup"]:checked')?.value;
+            if (signup && signup !== 'all') count++;
+
+            // Check anchors
+            if (document.getElementById('anchor-start-id')?.value) count++;
+            if (document.getElementById('anchor-must-id')?.value) count++;
+            if (document.getElementById('anchor-end-id')?.value) count++;
+
+            // Check mic count (default is "flexible")
+            const micCount = document.querySelector('input[name="mic-count"]:checked')?.value;
+            if (micCount && micCount !== 'flexible') count++;
+
+            // Check max commute (default is "999" = Any)
+            const maxCommute = document.querySelector('input[name="max-commute"]:checked')?.value;
+            if (maxCommute && maxCommute !== '999') count++;
+
+            // Check time per venue (default is "60")
+            const timePerVenue = document.querySelector('input[name="time-per-venue"]:checked')?.value;
+            if (timePerVenue && timePerVenue !== '60') count++;
+
+            // Update badge
+            const badge = document.getElementById('filter-count-badge');
+            if (badge) {
+                if (count > 0) {
+                    badge.textContent = count + ' active';
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            }
+        }
+
+        // Attach filter count update to all radio pills
+        document.querySelectorAll('.radio-pill').forEach(pill => {
+            pill.addEventListener('click', () => {
+                setTimeout(updateFilterCountBadge, 10);
+            });
+        });
+
+        // Auto-select today's day
+        function setDayToToday() {
+            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const today = days[new Date().getDay()];
+            const daySelect = document.getElementById('day-select');
+            if (daySelect) {
+                daySelect.value = today;
+            }
+        }
+        setDayToToday();
+
+        // Update end time preview on load and changes
+        function updateEndTimePreview() {
+            const startTime = document.getElementById('start-time').value;
+            const durationMins = parseInt(document.getElementById('duration-select').value);
+            if (!startTime || !durationMins) return;
+
+            const [hours, mins] = startTime.split(':').map(Number);
+            const startTotalMins = hours * 60 + mins;
+            const endMins = durationMins === 999 ? 1439 : startTotalMins + durationMins;
+
+            const endHours = Math.floor(endMins / 60) % 24;
+            const endMinutes = endMins % 60;
+            const period = endHours >= 12 ? 'PM' : 'AM';
+            const displayHours = endHours === 0 ? 12 : endHours > 12 ? endHours - 12 : endHours;
+
+            const endTimeStr = durationMins === 999 ? 'Late night / next day' : `Ends ~${displayHours}:${String(endMinutes).padStart(2, '0')} ${period}`;
+            const preview = document.getElementById('end-time-preview');
+            if (preview) preview.textContent = endTimeStr;
+        }
+
+        // Initialize end time preview
+        updateEndTimePreview();
+        document.getElementById('start-time')?.addEventListener('change', updateEndTimePreview);
+        document.getElementById('duration-select')?.addEventListener('change', updateEndTimePreview);
+    </script>
+</body>
+</html>

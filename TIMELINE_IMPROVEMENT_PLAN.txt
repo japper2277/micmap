@@ -1,0 +1,365 @@
+# Route Planner Timeline UI Improvement Plan
+
+## Executive Summary
+
+**Current Score: 49/100** - Below average, needs significant improvement
+
+The planner-prototype.html timeline view is functional but lacks critical features found in competing route planners (Google Maps, Citymapper, Roadtrippers). Major issues: redundant information, missing details (stage time, host), basic map visualization, and zero post-planning editing capabilities.
+
+**Target Score: 75-80/100** after implementing prioritized improvements.
+
+---
+
+## Current State Grading (1-100 Scale)
+
+| Dimension | Score | Key Issues |
+|-----------|-------|------------|
+| Information Completeness | 52/100 | Missing: stage time, mic name, host, arrival time calculation |
+| Visual Hierarchy | 68/100 | Redundant: neighborhood + borough shown separately |
+| Interaction Capabilities | 28/100 | **ZERO editing**: No remove, reorder, or add mics |
+| Map Integration | 45/100 | No route polyline, no marker interactivity |
+| Mobile UX | 62/100 | No swipe-to-remove, no drag gestures |
+| Redundancy/Clarity | 55/100 | Location shown twice, verbose badges |
+| Feature Parity | 35/100 | Missing: photos, ratings, directions per card |
+| **Overall UX** | **49/100** | **Functional baseline, needs major improvements** |
+
+---
+
+## Redundancies to Eliminate
+
+### Remove Entirely:
+1. **Separate neighborhood display** (line 920) - Redundant with borough
+   - Currently: `Bushwick` + `Brooklyn` badge
+   - Fix: Combine as `Bushwick, Brooklyn`
+
+2. **Verbose anchor badges** (lines 867-868)
+   - Currently: `Starting Mic` / `Ending Mic`
+   - Fix: Icons only: `🎯 START` / `🏁 END`
+
+### Consolidate:
+3. **Location formatting** - Show as single field: `East Village, Manhattan`
+4. **Signup badges** - Standardize icons: `⚠️ Email`, `🚶 Walk-In`, `🌐 Online`
+
+---
+
+## New Information to Add (Priority Ordered)
+
+### P0: Critical Missing Data
+1. **Stage Time / Set Duration** ⭐⭐⭐
+   - Field: `mic.stageTime` (e.g., "3-5min" or "5min set")
+   - Location: Left column with time
+   - Why: Essential for planning how long you'll be at each venue
+
+2. **Host/Contact Information** ⭐⭐⭐
+   - Field: `mic.host` → extract Instagram handle
+   - Location: Below meta row
+   - Why: Builds trust, shows personality, allows direct contact
+
+3. **Arrival Time Calculation** ⭐⭐⭐
+   - Formula: `micStartTime - transitTime - 15min buffer`
+   - Display: "Arrive by 6:45 PM" (in addition to "7:00 PM start")
+   - Why: Realistic planning - accounts for signup/seating
+
+4. **Mic Name (distinct from venue)** ⭐⭐
+   - Example: "The Fear City Comedy Club" (venue) vs "Fear City Mic" (event name)
+   - Many venues host multiple mics - differentiate them
+   - Location: Subtitle under venue name
+
+### P1: High Value Additions
+5. **Per-card "Get Directions" button** ⭐⭐⭐
+   - Currently only available in modal
+   - Should be on every card for quick access
+   - Opens Google Maps / Apple Maps with destination
+
+6. **Per-card "Remove from Route" button** ⭐⭐⭐
+   - Zero editing capability currently
+   - Allow user to remove a mic and recalculate route
+   - Confirmation dialog before removing
+
+---
+
+## Redesigned Card Layout
+
+### Current Structure (Problematic):
+```
+[Time] [Venue Name]
+       [Neighborhood • Price]
+       [Walk-In badge] [Status badge] [Anchor badge]
+       [Signup instructions box if advance]
+```
+
+### New 3-Column Structure:
+
+```
+┌──────────────────────────────────────────────────────────┐
+│ [LEFT: TIME]    [CENTER: VENUE INFO]    [RIGHT: ACTIONS] │
+│                                                           │
+│  6:45 PM        ● The Tiny Cupboard                      │
+│  arrive by         Bushwick Mic                          │
+│                                                           │
+│  7:00 PM        Bushwick, Brooklyn • Free                │
+│  start                                                    │
+│                 🚶 Walk-In  🟢 Live Now  🎯 START         │
+│  5min set                                                 │
+│                 Hosted by @thetinycupboard                │
+│                                                           │
+│                                          [Directions →]   │
+│                                          [Remove ✕]       │
+│                                          [Sign Up ↗]      │
+└──────────────────────────────────────────────────────────┘
+```
+
+**Key Improvements:**
+- ✅ Shows both arrival time AND start time
+- ✅ Displays stage time (5min set)
+- ✅ Shows mic name if different from venue
+- ✅ Consolidated location (neighborhood, borough)
+- ✅ Host info with clickable Instagram link
+- ✅ Action buttons on every card
+
+---
+
+## Map Improvements
+
+### Current State:
+- ❌ Numbered markers only (no visual connection)
+- ❌ No route line between stops
+- ❌ Click marker → nothing happens
+- ✅ Ghost marker for origin (keep - it's creative!)
+
+### Improvements:
+
+1. **Add Route Polyline** (HIGH PRIORITY)
+   ```javascript
+   const routeCoords = [
+       [origin.lat, origin.lng],
+       ...sequence.map(e => [e.mic.lat, e.mic.lng])
+   ];
+   L.polyline(routeCoords, {
+       color: '#f43f5e',
+       weight: 4,
+       opacity: 0.6,
+       dashArray: '8, 4' // Dashed line for visual style
+   }).addTo(routeLayer);
+   ```
+
+2. **Numbered Pins with Status Colors**
+   - Live mic: Green gradient (#10b981)
+   - Upcoming mic: Red gradient (#ef4444)
+   - Future mic: Gray gradient (#71717a)
+   - Numbers 1, 2, 3... inside circles
+
+3. **Interactive Markers**
+   - Click marker → Scroll to corresponding card + highlight
+   - Hover card → Pulse corresponding marker on map
+   - Smooth scroll with highlight animation
+
+4. **Map Controls**
+   - "Recenter Route" button
+   - Zoom to fit all stops
+
+---
+
+## Post-Planning Editing Features
+
+### Remove Mic from Route
+```javascript
+function removeMicFromRoute(micId) {
+    if (!confirm('Remove this mic from your route?')) return;
+
+    // Filter out mic
+    currentRoute.sequence = currentRoute.sequence.filter(e => e.mic.id !== micId);
+
+    // Recalculate transit times between remaining mics
+    recalculateTransitTimes(currentRoute.sequence);
+
+    // Re-render timeline + map
+    renderResults(currentRoute.sequence, currentRoute.origin);
+
+    showToast('Mic removed from route');
+}
+```
+
+### Add Another Mic (Time Permitting)
+- Show search modal
+- User selects mic from filtered list
+- Find optimal insertion point in sequence
+- Recalculate and re-render
+
+### Drag-to-Reorder (Optional - Lower Priority)
+- Use SortableJS library
+- Drag handle on each card
+- Recalculate transit after reorder
+- **Warning**: May produce sub-optimal route
+
+---
+
+## Implementation Steps (Ordered by Priority)
+
+### Phase 1: Quick Wins (2-3 hours) - **DO THIS FIRST**
+
+1. ✅ **Add stage time display** (line 918 area)
+   - Show `mic.stageTime` in left column with arrival/start times
+   - Effort: 15 min
+
+2. ✅ **Add host/contact info** (line 926 area)
+   - Parse Instagram handle from `mic.host`
+   - Create clickable link to Instagram profile
+   - Effort: 30 min
+
+3. ✅ **Calculate arrival time** (lines 605-611)
+   - Formula: `arriveBy = mic.startMins - transitMins - 15`
+   - Display "Arrive by X:XX PM" above start time
+   - Effort: 30 min
+
+4. ✅ **Consolidate location display** (line 920)
+   - Change from: `${mic.neighborhood || 'NYC'} • ${priceBadge}`
+   - To: `${mic.neighborhood}, ${mic.borough} • ${priceBadge}`
+   - Remove separate borough badge
+   - Effort: 15 min
+
+5. ✅ **Add route polyline** (lines 507-511 in drawRouteMap)
+   - Draw dashed line connecting all stops
+   - Rose color (#f43f5e) to match theme
+   - Effort: 45 min
+
+6. ✅ **Add "Remove" button per card** (line 927 area)
+   - Implement `removeMicFromRoute()` function
+   - Add trash icon button to right action column
+   - Confirmation dialog before removing
+   - Effort: 45 min
+
+**Phase 1 Total: ~3 hours → Boosts score from 49 to ~72**
+
+---
+
+### Phase 2: Map Enhancements (2-3 hours)
+
+7. ✅ **Numbered pin markers with status colors**
+   - Improve `createPin()` function
+   - Green for live, red for upcoming, gray for future
+   - Effort: 1 hour
+
+8. ✅ **Marker click → scroll to card**
+   - Add click handler to each marker
+   - Scroll card into view + highlight animation
+   - Effort: 45 min
+
+9. ✅ **Card hover → pulse marker**
+   - Add hover handler to cards
+   - Pulse corresponding marker on map
+   - Effort: 45 min
+
+10. ✅ **Recenter map button**
+    - Zoom to fit all route points
+    - Effort: 15 min
+
+---
+
+### Phase 3: Card Layout Redesign (2-3 hours)
+
+11. ✅ **Implement 3-column card layout**
+    - Refactor HTML structure in renderResults()
+    - CSS for Time | Venue | Actions columns
+    - Effort: 2 hours
+
+12. ✅ **Add per-card "Directions" button**
+    - Opens Google Maps / Apple Maps
+    - Right action column
+    - Effort: 30 min
+
+13. ✅ **Simplify badge hierarchy**
+    - Remove verbose text ("Starting Mic" → "🎯 START")
+    - Prioritize: Status > Signup > Anchor
+    - Effort: 30 min
+
+---
+
+### Phase 4: Advanced Features (3-4 hours) - **Optional**
+
+14. ⚠️ **Add "Add Another Mic" feature**
+    - Search modal
+    - Optimal insertion algorithm
+    - Effort: 2 hours
+
+15. ⚠️ **Drag-to-reorder mics**
+    - SortableJS integration
+    - Recalculation logic
+    - Effort: 2 hours
+
+---
+
+## Critical Files to Modify
+
+| File | Lines | Purpose |
+|------|-------|---------|
+| `planner-prototype.html` | 837-951 | `renderResults()` - Card HTML generation |
+| `planner-prototype.html` | 497-567 | `drawRouteMap()` - Map rendering |
+| `planner-prototype.html` | 976-1037 | `processMics()` - Data transformation |
+| `planner-prototype.html` | 130-154 | CSS - Card layout, badges, animations |
+
+---
+
+## Testing & Verification
+
+### Manual QA Checklist:
+- [ ] Stage time displays on all cards
+- [ ] Host info shows with clickable Instagram link
+- [ ] Arrival time calculated correctly (start - transit - buffer)
+- [ ] Location shows as "Neighborhood, Borough" (not separate)
+- [ ] Route polyline renders smoothly on map
+- [ ] Click marker → scrolls to card + highlights
+- [ ] "Remove" button removes mic and recalculates route
+- [ ] "Directions" button opens maps app
+- [ ] Mobile layout remains responsive
+- [ ] Share/Save buttons still work with changes
+
+### Edge Cases to Test:
+- Route with 1 mic (no transit segments)
+- All walk-in mics (no advance signup badges)
+- Mic with no host info
+- Removing first mic (origin-to-next recalculated)
+- Removing last mic (no trailing segment)
+- Mobile viewport (cards stack, buttons are 44px min)
+
+---
+
+## Expected Impact
+
+| Improvement | Before | After | Score Gain |
+|-------------|--------|-------|------------|
+| Information completeness | 52/100 | 85/100 | +33 |
+| Interaction capabilities | 28/100 | 75/100 | +47 |
+| Map integration | 45/100 | 80/100 | +35 |
+| Redundancy/clarity | 55/100 | 85/100 | +30 |
+| **Overall UX** | **49/100** | **78/100** | **+29** |
+
+**After Phase 1 (Quick Wins): ~72/100**
+**After Phase 2-3 (Full Implementation): ~78/100**
+
+---
+
+## Summary
+
+**Priority Order:**
+1. **Phase 1 (3 hours)** - Biggest bang for buck
+   - Add stage time, host info, arrival time
+   - Remove redundant fields
+   - Add route polyline
+   - Add "Remove" button
+
+2. **Phase 2 (2-3 hours)** - Map polish
+   - Interactive markers
+   - Status-colored pins
+   - Hover effects
+
+3. **Phase 3 (2-3 hours)** - Card redesign
+   - 3-column layout
+   - Per-card actions
+   - Cleaner badges
+
+4. **Phase 4 (Optional)** - Advanced features
+   - Add mic capability
+   - Drag-to-reorder
+
+**Start with Phase 1 for immediate impact. Total: 3-9 hours depending on scope.**

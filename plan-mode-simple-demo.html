@@ -1,0 +1,1654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Plan Mode - Simple Demo</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0b;
+            color: #fff;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Header */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 56px;
+            background: rgba(24, 24, 27, 0.95);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            z-index: 100;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            opacity: 0;
+            transform: translateY(-100%);
+            transition: all 0.3s ease;
+        }
+
+        .header.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .header-title {
+            font-size: 17px;
+            font-weight: 600;
+        }
+
+        .header-btn {
+            background: none;
+            border: none;
+            color: #f43f5e;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 8px 12px;
+        }
+
+        /* Drawer */
+        .drawer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #18181b;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            z-index: 60;
+            max-height: 60vh;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .drawer.visible {
+            transform: translateY(0);
+        }
+
+        .drawer-handle {
+            width: 36px;
+            height: 4px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 2px;
+            margin: 10px auto;
+            flex-shrink: 0;
+        }
+
+        .drawer-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 16px 20px;
+        }
+
+        .drawer-section {
+            margin-bottom: 16px;
+        }
+
+        .drawer-section-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: rgba(255,255,255,0.5);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+        }
+
+        /* Time filter row */
+        .time-filter-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            margin-bottom: 16px;
+        }
+
+        .time-filter-label {
+            font-size: 13px;
+            color: rgba(255,255,255,0.6);
+        }
+
+        .time-filter-select {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 6px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+
+        .time-filter-select option {
+            background: #18181b;
+        }
+
+        .time-filter-separator {
+            color: rgba(255,255,255,0.3);
+        }
+
+        /* Mic list item */
+        .mic-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .mic-item:hover {
+            background: rgba(255,255,255,0.08);
+        }
+
+        .mic-item.in-route {
+            background: rgba(34, 197, 94, 0.15);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .mic-item-time {
+            font-size: 16px;
+            font-weight: 700;
+            width: 55px;
+            color: #fff;
+        }
+
+        .mic-item-time.live {
+            color: #ef4444;
+        }
+
+        .mic-item-info {
+            flex: 1;
+        }
+
+        .mic-item-venue {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .mic-item-meta {
+            font-size: 12px;
+            color: rgba(255,255,255,0.5);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .mic-item-price {
+            color: #4ade80;
+        }
+
+        .mic-item-price.paid {
+            color: #fb923c;
+        }
+
+        .mic-item-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.15s ease;
+        }
+
+        .mic-item-btn.add {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+
+        .mic-item-btn.add:hover {
+            background: #22c55e;
+            color: #fff;
+        }
+
+        .mic-item-btn.remove {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .mic-item-btn.remove:hover {
+            background: #ef4444;
+            color: #fff;
+        }
+
+        /* Route transit connector */
+        .route-connector {
+            display: flex;
+            align-items: center;
+            padding: 4px 0 4px 24px;
+            margin: -4px 0;
+        }
+
+        .connector-line {
+            width: 2px;
+            height: 20px;
+            background: rgba(255,255,255,0.2);
+        }
+
+        .connector-badge {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-left: 10px;
+            font-size: 12px;
+            color: rgba(255,255,255,0.6);
+        }
+
+        .connector-badge .line {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        /* Drawer CTA */
+        .drawer-cta {
+            padding: 16px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            flex-shrink: 0;
+        }
+
+        .drawer-cta-btn {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .drawer-cta-btn.primary {
+            background: #22c55e;
+            border: none;
+            color: #fff;
+        }
+
+        .drawer-cta-btn.primary:hover {
+            background: #16a34a;
+        }
+
+        .drawer-cta-btn:disabled {
+            background: rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.4);
+            cursor: not-allowed;
+        }
+
+        /* Map */
+        .map {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(180deg, #1a1f2e 0%, #0f1219 100%);
+        }
+
+        /* Grid lines for fake map */
+        .map::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+
+        /* Fake streets */
+        .street {
+            position: absolute;
+            background: rgba(255,255,255,0.08);
+        }
+        .street.h { height: 3px; left: 0; right: 0; }
+        .street.v { width: 3px; top: 0; bottom: 0; }
+
+        /* User location */
+        .user-marker {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: #3b82f6;
+            border: 3px solid #fff;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+            z-index: 10;
+        }
+
+        .user-marker::after {
+            content: '';
+            position: absolute;
+            inset: -8px;
+            border: 2px solid rgba(59, 130, 246, 0.3);
+            border-radius: 50%;
+            animation: ping 2s infinite;
+        }
+
+        @keyframes ping {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+
+        /* Mic Markers */
+        .marker {
+            position: absolute;
+            transform: translate(-50%, -100%);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            z-index: 20;
+        }
+
+        .marker-pill {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: #18181b;
+            border: 2px solid #18181b;
+            padding: 6px 10px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+            white-space: nowrap;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            transition: all 0.2s ease;
+        }
+
+        .marker-pip {
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 8px solid #18181b;
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: all 0.2s ease;
+        }
+
+        .marker:hover .marker-pill {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }
+
+        /* Marker states */
+        .marker.selected .marker-pill {
+            background: #22c55e;
+            border-color: #22c55e;
+            color: #fff;
+        }
+        .marker.selected .marker-pip {
+            border-top-color: #22c55e;
+        }
+
+        .marker.dimmed {
+            opacity: 0.2;
+            filter: grayscale(1);
+            pointer-events: none;
+        }
+
+        /* Glow = Perfect timing (arrive 0-15 mins early) */
+        .marker.glow .marker-pill {
+            border-color: #22c55e;
+            box-shadow: 0 0 15px rgba(34, 197, 94, 0.6);
+            animation: pulse-glow 2s infinite;
+        }
+
+        .marker.glow .marker-pip {
+            border-top-color: #22c55e;
+        }
+
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 0 0px rgba(34, 197, 94, 0.7); }
+            70% { box-shadow: 0 0 0 12px rgba(34, 197, 94, 0); }
+            100% { box-shadow: 0 0 0 0px rgba(34, 197, 94, 0); }
+        }
+
+        .marker.suggested .marker-pill {
+            border-color: #f43f5e;
+            box-shadow: 0 0 12px rgba(244, 63, 94, 0.4);
+        }
+
+        /* Commute badge on marker */
+        .marker-commute {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #27272a;
+            color: #fff;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 10px;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.2s ease;
+        }
+
+        .plan-mode .marker-commute {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* Route line */
+        .route-line {
+            position: absolute;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .route-line svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+        }
+
+        .route-line path {
+            fill: none;
+            stroke: #22c55e;
+            stroke-width: 3;
+            stroke-dasharray: 8 8;
+            stroke-linecap: round;
+        }
+
+        /* Control buttons */
+        .controls {
+            position: fixed;
+            bottom: 100px;
+            left: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 50;
+        }
+
+        .control-btn {
+            width: 52px;
+            height: 52px;
+            background: #fff;
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            transition: all 0.2s ease;
+        }
+
+        .control-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .control-btn svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .control-btn.plan-btn {
+            background: #f43f5e;
+        }
+
+        .control-btn.plan-btn svg {
+            stroke: #fff;
+        }
+
+        .control-btn.active {
+            background: #22c55e;
+        }
+
+        /* Final view */
+        .final-view {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #0a0a0b;
+            z-index: 200;
+            display: none;
+            flex-direction: column;
+        }
+
+        .final-view.visible {
+            display: flex;
+        }
+
+        .final-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .final-back {
+            background: none;
+            border: none;
+            color: #f43f5e;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .final-title {
+            font-size: 17px;
+            font-weight: 700;
+        }
+
+        .final-map {
+            height: 200px;
+            background: linear-gradient(180deg, #1a1f2e 0%, #0f1219 100%);
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .final-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .final-summary {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .final-stat {
+            text-align: center;
+        }
+
+        .final-stat-value {
+            font-size: 28px;
+            font-weight: 800;
+        }
+
+        .final-stat-label {
+            font-size: 12px;
+            color: rgba(255,255,255,0.5);
+            margin-top: 2px;
+        }
+
+        .final-timeline {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .timeline-stop {
+            display: flex;
+            gap: 16px;
+            padding: 16px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            position: relative;
+        }
+
+        .timeline-stop-time {
+            font-size: 20px;
+            font-weight: 700;
+            width: 55px;
+        }
+
+        .timeline-stop-info {
+            flex: 1;
+        }
+
+        .timeline-stop-venue {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .timeline-stop-meta {
+            font-size: 13px;
+            color: rgba(255,255,255,0.5);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .timeline-stop-remove {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: rgba(255,255,255,0.5);
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .timeline-connector {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            padding-left: 27px;
+        }
+
+        .connector-line {
+            width: 2px;
+            height: 16px;
+            background: rgba(255,255,255,0.2);
+        }
+
+        .connector-info {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-left: 12px;
+            font-size: 13px;
+            color: rgba(255,255,255,0.6);
+        }
+
+        .line-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .final-suggestion {
+            margin-top: 20px;
+            padding: 16px;
+            background: rgba(244, 63, 94, 0.1);
+            border: 1px solid rgba(244, 63, 94, 0.2);
+            border-radius: 12px;
+        }
+
+        .suggestion-label {
+            font-size: 13px;
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 10px;
+        }
+
+        .suggestion-options {
+            display: flex;
+            gap: 8px;
+        }
+
+        .suggestion-chip {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .suggestion-chip:hover {
+            background: rgba(255,255,255,0.12);
+            border-color: #f43f5e;
+        }
+
+        .final-cta {
+            padding: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .final-cta-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .final-cta-secondary {
+            flex: 1;
+            padding: 14px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .final-cta-secondary:hover {
+            background: rgba(255,255,255,0.15);
+        }
+
+        .final-cta-secondary svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .final-cta-btn {
+            width: 100%;
+            padding: 16px;
+            background: #f43f5e;
+            border: none;
+            border-radius: 14px;
+            color: #fff;
+            font-size: 17px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        /* Swap dropdown */
+        .swap-dropdown {
+            display: none;
+            padding: 8px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            margin-top: 8px;
+        }
+
+        .swap-dropdown.visible {
+            display: block;
+        }
+
+        .swap-option {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            margin-bottom: 6px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .swap-option:last-child {
+            margin-bottom: 0;
+        }
+
+        .swap-option:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .swap-option-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        .swap-option-commute {
+            font-size: 12px;
+            color: rgba(255,255,255,0.5);
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: #27272a;
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 300;
+            pointer-events: none;
+        }
+
+        .toast.visible {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header (plan mode only) -->
+    <div class="header" id="header">
+        <button class="header-btn" onclick="exitPlanMode()">Cancel</button>
+        <div class="header-title">PLAN MY NIGHT</div>
+        <div style="width: 60px;"></div>
+    </div>
+
+    <!-- Map -->
+    <div class="map" id="map">
+        <!-- Fake streets -->
+        <div class="street h" style="top: 25%;"></div>
+        <div class="street h" style="top: 50%;"></div>
+        <div class="street h" style="top: 75%;"></div>
+        <div class="street v" style="left: 30%;"></div>
+        <div class="street v" style="left: 60%;"></div>
+
+        <!-- User location -->
+        <div class="user-marker" style="left: 50%; top: 55%;"></div>
+
+        <!-- Route line SVG container -->
+        <svg class="route-line" id="routeLine" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:5;">
+            <path id="routePath" fill="none" stroke="#22c55e" stroke-width="3" stroke-dasharray="8 8" stroke-linecap="round"/>
+        </svg>
+
+        <!-- Markers -->
+        <div class="marker" id="marker-grisly" style="left: 35%; top: 30%;" onclick="toggleMic('grisly')">
+            <div class="marker-pill">7:30p</div>
+            <div class="marker-pip"></div>
+            <div class="marker-commute" id="commute-grisly">12m</div>
+        </div>
+
+        <div class="marker" id="marker-stand" style="left: 55%; top: 25%;" onclick="toggleMic('stand')">
+            <div class="marker-pill">7p</div>
+            <div class="marker-pip"></div>
+            <div class="marker-commute" id="commute-stand">18m</div>
+        </div>
+
+        <div class="marker" id="marker-lantern" style="left: 70%; top: 40%;" onclick="toggleMic('lantern')">
+            <div class="marker-pill">8p</div>
+            <div class="marker-pip"></div>
+            <div class="marker-commute" id="commute-lantern">15m</div>
+        </div>
+
+        <div class="marker" id="marker-creek" style="left: 25%; top: 60%;" onclick="toggleMic('creek')">
+            <div class="marker-pill">8:30p</div>
+            <div class="marker-pip"></div>
+            <div class="marker-commute" id="commute-creek">22m</div>
+        </div>
+
+        <div class="marker" id="marker-eastville" style="left: 65%; top: 65%;" onclick="toggleMic('eastville')">
+            <div class="marker-pill">9p</div>
+            <div class="marker-pip"></div>
+            <div class="marker-commute" id="commute-eastville">15m</div>
+        </div>
+
+        <div class="marker" id="marker-qed" style="left: 20%; top: 80%;" onclick="toggleMic('qed')">
+            <div class="marker-pill">10p</div>
+            <div class="marker-pip"></div>
+            <div class="marker-commute" id="commute-qed">25m</div>
+        </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls" id="controls">
+        <button class="control-btn" onclick="centerOnUser()">
+            <svg fill="none" stroke="#000" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M12 2v4m0 12v4M2 12h4m12 0h4"/>
+            </svg>
+        </button>
+        <button class="control-btn plan-btn" id="planBtn" onclick="togglePlanMode()">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+            </svg>
+        </button>
+    </div>
+
+    <!-- Drawer -->
+    <div class="drawer" id="drawer">
+        <div class="drawer-handle"></div>
+        <div class="drawer-content" id="drawerContent">
+            <!-- Content populated by JS -->
+        </div>
+        <div class="drawer-cta" id="drawerCta">
+            <button class="drawer-cta-btn primary" id="drawerCtaBtn" onclick="showFinalView()" disabled>
+                Done
+            </button>
+        </div>
+    </div>
+
+    <!-- Final View -->
+    <div class="final-view" id="finalView">
+        <div class="final-header">
+            <button class="final-back" onclick="hideFinalView()">← Edit</button>
+            <div class="final-title">YOUR ROUTE</div>
+            <div style="width: 50px;"></div>
+        </div>
+
+        <div class="final-map" id="finalMap">
+            <!-- Mini map preview would go here -->
+        </div>
+
+        <div class="final-content">
+            <div class="final-summary">
+                <div class="final-stat">
+                    <div class="final-stat-value" id="finalDuration">--</div>
+                    <div class="final-stat-label">duration</div>
+                </div>
+                <div class="final-stat">
+                    <div class="final-stat-value" id="finalStops">--</div>
+                    <div class="final-stat-label">stops</div>
+                </div>
+                <div class="final-stat">
+                    <div class="final-stat-value" id="finalCost">--</div>
+                    <div class="final-stat-label">cost</div>
+                </div>
+            </div>
+
+            <div class="final-timeline" id="finalTimeline">
+                <!-- Filled by JS -->
+            </div>
+
+            <div class="final-suggestion" id="finalSuggestion">
+                <div class="suggestion-label">Add a 10pm mic?</div>
+                <div class="suggestion-options">
+                    <div class="suggestion-chip" onclick="addFromSuggestion('qed')">
+                        <span>Q.E.D.</span>
+                        <span style="color:rgba(255,255,255,0.5)">8m</span>
+                    </div>
+                    <div class="suggestion-chip" onclick="addFromSuggestion('astoria')">
+                        <span>Astoria</span>
+                        <span style="color:rgba(255,255,255,0.5)">12m</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="final-cta">
+            <div class="final-cta-actions">
+                <button class="final-cta-secondary" onclick="shareRoute()">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+                    </svg>
+                    Share
+                </button>
+                <button class="final-cta-secondary" onclick="copyRoute()">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                    </svg>
+                    Copy
+                </button>
+                <button class="final-cta-secondary" onclick="saveRoute()">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+                    </svg>
+                    Save
+                </button>
+            </div>
+            <button class="final-cta-btn" onclick="letsGo()">Let's Go</button>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // Mic data
+        const mics = {
+            grisly: { id: 'grisly', time: '7:30p', venue: 'Grisly Pear', price: 0, line: '1', lineColor: '#EE352E', mins: 730, pos: { left: 35, top: 30 } },
+            stand: { id: 'stand', time: '7p', venue: 'The Stand', price: 0, line: 'N', lineColor: '#FCCC0A', mins: 700, pos: { left: 55, top: 25 } },
+            lantern: { id: 'lantern', time: '8p', venue: 'The Lantern', price: 0, line: 'L', lineColor: '#A7A9AC', mins: 800, pos: { left: 70, top: 40 } },
+            creek: { id: 'creek', time: '8:30p', venue: 'Creek & Cave', price: 5, line: 'F', lineColor: '#FF6319', mins: 830, pos: { left: 25, top: 60 } },
+            eastville: { id: 'eastville', time: '9p', venue: 'Eastville', price: 7, line: '6', lineColor: '#00933C', mins: 900, pos: { left: 65, top: 65 } },
+            qed: { id: 'qed', time: '10p', venue: 'Q.E.D.', price: 0, line: 'N', lineColor: '#FCCC0A', mins: 1000, pos: { left: 20, top: 80 } }
+        };
+
+        // Commute times (fake, from user location)
+        const commuteFromUser = {
+            grisly: 12, stand: 18, lantern: 15, creek: 22, eastville: 15, qed: 25
+        };
+
+        // Commute times between mics (fake)
+        const commuteBetween = {
+            'grisly-creek': 15, 'grisly-lantern': 20, 'grisly-eastville': 18,
+            'stand-creek': 25, 'stand-lantern': 12, 'stand-grisly': 8,
+            'creek-qed': 8, 'creek-eastville': 20,
+            'lantern-eastville': 10, 'lantern-creek': 22,
+            'eastville-qed': 15
+        };
+
+        function getCommute(from, to) {
+            const key1 = `${from}-${to}`;
+            const key2 = `${to}-${from}`;
+            return commuteBetween[key1] || commuteBetween[key2] || 20;
+        }
+
+        let planMode = false;
+        let route = [];
+        let setDuration = 45; // How long you stay at each mic (default 45 mins)
+        let timeWindowStart = 700;  // 7pm default
+        let timeWindowEnd = 1100;   // 11pm default
+
+        function togglePlanMode() {
+            planMode = !planMode;
+            document.body.classList.toggle('plan-mode', planMode);
+            document.getElementById('header').classList.toggle('visible', planMode);
+            document.getElementById('drawer').classList.toggle('visible', planMode);
+            document.getElementById('planBtn').classList.toggle('active', planMode);
+
+            if (planMode) {
+                updateCommuteLabels();
+                renderDrawer();
+            } else {
+                clearRoute();
+            }
+        }
+
+        function exitPlanMode() {
+            planMode = false;
+            document.body.classList.remove('plan-mode');
+            document.getElementById('header').classList.remove('visible');
+            document.getElementById('drawer').classList.remove('visible');
+            document.getElementById('planBtn').classList.remove('active');
+            clearRoute();
+        }
+
+        function onSetDurationChange(value) {
+            setDuration = parseInt(value, 10);
+            updateMarkerStates();
+            renderDrawer();
+            showToast(`Set time: ${setDuration} mins`);
+        }
+
+        function onTimeWindowChange() {
+            const startEl = document.getElementById('timeStartSelect');
+            const endEl = document.getElementById('timeEndSelect');
+            if (startEl && endEl) {
+                timeWindowStart = parseInt(startEl.value, 10);
+                timeWindowEnd = parseInt(endEl.value, 10);
+            }
+            renderDrawer();
+        }
+
+        function updateCommuteLabels(fromMicId = null) {
+            Object.keys(mics).forEach(id => {
+                const el = document.getElementById(`commute-${id}`);
+                if (!el) return;
+
+                if (fromMicId) {
+                    const commute = getCommute(fromMicId, id);
+                    el.textContent = `${commute}m`;
+                } else {
+                    el.textContent = `${commuteFromUser[id]}m`;
+                }
+            });
+        }
+
+        function toggleMic(micId) {
+            if (!planMode) {
+                // Normal mode - would open modal
+                showToast(`${mics[micId].venue} - tap 🎤 to plan`);
+                return;
+            }
+
+            addToRoute(micId);
+        }
+
+        function addToRoute(micId) {
+            if (route.includes(micId)) return;
+
+            route.push(micId);
+            route.sort((a, b) => mics[a].mins - mics[b].mins);
+
+            const marker = document.getElementById(`marker-${micId}`);
+            marker.classList.add('selected');
+
+            updateMarkerStates();
+            updateRouteLine();
+            renderDrawer();
+        }
+
+        function removeFromRoute(micId) {
+            route = route.filter(id => id !== micId);
+            const marker = document.getElementById(`marker-${micId}`);
+            marker.classList.remove('selected');
+
+            updateMarkerStates();
+            updateRouteLine();
+            renderDrawer();
+        }
+
+        function renderDrawer() {
+            const content = document.getElementById('drawerContent');
+            const ctaBtn = document.getElementById('drawerCtaBtn');
+
+            // Get mics sorted by time
+            const allMics = Object.keys(mics).sort((a, b) => mics[a].mins - mics[b].mins);
+
+            let html = '';
+
+            // Time filter row
+            html += `
+                <div class="time-filter-row">
+                    <span class="time-filter-label">Free</span>
+                    <select class="time-filter-select" id="timeStartSelect" onchange="onTimeWindowChange()">
+                        <option value="600" ${timeWindowStart === 600 ? 'selected' : ''}>6pm</option>
+                        <option value="700" ${timeWindowStart === 700 ? 'selected' : ''}>7pm</option>
+                        <option value="800" ${timeWindowStart === 800 ? 'selected' : ''}>8pm</option>
+                        <option value="900" ${timeWindowStart === 900 ? 'selected' : ''}>9pm</option>
+                    </select>
+                    <span class="time-filter-separator">→</span>
+                    <select class="time-filter-select" id="timeEndSelect" onchange="onTimeWindowChange()">
+                        <option value="1000" ${timeWindowEnd === 1000 ? 'selected' : ''}>10pm</option>
+                        <option value="1100" ${timeWindowEnd === 1100 ? 'selected' : ''}>11pm</option>
+                        <option value="1200" ${timeWindowEnd === 1200 ? 'selected' : ''}>12am</option>
+                    </select>
+                    <span style="margin-left:auto"></span>
+                    <span class="time-filter-label">Stay</span>
+                    <select class="time-filter-select" onchange="onSetDurationChange(this.value)">
+                        <option value="30" ${setDuration === 30 ? 'selected' : ''}>30m</option>
+                        <option value="45" ${setDuration === 45 ? 'selected' : ''}>45m</option>
+                        <option value="60" ${setDuration === 60 ? 'selected' : ''}>60m</option>
+                        <option value="90" ${setDuration === 90 ? 'selected' : ''}>90m</option>
+                    </select>
+                </div>
+            `;
+
+            if (route.length === 0) {
+                // Empty state - show all mics as pickable
+                html += `<div class="drawer-section-title">Pick your first mic</div>`;
+
+                allMics.forEach(id => {
+                    const mic = mics[id];
+                    if (mic.mins < timeWindowStart || mic.mins > timeWindowEnd) return;
+
+                    html += renderMicItem(mic, false);
+                });
+            } else {
+                // Has route - show current route + suggestions
+                html += `<div class="drawer-section-title">Your Route</div>`;
+
+                route.forEach((id, i) => {
+                    const mic = mics[id];
+                    html += renderMicItem(mic, true);
+
+                    // Show transit connector
+                    if (i < route.length - 1) {
+                        const nextId = route[i + 1];
+                        const nextMic = mics[nextId];
+                        const commute = getCommute(id, nextId);
+                        html += `
+                            <div class="route-connector">
+                                <div class="connector-line"></div>
+                                <div class="connector-badge">
+                                    <span class="line" style="background:${nextMic.lineColor}">${nextMic.line}</span>
+                                    <span>${commute}m</span>
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+
+                // Get suggestions (mics that fit after last in route)
+                const lastMicId = route[route.length - 1];
+                const suggestions = getSuggestions(lastMicId);
+
+                if (suggestions.length > 0) {
+                    html += `<div class="drawer-section-title" style="margin-top:20px">Add More</div>`;
+                    suggestions.forEach(id => {
+                        html += renderMicItem(mics[id], false);
+                    });
+                }
+            }
+
+            content.innerHTML = html;
+
+            // Update CTA button
+            ctaBtn.disabled = route.length === 0;
+            ctaBtn.textContent = route.length === 0 ? 'Pick a mic' : `Done · ${route.length} stop${route.length > 1 ? 's' : ''}`;
+        }
+
+        function renderMicItem(mic, inRoute) {
+            const priceClass = mic.price > 0 ? 'paid' : '';
+            const priceText = mic.price > 0 ? `$${mic.price}` : 'FREE';
+            const commute = commuteFromUser[mic.id];
+
+            return `
+                <div class="mic-item ${inRoute ? 'in-route' : ''}">
+                    <div class="mic-item-time">${mic.time}</div>
+                    <div class="mic-item-info">
+                        <div class="mic-item-venue">${mic.venue}</div>
+                        <div class="mic-item-meta">
+                            <span class="mic-item-price ${priceClass}">${priceText}</span>
+                            <span>${commute}m away</span>
+                        </div>
+                    </div>
+                    ${inRoute
+                        ? `<button class="mic-item-btn remove" onclick="removeFromRoute('${mic.id}')">✕</button>`
+                        : `<button class="mic-item-btn add" onclick="addToRoute('${mic.id}')">+</button>`
+                    }
+                </div>
+            `;
+        }
+
+        function getSuggestions(lastMicId) {
+            const lastMic = mics[lastMicId];
+            const suggestions = [];
+
+            Object.keys(mics).forEach(id => {
+                if (route.includes(id)) return;
+
+                const mic = mics[id];
+                // Must be after last mic
+                if (mic.mins <= lastMic.mins) return;
+                // Must be within time window
+                if (mic.mins > timeWindowEnd) return;
+
+                // Check if timing works
+                const status = getMicStatus(id, lastMicId);
+                if (status === 'glow' || status === 'visible') {
+                    suggestions.push(id);
+                }
+            });
+
+            return suggestions.sort((a, b) => mics[a].mins - mics[b].mins);
+        }
+
+        // Calculate if a mic is reachable and how good the timing is
+        function getMicStatus(candidateId, lastMicId) {
+            const candidate = mics[candidateId];
+            const anchor = mics[lastMicId];
+
+            // Use user-configurable set duration
+            const anchorEndTime = anchor.mins + setDuration;
+
+            // Travel time to candidate
+            const travelTime = getCommute(lastMicId, candidateId);
+            const arrivalTime = anchorEndTime + travelTime;
+
+            // How much buffer before the mic starts?
+            const waitTime = candidate.mins - arrivalTime;
+
+            // Status based on wait time
+            if (waitTime < -5) return 'dimmed';     // You'll be late (5m grace)
+            if (waitTime <= 15) return 'glow';      // Perfect! Arrive 0-15m early
+            if (waitTime <= 45) return 'visible';   // Good, but some waiting
+            return 'dimmed';                         // Too much dead time (45+ mins)
+        }
+
+        function updateMarkerStates() {
+            if (route.length === 0) {
+                // Reset all markers
+                Object.keys(mics).forEach(id => {
+                    const marker = document.getElementById(`marker-${id}`);
+                    marker.classList.remove('dimmed', 'suggested', 'selected', 'glow');
+                });
+                updateCommuteLabels();
+                return;
+            }
+
+            const lastMicId = route[route.length - 1];
+
+            // Update commute labels from last selected mic
+            updateCommuteLabels(lastMicId);
+
+            // Calculate status for each mic based on realistic timing
+            Object.keys(mics).forEach(id => {
+                if (route.includes(id)) return; // Skip already selected
+
+                const marker = document.getElementById(`marker-${id}`);
+                const status = getMicStatus(id, lastMicId);
+
+                // Clear all states
+                marker.classList.remove('dimmed', 'suggested', 'glow');
+
+                // Apply new state
+                if (status === 'dimmed') marker.classList.add('dimmed');
+                if (status === 'glow') marker.classList.add('glow');
+                if (status === 'visible') marker.classList.add('suggested');
+            });
+
+            // Mark selected
+            route.forEach(id => {
+                const marker = document.getElementById(`marker-${id}`);
+                marker.classList.add('selected');
+                marker.classList.remove('dimmed', 'suggested');
+            });
+        }
+
+        function updateRouteLine() {
+            const path = document.getElementById('routePath');
+
+            if (route.length < 2) {
+                path.setAttribute('d', '');
+                return;
+            }
+
+            // Get all points
+            const points = route.map(id => {
+                const mic = mics[id];
+                return {
+                    x: (mic.pos.left / 100) * window.innerWidth,
+                    y: (mic.pos.top / 100) * window.innerHeight
+                };
+            });
+
+            // Build curved path using quadratic bezier
+            let d = `M ${points[0].x} ${points[0].y}`;
+
+            for (let i = 1; i < points.length; i++) {
+                const prev = points[i - 1];
+                const curr = points[i];
+
+                // Calculate control point for curve
+                // Offset perpendicular to the line for a nice arch
+                const midX = (prev.x + curr.x) / 2;
+                const midY = (prev.y + curr.y) / 2;
+
+                // Get perpendicular offset (curve outward)
+                const dx = curr.x - prev.x;
+                const dy = curr.y - prev.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+
+                // Curve amount (20% of distance, alternating direction)
+                const curveAmount = dist * 0.2;
+                const direction = i % 2 === 0 ? 1 : -1;
+
+                // Perpendicular vector (normalized)
+                const perpX = (-dy / dist) * curveAmount * direction;
+                const perpY = (dx / dist) * curveAmount * direction;
+
+                // Control point
+                const cpX = midX + perpX;
+                const cpY = midY + perpY;
+
+                d += ` Q ${cpX} ${cpY} ${curr.x} ${curr.y}`;
+            }
+
+            path.setAttribute('d', d);
+        }
+
+        function clearRoute() {
+            route.forEach(id => {
+                const marker = document.getElementById(`marker-${id}`);
+                marker.classList.remove('selected');
+            });
+            route = [];
+            updateMarkerStates();
+            updateRouteLine();
+            if (planMode) renderDrawer();
+        }
+
+        function showFinalView() {
+            if (route.length === 0) return;
+
+            const view = document.getElementById('finalView');
+            view.classList.add('visible');
+
+            // Calculate stats
+            const firstMic = mics[route[0]];
+            const lastMic = mics[route[route.length - 1]];
+            const durationMins = (lastMic.mins - firstMic.mins) + 60; // Add 60 for last mic duration
+            const hours = Math.floor(durationMins / 60);
+            const mins = durationMins % 60;
+
+            let totalCost = 0;
+            route.forEach(id => totalCost += mics[id].price);
+
+            document.getElementById('finalDuration').textContent = mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
+            document.getElementById('finalStops').textContent = route.length;
+            document.getElementById('finalCost').textContent = totalCost > 0 ? `$${totalCost}` : 'Free';
+
+            // Build timeline
+            let html = '';
+            route.forEach((id, i) => {
+                const mic = mics[id];
+
+                html += `
+                    <div class="timeline-stop">
+                        <div class="timeline-stop-time">${mic.time}</div>
+                        <div class="timeline-stop-info">
+                            <div class="timeline-stop-venue">${mic.venue}</div>
+                            <div class="timeline-stop-meta">
+                                <span style="color: ${mic.price > 0 ? '#fb923c' : '#4ade80'}">${mic.price > 0 ? '$' + mic.price : 'FREE'}</span>
+                                <span class="line-badge" style="background:${mic.lineColor}">${mic.line}</span>
+                            </div>
+                        </div>
+                        <button class="timeline-stop-remove" onclick="removeFromFinal('${id}')">✕</button>
+                    </div>
+                `;
+
+                if (i < route.length - 1) {
+                    const nextId = route[i + 1];
+                    const commute = getCommute(id, nextId);
+                    const nextMic = mics[nextId];
+
+                    html += `
+                        <div class="timeline-connector">
+                            <div class="connector-line"></div>
+                            <div class="connector-info">
+                                <span class="line-badge" style="background:${nextMic.lineColor};width:18px;height:18px;font-size:10px">${nextMic.line}</span>
+                                <span>${commute}m</span>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+
+            document.getElementById('finalTimeline').innerHTML = html;
+
+            // Show/hide suggestion based on last mic time
+            const suggestion = document.getElementById('finalSuggestion');
+            if (lastMic.mins < 1000 && !route.includes('qed')) {
+                suggestion.style.display = 'block';
+            } else {
+                suggestion.style.display = 'none';
+            }
+        }
+
+        function hideFinalView() {
+            document.getElementById('finalView').classList.remove('visible');
+        }
+
+        function removeFromFinal(micId) {
+            route = route.filter(id => id !== micId);
+            const marker = document.getElementById(`marker-${micId}`);
+            marker.classList.remove('selected');
+
+            if (route.length === 0) {
+                hideFinalView();
+                updateMarkerStates();
+                updateRouteLine();
+                updateBottomBar();
+            } else {
+                showFinalView(); // Refresh
+                updateRouteLine();
+                updateBottomBar();
+            }
+        }
+
+        function addFromSuggestion(micId) {
+            if (!mics[micId]) return;
+            route.push(micId);
+            route.sort((a, b) => mics[a].mins - mics[b].mins);
+
+            const marker = document.getElementById(`marker-${micId}`);
+            if (marker) marker.classList.add('selected');
+
+            updateRouteLine();
+            updateBottomBar();
+            showFinalView(); // Refresh
+            showToast(`Added ${mics[micId].venue}`);
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('visible');
+            setTimeout(() => toast.classList.remove('visible'), 2000);
+        }
+
+        function centerOnUser() {
+            showToast('Centered on your location');
+        }
+
+        // Handle window resize for route line
+        // Share route - create shareable URL
+        function shareRoute() {
+            const routeParam = route.join(',');
+            const url = `${window.location.origin}${window.location.pathname}?route=${routeParam}`;
+
+            if (navigator.share) {
+                // Mobile native share
+                navigator.share({
+                    title: 'My Mic Route',
+                    text: getRouteText(),
+                    url: url
+                }).catch(() => {
+                    copyToClipboard(url);
+                    showToast('Link copied to clipboard!');
+                });
+            } else {
+                // Desktop - copy link
+                copyToClipboard(url);
+                showToast('Link copied to clipboard!');
+            }
+        }
+
+        // Copy route as text
+        function copyRoute() {
+            const text = getRouteText();
+            copyToClipboard(text);
+            showToast('Route copied!');
+        }
+
+        // Get route as text
+        function getRouteText() {
+            let text = '🎤 My Mic Route\n\n';
+            let totalCost = 0;
+
+            route.forEach((id, i) => {
+                const mic = mics[id];
+                totalCost += mic.price;
+                text += `${mic.time} - ${mic.venue}`;
+                if (mic.price > 0) text += ` ($${mic.price})`;
+                text += '\n';
+
+                if (i < route.length - 1) {
+                    const nextId = route[i + 1];
+                    const commute = getCommute(id, nextId);
+                    text += `  ↓ ${commute}m\n`;
+                }
+            });
+
+            text += `\nTotal: ${route.length} stops`;
+            if (totalCost > 0) text += ` · $${totalCost}`;
+
+            return text;
+        }
+
+        // Copy to clipboard helper
+        function copyToClipboard(text) {
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(text);
+            } else {
+                // Fallback
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+            }
+        }
+
+        // Save route to localStorage
+        function saveRoute() {
+            const savedRoutes = JSON.parse(localStorage.getItem('savedRoutes') || '[]');
+            const routeData = {
+                id: Date.now(),
+                date: new Date().toLocaleDateString(),
+                mics: route,
+                stops: route.map(id => ({
+                    id,
+                    venue: mics[id].venue,
+                    time: mics[id].time,
+                    price: mics[id].price
+                }))
+            };
+            savedRoutes.push(routeData);
+            localStorage.setItem('savedRoutes', JSON.stringify(savedRoutes));
+            showToast('Route saved!');
+        }
+
+        // Let's Go - would open directions in real app
+        function letsGo() {
+            if (route.length === 0) return;
+
+            const firstMic = mics[route[0]];
+            // In real app, this would open Google Maps or Apple Maps
+            showToast(`Starting navigation to ${firstMic.venue}...`);
+
+            // Could open Google Maps:
+            // window.open(`https://www.google.com/maps/dir/?api=1&destination=${firstMic.venue}+NYC`);
+        }
+
+        // Load route from URL if present
+        function loadRouteFromURL() {
+            const params = new URLSearchParams(window.location.search);
+            const routeParam = params.get('route');
+
+            if (routeParam) {
+                const micIds = routeParam.split(',');
+                micIds.forEach(id => {
+                    if (mics[id]) {
+                        route.push(id);
+                        const marker = document.getElementById(`marker-${id}`);
+                        if (marker) marker.classList.add('selected');
+                    }
+                });
+
+                if (route.length > 0) {
+                    planMode = true;
+                    document.body.classList.add('plan-mode');
+                    document.getElementById('header').classList.add('visible');
+                    document.getElementById('drawer').classList.add('visible');
+                    document.getElementById('planBtn').classList.add('active');
+
+                    updateMarkerStates();
+                    updateRouteLine();
+                    renderDrawer();
+                    showFinalView();
+                }
+            }
+        }
+
+        // Load on page ready
+        loadRouteFromURL();
+
+        // Handle window resize for route line
+        window.addEventListener('resize', updateRouteLine);
+    </script>
+</body>
+</html>

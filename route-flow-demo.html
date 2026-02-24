@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Route Flow Demo</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0b;
+            color: #fff;
+            min-height: 100vh;
+        }
+
+        /* Fake map background */
+        .map-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            z-index: 0;
+        }
+
+        .map-bg::after {
+            content: '[ MAP ]';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 48px;
+            color: rgba(255,255,255,0.1);
+            font-weight: 700;
+        }
+
+        /* Drawer */
+        .drawer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            max-height: 70vh;
+            background: #18181b;
+            border-radius: 20px 20px 0 0;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            transition: max-height 0.3s ease;
+        }
+
+        .drawer.timeline-mode {
+            max-height: 85vh;
+        }
+
+        .drawer-handle {
+            width: 36px;
+            height: 4px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 2px;
+            margin: 10px auto;
+        }
+
+        .drawer-header {
+            padding: 0 20px 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .drawer-title {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .drawer-subtitle {
+            font-size: 13px;
+            color: rgba(255,255,255,0.5);
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            color: #f43f5e;
+            font-size: 15px;
+            cursor: pointer;
+            display: none;
+        }
+
+        .timeline-mode .back-btn {
+            display: block;
+        }
+
+        .timeline-mode .drawer-title {
+            display: none;
+        }
+
+        /* Content */
+        .drawer-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 20px;
+        }
+
+        .section-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: rgba(255,255,255,0.4);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 10px;
+            margin-top: 20px;
+        }
+
+        .section-label:first-child {
+            margin-top: 0;
+        }
+
+        /* Mic Cards */
+        .mic-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .mic-card:hover {
+            background: rgba(255,255,255,0.08);
+        }
+
+        .mic-card.selected {
+            border-color: #f43f5e;
+            background: rgba(244, 63, 94, 0.1);
+        }
+
+        .mic-card.expanded {
+            background: rgba(255,255,255,0.06);
+            border-color: rgba(255,255,255,0.15);
+        }
+
+        .mic-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .mic-time {
+            font-size: 18px;
+            font-weight: 700;
+            color: #fff;
+            width: 50px;
+        }
+
+        .mic-info {
+            flex: 1;
+        }
+
+        .mic-venue {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .mic-meta {
+            font-size: 12px;
+            color: rgba(255,255,255,0.5);
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .mic-price {
+            color: #4ade80;
+            font-weight: 600;
+        }
+
+        .mic-price.paid {
+            color: #fb923c;
+        }
+
+        .line-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: #ef4444;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Expanded Card Options */
+        .mic-options {
+            display: none;
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px dashed rgba(255,255,255,0.15);
+        }
+
+        .mic-card.expanded .mic-options {
+            display: block;
+        }
+
+        .options-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: rgba(255,255,255,0.5);
+            margin-bottom: 8px;
+        }
+
+        .option-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            background: rgba(255,255,255,0.04);
+            border-radius: 8px;
+            margin-bottom: 6px;
+        }
+
+        .option-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .option-time {
+            font-size: 13px;
+            font-weight: 600;
+            color: rgba(255,255,255,0.7);
+        }
+
+        .option-venue {
+            font-size: 13px;
+            color: rgba(255,255,255,0.9);
+        }
+
+        .option-meta {
+            font-size: 11px;
+            color: rgba(255,255,255,0.4);
+        }
+
+        .add-btn {
+            background: rgba(244, 63, 94, 0.15);
+            border: 1px solid rgba(244, 63, 94, 0.3);
+            color: #fda4af;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .add-btn:hover {
+            background: rgba(244, 63, 94, 0.25);
+            border-color: #f43f5e;
+        }
+
+        .mic-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .action-btn.secondary {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: #fff;
+        }
+
+        .action-btn.primary {
+            background: #f43f5e;
+            border: none;
+            color: #fff;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        /* Bottom Route Bar */
+        .route-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #27272a;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding: 16px 20px;
+            z-index: 20;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+        }
+
+        .route-bar.visible {
+            transform: translateY(0);
+        }
+
+        .route-bar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .route-bar-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: rgba(255,255,255,0.6);
+        }
+
+        .route-bar-action {
+            font-size: 13px;
+            font-weight: 600;
+            color: #f43f5e;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .route-bar-content {
+            font-size: 14px;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+
+        .route-bar-suggestion {
+            font-size: 12px;
+            color: rgba(255,255,255,0.5);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .suggestion-add {
+            color: #f43f5e;
+            cursor: pointer;
+        }
+
+        /* Timeline View */
+        .timeline-view {
+            display: none;
+        }
+
+        .drawer.timeline-mode .browse-view {
+            display: none;
+        }
+
+        .drawer.timeline-mode .timeline-view {
+            display: block;
+        }
+
+        .timeline-summary {
+            text-align: center;
+            padding: 10px 0 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+        }
+
+        .timeline-duration {
+            font-size: 32px;
+            font-weight: 800;
+        }
+
+        .timeline-meta {
+            font-size: 13px;
+            color: rgba(255,255,255,0.5);
+            margin-top: 4px;
+        }
+
+        .timeline-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            margin-bottom: 0;
+        }
+
+        .timeline-time {
+            font-size: 20px;
+            font-weight: 700;
+            width: 55px;
+            text-align: center;
+        }
+
+        .timeline-info {
+            flex: 1;
+        }
+
+        .timeline-venue {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .timeline-details {
+            font-size: 12px;
+            color: rgba(255,255,255,0.5);
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .timeline-connector {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 0;
+            margin-left: 27px;
+        }
+
+        .connector-line {
+            width: 2px;
+            height: 20px;
+            background: rgba(255,255,255,0.2);
+        }
+
+        .connector-pill {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .start-nav-btn {
+            width: 100%;
+            padding: 16px;
+            background: #f43f5e;
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        /* Adjust drawer when route bar visible */
+        .drawer.has-route {
+            margin-bottom: 100px;
+        }
+    </style>
+</head>
+<body>
+    <div class="map-bg"></div>
+
+    <div class="drawer" id="drawer">
+        <div class="drawer-handle"></div>
+
+        <div class="drawer-header">
+            <button class="back-btn" onclick="exitTimeline()">← Back</button>
+            <div>
+                <div class="drawer-title">Tonight</div>
+                <div class="drawer-subtitle">Wednesday, Jan 29</div>
+            </div>
+            <div style="width: 50px;"></div>
+        </div>
+
+        <div class="drawer-content">
+            <!-- Browse View -->
+            <div class="browse-view">
+                <div class="section-label">Happening Now</div>
+
+                <div class="mic-card" onclick="toggleCard(this)" data-mic="grisly">
+                    <div class="mic-row">
+                        <div class="live-dot"></div>
+                        <div class="mic-time">7:30</div>
+                        <div class="mic-info">
+                            <div class="mic-venue">Grisly Pear</div>
+                            <div class="mic-meta">
+                                <span class="mic-price">FREE</span>
+                                <span>West Village</span>
+                                <span class="line-badge" style="background:#EE352E">1</span>
+                                <span>5m walk</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mic-options">
+                        <div class="options-label">After this (9pm+)</div>
+                        <div class="option-item">
+                            <div class="option-info">
+                                <span class="option-time">9:00</span>
+                                <span class="option-venue">Comedy Cellar</span>
+                                <span class="option-meta">$7 · 3m walk</span>
+                            </div>
+                            <button class="add-btn" onclick="event.stopPropagation(); addToRoute('cellar')">+ Add</button>
+                        </div>
+                        <div class="option-item">
+                            <div class="option-info">
+                                <span class="option-time">9:30</span>
+                                <span class="option-venue">The Stand</span>
+                                <span class="option-meta">FREE · 8m</span>
+                            </div>
+                            <button class="add-btn" onclick="event.stopPropagation(); addToRoute('stand')">+ Add</button>
+                        </div>
+                        <div class="mic-actions">
+                            <button class="action-btn secondary">Directions</button>
+                            <button class="action-btn primary" onclick="event.stopPropagation(); addToRoute('grisly')">Add to Route</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-label">Coming Up</div>
+
+                <div class="mic-card" onclick="toggleCard(this)" data-mic="lantern">
+                    <div class="mic-row">
+                        <div class="mic-time">8:00</div>
+                        <div class="mic-info">
+                            <div class="mic-venue">The Lantern</div>
+                            <div class="mic-meta">
+                                <span class="mic-price">FREE</span>
+                                <span>East Village</span>
+                                <span class="line-badge" style="background:#FCCC0A; color:#000">L</span>
+                                <span>12m</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mic-options">
+                        <div class="options-label">Before this (7pm)</div>
+                        <div class="option-item">
+                            <div class="option-info">
+                                <span class="option-time">7:00</span>
+                                <span class="option-venue">Grisly Pear</span>
+                                <span class="option-meta">FREE · 15m</span>
+                            </div>
+                            <button class="add-btn" onclick="event.stopPropagation(); addToRoute('grisly')">+ Add</button>
+                        </div>
+                        <div class="options-label">After this (9:30+)</div>
+                        <div class="option-item">
+                            <div class="option-info">
+                                <span class="option-time">9:30</span>
+                                <span class="option-venue">Eastville</span>
+                                <span class="option-meta">$7 · 10m</span>
+                            </div>
+                            <button class="add-btn" onclick="event.stopPropagation(); addToRoute('eastville')">+ Add</button>
+                        </div>
+                        <div class="mic-actions">
+                            <button class="action-btn secondary">Directions</button>
+                            <button class="action-btn primary" onclick="event.stopPropagation(); addToRoute('lantern')">Add to Route</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mic-card" onclick="toggleCard(this)" data-mic="creek">
+                    <div class="mic-row">
+                        <div class="mic-time">8:30</div>
+                        <div class="mic-info">
+                            <div class="mic-venue">Creek & The Cave</div>
+                            <div class="mic-meta">
+                                <span class="mic-price paid">$5</span>
+                                <span>LIC</span>
+                                <span class="line-badge" style="background:#FF6319">F</span>
+                                <span>22m</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mic-options">
+                        <div class="options-label">Before this (7-8pm)</div>
+                        <div class="option-item">
+                            <div class="option-info">
+                                <span class="option-time">7:00</span>
+                                <span class="option-venue">The Stand</span>
+                                <span class="option-meta">FREE · 18m</span>
+                            </div>
+                            <button class="add-btn" onclick="event.stopPropagation(); addToRoute('stand')">+ Add</button>
+                        </div>
+                        <div class="options-label">After this (10pm+)</div>
+                        <div class="option-item">
+                            <div class="option-info">
+                                <span class="option-time">10:00</span>
+                                <span class="option-venue">Q.E.D. Astoria</span>
+                                <span class="option-meta">FREE · 8m walk</span>
+                            </div>
+                            <button class="add-btn" onclick="event.stopPropagation(); addToRoute('qed')">+ Add</button>
+                        </div>
+                        <div class="mic-actions">
+                            <button class="action-btn secondary">Directions</button>
+                            <button class="action-btn primary" onclick="event.stopPropagation(); addToRoute('creek')">Add to Route</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mic-card" onclick="toggleCard(this)" data-mic="eastville">
+                    <div class="mic-row">
+                        <div class="mic-time">9:00</div>
+                        <div class="mic-info">
+                            <div class="mic-venue">Eastville Comedy</div>
+                            <div class="mic-meta">
+                                <span class="mic-price paid">$7</span>
+                                <span>East Village</span>
+                                <span class="line-badge" style="background:#EE352E">6</span>
+                                <span>15m</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mic-options">
+                        <div class="options-label">Before this (7-8pm)</div>
+                        <div class="option-item">
+                            <div class="option-info">
+                                <span class="option-time">7:30</span>
+                                <span class="option-venue">Grisly Pear</span>
+                                <span class="option-meta">FREE · 12m</span>
+                            </div>
+                            <button class="add-btn" onclick="event.stopPropagation(); addToRoute('grisly')">+ Add</button>
+                        </div>
+                        <div class="mic-actions">
+                            <button class="action-btn secondary">Directions</button>
+                            <button class="action-btn primary" onclick="event.stopPropagation(); addToRoute('eastville')">Add to Route</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-label">9 PM</div>
+
+                <div class="mic-card" onclick="toggleCard(this)" data-mic="stand">
+                    <div class="mic-row">
+                        <div class="mic-time">9:30</div>
+                        <div class="mic-info">
+                            <div class="mic-venue">The Stand NYC</div>
+                            <div class="mic-meta">
+                                <span class="mic-price">FREE</span>
+                                <span>Gramercy</span>
+                                <span class="line-badge" style="background:#FCCC0A; color:#000">N</span>
+                                <span>18m</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mic-options">
+                        <div class="options-label">Before this (7-9pm)</div>
+                        <div class="option-item">
+                            <div class="option-info">
+                                <span class="option-time">8:00</span>
+                                <span class="option-venue">The Lantern</span>
+                                <span class="option-meta">FREE · 15m</span>
+                            </div>
+                            <button class="add-btn" onclick="event.stopPropagation(); addToRoute('lantern')">+ Add</button>
+                        </div>
+                        <div class="mic-actions">
+                            <button class="action-btn secondary">Directions</button>
+                            <button class="action-btn primary" onclick="event.stopPropagation(); addToRoute('stand')">Add to Route</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timeline View -->
+            <div class="timeline-view">
+                <div class="timeline-summary">
+                    <div class="timeline-duration" id="timeline-duration">2h 15m</div>
+                    <div class="timeline-meta" id="timeline-meta">3 stops · Done by 10:30p</div>
+                </div>
+
+                <div id="timeline-stops">
+                    <!-- Filled by JS -->
+                </div>
+
+                <button class="start-nav-btn">Start Navigation</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Route Bar -->
+    <div class="route-bar" id="routeBar">
+        <div class="route-bar-header">
+            <span class="route-bar-title">YOUR ROUTE (<span id="routeCount">0</span>)</span>
+            <button class="route-bar-action" onclick="viewRoute()">View →</button>
+        </div>
+        <div class="route-bar-content" id="routeContent">
+            <!-- Filled by JS -->
+        </div>
+        <div class="route-bar-suggestion" id="routeSuggestion">
+            <!-- Filled by JS -->
+        </div>
+    </div>
+
+    <script>
+        // Mic data
+        const mics = {
+            grisly: { time: '7:30', venue: 'Grisly Pear', price: 'FREE', line: '1', lineColor: '#EE352E' },
+            lantern: { time: '8:00', venue: 'The Lantern', price: 'FREE', line: 'L', lineColor: '#FCCC0A', lineTextDark: true },
+            creek: { time: '8:30', venue: 'Creek & Cave', price: '$5', line: 'F', lineColor: '#FF6319' },
+            eastville: { time: '9:00', venue: 'Eastville', price: '$7', line: '6', lineColor: '#EE352E' },
+            stand: { time: '9:30', venue: 'The Stand', price: 'FREE', line: 'N', lineColor: '#FCCC0A', lineTextDark: true },
+            cellar: { time: '9:00', venue: 'Comedy Cellar', price: '$7', line: '1', lineColor: '#EE352E' },
+            qed: { time: '10:00', venue: 'Q.E.D. Astoria', price: 'FREE', line: 'N', lineColor: '#FCCC0A', lineTextDark: true }
+        };
+
+        let route = [];
+
+        function toggleCard(card) {
+            // Close other expanded cards
+            document.querySelectorAll('.mic-card.expanded').forEach(c => {
+                if (c !== card) c.classList.remove('expanded');
+            });
+            card.classList.toggle('expanded');
+        }
+
+        function addToRoute(micId) {
+            if (route.includes(micId)) return;
+
+            route.push(micId);
+
+            // Sort by time
+            route.sort((a, b) => {
+                const timeA = parseInt(mics[a].time.replace(':', ''));
+                const timeB = parseInt(mics[b].time.replace(':', ''));
+                return timeA - timeB;
+            });
+
+            updateRouteBar();
+
+            // Mark card as selected
+            document.querySelector(`[data-mic="${micId}"]`)?.classList.add('selected');
+
+            // Close expanded card
+            document.querySelectorAll('.mic-card.expanded').forEach(c => c.classList.remove('expanded'));
+        }
+
+        function updateRouteBar() {
+            const bar = document.getElementById('routeBar');
+            const count = document.getElementById('routeCount');
+            const content = document.getElementById('routeContent');
+            const suggestion = document.getElementById('routeSuggestion');
+            const drawer = document.getElementById('drawer');
+
+            if (route.length === 0) {
+                bar.classList.remove('visible');
+                drawer.classList.remove('has-route');
+                return;
+            }
+
+            bar.classList.add('visible');
+            drawer.classList.add('has-route');
+            count.textContent = route.length;
+
+            // Build route string
+            const routeStr = route.map(id => mics[id].time + ' ' + mics[id].venue).join(' → ');
+            content.textContent = routeStr;
+
+            // Suggest filling gaps
+            if (route.length === 1) {
+                const mic = mics[route[0]];
+                const time = parseInt(mic.time.split(':')[0]);
+                if (time >= 8) {
+                    suggestion.innerHTML = '💡 Add a 7pm mic before? <span class="suggestion-add" onclick="addToRoute(\'grisly\')">+ Grisly Pear</span>';
+                } else {
+                    suggestion.innerHTML = '💡 Add a 9pm mic after? <span class="suggestion-add" onclick="addToRoute(\'eastville\')">+ Eastville</span>';
+                }
+            } else if (route.length === 2) {
+                suggestion.innerHTML = '💡 Looks good! <span class="suggestion-add" onclick="viewRoute()">View route →</span>';
+            } else {
+                suggestion.innerHTML = '';
+            }
+        }
+
+        function viewRoute() {
+            const drawer = document.getElementById('drawer');
+            drawer.classList.add('timeline-mode');
+
+            // Build timeline
+            const stopsEl = document.getElementById('timeline-stops');
+            let html = '';
+
+            route.forEach((micId, i) => {
+                const mic = mics[micId];
+                const textColor = mic.lineTextDark ? 'color:#000' : '';
+
+                html += `
+                    <div class="timeline-card">
+                        <div class="timeline-time">${mic.time}</div>
+                        <div class="timeline-info">
+                            <div class="timeline-venue">${mic.venue}</div>
+                            <div class="timeline-details">
+                                <span style="color:${mic.price === 'FREE' ? '#4ade80' : '#fb923c'}">${mic.price}</span>
+                                <span class="line-badge" style="background:${mic.lineColor};${textColor}">${mic.line}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                if (i < route.length - 1) {
+                    const nextMic = mics[route[i + 1]];
+                    html += `
+                        <div class="timeline-connector">
+                            <div class="connector-pill">
+                                <span class="line-badge" style="background:${nextMic.lineColor};${nextMic.lineTextDark ? 'color:#000' : ''};width:16px;height:16px;font-size:10px">${nextMic.line}</span>
+                                <span>15m</span>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+
+            stopsEl.innerHTML = html;
+
+            // Update summary
+            document.getElementById('timeline-duration').textContent = route.length === 2 ? '1h 45m' : '2h 15m';
+            document.getElementById('timeline-meta').textContent = `${route.length} stops · Done by 10:30p`;
+
+            // Hide route bar in timeline mode
+            document.getElementById('routeBar').classList.remove('visible');
+        }
+
+        function exitTimeline() {
+            const drawer = document.getElementById('drawer');
+            drawer.classList.remove('timeline-mode');
+            updateRouteBar();
+        }
+    </script>
+</body>
+</html>

@@ -16,10 +16,11 @@ const toastService = {
     show(message, type = 'info', options = {}) {
         const duration = typeof options === 'number' ? options : (options.duration || 3000);
         const action = typeof options === 'object' ? options.action : null;
+        const customClass = (typeof options === 'object' && options.className) ? ` ${options.className}` : '';
 
         const toast = document.createElement('div');
         const pulsate = (typeof options === 'object' && options.pulsate) ? ' toast-pulsate' : '';
-        toast.className = `toast toast-${type}${action ? ' toast-actionable' : ''}${pulsate}`;
+        toast.className = `toast toast-${type}${action ? ' toast-actionable' : ''}${pulsate}${customClass}`;
 
         const icons = {
             success: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>',
@@ -36,10 +37,13 @@ const toastService = {
 
         const actionLabel = (typeof options === 'object' && options.actionLabel) ? options.actionLabel : null;
 
+        const finalDuration = action ? (duration || 5000) : duration;
+
         toast.innerHTML = `
             ${iconHtml}
             <span class="toast-message">${message}</span>
             ${action && actionLabel ? `<button class="toast-action-btn">${actionLabel}</button>` : ''}
+            ${action ? `<div class="toast-progress" style="animation-duration:${finalDuration}ms"></div>` : ''}
         `;
 
         // Add click handler if action provided
@@ -61,6 +65,6 @@ const toastService = {
         setTimeout(() => {
             toast.classList.remove('show');
             setTimeout(() => toast.remove(), 300);
-        }, action ? 10000 : duration); // Longer duration for actionable toasts
+        }, finalDuration);
     }
 };

@@ -54,6 +54,13 @@ function loadScheduleForDate(dateString) {
     updateRouteLine();
 }
 
+function getScheduleCountForDate(dateString) {
+    const schedule = Array.isArray(STATE.schedules?.[dateString]) ? STATE.schedules[dateString] : [];
+    if (!Array.isArray(STATE.mics) || STATE.mics.length === 0) return schedule.length;
+    const validIds = new Set(STATE.mics.map(m => m.id));
+    return schedule.filter(id => validIds.has(id)).length;
+}
+
 // Render dots on calendar capsules for days with scheduled items
 function renderCalendarDots() {
     const capsules = document.querySelectorAll('#cal-grid .date-capsule');
@@ -127,17 +134,39 @@ function selectDate(dateString) {
 
 // Update the calendar button in header to show the selected date
 function updateCalendarButtonDisplay(dateString) {
-    const date = new Date(dateString);
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const displayText = `${days[date.getDay()]} ${date.getDate()}`;
+    const parsedDate = new Date(dateString);
+    const date = Number.isNaN(parsedDate.getTime()) ? new Date() : parsedDate;
+    const safeDateString = date.toDateString();
+    const dayShort = date.toLocaleDateString('en-US', { weekday: 'short' });
+    const monthShort = date.toLocaleDateString('en-US', { month: 'short' });
+    const dayNumber = date.getDate();
+    const baseDisplayText = `${dayShort} ${monthShort} ${dayNumber}`;
+    const scheduleCount = getScheduleCountForDate(safeDateString);
+    const desktopText = scheduleCount > 0 ? `${baseDisplayText} · ${scheduleCount} scheduled` : baseDisplayText;
+    const countText = scheduleCount > 0
+        ? `${scheduleCount} scheduled mic${scheduleCount === 1 ? '' : 's'}`
+        : 'No scheduled mics';
+    const longDay = date.toLocaleDateString('en-US', { weekday: 'long' });
+    const longMonth = date.toLocaleDateString('en-US', { month: 'long' });
+    const buttonAria = `Open calendar picker. ${longDay}, ${longMonth} ${dayNumber}. ${countText}.`;
 
     // Desktop calendar button
     const calText = document.getElementById('cal-text');
-    if (calText) calText.textContent = displayText;
+    if (calText) calText.textContent = desktopText;
+    const desktopBtn = document.getElementById('btn-calendar');
+    if (desktopBtn) {
+        desktopBtn.setAttribute('aria-label', buttonAria);
+        desktopBtn.title = `${longDay}, ${longMonth} ${dayNumber} · ${countText}`;
+    }
 
     // Mobile calendar button
     const mobileCalText = document.getElementById('mobile-cal-text');
-    if (mobileCalText) mobileCalText.textContent = displayText;
+    if (mobileCalText) mobileCalText.textContent = baseDisplayText;
+    const mobileBtn = document.getElementById('mobile-calendar-btn');
+    if (mobileBtn) {
+        mobileBtn.setAttribute('aria-label', buttonAria);
+        mobileBtn.title = `${longDay}, ${longMonth} ${dayNumber} · ${countText}`;
+    }
 }
 
 // Update the sliding toggle UI

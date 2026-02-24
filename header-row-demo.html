@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Header Row Redesign Demo</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+            background: #1a1a1a;
+            color: #fff;
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+
+        .demo-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+
+        .grade {
+            font-size: 48px;
+            font-weight: 800;
+            color: #ef4444;
+            margin-bottom: 40px;
+        }
+
+        .section-label {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #666;
+            margin-bottom: 12px;
+        }
+
+        .demo-row {
+            display: flex;
+            gap: 40px;
+            margin-bottom: 60px;
+            flex-wrap: wrap;
+        }
+
+        .demo-card {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .card-label {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            display: inline-block;
+        }
+
+        .card-label.before {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+        }
+
+        .card-label.after {
+            background: rgba(74, 222, 128, 0.2);
+            color: #4ade80;
+        }
+
+        /* ============================================
+           CURRENT DESIGN (BEFORE)
+           ============================================ */
+        .header-before {
+            background: #000;
+            padding: 24px 20px 16px 20px;
+            border-radius: 16px 16px 0 0;
+            border: 1px solid #333;
+        }
+
+        .header-top-before {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .venue-title-row-before {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .venue-title-row-before h2 {
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: -0.6px;
+        }
+
+        .ig-title-btn-before {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-decoration: none;
+        }
+
+        .ig-title-btn-before svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .time-display-before {
+            font-size: 18px;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: -0.5px;
+        }
+
+        .sub-header-before {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 8px;
+            text-decoration: none;
+            color: #64D2FF;
+        }
+        .sub-header-before:hover { opacity: 0.7; }
+
+        /* ============================================
+           NEW DESIGN (AFTER)
+           ============================================ */
+        .header-after {
+            background: #000;
+            padding: 24px 20px 16px 20px;
+            border-radius: 16px 16px 0 0;
+            border: 1px solid #333;
+        }
+
+        .header-top-after {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .header-top-after h2,
+        .venue-title-inline {
+            font-size: 26px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin: 0 0 6px 0;
+        }
+
+        .sub-header {
+            margin-bottom: 14px;
+        }
+
+        .time-pills-row {
+            margin-bottom: 14px;
+        }
+
+        .ig-btn-compact {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255,255,255,0.45);
+            text-decoration: none;
+            transition: color 0.15s ease;
+            cursor: pointer;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+        .ig-btn-compact:hover {
+            color: rgba(255,255,255,0.75);
+        }
+
+        .ig-btn-compact svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .time-pills-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .time-pill {
+            height: 40px;
+            padding: 0 18px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1.5px solid #3f3f46;
+            color: #e4e4e7;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .time-pill svg {
+            width: 16px;
+            height: 16px;
+            stroke-width: 2.5;
+        }
+
+        .time-pill:hover {
+            background: rgba(74, 222, 128, 0.12);
+            border-color: rgba(74, 222, 128, 0.5);
+            color: #fff;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(74, 222, 128, 0.2);
+        }
+
+        .time-pill.added {
+            background: #4ade80;
+            border-color: #4ade80;
+            color: #000;
+            font-weight: 700;
+        }
+
+        .time-pill.added:hover {
+            background: #22c55e;
+            border-color: #22c55e;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(74, 222, 128, 0.3);
+        }
+
+        .time-pill.conflict {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.4);
+            color: #f87171;
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        /* ============================================
+           REST OF CARD (Address, Badges, Buttons, Transit)
+           ============================================ */
+        .sub-header {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 4px;
+            margin-bottom: 10px;
+            text-decoration: none;
+            color: #64D2FF;
+        }
+        .sub-header:hover { opacity: 0.7; }
+        .maps-icon { width: 16px; height: 16px; flex-shrink: 0; }
+        .address { font-size: 14px; font-weight: 500; }
+
+        .info-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+        .info-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            border: 1px solid #27272a;
+            background: rgba(24, 24, 27, 0.5);
+        }
+        .info-badge-price {
+            background: rgba(74, 222, 128, 0.1);
+            border-color: rgba(74, 222, 128, 0.2);
+            color: #4ade80;
+        }
+        .info-badge-walkin {
+            background: rgba(161, 161, 170, 0.1);
+            border-color: rgba(161, 161, 170, 0.3);
+            color: #a1a1aa;
+        }
+
+        .action-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 0;
+        }
+        .action-row .btn {
+            flex: 2;
+        }
+        .action-row .btn-ig {
+            flex: 1;
+        }
+        .action-row.no-signup .btn {
+            flex: 1;
+        }
+        .btn {
+            border: none;
+            padding: 12px;
+            border-radius: 14px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            color: white;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 4px 12px rgba(0,0,0,0.4);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-primary { background: linear-gradient(180deg, #2997FF 0%, #007AFF 100%); }
+        .btn-tonight { background: linear-gradient(180deg, #f43f5e 0%, #e11d48 100%); }
+        .btn-ig { background: linear-gradient(115deg, #f9ce34, #ee2a7b, #6228d7); }
+
+        .content-sheet {
+            background-color: #121212;
+            border-radius: 0 0 16px 16px;
+            padding: 16px 12px;
+            border: 1px solid #333;
+            border-top: 1px solid #2c2c2e;
+        }
+
+        .card-base {
+            background: linear-gradient(180deg, #262629 0%, #1c1c1e 100%);
+            border-radius: 12px;
+            padding: 12px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            border: 1px solid #2c2c2e;
+        }
+        .card-top { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid #3a3a3c; padding-bottom: 8px; }
+        .time-main { font-size: 16px; font-weight: 700; color: #fff; }
+        .duration-main { font-size: 14px; color: #98989d; font-weight: 500; }
+        .card-mid { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: #e5e5e5; }
+        .badge { width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: white; font-weight: 700; font-size: 12px; }
+        .b-A { background: linear-gradient(135deg, #003087, #00256b); }
+        .b-C { background: linear-gradient(135deg, #003087, #00256b); }
+        .arrow { color: #555; font-size: 11px; }
+        .walk-icon { fill: #8e8e93; }
+        .card-bottom { display: flex; justify-content: space-between; font-size: 12px; }
+        .station-name { color: #98989d; }
+        .station-prefix { color: #636366; }
+        .dep-times { color: #fff; font-weight: 600; }
+
+        /* ============================================
+           PILL STATE DEMOS
+           ============================================ */
+        .states-row {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .state-demo {
+            text-align: center;
+        }
+
+        .state-label {
+            font-size: 11px;
+            color: #666;
+            margin-top: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* ============================================
+           MOBILE PREVIEW
+           ============================================ */
+        .mobile-frame {
+            width: 280px;
+            border: 2px solid #333;
+            border-radius: 20px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        .mobile-frame .header-after h2 {
+            font-size: 18px;
+        }
+
+        .mobile-frame .time-pill {
+            height: 36px;
+            padding: 0 14px;
+            font-size: 14px;
+        }
+
+        /* ============================================
+           COMPARISON TABLE
+           ============================================ */
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 40px;
+            font-size: 14px;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid #333;
+        }
+
+        .comparison-table th {
+            color: #888;
+            font-weight: 500;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .comparison-table td:first-child {
+            color: #888;
+        }
+
+        .comparison-table .bad {
+            color: #f87171;
+        }
+
+        .comparison-table .good {
+            color: #4ade80;
+        }
+
+        /* Interactive controls */
+        .controls {
+            margin-top: 40px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+        }
+
+        .controls h3 {
+            font-size: 14px;
+            margin-bottom: 16px;
+            color: #888;
+        }
+
+        .control-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid #444;
+            background: transparent;
+            color: #fff;
+            font-size: 13px;
+            cursor: pointer;
+            margin-right: 8px;
+            margin-bottom: 8px;
+            transition: all 0.15s;
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .control-btn.active {
+            background: #4ade80;
+            border-color: #4ade80;
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <h1>Modal Header Row Redesign</h1>
+        <div class="grade">28/100 → 85/100</div>
+
+        <!-- BEFORE vs AFTER -->
+        <div class="demo-row">
+            <!-- BEFORE -->
+            <div class="demo-card">
+                <span class="card-label before">BEFORE (Current)</span>
+                <div class="header-before">
+                    <div class="header-top-before">
+                        <div class="venue-title-row-before">
+                            <h2>The PIT NYC</h2>
+                            <a class="ig-title-btn-before" href="#">
+                                <svg viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                                </svg>
+                            </a>
+                        </div>
+                        <div class="time-display-before">4:00, 9:30</div>
+                    </div>
+                    <a class="sub-header-before" href="#">
+                        <svg class="maps-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                            <circle cx="12" cy="10" r="3"/>
+                        </svg>
+                        <span class="address">123 E 24th St, NY</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- AFTER -->
+            <div class="demo-card">
+                <span class="card-label after">AFTER (Proposed)</span>
+                <div class="header-after">
+                    <div class="header-top-after">
+                        <h2>The PIT NYC</h2>
+                        <a class="ig-btn-compact" href="#">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                            </svg>
+                        </a>
+                    </div>
+                    <a class="sub-header" href="#">
+                        <svg class="maps-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                            <circle cx="12" cy="10" r="3"/>
+                        </svg>
+                        <span class="address">Flatiron</span>
+                    </a>
+                    <div class="time-pills-row" id="time-pills">
+                        <button class="time-pill" onclick="togglePill(this)">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            4pm
+                        </button>
+                        <button class="time-pill" onclick="togglePill(this)">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            9:30pm
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FULL CARD PREVIEW -->
+        <div class="section-label">Full Card Preview (With Sign Up)</div>
+        <div style="max-width: 375px; margin-bottom: 40px;">
+            <!-- Header -->
+            <div class="header-after">
+                <!-- Row 1: Venue name only -->
+                <h2 class="venue-title-inline">The PIT NYC</h2>
+                <!-- Row 2: Address -->
+                <a class="sub-header" href="#">
+                    <svg class="maps-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                        <circle cx="12" cy="10" r="3"/>
+                    </svg>
+                    <span class="address">123 E 24th St, NY</span>
+                </a>
+                <!-- Row 3: Time pills -->
+                <div class="time-pills-row">
+                    <button class="time-pill" onclick="togglePill(this)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        4pm
+                    </button>
+                    <button class="time-pill added">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        9:30pm
+                    </button>
+                </div>
+                <!-- Info badges -->
+                <div class="info-row">
+                    <div class="info-badge info-badge-price">FREE</div>
+                    <div class="info-badge info-badge-walkin">Walk-in</div>
+                </div>
+                <!-- Action buttons: Sign Up (40%) | Add to Schedule (40%) | IG (20%) -->
+                <div class="action-row">
+                    <button class="btn btn-primary">Sign Up Online</button>
+                    <button class="btn btn-tonight">Add to Schedule</button>
+                    <a href="#" class="btn btn-ig">IG</a>
+                </div>
+            </div>
+            <!-- Transit Section -->
+            <div class="content-sheet">
+                <div class="card-base">
+                    <div class="card-top">
+                        <span class="time-main">5:15 PM - 5:36 PM</span>
+                        <span class="duration-main">21 min</span>
+                    </div>
+                    <div class="card-mid">
+                        <span><svg class="walk-icon" width="14" height="14" viewBox="0 0 24 24"><path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7z"/></svg>5m</span>
+                        <span class="arrow">→</span>
+                        <div class="badge b-A">A</div>
+                        <div class="badge b-C">C</div>
+                        <span class="arrow">→</span>
+                        <span><svg class="walk-icon" width="14" height="14" viewBox="0 0 24 24"><path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7z"/></svg>3m</span>
+                    </div>
+                    <div class="card-bottom">
+                        <div class="station-name"><span class="station-prefix">From:</span> 14 St - Penn Station</div>
+                        <div class="dep-times">5:18, 5:26</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PILL STATES -->
+        <div class="section-label">Time Pill States (click to test)</div>
+        <div class="states-row">
+            <div class="state-demo">
+                <button class="time-pill" onclick="togglePill(this)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    7pm
+                </button>
+                <div class="state-label">Default</div>
+            </div>
+            <div class="state-demo">
+                <button class="time-pill added">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    8pm
+                </button>
+                <div class="state-label">Added</div>
+            </div>
+            <div class="state-demo">
+                <button class="time-pill conflict">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                    8pm
+                </button>
+                <div class="state-label">Conflict</div>
+            </div>
+        </div>
+
+        <!-- MOBILE PREVIEW -->
+        <div style="margin-top: 60px;">
+            <div class="section-label">Mobile Preview (280px)</div>
+            <div class="mobile-frame">
+                <div class="header-after">
+                    <div class="header-top-after">
+                        <h2>The PIT NYC</h2>
+                        <a class="ig-btn-compact" href="#">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                            </svg>
+                        </a>
+                    </div>
+                    <div class="time-pills-row">
+                        <button class="time-pill" onclick="togglePill(this)">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            4pm
+                        </button>
+                        <button class="time-pill" onclick="togglePill(this)">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            9:30pm
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- COMPARISON TABLE -->
+        <table class="comparison-table">
+            <thead>
+                <tr>
+                    <th>Aspect</th>
+                    <th>Before (28/100)</th>
+                    <th>After (85/100)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Times</td>
+                    <td class="bad">Small text, right side, no affordance</td>
+                    <td class="good">Large pills, center stage, tappable</td>
+                </tr>
+                <tr>
+                    <td>Add action</td>
+                    <td class="bad">Hidden in bottom button</td>
+                    <td class="good">Obvious from pills with + icon</td>
+                </tr>
+                <tr>
+                    <td>IG icon</td>
+                    <td class="bad">Jarring gradient inline</td>
+                    <td class="good">Subtle gray, gradient on hover</td>
+                </tr>
+                <tr>
+                    <td>Hierarchy</td>
+                    <td class="bad">Flat, competing elements</td>
+                    <td class="good">Clear: times > venue > IG</td>
+                </tr>
+                <tr>
+                    <td>Mobile</td>
+                    <td class="bad">Cramped, hard to tap</td>
+                    <td class="good">Generous 40px touch targets</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        function togglePill(btn) {
+            if (btn.classList.contains('conflict')) return;
+
+            const isAdded = btn.classList.toggle('added');
+            const svg = btn.querySelector('svg');
+
+            if (isAdded) {
+                // Change to checkmark
+                svg.innerHTML = '<polyline points="20 6 9 17 4 12"></polyline>';
+            } else {
+                // Change back to plus
+                svg.innerHTML = '<line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line>';
+            }
+        }
+    </script>
+</body>
+</html>

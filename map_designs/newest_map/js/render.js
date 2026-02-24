@@ -714,6 +714,16 @@ function render(mode) {
     if (STATE.route && STATE.route.length > 0) {
         const routeMics = STATE.route.map(id => STATE.mics.find(m => m.id === id)).filter(Boolean);
         const setDuration = STATE.setDuration || 45;
+        const activeDate = (typeof getActivePlanningDate === 'function')
+            ? getActivePlanningDate()
+            : new Date(STATE.selectedCalendarDate || Date.now());
+        const safeActiveDate = Number.isNaN(activeDate.getTime()) ? new Date() : activeDate;
+        const scheduleDayLabel = safeActiveDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+
+        const scheduleContextLabel = document.createElement('div');
+        scheduleContextLabel.className = 'schedule-context-label';
+        scheduleContextLabel.textContent = `Editing ${scheduleDayLabel} schedule`;
+        container.appendChild(scheduleContextLabel);
 
         const fmtTime = (d, showAmPm = false) => {
             const h = d?.getHours?.() || 0;

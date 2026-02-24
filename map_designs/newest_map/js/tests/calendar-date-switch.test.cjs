@@ -19,6 +19,52 @@ function makeLocalStorage() {
 }
 
 function bootstrap() {
+    const elementStore = new Map();
+    const createClassList = () => {
+        const classes = new Set();
+        return {
+            add(name) { classes.add(name); },
+            remove(name) { classes.delete(name); },
+            toggle(name, force) {
+                if (force === true) {
+                    classes.add(name);
+                    return true;
+                }
+                if (force === false) {
+                    classes.delete(name);
+                    return false;
+                }
+                if (classes.has(name)) {
+                    classes.delete(name);
+                    return false;
+                }
+                classes.add(name);
+                return true;
+            },
+            contains(name) { return classes.has(name); }
+        };
+    };
+    const getMockElement = (id) => {
+        if (elementStore.has(id)) return elementStore.get(id);
+        const attrs = {};
+        const el = {
+            id,
+            classList: createClassList(),
+            style: {},
+            dataset: {},
+            innerHTML: '',
+            textContent: '',
+            title: '',
+            setAttribute(name, value) { attrs[name] = String(value); },
+            getAttribute(name) { return attrs[name] ?? null; },
+            appendChild() {},
+            querySelector() { return null; },
+            querySelectorAll() { return []; }
+        };
+        elementStore.set(id, el);
+        return el;
+    };
+
     global.STATE = {
         currentMode: 'today',
         selectedCalendarDate: '',
@@ -33,14 +79,7 @@ function bootstrap() {
 
     global.document = {
         querySelectorAll() { return []; },
-        getElementById() {
-            return {
-                classList: { add() {}, remove() {}, contains() { return false; } },
-                style: {},
-                setAttribute() {},
-                innerHTML: ''
-            };
-        },
+        getElementById(id) { return getMockElement(id); },
         createElement() {
             return { style: {}, appendChild() {}, setAttribute() {}, classList: { add() {}, remove() {}, toggle() {} } };
         },
@@ -114,4 +153,18 @@ test('setMode today/tomorrow loads matching saved route', () => {
 
     setMode('tomorrow');
     assert.deepEqual(STATE.route, ['tm1']);
+});
+
+test('calendar chip shows full date context with schedule count', () => {
+    const sampleDate = new Date(2026, 2, 13, 12, 0, 0);
+    const fri = sampleDate.toDateString();
+    const expectedShort = `${sampleDate.toLocaleDateString('en-US', { weekday: 'short' })} ${sampleDate.toLocaleDateString('en-US', { month: 'short' })} ${sampleDate.getDate()}`;
+    STATE.schedules = { [fri]: ['f1', 'f2'] };
+    STATE.mics = [{ id: 'f1' }, { id: 'f2' }];
+
+    updateCalendarButtonDisplay(fri);
+
+    assert.equal(document.getElementById('cal-text').textContent, `${expectedShort} · 2 scheduled`);
+    assert.equal(document.getElementById('mobile-cal-text').textContent, expectedShort);
+    assert.match(document.getElementById('btn-calendar').title, /2 scheduled mics/);
 });
