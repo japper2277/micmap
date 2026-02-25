@@ -71,7 +71,6 @@ function setDrawerState(newState) {
     // Apply appropriate class
     drawer.classList.add(isOpen ? 'drawer-open' : 'drawer-peek');
     STATE.drawerState = newState;
-    STATE.isDrawerOpen = isOpen;
 
     // Re-render while in plan mode to keep drawer/schedule state in sync.
     if (STATE.planMode && typeof render === 'function') {
@@ -205,7 +204,6 @@ function setupMobileSwipe() {
             drawer.classList.remove('drawer-peek', 'drawer-open');
             drawer.classList.add(isOpen ? 'drawer-open' : 'drawer-peek');
             STATE.drawerState = isOpen ? DRAWER_STATES.OPEN : DRAWER_STATES.PEEK;
-            STATE.isDrawerOpen = isOpen;
 
             // Haptic feedback at snap
             if ('vibrate' in navigator) navigator.vibrate(8);
@@ -394,12 +392,10 @@ function initDrawerState() {
     if (isDesktop) {
         // Desktop: start open
         STATE.drawerState = DRAWER_STATES.OPEN;
-        STATE.isDrawerOpen = true;
         drawer.classList.add('drawer-open');
     } else {
         // Mobile: start in peek
         STATE.drawerState = DRAWER_STATES.PEEK;
-        STATE.isDrawerOpen = false;
         drawer.classList.add('drawer-peek');
     }
 }

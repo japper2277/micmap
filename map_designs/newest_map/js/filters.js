@@ -3,10 +3,7 @@
    Filter cycling, UI updates, reset
    ================================================================= */
 
-// Track if popover outside click listener is attached (prevents memory leak)
-let popoverListenerAttached = false;
-let moreMenuListenerAttached = false;
-let boroughPopoverListenerAttached = false;
+// Single persistent outside-click listener handles all popovers (see bottom of file)
 
 /* =================================================================
    FILTER ROW ACCESSIBILITY
@@ -134,7 +131,7 @@ function showUndoToast() {
                     updateFilterPillUI('time', STATE.activeFilters.time);
                     updateFilterPillUI('borough', STATE.activeFilters.borough);
                     updateFilterPillUI('commute', STATE.activeFilters.commute);
-                    render(STATE.currentMode);
+                    renderDebounced(STATE.currentMode);
                     lastFilterState = null;
                 }
             }
@@ -160,7 +157,7 @@ function cycleFilter(type) {
     STATE.activeFilters[type] = newValue;
     updateFilterPillUI(type, newValue);
     flashFilterButton(type);
-    render(STATE.currentMode);
+    renderDebounced(STATE.currentMode);
 
     // Zoom map when borough filter changes (defer to ensure markers are registered)
     if (type === 'borough') {
@@ -200,11 +197,18 @@ function toggleTimePopover() {
         // Accessibility: Update aria-expanded
         btn.setAttribute('aria-expanded', 'true');
 
-        // Close on outside click - only add listener if not already attached
-        if (!popoverListenerAttached) {
-            popoverListenerAttached = true;
-            document.addEventListener('click', closeTimePopoverOnOutsideClick);
+        // Auto-expand custom inputs if custom is already active
+        if (STATE.activeFilters.time === 'custom') {
+            const customInputs = document.getElementById('custom-time-inputs');
+            if (customInputs) {
+                customInputs.style.display = 'block';
+                initTimePickerDropdowns();
+            }
         }
+
+        // Focus active option for keyboard navigation
+        const activeOpt = popover.querySelector('.popover-option.active') || popover.querySelector('.popover-option');
+        if (activeOpt) activeOpt.focus();
     }
 }
 
@@ -222,20 +226,6 @@ function closeTimePopover() {
     // Remove popover-open class from mobile pill
     if (mobileBtn) mobileBtn.classList.remove('popover-open');
 
-    // Only remove listener if it was attached (could be desktop or mobile handler)
-    if (popoverListenerAttached) {
-        popoverListenerAttached = false;
-        document.removeEventListener('click', closeTimePopoverOnOutsideClick);
-        document.removeEventListener('click', closeMobileTimePopoverOnOutsideClick);
-    }
-}
-
-function closeTimePopoverOnOutsideClick(e) {
-    const popover = document.getElementById('time-popover');
-    const btn = document.getElementById('filter-time');
-    if (!popover.contains(e.target) && !btn.contains(e.target)) {
-        closeTimePopover();
-    }
 }
 
 /* =================================================================
@@ -261,13 +251,6 @@ function toggleMoreMenu() {
         popover.classList.add('active');
         btn.setAttribute('aria-expanded', 'true');
 
-        // Close on outside click
-        if (!moreMenuListenerAttached) {
-            moreMenuListenerAttached = true;
-            setTimeout(() => {
-                document.addEventListener('click', closeMoreMenuOnOutsideClick);
-            }, 0);
-        }
     }
 }
 
@@ -279,19 +262,6 @@ function closeMoreMenu() {
     if (btn) {
         btn.classList.remove('active');
         btn.setAttribute('aria-expanded', 'false');
-    }
-
-    if (moreMenuListenerAttached) {
-        moreMenuListenerAttached = false;
-        document.removeEventListener('click', closeMoreMenuOnOutsideClick);
-    }
-}
-
-function closeMoreMenuOnOutsideClick(e) {
-    const popover = document.getElementById('more-popover');
-    const btn = document.getElementById('btn-more');
-    if (!popover.contains(e.target) && !btn.contains(e.target)) {
-        closeMoreMenu();
     }
 }
 
@@ -327,11 +297,9 @@ function toggleBoroughPopover() {
         popover.classList.add('active');
         btn.setAttribute('aria-expanded', 'true');
 
-        // Close on outside click
-        if (!boroughPopoverListenerAttached) {
-            boroughPopoverListenerAttached = true;
-            document.addEventListener('click', closeBoroughPopoverOnOutsideClick);
-        }
+        // Focus active option for keyboard navigation
+        const activeOpt = popover.querySelector('.popover-option.active') || popover.querySelector('.popover-option');
+        if (activeOpt) activeOpt.focus();
     }
 }
 
@@ -347,28 +315,11 @@ function closeBoroughPopover() {
 
     // Remove popover-open class from mobile pill
     if (mobileBtn) mobileBtn.classList.remove('popover-open');
-
-    if (boroughPopoverListenerAttached) {
-        boroughPopoverListenerAttached = false;
-        document.removeEventListener('click', closeBoroughPopoverOnOutsideClick);
-        document.removeEventListener('click', closeMobileBoroughPopoverOnOutsideClick);
-    }
-}
-
-function closeBoroughPopoverOnOutsideClick(e) {
-    const popover = document.getElementById('borough-popover');
-    const btn = document.getElementById('filter-borough');
-    const mobileBtn = document.getElementById('mobile-filter-borough');
-    if (!popover.contains(e.target) && !btn?.contains(e.target) && !mobileBtn?.contains(e.target)) {
-        closeBoroughPopover();
-    }
 }
 
 /* =================================================================
    PRICE FILTER POPOVER
    ================================================================= */
-
-let pricePopoverListenerAttached = false;
 
 function togglePricePopover() {
     const popover = document.getElementById('price-popover');
@@ -385,12 +336,6 @@ function togglePricePopover() {
 
         popover.classList.add('active');
         btn.setAttribute('aria-expanded', 'true');
-
-        // Close on outside click
-        if (!pricePopoverListenerAttached) {
-            pricePopoverListenerAttached = true;
-            document.addEventListener('click', closePricePopoverOnOutsideClick);
-        }
     }
 }
 
@@ -404,21 +349,6 @@ function closePricePopover() {
 
     // Remove popover-open class from mobile pill
     if (mobileBtn) mobileBtn.classList.remove('popover-open');
-
-    if (pricePopoverListenerAttached) {
-        pricePopoverListenerAttached = false;
-        document.removeEventListener('click', closePricePopoverOnOutsideClick);
-        document.removeEventListener('click', closeMobilePricePopoverOnOutsideClick);
-    }
-}
-
-function closePricePopoverOnOutsideClick(e) {
-    const popover = document.getElementById('price-popover');
-    const btn = document.getElementById('filter-price');
-    const mobileBtn = document.getElementById('mobile-filter-price');
-    if (!popover.contains(e.target) && !btn?.contains(e.target) && !mobileBtn?.contains(e.target)) {
-        closePricePopover();
-    }
 }
 
 function toggleMobilePricePopover(triggerBtn) {
@@ -435,20 +365,6 @@ function toggleMobilePricePopover(triggerBtn) {
 
         popover.classList.add('active');
         triggerBtn.classList.add('popover-open');
-
-        // Close on outside click
-        if (!pricePopoverListenerAttached) {
-            pricePopoverListenerAttached = true;
-            document.addEventListener('click', closeMobilePricePopoverOnOutsideClick);
-        }
-    }
-}
-
-function closeMobilePricePopoverOnOutsideClick(e) {
-    const popover = document.getElementById('price-popover');
-    const mobileBtn = document.getElementById('mobile-filter-price');
-    if (!popover.contains(e.target) && !mobileBtn?.contains(e.target)) {
-        closePricePopover();
     }
 }
 
@@ -468,7 +384,7 @@ function selectPriceFilter(value) {
 
     // Close popover and re-render
     closePricePopover();
-    render(STATE.currentMode);
+    renderDebounced(STATE.currentMode);
 
     if (typeof syncSharedStateFromMicMap === 'function') syncSharedStateFromMicMap();
 }
@@ -492,20 +408,6 @@ function toggleMobileTimePopover(triggerBtn) {
 
         popover.classList.add('active');
         triggerBtn.classList.add('popover-open');
-
-        // Close on outside click
-        if (!popoverListenerAttached) {
-            popoverListenerAttached = true;
-            document.addEventListener('click', closeMobileTimePopoverOnOutsideClick);
-        }
-    }
-}
-
-function closeMobileTimePopoverOnOutsideClick(e) {
-    const popover = document.getElementById('time-popover');
-    const mobileBtn = document.getElementById('mobile-filter-time');
-    if (!popover.contains(e.target) && !mobileBtn?.contains(e.target)) {
-        closeTimePopover();
     }
 }
 
@@ -533,20 +435,6 @@ function toggleMobileBoroughPopover(triggerBtn) {
 
         popover.classList.add('active');
         triggerBtn.classList.add('popover-open');
-
-        // Close on outside click
-        if (!boroughPopoverListenerAttached) {
-            boroughPopoverListenerAttached = true;
-            document.addEventListener('click', closeMobileBoroughPopoverOnOutsideClick);
-        }
-    }
-}
-
-function closeMobileBoroughPopoverOnOutsideClick(e) {
-    const popover = document.getElementById('borough-popover');
-    const mobileBtn = document.getElementById('mobile-filter-borough');
-    if (!popover.contains(e.target) && !mobileBtn?.contains(e.target)) {
-        closeBoroughPopover();
     }
 }
 
@@ -566,7 +454,7 @@ function selectBoroughFilter(value) {
 
     // Close popover and re-render first (so we have filtered markers)
     closeBoroughPopover();
-    render(STATE.currentMode);
+    renderDebounced(STATE.currentMode);
 
     // Zoom map to fit visible markers (defer to ensure markers are registered)
     setTimeout(() => {
@@ -605,7 +493,7 @@ function selectTimeFilter(value) {
 
     // Close popover and re-render
     closeTimePopover();
-    render(STATE.currentMode);
+    renderDebounced(STATE.currentMode);
 
     if (typeof syncSharedStateFromMicMap === 'function') syncSharedStateFromMicMap();
 }
@@ -801,15 +689,17 @@ function applyCustomTime() {
         endComedyHour
     };
 
-    // Format label for display
-    CONFIG.filterLabels.time.custom = `${formatHourDisplay(normalizedStart)}-${formatHourDisplay(normalizedEnd)}`;
+    // Format label for display — update both desktop and mobile labels
+    const rangeLabel = `${formatHourDisplay(normalizedStart)}-${formatHourDisplay(normalizedEnd)}`;
+    CONFIG.filterLabels.time.custom = rangeLabel;
+    if (CONFIG.mobileFilterLabels?.time) CONFIG.mobileFilterLabels.time.custom = rangeLabel;
 
     // Apply the filter
     STATE.activeFilters.time = 'custom';
     updateFilterPillUI('time', 'custom');
     flashFilterButton('time');
     closeTimePopover();
-    render(STATE.currentMode);
+    renderDebounced(STATE.currentMode);
 
     if (typeof syncSharedStateFromMicMap === 'function') syncSharedStateFromMicMap();
 }
@@ -895,7 +785,7 @@ function resetFilters() {
 // Clear all filters (called from clear buttons)
 function clearAllFilters() {
     resetFilters();
-    render(STATE.currentMode);
+    renderDebounced(STATE.currentMode);
 
     // Scroll list back to top
     const listContent = document.getElementById('list-content');
@@ -924,7 +814,7 @@ function clearFilter(type) {
         });
     }
 
-    render(STATE.currentMode);
+    renderDebounced(STATE.currentMode);
 
     // Haptic feedback on mobile
     if ('vibrate' in navigator) {
@@ -980,7 +870,7 @@ function showAllMics() {
         transitService.clearTransitMode();
         updateTransitButtonUI(false);
     }
-    render(STATE.currentMode);
+    renderDebounced(STATE.currentMode);
 }
 
 /* =================================================================
@@ -992,3 +882,113 @@ function updateTransitButtonUI(isActive) {
     // Show/hide commute filter based on transit mode
     updateCommuteFilterVisibility(isActive);
 }
+
+/* =================================================================
+   KEYBOARD SUPPORT — Escape, Enter/Space, Arrow keys for popovers
+   ================================================================= */
+document.addEventListener('keydown', (e) => {
+    // --- Escape: close open popovers (modal Escape handled in modal.js) ---
+    if (e.key === 'Escape') {
+        const modal = document.getElementById('venue-modal');
+        if (modal && modal.classList.contains('active')) return;
+
+        const timePopover = document.getElementById('time-popover');
+        const boroughPopover = document.getElementById('borough-popover');
+
+        if (timePopover && timePopover.classList.contains('active')) {
+            closeTimePopover();
+            document.getElementById('filter-time')?.focus();
+            return;
+        }
+        if (boroughPopover && boroughPopover.classList.contains('active')) {
+            closeBoroughPopover();
+            document.getElementById('filter-borough')?.focus();
+            return;
+        }
+        const pricePopover = document.getElementById('price-popover');
+        if (pricePopover && pricePopover.classList.contains('active') && typeof closePricePopover === 'function') {
+            closePricePopover();
+            document.getElementById('filter-price')?.focus();
+            return;
+        }
+        const morePopover = document.getElementById('more-popover');
+        if (morePopover && morePopover.classList.contains('active') && typeof closeMoreMenu === 'function') {
+            closeMoreMenu();
+            document.getElementById('btn-more')?.focus();
+            return;
+        }
+        return;
+    }
+
+    // --- Enter/Space on filter buttons: toggle popover ---
+    if (e.key === 'Enter' || e.key === ' ') {
+        const btn = document.activeElement;
+        if (!btn || !btn.classList.contains('drawer-filter-btn')) return;
+
+        const id = btn.id;
+        if (id === 'filter-time') {
+            e.preventDefault();
+            toggleTimePopover();
+        } else if (id === 'filter-borough') {
+            e.preventDefault();
+            toggleBoroughPopover();
+        } else if (id === 'filter-price') {
+            e.preventDefault();
+            cycleFilter('price');
+        } else if (id === 'filter-commute') {
+            e.preventDefault();
+            cycleFilter('commute');
+        }
+        return;
+    }
+
+    // --- Enter on focused popover option: trigger its click ---
+    if (e.key === 'Enter') {
+        const focused = document.activeElement;
+        if (focused && focused.classList.contains('popover-option') && focused.closest('.filter-popover.active')) {
+            e.preventDefault();
+            focused.click();
+            return;
+        }
+    }
+
+    // --- Arrow keys inside open popover: navigate options ---
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        const activePopover = document.querySelector('.filter-popover.active');
+        if (!activePopover) return;
+
+        e.preventDefault();
+        const options = Array.from(activePopover.querySelectorAll('.popover-option'));
+        if (options.length === 0) return;
+
+        const focused = activePopover.querySelector('.popover-option:focus');
+        let idx = options.indexOf(focused);
+
+        if (e.key === 'ArrowDown') {
+            idx = idx < options.length - 1 ? idx + 1 : 0;
+        } else {
+            idx = idx > 0 ? idx - 1 : options.length - 1;
+        }
+
+        options[idx].focus();
+    }
+});
+
+/* =================================================================
+   SINGLE OUTSIDE-CLICK LISTENER — replaces per-popover listeners
+   Always active, checks which popover is open, closes if click is outside.
+   ================================================================= */
+document.addEventListener('click', (e) => {
+    const popovers = [
+        { el: document.getElementById('time-popover'), btns: ['filter-time', 'mobile-filter-time'], close: closeTimePopover },
+        { el: document.getElementById('borough-popover'), btns: ['filter-borough', 'mobile-filter-borough'], close: closeBoroughPopover },
+        { el: document.getElementById('price-popover'), btns: ['filter-price', 'mobile-filter-price'], close: typeof closePricePopover === 'function' ? closePricePopover : null },
+        { el: document.getElementById('more-popover'), btns: ['btn-more'], close: typeof closeMoreMenu === 'function' ? closeMoreMenu : null }
+    ];
+
+    for (const { el, btns, close } of popovers) {
+        if (!el || !el.classList.contains('active') || !close) continue;
+        const clickedInside = el.contains(e.target) || btns.some(id => document.getElementById(id)?.contains(e.target));
+        if (!clickedInside) close();
+    }
+});

@@ -236,7 +236,7 @@ body.plan-mode .happening-now-card-label {
 .my-schedule-icon {
     width: 18px;
     height: 18px;
-    color: #22c55e;
+    color: var(--green);
     flex-shrink: 0;
 }
 
@@ -252,7 +252,7 @@ body.plan-mode .happening-now-card-label {
     border-radius: 11px;
     font-weight: 700;
     font-size: 12px;
-    color: #22c55e;
+    color: var(--green);
     line-height: 1;
 }
 
@@ -281,7 +281,7 @@ body.plan-mode .happening-now-card-label {
 .my-schedule-chevron {
     width: 18px;
     height: 18px;
-    color: #22c55e;
+    color: var(--green);
     flex-shrink: 0;
     transition: transform 0.25s ease;
 }
@@ -441,6 +441,14 @@ body.plan-mode .happening-now-card-label {
     font-weight: 500;
 }
 
+.my-schedule-item-duration-row {
+    display: flex;
+    align-items: center;
+    margin-top: 4px;
+    min-height: 24px;
+}
+
+
 /* Travel indicator between schedule items */
 .my-schedule-travel {
     display: flex;
@@ -545,15 +553,18 @@ body.plan-mode .happening-now-card-label {
 /* Duration picker wrapper */
 .duration-picker-wrap {
     position: relative;
-    flex-shrink: 0;
+    flex: 0 0 auto;
     display: inline-flex;
     align-items: center;
     z-index: 5;
 }
 
-/* Mobile: hide pill when options are open, show options inline */
-.duration-picker-wrap.picking .my-schedule-item-duration {
-    display: none;
+/* When picking: keep button visible but hide the value chip, options expand inline */
+.duration-picker-wrap.picking .duration-value-chip {
+    max-width: 0;
+    padding: 0;
+    opacity: 0;
+    overflow: hidden;
 }
 
 .duration-picker-wrap:not(.picking) .duration-picker-options {
@@ -566,56 +577,86 @@ body.plan-mode .happening-now-card-label {
 .my-schedule-item-duration {
     display: inline-flex;
     align-items: center;
-    gap: 2px;
-    padding: 1px 6px;
-    border-radius: 5px;
+    gap: 6px;
+    padding: 5px 8px 5px 10px;
+    border-radius: 8px;
     background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    color: rgba(255, 255, 255, 0.55);
-    font-size: 11px;
-    font-weight: 600;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 12px;
+    font-weight: 700;
     letter-spacing: 0.01em;
     cursor: pointer;
     transition: all 0.15s;
-    line-height: 1.4;
+    line-height: 1.2;
     white-space: nowrap;
 }
 
 .my-schedule-item-duration:hover {
     background: rgba(255, 255, 255, 0.1);
     border-color: rgba(255, 255, 255, 0.25);
-    color: rgba(255, 255, 255, 0.75);
+    color: rgba(255, 255, 255, 0.92);
 }
 
 .my-schedule-item-duration:active {
     transform: scale(0.97);
 }
 
-.duration-chevron {
-    opacity: 0.5;
-    transition: transform 0.2s;
-    display: none;
+.duration-label {
+    text-transform: none;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 11px;
+    letter-spacing: 0.03em;
 }
 
-@media (min-width: 640px) {
-    .duration-chevron {
-        display: inline;
-    }
+.duration-value-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 7px;
+    border-radius: 6px;
+    border: none;
+    background: rgba(255, 255, 255, 0.10);
+    color: rgba(255, 255, 255, 0.92);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    opacity: 0.88;
+    max-width: 60px;
+    transform: translateX(-3px);
+    transition: max-width 0.2s ease, padding 0.2s ease, opacity 0.18s ease, transform 0.18s ease, background 0.15s ease;
 }
 
-.duration-picker-options.open ~ .my-schedule-item-duration .duration-chevron,
-.duration-picker-wrap:has(.duration-picker-options.open) .duration-chevron {
-    transform: rotate(180deg);
+.duration-value-text {
+    white-space: nowrap;
 }
 
-/* Duration picker options — replaces pill inline when open */
+.duration-picker-wrap:not(.picking):hover .duration-value-chip,
+.duration-picker-wrap:not(.picking):focus-within .duration-value-chip {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+
+/* When picking: pill loses right rounding, options attach */
+.duration-picker-wrap.picking .my-schedule-item-duration {
+    border-radius: 8px 0 0 8px;
+    border-right: none;
+    padding-right: 4px;
+}
+
+/* Duration picker options — expand inline to the right of "Stay" */
 .duration-picker-options {
     display: flex;
-    gap: 4px;
+    gap: 0;
     max-width: 0;
     opacity: 0;
     overflow: hidden;
-    transition: max-width 0.2s ease, opacity 0.15s ease;
+    transition: max-width 0.25s ease, opacity 0.15s ease;
+    border-radius: 0 8px 8px 0;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-left: none;
 }
 
 .duration-picker-wrap.picking .duration-picker-options {
@@ -624,17 +665,30 @@ body.plan-mode .happening-now-card-label {
 }
 
 .duration-opt {
-    padding: 2px 8px;
-    border-radius: 6px;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 5px 9px;
+    border-radius: 0;
+    background: transparent;
+    border: none;
+    border-left: 1px solid rgba(255, 255, 255, 0.08);
     color: rgba(255, 255, 255, 0.5);
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.15s;
     white-space: nowrap;
-    line-height: 1.4;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+}
+
+.duration-opt-unit {
+    font-size: 9px;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.35);
+    margin-left: 1px;
+}
+
+.duration-opt:first-child {
+    border-left: none;
 }
 
 .duration-opt:hover {
@@ -643,8 +697,7 @@ body.plan-mode .happening-now-card-label {
 }
 
 .duration-opt.active {
-    background: rgba(34, 197, 94, 0.15);
-    border-color: rgba(34, 197, 94, 0.3);
+    background: rgba(34, 197, 94, 0.12);
     color: #4ade80;
 }
 
@@ -652,35 +705,61 @@ body.plan-mode .happening-now-card-label {
     transform: scale(0.95);
 }
 
-/* Desktop: show as popover below instead of inline */
+/* Desktop: smaller duration controls */
 @media (min-width: 640px) {
     .duration-picker-wrap.picking .my-schedule-item-duration {
-        display: inline-flex;
+        border-radius: 6px 0 0 6px;
+        border-right: none;
+        padding-right: 3px;
+    }
+
+    .my-schedule-item-duration {
+        padding: 4px 6px 4px 8px;
+        font-size: 11px;
+        border-radius: 7px;
+        gap: 5px;
+    }
+
+    .duration-label {
+        font-size: 10px;
+    }
+
+    .duration-value-chip {
+        padding: 1px 6px;
+        font-size: 10px;
+        border-radius: 5px;
     }
 
     .duration-picker-options {
-        position: absolute;
-        top: calc(100% + 6px);
-        left: 0;
-        width: max-content;
-        padding: 6px;
-        background: #1a1a1a;
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        border-radius: 10px;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-        z-index: 50;
-        opacity: 0;
-        transform: translateY(-4px);
-        transition: opacity 0.15s ease, transform 0.15s ease;
-        pointer-events: none;
-        overflow: visible;
-        max-width: none;
+        border-radius: 0 6px 6px 0;
     }
 
-    .duration-picker-wrap.picking .duration-picker-options {
-        opacity: 1;
-        transform: translateY(0);
-        pointer-events: auto;
+    .duration-opt {
+        padding: 4px 8px;
+        font-size: 11px;
+    }
+
+    .duration-opt-unit {
+        font-size: 8px;
+    }
+
+    .duration-picker-wrap.picking .my-schedule-item-duration {
+        border-radius: 7px 0 0 7px;
+    }
+
+    .duration-picker-options {
+        border-radius: 0 7px 7px 0;
+    }
+
+    .my-schedule-item-actions.stacked .schedule-drag-handle,
+    .my-schedule-item-actions.stacked .my-schedule-remove {
+        width: 32px;
+        height: 32px;
+        font-size: 12px;
+    }
+
+    .my-schedule-item-actions.stacked {
+        gap: 4px;
     }
 }
 
@@ -768,8 +847,8 @@ body.plan-mode .happening-now-card-label {
     width: 8px;
     height: 8px;
     border-radius: 9999px;
-    background: #ff453a;
-    box-shadow: 0 0 0 4px rgba(255, 69, 58, 0.15);
+    background: var(--red);
+    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.15);
 }
 
 .schedule-conflict-cta {
@@ -851,7 +930,7 @@ body.plan-mode .happening-now-card-label {
 .conflict-toggle.active {
     background: rgba(34, 197, 94, 0.15);
     border-color: rgba(34, 197, 94, 0.4);
-    color: #22c55e;
+    color: var(--green);
 }
 
 /* Hidden mics notice */
@@ -1364,9 +1443,9 @@ body.plan-mode .happening-now-card-label {
 
 /* Green Pulse Keyframes */
 @keyframes pulse-green {
-    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(48, 209, 88, 0.7); }
-    70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(48, 209, 88, 0); }
-    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(48, 209, 88, 0); }
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
 }
 
 .venue-row {
@@ -1390,7 +1469,7 @@ body.plan-mode .happening-now-card-label {
     border-radius: 10px;
     background: rgba(34, 197, 94, 0.14);
     border: 1px solid rgba(34, 197, 94, 0.38);
-    color: #22c55e;
+    color: var(--green);
     font-weight: 700;
     font-size: 13px;
     line-height: 1;
@@ -1473,7 +1552,7 @@ body.plan-mode .plan-add-btn {
 
 body.plan-mode .stream-item.in-route {
     background: rgba(34, 197, 94, 0.1);
-    border-left: 3px solid #22c55e;
+    border-left: 3px solid var(--green);
     padding-right: var(--space-xl); /* Reset padding when in route */
 }
 
@@ -1518,12 +1597,12 @@ body.plan-mode .stream-item.in-route .plan-commute-corner {
     transition: transform 0.15s ease, filter 0.15s ease;
 }
 .venue-dot.dot-live {
-    background: #30d158;
+    background: var(--green);
     animation: pulse-green 2s infinite;
 }
 .venue-dot.dot-upcoming {
-    background: #ff453a;
-    box-shadow: 0 0 5px rgba(255, 69, 58, 0.4);
+    background: var(--red);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5), 0 0 5px rgba(239, 68, 68, 0.4);
 }
 .venue-dot.dot-future {
     background: transparent;
@@ -1540,12 +1619,12 @@ body.plan-mode .stream-item.in-route .plan-commute-corner {
     /* Live: green text on hover */
     .stream-item:hover .venue-dot.dot-live ~ .venue-name,
     .stream-item:has(.venue-dot.dot-live):hover .start-time {
-        color: #30d158 !important;
+        color: var(--green) !important;
     }
     /* Upcoming: red text on hover */
     .stream-item:hover .venue-dot.dot-upcoming ~ .venue-name,
     .stream-item:has(.venue-dot.dot-upcoming):hover .start-time {
-        color: #ff453a !important;
+        color: var(--red) !important;
     }
     /* Future: gray text on hover */
     .stream-item:hover .venue-dot.dot-future ~ .venue-name,
@@ -2057,7 +2136,7 @@ body.plan-mode .stream-item.in-route .plan-commute-corner {
 
 .mta-alert.error {
     background: rgba(239, 68, 68, 0.15);
-    border-left-color: #ef4444;
+    border-left-color: var(--red);
 }
 
 .mta-alert-lines {
@@ -2600,11 +2679,11 @@ body.plan-mode .stream-item.in-route .plan-commute-corner {
 
 .suggested-mic-add-btn.added {
 
-    background: #22c55e !important;
+    background: var(--green) !important;
 
     color: #fff !important;
 
-    border-color: #22c55e !important;
+    border-color: var(--green) !important;
 
     transform: scale(1.1) !important;
 

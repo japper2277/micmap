@@ -733,7 +733,7 @@ const searchService = {
 
             // Collapse drawer so user can see the map (mobile only)
             const isMobile = window.matchMedia('(max-width: 767px)').matches;
-            if (isMobile && typeof toggleDrawer === 'function' && STATE.isDrawerOpen) {
+            if (isMobile && typeof toggleDrawer === 'function' && STATE.drawerState === DRAWER_STATES.OPEN) {
                 toggleDrawer(false);
             }
 
@@ -798,7 +798,7 @@ const searchService = {
 
         // Collapse drawer so user can see the map (mobile only)
         const isMobile = window.matchMedia('(max-width: 767px)').matches;
-        if (isMobile && typeof toggleDrawer === 'function' && STATE.isDrawerOpen) {
+        if (isMobile && typeof toggleDrawer === 'function' && STATE.drawerState === DRAWER_STATES.OPEN) {
             toggleDrawer(false);
         }
 
@@ -873,7 +873,7 @@ const searchService = {
 
                 // Collapse drawer so user can see the map (mobile only)
                 const isMobile = window.matchMedia('(max-width: 767px)').matches;
-                if (isMobile && typeof toggleDrawer === 'function' && STATE.isDrawerOpen) {
+                if (isMobile && typeof toggleDrawer === 'function' && STATE.drawerState === DRAWER_STATES.OPEN) {
                     toggleDrawer(false);
                 }
 

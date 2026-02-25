@@ -59,6 +59,13 @@ const toastService = {
             });
         }
 
+        // Dismiss any existing toasts before showing new one (prevents overlap)
+        const existing = this.container.querySelectorAll('.toast.show');
+        existing.forEach(t => {
+            t.classList.remove('show');
+            setTimeout(() => t.remove(), 300);
+        });
+
         this.container.appendChild(toast);
         requestAnimationFrame(() => toast.classList.add('show'));
 

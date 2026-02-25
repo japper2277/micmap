@@ -207,6 +207,13 @@ function showTabbedVenuePopup(cluster) {
     }, 50);
 }
 
+// Debounced render — collapses rapid calls (e.g., fast filter taps) into one
+let _renderTimer = null;
+function renderDebounced(mode) {
+    clearTimeout(_renderTimer);
+    _renderTimer = setTimeout(() => render(mode), 50);
+}
+
 function render(mode) {
     const container = document.getElementById('list-content');
     if (!container) return;
@@ -828,21 +835,45 @@ function render(mode) {
             const conflictClass = conflicts.has(mic.id) ? ' conflict' : '';
             const hood = mic.hood || mic.neighborhood || '';
             const stayMins = typeof getMicDuration === 'function' ? getMicDuration(mic.id) : (STATE.setDuration || 45);
+            const endDate = mic.start ? new Date(mic.start.getTime() + stayMins * 60000) : null;
+            const endStr = endDate ? fmtTime(endDate) : '';
 
-            // Travel time to next stop
+            // Between-card line: leave time + optional travel time to next stop
             let travelHtml = '';
+            const leaveLabel = endStr ? `Leave ${endStr}` : '';
             if (idx < routeMics.length - 1) {
                 const next = routeMics[idx + 1];
+                let travelLabel = '';
                 if (mic.lat && mic.lng && next.lat && next.lng) {
-                    const miles = calculateDistance(mic.lat, mic.lng, next.lat, next.lng);
-                    const walkMin = Math.max(1, Math.round(miles / 0.05)); // ~3mph = 1mi/20min
+                    const commuteMeta = (typeof getCommuteBetweenMicsMeta === 'function')
+                        ? getCommuteBetweenMicsMeta(mic, next)
+                        : { mins: (typeof getCommuteBetweenMics === 'function')
+                            ? getCommuteBetweenMics(mic, next)
+                            : Math.max(1, Math.round(calculateDistance(mic.lat, mic.lng, next.lat, next.lng) / 0.05)),
+                            source: 'estimate',
+                            pending: false };
+                    const travelMins = Math.max(1, Math.round(commuteMeta.mins || 0));
+                    const isEstimate = commuteMeta.source === 'estimate' || commuteMeta.pending;
+                    const travelMode = commuteMeta.source === 'walk' ? 'walk' : (commuteMeta.source === 'transit' ? 'transit' : 'travel');
+                    travelLabel = isEstimate ? `~${travelMins} min est` : `${travelMins} min ${travelMode}`;
+                }
+                const badgeText = leaveLabel && travelLabel ? `${leaveLabel} · ${travelLabel}`
+                    : leaveLabel || travelLabel || '';
+                if (badgeText) {
                     travelHtml = `
                         <div class="my-schedule-travel">
                             <div class="my-schedule-travel-line"></div>
-                            <span class="my-schedule-travel-badge">${walkMin} min walk</span>
+                            <span class="my-schedule-travel-badge">${badgeText}</span>
                             <div class="my-schedule-travel-line"></div>
                         </div>`;
                 }
+            } else if (leaveLabel) {
+                travelHtml = `
+                    <div class="my-schedule-travel">
+                        <div class="my-schedule-travel-line"></div>
+                        <span class="my-schedule-travel-badge">${leaveLabel}</span>
+                        <div class="my-schedule-travel-line"></div>
+                    </div>`;
             }
 
             return `
@@ -854,19 +885,21 @@ function render(mode) {
                     <div class="my-schedule-item-info">
                         <div class="my-schedule-item-venue-row">
                             <div class="my-schedule-item-venue">${escapeHtml(mic.title || mic.venue || 'Mic')}</div>
-                            <div class="duration-picker-wrap" data-mic-id="${mic.id}">
-                                <button class="my-schedule-item-duration" onclick="event.stopPropagation(); toggleDurationPicker('${mic.id}', this)" aria-label="Change stay duration" title="How long you'll stay">
-                                    <span>${stayMins}m</span>
-                                    <svg class="duration-chevron" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
-                                </button>
-                                <div class="duration-picker-options" id="dur-opts-${mic.id}">
-                                    ${[30, 45, 60, 90].map(v => `<button class="duration-opt${v === stayMins ? ' active' : ''}" onclick="event.stopPropagation(); selectMicDuration('${mic.id}', ${v})">${v}m</button>`).join('')}
-                                </div>
-                            </div>
                         </div>
                         <div class="my-schedule-item-meta">
                             ${hood ? `<span class="my-schedule-item-hood">${escapeHtml(hood)}</span>` : ''}
                             <span class="my-schedule-item-price ${priceClass}">${priceStr}</span>
+                        </div>
+                        <div class="my-schedule-item-duration-row">
+                            <div class="duration-picker-wrap" data-mic-id="${mic.id}">
+                                <button class="my-schedule-item-duration" onclick="event.stopPropagation(); toggleDurationPicker('${mic.id}', this)" aria-label="Change stay duration, current ${stayMins} minutes" title="How long you'll stay at this stop">
+                                    <span class="duration-label">Stay</span>
+                                    <span class="duration-value-chip"><span class="duration-value-text">${stayMins} min</span></span>
+                                </button>
+                                <div class="duration-picker-options" id="dur-opts-${mic.id}">
+                                    ${[30, 45, 60, 90].map(v => `<button class="duration-opt${v === stayMins ? ' active' : ''}" onclick="event.stopPropagation(); selectMicDuration('${mic.id}', ${v})">${v}<span class="duration-opt-unit">m</span></button>`).join('')}
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="my-schedule-item-actions stacked">

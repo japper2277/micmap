@@ -293,7 +293,7 @@ function getUserLocation() {
                         manhattanNotice.classList.remove('show');
                         // Close drawer if open (mobile only)
                         const isMobile = window.matchMedia('(max-width: 767px)').matches;
-                        if (isMobile && STATE.isDrawerOpen && typeof setDrawerState === 'function') {
+                        if (isMobile && STATE.drawerState === DRAWER_STATES.OPEN && typeof setDrawerState === 'function') {
                             setDrawerState(DRAWER_STATES.PEEK);
                         }
                     };
@@ -336,6 +336,10 @@ function getUserLocation() {
             },
             (error) => {
                 console.warn('Geolocation error:', error.code, error.message);
+                if (typeof toastService !== 'undefined') {
+                    const msg = error.code === 1 ? 'Location access denied' : 'Couldn\'t get your location';
+                    toastService.show(msg, 'error', { action: 'Retry', onAction: () => getUserLocation() });
+                }
             },
             { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
         );
@@ -428,7 +432,7 @@ function locateMic(lat, lng, id) {
     map.flyTo([lat, lng], 15, { duration: 1.2, easeLinearity: 0.25 });
 
     // Minimize drawer on mobile so user can see the map
-    if (window.matchMedia('(max-width: 767px)').matches && STATE.isDrawerOpen) {
+    if (window.matchMedia('(max-width: 767px)').matches && STATE.drawerState === DRAWER_STATES.OPEN) {
         toggleDrawer(false);
     }
 
@@ -455,7 +459,7 @@ map.on('movestart', () => {
 
     // Collapse drawer when open (mobile only - desktop keeps drawer visible)
     const isMobile = window.matchMedia('(max-width: 767px)').matches;
-    if (isMobile && STATE.isDrawerOpen && typeof setDrawerState === 'function') {
+    if (isMobile && STATE.drawerState === DRAWER_STATES.OPEN && typeof setDrawerState === 'function') {
         setDrawerState(DRAWER_STATES.PEEK);
     }
 });
@@ -524,7 +528,7 @@ function handleMapClick(e) {
 
     // Collapse drawer so user can see the map (mobile only)
     const isMobile = window.matchMedia('(max-width: 767px)').matches;
-    if (isMobile && typeof toggleDrawer === 'function' && STATE.isDrawerOpen) {
+    if (isMobile && typeof toggleDrawer === 'function' && STATE.drawerState === DRAWER_STATES.OPEN) {
         toggleDrawer(false);
     }
 

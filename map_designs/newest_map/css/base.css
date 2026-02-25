@@ -15,8 +15,10 @@
     --blue-muted: #52525b;
 
     /* Status colors */
-    --green: #30d158;
-    --red: #ff453a;
+    --green: #22c55e;
+    --green-dark: #16a34a;
+    --red: #ef4444;
+    --red-dark: #dc2626;
 
     /* Background layers (dark to light) */
     --bg-base: #000;
@@ -290,7 +292,7 @@ a:focus-visible {
 .toast-message { color: rgba(255, 255, 255, 0.92); }
 
 /* Location icon - red pin */
-.toast-icon svg[fill="currentColor"] { color: #ef4444; opacity: 1; }
+.toast-icon svg[fill="currentColor"] { color: var(--red); opacity: 1; }
 
 /* Progress countdown bar */
 .toast-progress {

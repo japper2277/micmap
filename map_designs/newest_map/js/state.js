@@ -12,8 +12,7 @@ const STATE = {
     selectedCalendarDate: new Date().toDateString(),
 
     // UI state
-    isDrawerOpen: false,
-    drawerState: 'peek', // 'peek', 'half', or 'open' (mobile only)
+    drawerState: 'peek', // 'peek' or 'open' (mobile only)
     happeningNowExpanded: false, // Whether "Happening Now" section is expanded
 
     // Map state
@@ -49,6 +48,8 @@ const STATE = {
     scheduleExpanded: false,      // Is "My Schedule" dropdown expanded?
     hideConflicts: false,         // Hide mics that conflict with scheduled times?
     showConflictWhy: false,       // Show conflict explanation/details in schedule UI
+    suggestionSort: localStorage.getItem('planSuggestionSort') || 'closest', // 'closest' | 'soonest'
+    suggestionsExpanded: false,   // Whether "Show more" is active for suggestions
 
     // Per-mic stay durations (overrides global setDuration)
     micDurations: JSON.parse(localStorage.getItem('planMicDurations') || '{}'), // { micId: minutes }

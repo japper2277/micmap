@@ -168,36 +168,36 @@
 
 /* === LIVE: Emerald Gradient with Glow Pulse === */
 .status-live {
-    background: linear-gradient(180deg, #34c759 0%, #248a3d 100%);
+    background: linear-gradient(180deg, var(--green) 0%, var(--green-dark) 100%);
     z-index: 50;
     animation: liveGlow 2s ease-in-out infinite;
 }
 .status-live .pill-tail {
-    background: #248a3d;
+    background: var(--green-dark);
 }
 
 @keyframes liveGlow {
     0%, 100% {
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 0 0 rgba(48, 209, 88, 0.4);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 0 0 rgba(34, 197, 94, 0.4);
     }
     50% {
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 12px 4px rgba(48, 209, 88, 0.3);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 12px 4px rgba(34, 197, 94, 0.3);
     }
 }
 
-/* === UPCOMING/SOON: Crimson Gradient === */
+/* === UPCOMING/SOON: Crimson Gradient + bright border ring (colorblind a11y) === */
 .status-upcoming {
-    background: linear-gradient(180deg, #ff3b30 0%, #d70015 100%);
+    background: linear-gradient(180deg, var(--red) 0%, var(--red-dark) 100%);
+    border: 2px solid rgba(255, 255, 255, 0.7);
     z-index: 40;
 }
 .status-upcoming .pill-tail {
-    background: #d70015;
+    background: var(--red-dark);
 }
 
-/* === FUTURE/LATER: Onyx Gradient === */
+/* === FUTURE/LATER: Onyx Gradient — NO border (flat, muted) === */
 .status-future {
     background: linear-gradient(180deg, #2c2c2e 0%, #000000 100%);
-    border: 1px solid rgba(255, 255, 255, 0.05);
     z-index: 30;
 }
 .status-future .pill-tail {
@@ -285,10 +285,29 @@
 
 /* Ticket status colors - apply to time row */
 .ticket-live .ticket-time {
-    background: #22c55e;
+    background: var(--green);
+}
+.ticket-live .ticket-time::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #fff;
+    margin-right: 4px;
+    vertical-align: middle;
+    animation: liveTicketDot 1.5s ease-in-out infinite;
+}
+@keyframes liveTicketDot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+.ticket-upcoming {
+    outline: 2px solid rgba(255, 255, 255, 0.6);
+    outline-offset: -1px;
 }
 .ticket-upcoming .ticket-time {
-    background: #ef4444;
+    background: var(--red);
 }
 .ticket-future .ticket-time {
     background: #6b7280;
@@ -355,7 +374,7 @@
 }
 .cluster-venue-times {
     font-size: 12px;
-    color: #ef4444;
+    color: var(--red);
     font-weight: 500;
 }
 
@@ -551,7 +570,7 @@
 .tabbed-popup-tab.active {
     color: white;
     background: rgba(255, 255, 255, 0.1);
-    border-bottom: 2px solid #ef4444;
+    border-bottom: 2px solid var(--red);
     margin-bottom: -1px;
 }
 
@@ -593,7 +612,7 @@
 .tabbed-mic-time {
     font-size: 16px;
     font-weight: 700;
-    color: #ef4444;
+    color: var(--red);
     min-width: 50px;
 }
 
@@ -676,8 +695,8 @@
     flex-shrink: 0;
     margin-left: 6px;
 }
-.mv-status-dot.live { background: #22c55e; }
-.mv-status-dot.upcoming { background: #ef4444; }
+.mv-status-dot.live { background: var(--green); }
+.mv-status-dot.upcoming { background: var(--red); }
 .mv-status-dot.future { background: #6b7280; }
 
 /* Venue name column */
@@ -817,8 +836,8 @@
 .marker-glow .mic-ticket,
 .marker-glow .cluster-pill,
 .marker-glow .multi-venue-ticket {
-    background: #22c55e !important; /* Green-500 */
-    border-color: #22c55e !important;
+    background: var(--green) !important;
+    border-color: var(--green) !important;
     animation: pulse-ring-green 2s infinite;
     z-index: 9999 !important; /* Always on top */
     transform: scale(1.05);
@@ -863,7 +882,7 @@
 .marker-dismissed .mv-times-list,
 .marker-dismissed .pill-main-text {
     text-decoration: line-through;
-    color: #ef4444 !important; /* Red-500 text to indicate removed */
+    color: var(--red) !important;
 }
 
 /* COMMUTE LABELS - Improved legibility */

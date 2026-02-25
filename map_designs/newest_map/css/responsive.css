@@ -487,3 +487,60 @@
         gap: 18px;
     }
 }
+
+/* =================================================================
+   LANDSCAPE ON PHONES - Compact vertical chrome
+   Targets short+wide viewports (landscape phones, not tablets)
+   ================================================================= */
+@media (max-height: 500px) and (max-width: 767px) and (orientation: landscape) {
+    /* Shrink search bar */
+    .search-wrapper {
+        height: 40px;
+        border-radius: 12px;
+    }
+
+    /* Compact filter pills */
+    .mobile-filter-bar {
+        top: 56px;
+        padding-top: 2px;
+        padding-bottom: 2px;
+    }
+    .mobile-filter-pill {
+        height: 34px;
+        padding: 0 14px;
+        font-size: 12px;
+    }
+
+    /* Shorten drawer peek to leave more map visible */
+    #list-drawer.drawer-peek {
+        transform: translateY(calc(100% - 80px)) !important;
+    }
+    #list-drawer.drawer-peek .mics-header-row {
+        padding: 4px 16px;
+    }
+
+    /* Smaller drag handle area */
+    .drag-handle {
+        padding: 4px 0;
+    }
+
+    /* Reduce drawer height so open state doesn't fully cover map */
+    #list-drawer {
+        height: calc(60 * var(--vh)) !important;
+    }
+
+    /* Compact stream items */
+    .stream-item {
+        padding: 8px 12px;
+    }
+
+    /* Position date carousel closer */
+    #date-carousel {
+        top: 96px;
+    }
+
+    /* Move locate button up */
+    .locate-btn {
+        bottom: 90px;
+    }
+}

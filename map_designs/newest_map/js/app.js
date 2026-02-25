@@ -83,9 +83,62 @@ async function loadData() {
             }
         }
     } catch (err) {
-        // Failed to load mics - user will see empty list
+        // Show error state with retry button in the list
+        const container = document.getElementById('list-content');
+        if (container) {
+            container.innerHTML = `
+                <div style="text-align:center; padding:48px 24px; color:#8e8e93;">
+                    <div style="font-size:32px; margin-bottom:12px;">📡</div>
+                    <div style="font-size:15px; font-weight:600; color:#fff; margin-bottom:4px;">Couldn't load open mics</div>
+                    <div style="font-size:13px; margin-bottom:16px;">Check your connection and try again</div>
+                    <button onclick="loadData()" style="background:#f43f5e; color:#fff; border:none; padding:10px 24px; border-radius:999px; font-size:14px; font-weight:600; cursor:pointer;">Try again</button>
+                </div>`;
+        }
+    }
+}
+
+// Manual refresh — re-fetches mic data and re-renders current view
+async function refreshMicData() {
+    const btn = document.getElementById('btn-refresh');
+    if (btn) {
+        btn.classList.add('spinning');
+        btn.disabled = true;
+    }
+    try {
+        const response = await fetch(CONFIG.apiPath);
+        const data = await response.json();
+        const rawMics = data.mics || data;
+        STATE.mics = processMics(rawMics);
+
+        // Re-add venue warnings
+        CONFIG.dayNames.forEach(day => {
+            STATE.mics.push({
+                id: `warning-comedy-shop-${day}`,
+                title: 'Comedy Shop',
+                venueName: 'Comedy Shop',
+                venue: 'Comedy Shop',
+                day: day,
+                warning: "Multiple women have alleged sexual abuse by this venue's owner",
+                warningLink: 'https://www.instagram.com/p/DUPKOE_EaCE/',
+                lat: 40.7288305,
+                lng: -74.0001342
+            });
+        });
+
+        // Re-render the current view mode (don't re-run mode routing)
+        render(STATE.currentMode);
+
         if (typeof toastService !== 'undefined') {
-            toastService.show('Failed to load open mics', 'error');
+            toastService.show('Mics updated', 'success', 2000);
+        }
+    } catch (err) {
+        if (typeof toastService !== 'undefined') {
+            toastService.show('Couldn\'t refresh — check your connection', 'error', 3000);
+        }
+    } finally {
+        if (btn) {
+            btn.classList.remove('spinning');
+            btn.disabled = false;
         }
     }
 }
@@ -210,6 +263,56 @@ function init() {
 
     // Refresh statuses every minute
     setInterval(refreshStatuses, 60000);
+
+    // Show onboarding hints for first-time visitors
+    showOnboardingHints();
+}
+
+// First-visit onboarding — sequential toast hints, cancels on interaction
+function showOnboardingHints() {
+    if (localStorage.getItem('micmap_onboarded')) return;
+    if (typeof toastService === 'undefined') return;
+
+    const hints = [
+        { msg: 'Tap any marker to see mic details', delay: 2500 },
+        { msg: 'Use filters to narrow by time, price, or borough', delay: 7000 },
+        { msg: 'Tap the crosshair to find mics near you', delay: 11500 },
+    ];
+
+    const timers = [];
+    let shown = 0;
+
+    function cancelRemaining() {
+        timers.forEach(t => clearTimeout(t));
+        timers.length = 0;
+        localStorage.setItem('micmap_onboarded', '1');
+        // Clean up listener after cancellation
+        document.removeEventListener('click', onInteract);
+        document.removeEventListener('touchstart', onInteract);
+    }
+
+    function onInteract() {
+        // User engaged with the app — cancel pending hints
+        if (timers.length > 0) cancelRemaining();
+    }
+
+    // Listen for user interaction to cancel remaining hints
+    document.addEventListener('click', onInteract, { once: true });
+    document.addEventListener('touchstart', onInteract, { once: true });
+
+    hints.forEach(({ msg, delay }, i) => {
+        const t = setTimeout(() => {
+            toastService.show(msg, 'info', 3500);
+            shown++;
+            // Mark onboarded after last hint fires
+            if (shown === hints.length) {
+                localStorage.setItem('micmap_onboarded', '1');
+                document.removeEventListener('click', onInteract);
+                document.removeEventListener('touchstart', onInteract);
+            }
+        }, delay);
+        timers.push(t);
+    });
 }
 
 // Load Slotted.co signup slot availability
