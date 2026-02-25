@@ -265,11 +265,6 @@ body.plan-mode .plan-schedule-slot { display: block; }
     margin: 0 0 10px;
 }
 
-.plan-schedule-slot .schedule-context-label {
-    margin: 0 0 6px;
-    top: 0;
-}
-
 .plan-schedule-slot .my-schedule-expanded {
     margin: -6px 0 10px;
     border-radius: 0 0 12px 12px;

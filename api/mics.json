@@ -1564,23 +1564,6 @@
     "notes": "required sign up online ($2.38 in fees)"
   },
   {
-    "name": "Craig Lottner's Open Mic",
-    "day": "Monday",
-    "startTime": "12:30 PM",
-    "endTime": "2:00 PM",
-    "venueName": "West Side Comedy Club",
-    "borough": "Manhattan",
-    "neighborhood": "UWS",
-    "address": "201 W 75th St, New York, NY 10023",
-    "lat": 40.7808191,
-    "lon": -73.9805102,
-    "cost": "$7.38",
-    "stageTime": "10min",
-    "signUpDetails": "https://punchup.live/v/funyopenmic",
-    "host": "Craig Lottner (@craiglottner)",
-    "notes": "7 comics max, required sign up online ($2.38 in fees)"
-  },
-  {
     "name": "Ethically Ambiguous",
     "day": "Monday",
     "startTime": "7:00 PM",
@@ -4552,24 +4535,7 @@
     "cost": "$5.46",
     "stageTime": "5min",
     "signUpDetails": "https://punchup.live/v/funyopenmic",
-    "host": "(@westsidecomedyclub)",
-    "notes": "required sign up online ($2.38 in fees)"
-  },
-  {
-    "name": "FUNY Open Mic",
-    "day": "Tuesday",
-    "startTime": "3:00 PM",
-    "endTime": "4:00 PM",
-    "venueName": "West Side Comedy Club",
-    "borough": "Manhattan",
-    "neighborhood": "UWS",
-    "address": "201 W 75th St, New York, NY 10023",
-    "lat": 40.7808191,
-    "lon": -73.9805102,
-    "cost": "$5.46",
-    "stageTime": "5min",
-    "signUpDetails": "https://punchup.live/v/funyopenmic",
-    "host": "(@westsidecomedyclub)",
+    "host": "Jaiya Victoria",
     "notes": "required sign up online ($2.38 in fees)"
   },
   {
@@ -4586,8 +4552,8 @@
     "cost": "$5.46",
     "stageTime": "5min",
     "signUpDetails": "https://punchup.live/v/funyopenmic",
-    "host": "(@westsidecomedyclub)",
-    "notes": "required sign up online ($2.38 in fees)"
+    "host": "Brett Singer",
+    "notes": "Space is limited to 10 comedians, required sign up online ($2.38 in fees)"
   },
   {
     "name": "FUNY Open Mic",
@@ -4603,7 +4569,7 @@
     "cost": "$5.46",
     "stageTime": "5min",
     "signUpDetails": "https://punchup.live/v/funyopenmic",
-    "host": "(@westsidecomedyclub)",
+    "host": "Jonno",
     "notes": "required sign up online ($2.38 in fees)"
   },
   {
@@ -4620,7 +4586,7 @@
     "cost": "$5.46",
     "stageTime": "5min",
     "signUpDetails": "https://punchup.live/v/funyopenmic",
-    "host": "(@westsidecomedyclub)",
+    "host": "Zoe Levy",
     "notes": "required sign up online ($2.38 in fees)"
   },
   {
@@ -4637,28 +4603,11 @@
     "cost": "$5.46",
     "stageTime": "5min",
     "signUpDetails": "https://punchup.live/v/funyopenmic",
-    "host": "(@westsidecomedyclub)",
+    "host": "Dan Hudson",
     "notes": "required sign up online ($2.38 in fees)"
   },
   {
-    "name": "Don't Wait Up",
-    "day": "Wednesday",
-    "startTime": "8:00 PM",
-    "endTime": "9:30 PM",
-    "venueName": "West Side Comedy Club",
-    "borough": "Manhattan",
-    "neighborhood": "UWS",
-    "address": "201 W 75th St, New York, NY 10023",
-    "lat": 40.7808191,
-    "lon": -73.9805102,
-    "cost": "$5.46",
-    "stageTime": "5min",
-    "signUpDetails": "https://punchup.live/v/funyopenmic",
-    "host": "Charles McBee (@westsidecomedyclub)",
-    "notes": "required sign up online ($2.38 in fees)"
-  },
-  {
-    "name": "FUNY Open Mic",
+    "name": "Headliners First",
     "day": "Thursday",
     "startTime": "3:00 PM",
     "endTime": "4:30 PM",
@@ -4688,7 +4637,7 @@
     "cost": "$5.46",
     "stageTime": "8min",
     "signUpDetails": "https://punchup.live/v/funyopenmic",
-    "host": "(@westsidecomedyclub)",
+    "host": "Rory Lutz",
     "notes": "required sign up online ($2.38 in fees)"
   },
   {
@@ -4705,7 +4654,24 @@
     "cost": "$5.46",
     "stageTime": "8min",
     "signUpDetails": "https://punchup.live/v/funyopenmic",
-    "host": "(@westsidecomedyclub)",
+    "host": "Shareef Taher",
+    "notes": "required sign up online ($2.38 in fees)"
+  },
+  {
+    "name": "FUNY Open Mic",
+    "day": "Saturday",
+    "startTime": "3:00 PM",
+    "endTime": "4:30 PM",
+    "venueName": "West Side Comedy Club",
+    "borough": "Manhattan",
+    "neighborhood": "UWS",
+    "address": "201 W 75th St, New York, NY 10023",
+    "lat": 40.7808191,
+    "lon": -73.9805102,
+    "cost": "$5.46",
+    "stageTime": "5min",
+    "signUpDetails": "https://punchup.live/v/funyopenmic",
+    "host": "Reuben Wolf",
     "notes": "required sign up online ($2.38 in fees)"
   },
   {

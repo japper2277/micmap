@@ -722,11 +722,6 @@ function render(mode) {
         const safeActiveDate = Number.isNaN(activeDate.getTime()) ? new Date() : activeDate;
         const scheduleDayLabel = safeActiveDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
 
-        const scheduleContextLabel = document.createElement('div');
-        scheduleContextLabel.className = 'schedule-context-label';
-        scheduleContextLabel.textContent = `Editing ${scheduleDayLabel} schedule`;
-        scheduleMountTarget.appendChild(scheduleContextLabel);
-
         const fmtTime = (d, showAmPm = false) => {
             const h = d?.getHours?.() || 0;
             const m = d?.getMinutes?.() || 0;
