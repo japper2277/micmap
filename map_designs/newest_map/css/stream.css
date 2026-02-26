@@ -2375,10 +2375,86 @@ body.plan-mode .stream-item.in-route .plan-commute-corner {
 
         letter-spacing: 0.06em;
 
-        margin-bottom: 10px;
-
         padding-left: 4px;
 
+    }
+
+    .suggested-mics-header-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+        gap: 8px;
+    }
+
+    .suggested-mics-count {
+        color: rgba(255, 255, 255, 0.2);
+        font-weight: 500;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .suggestion-sort-chips {
+        display: flex;
+        gap: 6px;
+        flex-shrink: 0;
+    }
+
+    .suggestion-sort-chip {
+        height: 30px;
+        padding: 0 12px;
+        border-radius: 15px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        color: rgba(255, 255, 255, 0.4);
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .suggestion-sort-chip:hover {
+        background: rgba(255, 255, 255, 0.08);
+        color: rgba(255, 255, 255, 0.65);
+    }
+
+    .suggestion-sort-chip:active {
+        transform: scale(0.96);
+    }
+
+    .suggestion-sort-chip.active {
+        background: rgba(34, 197, 94, 0.1);
+        border-color: rgba(34, 197, 94, 0.2);
+        color: #22c55e;
+        font-weight: 600;
+    }
+
+    .suggestion-show-more {
+        display: block;
+        width: 100%;
+        padding: 12px;
+        margin-top: 8px;
+        background: none;
+        border: 1px dashed rgba(255, 255, 255, 0.06);
+        border-radius: 14px;
+        color: rgba(255, 255, 255, 0.35);
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-align: center;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .suggestion-show-more:hover {
+        background: rgba(255, 255, 255, 0.03);
+        color: rgba(255, 255, 255, 0.55);
+        border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .suggestion-show-more:active {
+        transform: scale(0.98);
     }
 
     

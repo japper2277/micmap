@@ -534,9 +534,15 @@ function toggleMicInRoute(micId, skipZoom = false) {
     }
 }
 
-// Estimate commute time between two mics (in minutes)
-function getCommuteBetweenMics(fromMic, toMic) {
-    if (!fromMic || !toMic || !fromMic.lat || !toMic.lat) return 20;
+const PLANNER_COMMUTE_CACHE_TTL_MS = 5 * 60 * 1000;
+const plannerCommuteCache = {};
+const plannerCommutePending = new Set();
+let plannerCommuteRefreshTimer = null;
+
+function estimateCommuteBetweenMics(fromMic, toMic) {
+    if (!fromMic || !toMic || fromMic.lat == null || fromMic.lng == null || toMic.lat == null || toMic.lng == null) {
+        return 20;
+    }
 
     // Calculate distance in km using Haversine
     const R = 6371;
@@ -551,6 +557,138 @@ function getCommuteBetweenMics(fromMic, toMic) {
     // Estimate transit time: ~3 min per km in NYC (walking + subway)
     // Add 5 min base for getting to/from stations
     return Math.round(5 + distance * 3);
+}
+
+function getPlannerCommuteCacheKey(fromMic, toMic) {
+    if (!fromMic || !toMic || fromMic.lat == null || fromMic.lng == null || toMic.lat == null || toMic.lng == null) {
+        return null;
+    }
+    const targetKey = toMic.start instanceof Date ? Math.floor(toMic.start.getTime() / 60000) : 'now';
+    return `${fromMic.lat.toFixed(4)},${fromMic.lng.toFixed(4)}|${toMic.lat.toFixed(4)},${toMic.lng.toFixed(4)}|${targetKey}`;
+}
+
+function getCachedPlannerCommuteMinutes(cacheKey) {
+    const cached = plannerCommuteCache[cacheKey];
+    if (!cached) return null;
+    if (Date.now() - cached.fetchedAt > PLANNER_COMMUTE_CACHE_TTL_MS) {
+        delete plannerCommuteCache[cacheKey];
+        return null;
+    }
+    return cached.mins;
+}
+
+function getCachedPlannerCommuteEntry(cacheKey) {
+    const cached = plannerCommuteCache[cacheKey];
+    if (!cached) return null;
+    if (Date.now() - cached.fetchedAt > PLANNER_COMMUTE_CACHE_TTL_MS) {
+        delete plannerCommuteCache[cacheKey];
+        return null;
+    }
+    return cached;
+}
+
+function setCachedPlannerCommuteMinutes(cacheKey, mins, source = 'api') {
+    if (!cacheKey || !Number.isFinite(mins)) return;
+    plannerCommuteCache[cacheKey] = {
+        mins: Math.max(1, Math.round(mins)),
+        source,
+        fetchedAt: Date.now()
+    };
+}
+
+function queuePlannerCommuteRefresh() {
+    if (plannerCommuteRefreshTimer) return;
+    plannerCommuteRefreshTimer = setTimeout(() => {
+        plannerCommuteRefreshTimer = null;
+        if (!STATE.route || STATE.route.length === 0) return;
+        if (typeof updateMarkerStates === 'function') updateMarkerStates();
+        if (typeof render === 'function') render(STATE.currentMode);
+    }, 140);
+}
+
+async function fetchPlannerCommuteFromApi(fromMic, toMic, cacheKey) {
+    let mins = null;
+    let source = 'estimate';
+
+    try {
+        if (typeof transitService !== 'undefined') {
+            const distanceMiles = (typeof calculateDistance === 'function')
+                ? calculateDistance(fromMic.lat, fromMic.lng, toMic.lat, toMic.lng)
+                : null;
+
+            // For very short hops, prefer walking API result.
+            if (distanceMiles !== null && distanceMiles < 0.5 && typeof transitService.getWalkingTime === 'function') {
+                const walkData = await transitService.getWalkingTime(fromMic.lat, fromMic.lng, toMic.lat, toMic.lng);
+                if (walkData && Number.isFinite(walkData.mins)) {
+                    mins = walkData.mins;
+                    source = walkData.source || 'walk';
+                }
+            }
+
+            // Otherwise use existing subway route API for venue-to-venue commute.
+            if (mins === null && typeof transitService.fetchSubwayRoute === 'function') {
+                const route = await transitService.fetchSubwayRoute(
+                    fromMic.lat,
+                    fromMic.lng,
+                    toMic.lat,
+                    toMic.lng,
+                    toMic
+                );
+                if (route) {
+                    const routeMins = Number(route.adjustedTotalTime || route.totalTime);
+                    if (Number.isFinite(routeMins)) {
+                        mins = routeMins;
+                        source = 'transit';
+                    }
+                }
+            }
+
+            // If subway route is unavailable, still prefer walking API over raw estimate.
+            if (mins === null && typeof transitService.getWalkingTime === 'function') {
+                const walkData = await transitService.getWalkingTime(fromMic.lat, fromMic.lng, toMic.lat, toMic.lng);
+                if (walkData && Number.isFinite(walkData.mins)) {
+                    mins = walkData.mins;
+                    source = walkData.source || 'walk';
+                }
+            }
+        }
+    } catch (_) {
+        // Fall through to deterministic local estimate.
+    }
+
+    if (!Number.isFinite(mins)) {
+        mins = estimateCommuteBetweenMics(fromMic, toMic);
+        source = 'estimate';
+    }
+
+    setCachedPlannerCommuteMinutes(cacheKey, mins, source);
+    plannerCommutePending.delete(cacheKey);
+    queuePlannerCommuteRefresh();
+}
+
+function getCommuteBetweenMics(fromMic, toMic) {
+    const meta = getCommuteBetweenMicsMeta(fromMic, toMic);
+    return meta.mins;
+}
+
+function getCommuteBetweenMicsMeta(fromMic, toMic) {
+    const fallback = estimateCommuteBetweenMics(fromMic, toMic);
+    const cacheKey = getPlannerCommuteCacheKey(fromMic, toMic);
+    if (!cacheKey) return { mins: fallback, source: 'estimate', pending: false };
+
+    const cachedEntry = getCachedPlannerCommuteEntry(cacheKey);
+    if (cachedEntry) {
+        return { mins: cachedEntry.mins, source: cachedEntry.source || 'api', pending: false };
+    }
+
+    const isOnline = (typeof navigator === 'undefined') ? true : navigator.onLine !== false;
+    if (isOnline && !plannerCommutePending.has(cacheKey) && typeof transitService !== 'undefined') {
+        plannerCommutePending.add(cacheKey);
+        fetchPlannerCommuteFromApi(fromMic, toMic, cacheKey);
+        return { mins: fallback, source: 'estimate', pending: true };
+    }
+
+    return { mins: fallback, source: 'estimate', pending: false };
 }
 
 // Add or update commute label on a marker element
@@ -626,7 +764,8 @@ function updateMarkerStates() {
             } else if (hasRoute) {
                 // Dim mics that conflict with scheduled ones
                 const lastMicId = STATE.route[STATE.route.length - 1];
-                const commuteMins = 20; // default estimate
+                const lastMic = STATE.mics.find(m => m.id === lastMicId);
+                const commuteMins = lastMic ? getCommuteBetweenMics(lastMic, mic) : 20;
                 const status = getMicStatus(mic.id, lastMicId, commuteMins);
                 if (status === 'dimmed') {
                     el.classList.add('marker-dimmed');
@@ -1081,8 +1220,11 @@ function shortenScheduleStay() {
 }
 
 // Find mics that fit in the current schedule gaps
-function getSuggestedMics() {
+function getSuggestedMics(options = {}) {
     if (!STATE.route || STATE.route.length === 0) return [];
+
+    const sortMode = options.sort || STATE.suggestionSort || 'closest';
+    const limit = options.limit || (STATE.suggestionsExpanded ? 10 : 3);
 
     // Get mics from the currently active planning day.
     const now = new Date();
@@ -1098,6 +1240,37 @@ function getSuggestedMics() {
         if (isToday && m.start) {
             const micMins = getTimeInMinutes(m.start);
             if (micMins < nowMins) return false;
+        }
+        return true;
+    });
+
+    // Apply active filters (borough, time, price) to suggestion candidates
+    const filteredDayMics = dayMics.filter(mic => {
+        // Price filter
+        if (STATE.activeFilters.price !== 'All') {
+            const priceStr = (mic.price || mic.cost || 'Free').toString().toLowerCase();
+            const isFree = priceStr.includes('free') || priceStr === '0' || priceStr === '$0';
+            if (STATE.activeFilters.price === 'Free' && !isFree) return false;
+            if (STATE.activeFilters.price === 'Paid' && isFree) return false;
+        }
+        // Borough filter
+        if (STATE.activeFilters.borough !== 'All') {
+            const micBorough = (mic.borough || '').toLowerCase();
+            const filterBorough = STATE.activeFilters.borough.toLowerCase();
+            if (micBorough !== filterBorough) return false;
+        }
+        // Time filter
+        if (STATE.activeFilters.time !== 'All' && mic.start) {
+            const range = CONFIG.timeRanges[STATE.activeFilters.time];
+            if (range) {
+                const comedyMins = (typeof toComedyMinutes === 'function')
+                    ? toComedyMinutes(mic.start)
+                    : (mic.start.getHours() * 60 + mic.start.getMinutes());
+                const isInRange = (typeof isWithinTimeRange === 'function')
+                    ? isWithinTimeRange(comedyMins, range)
+                    : true;
+                if (!isInRange) return false;
+            }
         }
         return true;
     });
@@ -1118,11 +1291,14 @@ function getSuggestedMics() {
     };
 
     // Helper to format reason
-    const getReason = (type, travelMins) => {
-        const mode = travelMins <= 15 ? 'walk' : 'travel';
-        const timeStr = `${travelMins}m ${mode}`;
+    const getReason = (type, commuteMeta) => {
+        const travelMins = Math.max(1, Math.round(commuteMeta?.mins ?? 0));
+        const source = commuteMeta?.source || 'estimate';
+        const isEstimate = source === 'estimate' || commuteMeta?.pending;
+        const mode = source === 'walk' ? 'walk' : (source === 'transit' ? 'transit' : 'travel');
+        const timeStr = isEstimate ? `~${travelMins}m est` : `${travelMins}m ${mode}`;
 
-        if (travelMins <= 10) return `Nearby • ${timeStr}`;
+        if (!isEstimate && travelMins <= 10) return `Nearby • ${timeStr}`;
         if (type === 'gap') return `Fits gap • ${timeStr}`;
         return `Up next • ${timeStr}`;
     };
@@ -1136,15 +1312,21 @@ function getSuggestedMics() {
         const nextStart = getTimeInMinutes(nextMic.start);
 
         // Find mics that start after prevEnd + travel and end before nextStart - travel
-        dayMics.forEach(mic => {
+        filteredDayMics.forEach(mic => {
             if (!isAvailable(mic)) return;
 
             const micStart = getTimeInMinutes(mic.start);
             const micEnd = micStart + getMicDuration(mic.id);
 
             // Travel times
-            const travelTo = getCommuteBetweenMics(prevMic, mic);
-            const travelFrom = getCommuteBetweenMics(mic, nextMic);
+            const travelToMeta = (typeof getCommuteBetweenMicsMeta === 'function')
+                ? getCommuteBetweenMicsMeta(prevMic, mic)
+                : { mins: getCommuteBetweenMics(prevMic, mic), source: 'estimate', pending: false };
+            const travelFromMeta = (typeof getCommuteBetweenMicsMeta === 'function')
+                ? getCommuteBetweenMicsMeta(mic, nextMic)
+                : { mins: getCommuteBetweenMics(mic, nextMic), source: 'estimate', pending: false };
+            const travelTo = Math.max(1, Math.round(travelToMeta.mins || 0));
+            const travelFrom = Math.max(1, Math.round(travelFromMeta.mins || 0));
 
             if (micStart >= prevEnd + travelTo - grace &&
                 micEnd + travelFrom <= nextStart + grace) {
@@ -1153,7 +1335,7 @@ function getSuggestedMics() {
                     mic: mic,
                     type: 'gap',
                     score: travelTo + travelFrom, // Lower is better
-                    reason: getReason('gap', travelTo)
+                    reason: getReason('gap', travelToMeta)
                 });
             }
         });
@@ -1163,21 +1345,24 @@ function getSuggestedMics() {
     const lastMic = routeMics[routeMics.length - 1];
     const lastEnd = getTimeInMinutes(lastMic.start) + getMicDuration(lastMic.id);
     
-    dayMics.forEach(mic => {
+    filteredDayMics.forEach(mic => {
         if (!isAvailable(mic)) return;
 
         const micStart = getTimeInMinutes(mic.start);
-        const travelTo = getCommuteBetweenMics(lastMic, mic);
+        const travelToMeta = (typeof getCommuteBetweenMicsMeta === 'function')
+            ? getCommuteBetweenMicsMeta(lastMic, mic)
+            : { mins: getCommuteBetweenMics(lastMic, mic), source: 'estimate', pending: false };
+        const travelTo = Math.max(1, Math.round(travelToMeta.mins || 0));
 
         // Must be after last mic (plus travel) and within reasonable time (e.g. < 2 hours wait)
-        if (micStart >= lastEnd + travelTo - grace && 
+        if (micStart >= lastEnd + travelTo - grace &&
             micStart <= lastEnd + travelTo + 120) {
             
             suggestions.push({
                 mic: mic,
                 type: 'next',
                 score: travelTo + (micStart - (lastEnd + travelTo)), // Travel + Wait time
-                reason: getReason('next', travelTo)
+                reason: getReason('next', travelToMeta)
             });
         }
     });
@@ -1186,9 +1371,16 @@ function getSuggestedMics() {
     const uniqueSuggestions = [];
     const seenIds = new Set();
     
-    // Sort by type (gap first) then score (lower is better)
+    // Sort by type (gap first) then by chosen sort mode
     suggestions.sort((a, b) => {
         if (a.type !== b.type) return a.type === 'gap' ? -1 : 1;
+        if (sortMode === 'soonest') {
+            const aStart = getTimeInMinutes(a.mic.start);
+            const bStart = getTimeInMinutes(b.mic.start);
+            if (aStart !== bStart) return aStart - bStart;
+            return a.score - b.score;
+        }
+        // 'closest' (default): sort by commute score
         return a.score - b.score;
     });
 
@@ -1199,7 +1391,7 @@ function getSuggestedMics() {
         }
     }
 
-    return uniqueSuggestions.slice(0, 3);
+    return uniqueSuggestions.slice(0, limit);
 }
 
 function addSuggestedMic(micId) {
@@ -1221,4 +1413,25 @@ function addSuggestedMic(micId) {
             toastService.show('Added to schedule', 'success');
         }
     }, 250);
+}
+
+function setSuggestionSort(mode) {
+    if (STATE.suggestionSort === mode) return;
+    STATE.suggestionSort = mode;
+    localStorage.setItem('planSuggestionSort', mode);
+    STATE.suggestionsExpanded = false;
+    if ('vibrate' in navigator) navigator.vibrate(8);
+    render(STATE.currentMode);
+}
+
+function expandSuggestions() {
+    STATE.suggestionsExpanded = true;
+    if ('vibrate' in navigator) navigator.vibrate(8);
+    render(STATE.currentMode);
+}
+
+function collapseSuggestions() {
+    STATE.suggestionsExpanded = false;
+    if ('vibrate' in navigator) navigator.vibrate(8);
+    render(STATE.currentMode);
 }

@@ -124,3 +124,42 @@ test('empty-state helper actions widen time filter and shorten stay', () => {
     assert.equal(STATE.activeFilters.time, 'All');
     assert.equal(STATE.setDuration, 45);
 });
+
+test('inter-venue commute hydrates from transit API cache', async () => {
+    const fromMic = {
+        id: 'stmarks',
+        lat: 40.72725,
+        lng: -73.98495,
+        start: new Date('2026-03-12T16:30:00')
+    };
+    const toMic = {
+        id: 'qed',
+        lat: 40.76431,
+        lng: -73.92128,
+        start: new Date('2026-03-12T18:00:00')
+    };
+
+    let routeCalls = 0;
+    global.transitService = {
+        async fetchSubwayRoute() {
+            routeCalls += 1;
+            return { adjustedTotalTime: 44 };
+        },
+        async getWalkingTime() {
+            return { mins: 51, source: 'osrm' };
+        }
+    };
+
+    const immediateMeta = getCommuteBetweenMicsMeta(fromMic, toMic);
+    assert.equal(typeof immediateMeta.mins, 'number');
+    assert.equal(immediateMeta.mins > 0, true);
+    assert.equal(immediateMeta.pending, true);
+
+    await new Promise(resolve => setTimeout(resolve, 25));
+
+    const hydratedMeta = getCommuteBetweenMicsMeta(fromMic, toMic);
+    assert.equal(hydratedMeta.mins, 44);
+    assert.equal(hydratedMeta.source, 'transit');
+    assert.equal(hydratedMeta.pending, false);
+    assert.equal(routeCalls, 1);
+});

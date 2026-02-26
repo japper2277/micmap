@@ -922,11 +922,36 @@ function render(mode) {
         // Suggested Mics Section
         let suggestionsHtml = '';
         if (typeof getSuggestedMics === 'function') {
-            const suggestions = getSuggestedMics();
+            const allSuggestions = getSuggestedMics({ limit: 10 });
+            const visibleCount = STATE.suggestionsExpanded ? allSuggestions.length : Math.min(3, allSuggestions.length);
+            const suggestions = allSuggestions.slice(0, visibleCount);
+            const hasMore = allSuggestions.length > 3;
+            const currentSort = STATE.suggestionSort || 'closest';
+
+            const sortChipsHtml = `
+                <div class="suggestion-sort-chips" role="radiogroup" aria-label="Sort suggestions">
+                    <button class="suggestion-sort-chip${currentSort === 'closest' ? ' active' : ''}"
+                            onclick="event.stopPropagation(); setSuggestionSort('closest')"
+                            aria-pressed="${currentSort === 'closest'}">Closest</button>
+                    <button class="suggestion-sort-chip${currentSort === 'soonest' ? ' active' : ''}"
+                            onclick="event.stopPropagation(); setSuggestionSort('soonest')"
+                            aria-pressed="${currentSort === 'soonest'}">Soonest</button>
+                </div>
+            `;
+
             if (suggestions.length > 0) {
+                const showMoreHtml = hasMore && !STATE.suggestionsExpanded
+                    ? `<button class="suggestion-show-more" onclick="event.stopPropagation(); expandSuggestions()">Show ${allSuggestions.length - 3} more</button>`
+                    : (STATE.suggestionsExpanded && allSuggestions.length > 3
+                        ? `<button class="suggestion-show-more" onclick="event.stopPropagation(); collapseSuggestions()">Show less</button>`
+                        : '');
+
                 suggestionsHtml = `
                     <div class="suggested-mics-section">
-                        <div class="suggested-mics-header">Suggested for you</div>
+                        <div class="suggested-mics-header-row">
+                            <div class="suggested-mics-header">Suggested for you <span class="suggested-mics-count">(${allSuggestions.length})</span></div>
+                            ${sortChipsHtml}
+                        </div>
                         <div class="suggested-mics-list">
                             ${suggestions.map((item, index) => {
                                 const mic = item.mic;
@@ -963,12 +988,17 @@ function render(mode) {
                                 `;
                             }).join('')}
                         </div>
+                        ${showMoreHtml}
                     </div>
                 `;
             } else if (routeMics.length >= 2) {
-                // "Fully booked" state - only show if user actually has a schedule
+                // "Fully booked" or no matches state
                 suggestionsHtml = `
                     <div class="suggested-mics-section empty">
+                        <div class="suggested-mics-header-row">
+                            <div class="suggested-mics-header">Suggested for you <span class="suggested-mics-count">(0)</span></div>
+                            ${sortChipsHtml}
+                        </div>
                         <div class="suggested-empty-msg">
                             <span>Info:</span> No additional mics fit this schedule right now.
                         </div>
