@@ -499,7 +499,7 @@ app.get('/api/v1/mics', cacheMiddleware, async (req, res) => {
             stageTime: '5min',
             signUpDetails: 'https://slotted.co/seshopenmics',
             host: '@seshmic',
-            notes: `${slot.spotsLeft}/${slot.capacity} spots left`,
+            notes: null,
             spotsLeft: slot.spotsLeft,
             capacity: slot.capacity,
             full: slot.full || slot.spotsLeft === 0
