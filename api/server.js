@@ -464,6 +464,52 @@ app.get('/api/v1/mics', cacheMiddleware, async (req, res) => {
       throw new Error('MongoDB not connected');
     }
 
+    // Inject dynamic mics from Slotted.co (each time slot → separate mic entry)
+    try {
+      const slottedData = await getSlottedData('seshopenmics');
+      if (slottedData && slottedData.slots) {
+        const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        for (const slot of slottedData.slots) {
+          const slotDate = new Date(slot.date + 'T12:00:00');
+          const slotDay = dayNames[slotDate.getDay()];
+
+          // Skip if day filter is active and doesn't match
+          if (day && slotDay !== day) continue;
+
+          // Parse time display like "5:00pm – 6:00pm"
+          const timeMatch = slot.time.match(/(\d{1,2}:\d{2})\s*(am|pm)/i);
+          if (!timeMatch) continue;
+          const startTime = `${timeMatch[1]} ${timeMatch[2].toUpperCase()}`;
+          const endMatch = slot.time.match(/[–-]\s*(\d{1,2}:\d{2})\s*(am|pm)/i);
+          const endTime = endMatch ? `${endMatch[1]} ${endMatch[2].toUpperCase()}` : '';
+
+          mics.push({
+            _id: `slotted-sesh-${slot.date}-${startTime.replace(/\s/g, '')}`,
+            name: 'Sesh Comedy Open Mic',
+            day: slotDay,
+            startTime,
+            endTime,
+            venueName: 'Sesh Comedy',
+            borough: 'Manhattan',
+            neighborhood: 'Lower East Side',
+            address: '55 Chrystie St, New York, NY 10002',
+            lat: 40.7187,
+            lon: -73.9941,
+            cost: '$5',
+            stageTime: '5min',
+            signUpDetails: 'https://slotted.co/seshopenmics',
+            host: '@seshmic',
+            notes: `${slot.spotsLeft}/${slot.capacity} spots left`,
+            spotsLeft: slot.spotsLeft,
+            capacity: slot.capacity,
+            full: slot.full || slot.spotsLeft === 0
+          });
+        }
+      }
+    } catch (e) {
+      console.warn('⚠️ Failed to inject slotted mics:', e.message);
+    }
+
     // Allow browser to cache for 5 min, CDN for 10 min
     res.set('Cache-Control', 'public, max-age=300, s-maxage=600');
 
