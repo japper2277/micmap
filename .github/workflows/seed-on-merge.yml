@@ -27,7 +27,7 @@ jobs:
         env:
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
           REDIS_URL: ${{ secrets.REDIS_URL }}
-        run: node -r dotenv/config api/scripts/seed-database.js
+        run: cd api && node -r dotenv/config scripts/seed-database.js
 
       - name: Clear Redis cache
         run: |
