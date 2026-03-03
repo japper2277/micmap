@@ -56,10 +56,10 @@ function readLocalMics() {
   const raw = fs.readFileSync(LOCAL_MICS_PATH, 'utf8');
   const mics = JSON.parse(raw);
   return mics.filter((mic) => {
-    const sign = normalizeText(mic.signUpDetails || '');
+    const sign = normalizeSpace(mic.signUpDetails || '').toLowerCase();
     const host = normalizeText(mic.host || '');
     const name = normalizeText(mic.name || '');
-    return sign.includes('laughingbuddhacomedy.com/mics') || host.includes('laughing buddha') || name.includes('laughingbuddha');
+    return sign.includes('laughingbuddhacomedy.com') || host.includes('laughing buddha') || name.includes('laughing buddha');
   });
 }
 
@@ -89,102 +89,114 @@ async function scrapeLive(url, headful = false) {
 
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    // Scroll to trigger lazy-loaded cards.
+    // Scroll slowly to trigger lazy-loaded cards, then repeat until no new height is discovered.
     await page.evaluate(async () => {
       const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-      const maxScroll = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
-      let pos = 0;
-      while (pos < maxScroll) {
-        window.scrollTo(0, pos);
-        pos += Math.floor(window.innerHeight * 0.85);
-        await delay(120);
+      let lastHeight = 0;
+      let passes = 0;
+      while (passes < 5) {
+        const maxScroll = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
+        if (maxScroll === lastHeight && passes > 0) break;
+        lastHeight = maxScroll;
+        let pos = 0;
+        while (pos < maxScroll) {
+          window.scrollTo(0, pos);
+          pos += Math.floor(window.innerHeight * 0.5);
+          await delay(200);
+        }
+        window.scrollTo(0, 0);
+        await delay(800);
+        passes += 1;
       }
-      window.scrollTo(0, 0);
     });
 
-    await new Promise((resolve) => setTimeout(resolve, 1200));
+    await new Promise((resolve) => setTimeout(resolve, 1500));
 
     const live = await page.evaluate(() => {
       const dayRegex = /^(Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday)\b/i;
-      const timeRegex = /\b\d{1,2}:\d{2}\s*(AM|PM)\b/i;
+      // Matches a card title like "6:00 PM Mic @The Buddha Room - ..."
+      const cardTitleRegex = /^\d{1,2}:\d{2}\s*(?:AM|PM)\b.*@/i;
 
+      // Build sorted list of day section headings by vertical position
       const headingEls = Array.from(document.querySelectorAll('h1,h2,h3,h4,strong,[class*="date"],[class*="day"]'))
         .map((el) => {
           const text = (el.textContent || '').trim();
           const dayMatch = text.match(dayRegex);
-          if (!dayMatch) return null;
+          // Exclude elements that also contain a time — those are card titles, not headings
+          if (!dayMatch || /\d{1,2}:\d{2}/.test(text)) return null;
           const rect = el.getBoundingClientRect();
-          return {
-            day: dayMatch[1],
-            top: rect.top + window.scrollY
-          };
+          return { day: dayMatch[1], top: rect.top + window.scrollY };
         })
         .filter(Boolean)
         .sort((a, b) => a.top - b.top);
 
-      const ctaEls = Array.from(document.querySelectorAll('a,button')).filter((el) =>
-        /registration\s*&\s*tickets|tickets/i.test((el.textContent || '').trim())
-      );
+      // Anchor on card title elements (they start with "TIME ... @VENUE")
+      // Collect all candidates, then keep only the deepest (no candidate is an ancestor of another)
+      const allCandidates = Array.from(document.querySelectorAll('h1,h2,h3,h4,p,span,div'))
+        .filter((el) => {
+          const text = (el.textContent || '').trim();
+          return cardTitleRegex.test(text) && text.length < 200;
+        });
+      const candidateSet = new Set(allCandidates);
+      const titleEls = allCandidates.filter((el) => {
+        // Keep only if none of its descendants is also a candidate
+        return !Array.from(el.querySelectorAll('*')).some((child) => candidateSet.has(child));
+      });
 
       const cards = [];
       const seen = new Set();
 
-      function closestCard(el) {
-        let cur = el;
-        for (let i = 0; i < 8 && cur; i += 1) {
-          const text = (cur.innerText || '').trim();
-          const rect = cur.getBoundingClientRect();
-          if (text.length > 30 && rect.width > 220 && rect.height > 120 && timeRegex.test(text)) {
-            return cur;
-          }
-          cur = cur.parentElement;
+      for (const titleEl of titleEls) {
+        const titleText = (titleEl.textContent || '').trim();
+        const rect0 = titleEl.getBoundingClientRect();
+        const y0 = rect0.top + window.scrollY;
+        let dayForKey = null;
+        for (const h of headingEls) {
+          if (h.top <= y0) dayForKey = h.day;
+          if (h.top > y0) break;
         }
-        return null;
-      }
+        // Key on day+title so the same mic title on different days is not skipped
+        const seenKey = `${dayForKey || ''}|${titleText}`;
+        if (seen.has(seenKey)) continue;
+        seen.add(seenKey);
 
-      for (const cta of ctaEls) {
-        const card = closestCard(cta);
-        if (!card) continue;
-        if (seen.has(card)) continue;
-        seen.add(card);
-
-        const rect = card.getBoundingClientRect();
+        const rect = titleEl.getBoundingClientRect();
         const y = rect.top + window.scrollY;
-        const lines = (card.innerText || '')
-          .split('\n')
-          .map((s) => s.trim())
-          .filter(Boolean);
 
-        const titleLine = lines.find((line) => /mic\s*@/i.test(line)) || lines.find((line) => timeRegex.test(line)) || '';
-        const timeLine = lines.find((line) => /^\d{1,2}:\d{2}\s*(AM|PM)$/i.test(line)) || (titleLine.match(timeRegex)?.[0] || '');
-        let venueLine = lines.find((line) => /@\s*[^-]/.test(line) || /comedy club|buddha|room|nyc|uws|st\.\s*mark/i.test(line)) || '';
-        if (titleLine && /mic\s*@/i.test(titleLine)) {
-          venueLine = titleLine.split('@')[1]?.split(' - ')[0]?.trim() || venueLine;
+        // Parse time and venue directly from the title
+        const timeMatch = titleText.match(/^(\d{1,2}:\d{2}\s*(?:AM|PM))\b/i);
+        const timeLine = timeMatch ? timeMatch[1] : '';
+        const atIdx = titleText.indexOf('@');
+        const venueLine = atIdx >= 0 ? titleText.slice(atIdx + 1).split(' - ')[0].trim() : '';
+
+        // Find enclosing card to get the signup link
+        let container = titleEl.parentElement;
+        for (let i = 0; i < 6 && container; i += 1) {
+          if ((container.innerText || '').length > 50) break;
+          container = container.parentElement;
         }
+        const linkEl = container ? container.querySelector('a[href]') : null;
+        const href = linkEl ? linkEl.href : null;
 
+        // Day = last heading above this card
         let day = null;
         for (const h of headingEls) {
           if (h.top <= y) day = h.day;
           if (h.top > y) break;
         }
 
-        const linkEl = cta.tagName.toLowerCase() === 'a' ? cta : cta.closest('a');
-        const href = linkEl ? linkEl.href : null;
-
-        const key = `${day || ''}|${timeLine}|${titleLine}`;
         cards.push({
-          key,
           day,
-          title: titleLine,
+          title: titleText,
           time: timeLine,
           venue: venueLine,
           href,
-          raw: lines.join(' | ')
+          raw: titleText
         });
       }
 
       return cards
-        .filter((c) => c.title || c.time || c.venue)
+        .filter((c) => c.time && c.venue)
         .map((c) => ({
           day: c.day || null,
           title: c.title || null,
@@ -226,6 +238,11 @@ function compareData(liveRows, localRows) {
       if (liveMins !== null && row.startMinutes !== null && liveMins !== row.startMinutes) continue;
 
       const score = overlapScore(liveJoined, row.joined);
+      // Reject if venues share no tokens at all
+      const liveVenueTokens = toTokenSet(live.venue || '');
+      const localVenueTokens = toTokenSet(row.mic.venueName || '');
+      const venueOverlap = [...liveVenueTokens].some((t) => localVenueTokens.has(t));
+      if (!venueOverlap) continue;
       if (!best || score > best.score) best = { idx: i, score };
     }
 

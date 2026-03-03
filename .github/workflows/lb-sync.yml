@@ -1,0 +1,53 @@
+name: Laughing Buddha Sync
+
+on:
+  schedule:
+    - cron: '0 10 * * 1'  # Every Monday at 10am UTC (6am ET)
+  workflow_dispatch:       # Allow manual trigger from GitHub UI
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install Puppeteer browser
+        run: npx puppeteer browsers install chrome
+
+      - name: Scrape Laughing Buddha site
+        run: node scripts/check-laughing-buddha.js
+
+      - name: Apply changes to mics.json
+        run: node scripts/apply-lb-changes.js --remove-stale
+
+      - name: Check for changes
+        id: diff
+        run: |
+          git diff --quiet api/mics.json && echo "changed=false" >> $GITHUB_OUTPUT || echo "changed=true" >> $GITHUB_OUTPUT
+
+      - name: Open PR if mics.json changed
+        if: steps.diff.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: lb-sync-${{ github.run_number }}
+          title: "🎤 LB sync: update Laughing Buddha mics"
+          body: |
+            Automated weekly sync with [laughingbuddhacomedy.com/mics](https://www.laughingbuddhacomedy.com/mics).
+
+            **Review the diff before merging.** Once merged, remember to:
+            - Seed the database: `node -r dotenv/config api/scripts/seed-database.js`
+            - Clear Redis cache: `curl -X POST https://micmap-production.up.railway.app/admin/clear-cache`
+          commit-message: "Update Laughing Buddha mics from weekly sync"
+          labels: mics-sync

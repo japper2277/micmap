@@ -1,0 +1,34 @@
+name: Seed DB on mics.json change
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'api/mics.json'
+
+jobs:
+  seed:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install API dependencies
+        run: cd api && npm install
+
+      - name: Seed database
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          REDIS_URL: ${{ secrets.REDIS_URL }}
+        run: node -r dotenv/config api/scripts/seed-database.js
+
+      - name: Clear Redis cache
+        run: |
+          curl -s -X POST https://micmap-production.up.railway.app/admin/clear-cache
