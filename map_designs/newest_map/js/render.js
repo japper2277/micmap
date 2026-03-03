@@ -1195,10 +1195,9 @@ function render(mode) {
                             return t >= earliestCatchable && t <= latestTrain;
                         });
                         if (catchable.length > 0) {
-                            const firstTrain = new Date(catchable[0]);
-                            let departure = new Date(firstTrain.getTime() - walkTo * 60000);
-                            if (departure < now) departure = now;
                             const lastTrain = new Date(catchable[catchable.length - 1]);
+                            let departure = new Date(lastTrain.getTime() - walkTo * 60000);
+                            if (departure < now) departure = now;
                             const arrival = new Date(lastTrain.getTime() + (ride + walkFrom) * 60000);
                             displayMins = Math.round((arrival - departure) / 60000);
                         }

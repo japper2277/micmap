@@ -1992,25 +1992,12 @@ app.get('/api/subway/routes', async (req, res) => {
           // Find trains BEFORE the deadline (ones that get you there on time)
           const gtfsDepartures = getScheduledDeparturesBefore(firstStopId, firstLine, deadlineMins, 3);
           if (gtfsDepartures && gtfsDepartures.length > 0) {
-            // GTFS minutes are NYC local time (minutes from midnight)
-            // Convert to UTC by finding midnight NYC time, then adding minutes
-
-            // Get target date string in NYC timezone (e.g., "1/27/2026")
-            const nycDateStr = targetDate.toLocaleDateString('en-US', { timeZone: 'America/New_York' });
-            const [month, day, year] = nycDateStr.split('/').map(Number);
-
-            // NYC timezone offset (EST = +5, EDT = +4 hours to add to get UTC)
-            const isJanOrFeb = month <= 2;
-            const isNovOrDec = month >= 11;
-            const isDST = !isJanOrFeb && !isNovOrDec; // Rough DST: Mar-Oct
-            const nycOffsetHours = isDST ? 4 : 5;
-
+            // Convert GTFS minutes (NYC local time from midnight) to UTC ISO strings.
+            // Anchor off targetDate (which is already correct UTC) to avoid DST guessing.
+            // Each train is `mins - baseMins` minutes before/after targetDate.
             route.scheduledDepartureTimes = gtfsDepartures.map(mins => {
-              const hours = Math.floor(mins / 60);
-              const minutes = mins % 60;
-              // Create UTC date: NYC midnight + GTFS mins + NYC offset
-              const utcDate = new Date(Date.UTC(year, month - 1, day, hours + nycOffsetHours, minutes, 0));
-              return utcDate.toISOString();
+              const minsDiff = mins - baseMins;
+              return new Date(targetDate.getTime() + minsDiff * 60000).toISOString();
             });
           }
         }

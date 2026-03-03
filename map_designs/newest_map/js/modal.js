@@ -1189,19 +1189,16 @@ async function displaySubwayRoutes(routes, mic, walkOption = null, schedule = nu
 
             // If trains found, use them; otherwise fall through to other options
             if (trainDepartures.length > 0) {
-                // Use FIRST catchable train for departure time (earliest the user can leave)
-                const firstTrain = new Date(trainDepartures[0]);
-                let departure = new Date(firstTrain.getTime() - walkToStation * 60000);
+                // Use LAST catchable train: latest you can leave to still arrive 15 min early
+                const lastTrain = new Date(trainDepartures[trainDepartures.length - 1]);
+                let departure = new Date(lastTrain.getTime() - walkToStation * 60000);
 
                 // Don't show departure times in the past - use "now" if needed
                 if (departure < now) {
                     departure = now;
                 }
 
-                // Use LAST valid train for arrival calculation
-                const lastTrain = new Date(trainDepartures[trainDepartures.length - 1]);
                 const arrival = new Date(lastTrain.getTime() + (rideTime + walkFromStation) * 60000);
-
                 displayTimeRange = `${formatT(departure)} - ${formatT(arrival)}`;
                 displayDuration = Math.round((arrival - departure) / 60000);
                 depTimesStr = summarizeDepartureTimes(
