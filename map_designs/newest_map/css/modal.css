@@ -114,10 +114,11 @@
     background: rgba(255, 255, 255, 0.25);
 }
 
-/* Mobile: 70% size */
+/* Mobile: fluid width */
 @media (max-width: 639px) {
     .venue-card {
-        width: 280px;
+        width: calc(100vw - 40px);
+        max-width: 375px;
         border-radius: 18px;
     }
     /* Swipe indicator bar */
@@ -141,6 +142,17 @@
     }
     .time-display {
         font-size: 14px;
+    }
+    .header-right-actions {
+        gap: 6px;
+    }
+    .modal-share-btn {
+        width: 24px;
+        height: 24px;
+    }
+    .modal-share-btn svg {
+        width: 13px;
+        height: 13px;
     }
     .address {
         font-size: 12px;
@@ -183,7 +195,7 @@
     background: #000;
 }
 
-.header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; gap: 10px; }
 .header-top h1,
 .header-top h2 { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.3px; color: #fff; }
 
@@ -192,6 +204,14 @@
     display: flex;
     align-items: center;
     gap: 6px;
+    min-width: 0;
+    flex: 1 1 auto;
+}
+.venue-title-row h1,
+.venue-title-row h2 {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 .ig-title-btn {
     display: inline-flex;
@@ -208,7 +228,47 @@
     width: 16px;
     height: 16px;
 }
+.header-right-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
 .time-display { font-size: 18px; font-weight: 700; color: #ffffff; letter-spacing: -0.5px; }
+.modal-share-btn {
+    width: 26px;
+    height: 26px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: rgba(161, 161, 170, 0.62);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: color 0.15s ease, background 0.15s ease, transform 0.12s ease;
+}
+.modal-share-btn svg {
+    width: 15px;
+    height: 15px;
+}
+.modal-share-btn:hover {
+    background: rgba(161, 161, 170, 0.07);
+    color: rgba(228, 228, 231, 0.9);
+}
+.modal-share-btn:active {
+    transform: scale(0.96);
+    background: rgba(161, 161, 170, 0.1);
+}
+.modal-share-btn:focus-visible {
+    outline: 2px solid rgba(100, 210, 255, 0.7);
+    outline-offset: 2px;
+    background: rgba(100, 210, 255, 0.08);
+}
+.modal-share-btn.copied {
+    color: #4ade80;
+    background: rgba(74, 222, 128, 0.06);
+}
 
 .sub-header {
     display: inline-flex;
@@ -297,6 +357,47 @@
 }
 
 /* IG badge - button style */
+/* Share badge - icon only */
+.info-badge-share {
+    background: rgba(161, 161, 170, 0.1);
+    border-color: rgba(161, 161, 170, 0.3);
+    color: #a1a1aa;
+    padding: 6px 10px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.info-badge-share:active {
+    transform: scale(0.93);
+    background: rgba(161, 161, 170, 0.25);
+}
+.info-badge-share svg {
+    width: 14px;
+    height: 14px;
+}
+.info-badge-share.copied {
+    color: #4ade80;
+    border-color: rgba(74, 222, 128, 0.3);
+    background: rgba(74, 222, 128, 0.1);
+}
+
+/* Calendar badge */
+.info-badge-cal {
+    background: rgba(41, 151, 255, 0.1);
+    border-color: rgba(41, 151, 255, 0.25);
+    color: #2997ff;
+    padding: 6px 8px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.info-badge-cal svg {
+    width: 14px;
+    height: 14px;
+}
+.info-badge-cal:active {
+    transform: scale(0.93);
+    background: rgba(41, 151, 255, 0.2);
+}
+
 .info-badge-ig {
     background: rgba(225, 48, 108, 0.25);
     border: 1px solid rgba(225, 48, 108, 0.5);

@@ -30,6 +30,7 @@ const searchService = {
         this.originChip = document.getElementById('origin-chip');
         this.originChipName = document.getElementById('origin-chip-name');
         this.originChipClear = document.getElementById('origin-chip-clear');
+        this.backdrop = document.getElementById('search-backdrop');
         if (!this.input) {
             console.warn('Search input not found');
             return;
@@ -40,6 +41,14 @@ const searchService = {
         this.setupClearButton();
         this.setupOriginChip();
         this.setupVoiceSearch();
+
+        // Backdrop click dismisses search
+        if (this.backdrop) {
+            this.backdrop.addEventListener('click', () => {
+                this.hideDropdown();
+                this.input.blur();
+            });
+        }
     },
 
     // Voice search using Web Speech API
@@ -913,7 +922,9 @@ const searchService = {
         if (this.dropdown) {
             this.dropdown.classList.add('active');
             this.input.setAttribute('aria-expanded', 'true');
-            // Keep search icon static - no confusing icon swap
+        }
+        if (this.backdrop) {
+            this.backdrop.classList.add('active');
         }
     },
 
@@ -922,7 +933,9 @@ const searchService = {
             this.dropdown.classList.remove('active');
             this.input.setAttribute('aria-expanded', 'false');
             this.input.removeAttribute('aria-activedescendant');
-            // Keep search icon static - no confusing icon swap
+        }
+        if (this.backdrop) {
+            this.backdrop.classList.remove('active');
         }
         this.selectedIndex = -1;
     },

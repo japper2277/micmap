@@ -4,6 +4,7 @@ const { google } = require('googleapis');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
+const { spawn } = require('child_process');
 const csv = require('csv-parser');
 const GtfsRealtimeBindings = require('gtfs-realtime-bindings');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
@@ -200,6 +201,7 @@ const compression = require('compression');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+let lbCompareJob = { running: false, startedAt: null, lastFinishedAt: null, lastExitCode: null };
 
 // Gzip/Brotli compression - reduces JSON payload ~70-80% for mobile
 app.use(compression({ threshold: 1024 }));
@@ -2170,6 +2172,100 @@ app.get('/api/v1/mics/slots/:slottedId', async (req, res) => {
     console.error('Slotted endpoint error:', err.message);
     res.status(500).json({ success: false, error: 'Failed to fetch slot data' });
   }
+});
+
+// Trigger Laughing Buddha live-vs-local compare job (for web launch automation).
+app.post('/api/v1/admin/lb-compare/run', async (req, res) => {
+  const now = Date.now();
+  const cooldownMs = 30 * 60 * 1000; // 30 minutes
+
+  if (lbCompareJob.running) {
+    return res.status(202).json({
+      success: true,
+      status: 'running',
+      startedAt: lbCompareJob.startedAt
+    });
+  }
+
+  if (lbCompareJob.lastFinishedAt && (now - lbCompareJob.lastFinishedAt) < cooldownMs) {
+    return res.status(202).json({
+      success: true,
+      status: 'cooldown',
+      lastFinishedAt: lbCompareJob.lastFinishedAt,
+      retryAfterSeconds: Math.ceil((cooldownMs - (now - lbCompareJob.lastFinishedAt)) / 1000)
+    });
+  }
+
+  const scriptCandidates = [
+    path.join(__dirname, '..', 'scripts', 'check-laughing-buddha.js'),
+    path.join(__dirname, 'scripts', 'check-laughing-buddha.js')
+  ];
+  const scriptPath = scriptCandidates.find(p => fs.existsSync(p));
+  if (!scriptPath) {
+    return res.status(503).json({
+      success: false,
+      error: 'Compare script not available on this server'
+    });
+  }
+
+  const reportPath = path.join(__dirname, 'logs', 'laughing-buddha-compare.json');
+  fs.mkdirSync(path.dirname(reportPath), { recursive: true });
+
+  lbCompareJob = {
+    ...lbCompareJob,
+    running: true,
+    startedAt: new Date().toISOString()
+  };
+
+  const child = spawn(process.execPath, [scriptPath, '--out', reportPath], {
+    cwd: path.join(__dirname, '..'),
+    env: { ...process.env },
+    stdio: 'ignore',
+    detached: false
+  });
+
+  child.on('error', (err) => {
+    console.error('LB compare failed to start:', err.message);
+    lbCompareJob = {
+      ...lbCompareJob,
+      running: false,
+      lastFinishedAt: Date.now(),
+      lastExitCode: -1
+    };
+  });
+
+  child.on('exit', (code) => {
+    lbCompareJob = {
+      ...lbCompareJob,
+      running: false,
+      lastFinishedAt: Date.now(),
+      lastExitCode: code
+    };
+  });
+
+  return res.status(202).json({
+    success: true,
+    status: 'started',
+    startedAt: lbCompareJob.startedAt
+  });
+});
+
+// Get latest compare status/report metadata.
+app.get('/api/v1/admin/lb-compare/latest', (req, res) => {
+  const reportPath = path.join(__dirname, 'logs', 'laughing-buddha-compare.json');
+  let report = null;
+  if (fs.existsSync(reportPath)) {
+    try {
+      report = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
+    } catch (e) {
+      report = { parseError: e.message };
+    }
+  }
+  res.json({
+    success: true,
+    job: lbCompareJob,
+    report
+  });
 });
 
 // 404 handler

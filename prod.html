@@ -237,6 +237,46 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
 
+        /* Calendar Bottom Sheet */
+        .calendar-sheet-backdrop {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease-in-out;
+        }
+        .calendar-sheet-backdrop.is-open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .calendar-sheet {
+            transform: translateY(100%);
+            transition: transform 0.24s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .calendar-sheet-backdrop.is-open .calendar-sheet {
+            transform: translateY(0);
+        }
+        .calendar-option-btn {
+            width: 100%;
+            text-align: left;
+            border: 1px solid var(--border-color);
+            background: rgba(15, 23, 42, 0.7);
+            color: var(--text-primary);
+            border-radius: 0.75rem;
+            padding: 0.75rem 0.875rem;
+            font-weight: 600;
+            transition: background 0.15s ease-in-out, border-color 0.15s ease-in-out;
+        }
+        .calendar-option-btn:hover {
+            background: rgba(51, 65, 85, 0.75);
+            border-color: rgba(99, 102, 241, 0.5);
+        }
+        .calendar-option-btn .sub {
+            display: block;
+            margin-top: 0.2rem;
+            font-size: 0.8rem;
+            color: var(--text-tertiary);
+            font-weight: 500;
+        }
+
         /* Responsive Layout */
         @media (min-width: 1024px) {
             #filters-container {
@@ -402,6 +442,36 @@
             <span id="toggle-icon"></span>
             <span id="toggle-text" class="font-semibold"></span>
         </button>
+    </div>
+
+    <!-- Calendar Bottom Sheet -->
+    <div id="calendar-sheet-backdrop" class="calendar-sheet-backdrop fixed inset-0 z-[2200] bg-black/60 hidden">
+        <div id="calendar-sheet" class="calendar-sheet absolute bottom-0 left-0 right-0 mx-auto w-full max-w-xl rounded-t-2xl border border-[var(--border-color)] bg-[var(--background-dark)] p-4 pb-5 shadow-2xl">
+            <div class="mx-auto mb-3 h-1.5 w-14 rounded-full bg-[var(--border-color)]"></div>
+            <div class="mb-3">
+                <h3 id="calendar-sheet-title" class="text-lg font-bold text-[var(--text-primary)]">Add to Calendar</h3>
+                <p id="calendar-sheet-subtitle" class="text-sm text-[var(--text-secondary)] mt-0.5">Save this mic to your calendar</p>
+            </div>
+            <div class="mb-4 rounded-lg border border-[var(--border-color)] bg-[var(--surface-medium)] px-3 py-2.5">
+                <p id="calendar-sheet-event-name" class="text-sm font-semibold text-[var(--text-primary)]"></p>
+                <p id="calendar-sheet-event-time" class="text-xs text-[var(--text-secondary)] mt-1"></p>
+                <p id="calendar-sheet-event-location" class="text-xs text-[var(--text-tertiary)] mt-0.5"></p>
+            </div>
+            <div class="space-y-2">
+                <button class="calendar-option-btn" data-calendar-provider="apple">
+                    Apple Calendar
+                    <span class="sub">Downloads an .ics file</span>
+                </button>
+                <button class="calendar-option-btn" data-calendar-provider="google">Google Calendar</button>
+                <button class="calendar-option-btn" data-calendar-provider="outlook">Outlook</button>
+                <button class="calendar-option-btn" data-calendar-provider="yahoo">Yahoo Calendar</button>
+                <button class="calendar-option-btn" data-calendar-provider="ics">Download .ics file</button>
+                <button class="calendar-option-btn" data-calendar-provider="copy">Copy event link</button>
+            </div>
+            <button id="calendar-sheet-cancel" class="mt-3 w-full rounded-lg border border-[var(--border-color)] bg-transparent px-4 py-2.5 text-sm font-semibold text-[var(--text-secondary)] hover:bg-[var(--surface-light)] hover:text-[var(--text-primary)] transition-colors">
+                Cancel
+            </button>
+        </div>
     </div>
 
     <!-- Load Core Scripts -->

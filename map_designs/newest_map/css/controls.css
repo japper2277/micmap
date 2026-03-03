@@ -3,6 +3,22 @@
    Header, toggle, filters, search, locate button
    ================================================================= */
 
+/* --- SEARCH BACKDROP OVERLAY --- */
+#search-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s;
+    z-index: 999;
+}
+#search-backdrop.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
 /* --- LOCATE ME BUTTON --- */
 .locate-btn {
     position: fixed;

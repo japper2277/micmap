@@ -180,6 +180,181 @@ async function handleShareClick(event) {
     }
 }
 
+function getNextDateForDay(dayName) {
+    const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const targetDay = days.indexOf(dayName);
+    const now = new Date();
+
+    if (targetDay < 0) return new Date(now);
+
+    const date = new Date(now);
+    const delta = (targetDay - now.getDay() + 7) % 7;
+    date.setDate(now.getDate() + delta);
+    return date;
+}
+
+function buildMicCalendarEvent(micData) {
+    const start = getNextDateForDay(micData.day);
+    const parsed = formatTime(micData.time || '');
+    start.setHours(parsed.hour, parsed.minute, 0, 0);
+
+    // If the selected day is today but time has passed, schedule the next week.
+    if (start.getTime() < Date.now()) {
+        start.setDate(start.getDate() + 7);
+    }
+
+    const end = new Date(start);
+    end.setHours(end.getHours() + MIC_TIMING.duration);
+
+    const location = micData.address || `${micData.neighborhood || ''}${micData.neighborhood && micData.borough ? ', ' : ''}${micData.borough || ''}`.trim() || 'New York, NY';
+    const shareUrl = `${window.location.origin}${window.location.pathname}?mic=${encodeURIComponent(micData.id)}`;
+    const details = `Open mic event from MicMap.\n${shareUrl}`;
+
+    return {
+        title: micData.name || 'Open Mic',
+        start,
+        end,
+        location,
+        details,
+        shareUrl
+    };
+}
+
+function formatDisplayDateTime(start, end) {
+    return `${start.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}, ${start.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })} - ${end.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
+}
+
+function toCalendarUtcStamp(date) {
+    return date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+}
+
+function escapeIcsText(value) {
+    return (value || '')
+        .replace(/\\/g, '\\\\')
+        .replace(/\n/g, '\\n')
+        .replace(/,/g, '\\,')
+        .replace(/;/g, '\\;');
+}
+
+function downloadIcs(eventData, filename = 'micmap-event.ics') {
+    const uid = `${Date.now()}-${Math.random().toString(36).slice(2)}@micmap.app`;
+    const nowStamp = toCalendarUtcStamp(new Date());
+    const startStamp = toCalendarUtcStamp(eventData.start);
+    const endStamp = toCalendarUtcStamp(eventData.end);
+
+    const ics = [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//MicMap//EN',
+        'CALSCALE:GREGORIAN',
+        'BEGIN:VEVENT',
+        `UID:${uid}`,
+        `DTSTAMP:${nowStamp}`,
+        `DTSTART:${startStamp}`,
+        `DTEND:${endStamp}`,
+        `SUMMARY:${escapeIcsText(eventData.title)}`,
+        `DESCRIPTION:${escapeIcsText(eventData.details)}`,
+        `LOCATION:${escapeIcsText(eventData.location)}`,
+        `URL:${escapeIcsText(eventData.shareUrl)}`,
+        'END:VEVENT',
+        'END:VCALENDAR'
+    ].join('\r\n');
+
+    const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+    const blobUrl = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(blobUrl);
+}
+
+function buildCalendarProviderUrl(provider, eventData) {
+    const title = encodeURIComponent(eventData.title);
+    const details = encodeURIComponent(eventData.details);
+    const location = encodeURIComponent(eventData.location);
+    const startUtc = toCalendarUtcStamp(eventData.start);
+    const endUtc = toCalendarUtcStamp(eventData.end);
+    const startIso = encodeURIComponent(eventData.start.toISOString());
+    const endIso = encodeURIComponent(eventData.end.toISOString());
+
+    if (provider === 'google') {
+        return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startUtc}/${endUtc}&details=${details}&location=${location}`;
+    }
+    if (provider === 'outlook') {
+        return `https://outlook.live.com/calendar/0/deeplink/compose?path=/calendar/action/compose&rru=addevent&subject=${title}&startdt=${startIso}&enddt=${endIso}&body=${details}&location=${location}`;
+    }
+    if (provider === 'yahoo') {
+        return `https://calendar.yahoo.com/?v=60&view=d&type=20&title=${title}&st=${startUtc}&et=${endUtc}&desc=${details}&in_loc=${location}`;
+    }
+    return '';
+}
+
+function openCalendarSheet(micData) {
+    if (!dom.calendarSheetBackdrop || !dom.calendarSheetEventName || !dom.calendarSheetEventTime || !dom.calendarSheetEventLocation) {
+        showToast('Calendar UI is unavailable on this page', 'error');
+        return;
+    }
+
+    const eventData = buildMicCalendarEvent(micData);
+    state.calendarEventData = eventData;
+
+    dom.calendarSheetEventName.textContent = eventData.title;
+    dom.calendarSheetEventTime.textContent = formatDisplayDateTime(eventData.start, eventData.end);
+    dom.calendarSheetEventLocation.textContent = eventData.location;
+
+    dom.calendarSheetBackdrop.classList.remove('hidden');
+    window.requestAnimationFrame(() => {
+        dom.calendarSheetBackdrop.classList.add('is-open');
+    });
+}
+
+function closeCalendarSheet() {
+    if (!dom.calendarSheetBackdrop) return;
+
+    dom.calendarSheetBackdrop.classList.remove('is-open');
+    window.setTimeout(() => {
+        dom.calendarSheetBackdrop.classList.add('hidden');
+        state.calendarEventData = null;
+    }, 220);
+}
+
+async function handleCalendarOptionClick(provider) {
+    if (!state.calendarEventData) return;
+
+    if (provider === 'apple' || provider === 'ics') {
+        const filename = `${state.calendarEventData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'mic-event'}.ics`;
+        downloadIcs(state.calendarEventData, filename);
+        showToast(provider === 'apple' ? 'Apple calendar file downloaded' : 'Calendar file downloaded', 'success');
+        closeCalendarSheet();
+        return;
+    }
+
+    if (provider === 'copy') {
+        try {
+            await navigator.clipboard.writeText(state.calendarEventData.shareUrl);
+            showToast('Event link copied', 'success');
+        } catch (err) {
+            console.error('Copy failed:', err);
+            showToast('Could not copy link', 'error');
+        }
+        closeCalendarSheet();
+        return;
+    }
+
+    const url = buildCalendarProviderUrl(provider, state.calendarEventData);
+    if (!url) {
+        showToast('Calendar option unavailable', 'error');
+        return;
+    }
+
+    window.open(url, '_blank', 'noopener,noreferrer');
+    showToast(`Opening ${provider[0].toUpperCase()}${provider.slice(1)} Calendar...`, 'success');
+    closeCalendarSheet();
+}
+
 // =============================================================================
 // VIEW TOGGLE (Mobile)
 // =============================================================================
@@ -241,6 +416,22 @@ function setupEventListeners() {
             handleCheckInClick(event);
         }
 
+        // Add to Calendar button
+        const calendarBtn = event.target.closest('.calendar-btn');
+        if (calendarBtn) {
+            openCalendarSheet({
+                id: calendarBtn.dataset.micId,
+                name: calendarBtn.dataset.micName,
+                day: calendarBtn.dataset.micDay,
+                time: calendarBtn.dataset.micTime,
+                address: calendarBtn.dataset.micAddress,
+                neighborhood: calendarBtn.dataset.micNeighborhood,
+                borough: calendarBtn.dataset.micBorough
+            });
+            event.stopPropagation();
+            return;
+        }
+
         // Share button
         if (event.target.closest('.share-btn')) {
             handleShareClick(event);
@@ -255,6 +446,30 @@ function setupEventListeners() {
             event.stopPropagation();
         }
     });
+
+    if (dom.calendarSheetBackdrop && dom.calendarSheet && dom.calendarSheetCancel) {
+        dom.calendarSheetBackdrop.addEventListener('click', (event) => {
+            if (event.target === dom.calendarSheetBackdrop) {
+                closeCalendarSheet();
+            }
+        });
+
+        dom.calendarSheetCancel.addEventListener('click', () => {
+            closeCalendarSheet();
+        });
+
+        dom.calendarSheet.addEventListener('click', (event) => {
+            const option = event.target.closest('[data-calendar-provider]');
+            if (!option) return;
+            handleCalendarOptionClick(option.dataset.calendarProvider);
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && dom.calendarSheetBackdrop.classList.contains('is-open')) {
+                closeCalendarSheet();
+            }
+        });
+    }
 
     // View Toggle (Mobile)
     dom.viewToggleBtn.addEventListener('click', () => {
@@ -375,7 +590,13 @@ document.addEventListener('DOMContentLoaded', () => {
         viewToggle: document.getElementById('view-toggle'),
         viewToggleBtn: document.getElementById('view-toggle-btn'),
         toggleIcon: document.getElementById('toggle-icon'),
-        toggleText: document.getElementById('toggle-text')
+        toggleText: document.getElementById('toggle-text'),
+        calendarSheetBackdrop: document.getElementById('calendar-sheet-backdrop'),
+        calendarSheet: document.getElementById('calendar-sheet'),
+        calendarSheetCancel: document.getElementById('calendar-sheet-cancel'),
+        calendarSheetEventName: document.getElementById('calendar-sheet-event-name'),
+        calendarSheetEventTime: document.getElementById('calendar-sheet-event-time'),
+        calendarSheetEventLocation: document.getElementById('calendar-sheet-event-location')
     };
 
     // Initialize map

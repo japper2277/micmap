@@ -2,7 +2,8 @@
   "scripts": {
     "start": "cd api && node server.js",
     "watch": "node scripts/watch-mics.js",
-    "generate": "node scripts/generate-venue-list.js"
+    "generate": "node scripts/generate-venue-list.js",
+    "check:lb": "node scripts/check-laughing-buddha.js"
   },
   "dependencies": {
     "@capacitor/cli": "^8.0.0",

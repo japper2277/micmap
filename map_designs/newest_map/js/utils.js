@@ -403,6 +403,87 @@ function openDirections(lat, lng) {
 }
 
 // =================================================================
+// Google Calendar URL generation
+// =================================================================
+
+function getMicCalendarDate(mic) {
+    const now = new Date();
+    if (STATE?.currentMode === 'tomorrow') {
+        const d = new Date(now);
+        d.setDate(d.getDate() + 1);
+        return d;
+    }
+    if (STATE?.currentMode === 'calendar' && STATE?.selectedCalendarDate) {
+        return new Date(STATE.selectedCalendarDate);
+    }
+    return now;
+}
+
+function generateGoogleCalendarUrl(mic) {
+    const baseDate = getMicCalendarDate(mic);
+    const start = new Date(baseDate);
+    start.setHours(mic.start.getHours(), mic.start.getMinutes(), 0, 0);
+
+    // Default 1 hour duration
+    const end = new Date(start.getTime() + 60 * 60000);
+
+    const fmt = (d) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+    const dates = `${fmt(start)}/${fmt(end)}`;
+
+    const title = encodeURIComponent(mic.title || mic.venue || 'Open Mic');
+    const location = encodeURIComponent(mic.address || '');
+    const details = encodeURIComponent(
+        [mic.price, mic.signupUrl ? `Sign up: ${mic.signupUrl}` : null]
+            .filter(Boolean).join('\n')
+    );
+
+    return `https://www.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${dates}&location=${location}&details=${details}`;
+}
+
+function addMicToCalendar(micId) {
+    const mic = STATE.mics.find(m => m.id === micId);
+    if (!mic || !mic.start) return;
+    window.open(generateGoogleCalendarUrl(mic), '_blank');
+}
+
+function exportScheduleToCalendar() {
+    const routeMics = (STATE.route || [])
+        .map(id => STATE.mics.find(m => m.id === id))
+        .filter(m => m && m.start);
+    if (routeMics.length === 0) return;
+
+    // Open each mic as a separate calendar event
+    routeMics.forEach((mic, i) => {
+        setTimeout(() => window.open(generateGoogleCalendarUrl(mic), '_blank'), i * 300);
+    });
+}
+
+function copyScheduleAsText() {
+    const routeMics = (STATE.route || [])
+        .map(id => STATE.mics.find(m => m.id === id))
+        .filter(m => m && m.start)
+        .sort((a, b) => a.start - b.start);
+    if (routeMics.length === 0) return;
+
+    const dateLabel = getMicCalendarDate(routeMics[0]).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+    const lines = routeMics.map(m => {
+        const time = m.start.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+        const venue = m.title || m.venue || 'Mic';
+        const hood = m.hood || m.neighborhood || '';
+        return `${time} - ${venue}${hood ? ` (${hood})` : ''}`;
+    });
+
+    const text = `${dateLabel}\n${lines.join('\n')}`;
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(() => {
+            if (typeof toastService !== 'undefined') {
+                toastService.show('Schedule copied!', { duration: 2000 });
+            }
+        });
+    }
+}
+
+// =================================================================
 // HERE Walking API - Accurate pedestrian routing
 // =================================================================
 

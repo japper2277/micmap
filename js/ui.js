@@ -109,16 +109,36 @@ function createMicCard(mic, isTopPick = false) {
                     <a href="${mapsLink}" target="_blank" rel="noopener noreferrer" class="col-span-1 block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-3 rounded-lg transition-colors duration-200 flex items-center justify-center text-sm action-btn">Directions</a>
                     <button class="check-in-btn col-span-1 w-full bg-[var(--warning-orange)] hover:bg-orange-600 text-white font-semibold py-2 px-3 rounded-lg text-sm action-btn" data-mic-id="${mic.id}">Check In</button>
                 </div>
-                <button class="share-btn w-full bg-[var(--surface-medium)] hover:bg-[var(--surface-light)] text-[var(--text-primary)] font-semibold py-2 px-3 rounded-lg text-sm flex items-center justify-center space-x-2 transition-colors duration-200 border border-[var(--border-color)]" data-mic-id="${mic.id}" data-mic-name="${mic.name}" data-mic-day="${mic.day}" data-mic-time="${mic.startTime}">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="18" cy="5" r="3"></circle>
-                        <circle cx="6" cy="12" r="3"></circle>
-                        <circle cx="18" cy="19" r="3"></circle>
-                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-                    </svg>
-                    <span>Share</span>
-                </button>
+                <div class="grid grid-cols-2 gap-2">
+                    <button class="calendar-btn w-full bg-[var(--surface-medium)] hover:bg-[var(--surface-light)] text-[var(--text-primary)] font-semibold py-2 px-3 rounded-lg text-sm flex items-center justify-center space-x-2 transition-colors duration-200 border border-[var(--border-color)] action-btn"
+                        data-mic-id="${mic.id}"
+                        data-mic-name="${mic.name}"
+                        data-mic-day="${mic.day}"
+                        data-mic-time="${mic.startTime}"
+                        data-mic-address="${mic.address || ''}"
+                        data-mic-borough="${mic.borough || ''}"
+                        data-mic-neighborhood="${mic.neighborhood || ''}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                            <line x1="12" y1="13" x2="12" y2="19"></line>
+                            <line x1="9" y1="16" x2="15" y2="16"></line>
+                        </svg>
+                        <span>Add to Calendar</span>
+                    </button>
+                    <button class="share-btn w-full bg-[var(--surface-medium)] hover:bg-[var(--surface-light)] text-[var(--text-primary)] font-semibold py-2 px-3 rounded-lg text-sm flex items-center justify-center space-x-2 transition-colors duration-200 border border-[var(--border-color)] action-btn" data-mic-id="${mic.id}" data-mic-name="${mic.name}" data-mic-day="${mic.day}" data-mic-time="${mic.startTime}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="18" cy="5" r="3"></circle>
+                            <circle cx="6" cy="12" r="3"></circle>
+                            <circle cx="18" cy="19" r="3"></circle>
+                            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                        </svg>
+                        <span>Share</span>
+                    </button>
+                </div>
             </div>
         </div>
     `;

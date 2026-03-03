@@ -3,6 +3,26 @@
    Data loading, event listeners, initialization
    ================================================================= */
 
+// Trigger backend live-data compare on website launch (once per tab session).
+function triggerLaunchLiveCompare() {
+    const sessionKey = 'lbCompareTriggeredAt';
+    try {
+        if (sessionStorage.getItem(sessionKey)) return;
+        sessionStorage.setItem(sessionKey, String(Date.now()));
+    } catch (_) {
+        // Ignore storage failures and still try once.
+    }
+
+    const endpoint = `${CONFIG.apiBase}/api/v1/admin/lb-compare/run`;
+    fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ source: 'website-launch' })
+    }).catch(() => {
+        // Silent failure: this should never block page load.
+    });
+}
+
 // Load JSON and initialize
 async function loadData() {
     // Show skeleton loading while fetching
@@ -71,6 +91,11 @@ async function loadData() {
         if (STATE.route.length > 0) {
             if (typeof updateRouteClass === 'function') updateRouteClass();
             if (typeof updateMarkerStates === 'function') updateMarkerStates();
+        }
+
+        // Check for deep link to a specific mic (e.g. #mic=abc123)
+        if (typeof openMicFromHash === 'function') {
+            openMicFromHash();
         }
 
         // Check if transit calculation was pending (location arrived before mics loaded)
@@ -248,6 +273,9 @@ function init() {
     // Load data and render
     loadData();
 
+    // Kick off live-data parity check in the background on app launch.
+    triggerLaunchLiveCompare();
+
     // Load Slotted signup availability
     loadSlottedData();
 
@@ -266,6 +294,15 @@ function init() {
 
     // Show onboarding hints for first-time visitors
     showOnboardingHints();
+
+    // Handle back/forward navigation for deep links
+    window.addEventListener('hashchange', () => {
+        if (window.location.hash.startsWith('#mic=') && typeof openMicFromHash === 'function') {
+            openMicFromHash();
+        } else if (!window.location.hash && venueModal && venueModal.classList.contains('active')) {
+            closeVenueModal();
+        }
+    });
 }
 
 // First-visit onboarding — sequential toast hints, cancels on interaction

@@ -25,6 +25,7 @@ const state = {
     // UI State
     view: window.innerWidth >= 1024 ? 'desktop' : 'list',  // 'list', 'map', 'desktop'
     hoveredMicId: null,
+    calendarEventData: null,
     isPanelDragging: false,
     lastPanelHeight: window.innerHeight * DEFAULTS.panelHeightMobile,
 

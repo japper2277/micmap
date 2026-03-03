@@ -762,7 +762,7 @@ function render(mode) {
         scheduleCard.setAttribute('role', 'button');
         scheduleCard.setAttribute('aria-expanded', STATE.scheduleExpanded ? 'true' : 'false');
         scheduleCard.setAttribute('tabindex', '0');
-        scheduleCard.setAttribute('aria-label', `Toggle schedule details for ${scheduleDayLabel}`);
+        scheduleCard.setAttribute('aria-label', `Toggle My Night details for ${scheduleDayLabel}`);
         const expandedList = document.createElement('div');
         expandedList.className = `my-schedule-expanded${STATE.scheduleExpanded ? ' is-open' : ''}`;
 
@@ -784,7 +784,7 @@ function render(mode) {
             <div class="my-schedule-card-left">
                 <span class="my-schedule-icon">🎤</span>
                 <span class="my-schedule-card-count">${routeMics.length}</span>
-                <span class="my-schedule-card-label">My Schedule</span>
+                <span class="my-schedule-card-label">My Night</span>
             </div>
             <div class="my-schedule-card-right">
                 <span class="my-schedule-card-preview">${rangeText}</span>
@@ -913,11 +913,16 @@ function render(mode) {
             `;
         }).join('');
 
-        const toolsRow = routeOutOfOrder ? `
+        const sortBtn = routeOutOfOrder
+            ? `<button class="schedule-tool-btn" onclick="event.stopPropagation(); sortRouteByTime();" aria-label="Sort schedule by time">Sort by time</button>`
+            : '';
+        const toolsRow = `
             <div class="schedule-tools" onclick="event.stopPropagation()">
-                <button class="schedule-tool-btn" onclick="event.stopPropagation(); sortRouteByTime();" aria-label="Sort schedule by time">Sort by time</button>
+                ${sortBtn}
+                <button class="schedule-tool-btn" onclick="event.stopPropagation(); exportScheduleToCalendar();" aria-label="Add schedule to Google Calendar">Add to Calendar</button>
+                <button class="schedule-tool-btn" onclick="event.stopPropagation(); copyScheduleAsText();" aria-label="Copy schedule as text">Copy</button>
             </div>
-        ` : '';
+        `;
 
         // Suggested Mics Section
         let suggestionsHtml = '';

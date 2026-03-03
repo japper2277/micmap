@@ -66,7 +66,7 @@ function setupModalSwipeToDismiss() {
 
 // DOM element references (initialized after DOM loads)
 let venueModal, modalVenueName, modalAddress, modalDirections;
-let modalMicTime, modalInfoRow, modalInstructions, modalActions, modalSignupBtn, modalIgBtn, modalPlanBtn, modalPlanActions;
+let modalMicTime, modalInfoRow, modalInstructions, modalActions, modalSignupBtn, modalIgBtn, modalPlanBtn, modalPlanActions, modalShareBtn;
 let modalTransit, modalTabs;
 
 // Focus trap state
@@ -76,6 +76,7 @@ let modalFocusTrapHandler = null;
 // Current mics for tab switching
 let modalMicsArray = [];
 let modalActiveMicIndex = 0;
+let activeModalMicId = null;
 
 // Initialize modal DOM references
 function initModal() {
@@ -93,8 +94,18 @@ function initModal() {
     modalTabs = document.getElementById('modal-tabs');
     modalPlanActions = document.getElementById('modal-plan-actions');
     modalPlanBtn = document.getElementById('modal-plan-btn');
+    modalShareBtn = document.getElementById('modal-share-btn');
 
-    // "+ Schedule" button click handler - adds mic to schedule without entering plan mode
+    if (modalShareBtn) {
+        modalShareBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (activeModalMicId) {
+                shareMic(activeModalMicId);
+            }
+        });
+    }
+
+    // "Add to Night" button click handler - adds mic to in-app schedule without entering plan mode
     if (modalPlanBtn) {
         modalPlanBtn.addEventListener('click', () => {
             const mic = modalMicsArray[modalActiveMicIndex];
@@ -242,6 +253,9 @@ function openVenueModalWithMics(mics) {
         }
         populateModalContent(primaryMic, venueMics);
         venueModal.classList.add('active');
+        if (primaryMic.id && !primaryMic.id.startsWith('warning-')) {
+            history.replaceState(null, '', `#mic=${primaryMic.id}`);
+        }
         modalTriggerElement = document.activeElement;
         setupFocusTrap(venueModal);
         return;
@@ -321,6 +335,9 @@ function openVenueModalWithMics(mics) {
 
     // Show modal
     venueModal.classList.add('active');
+    if (firstVenueMics[0].id && !firstVenueMics[0].id.startsWith('warning-')) {
+        history.replaceState(null, '', `#mic=${firstVenueMics[0].id}`);
+    }
 
     // Accessibility
     modalTriggerElement = document.activeElement;
@@ -330,6 +347,7 @@ function openVenueModalWithMics(mics) {
 // Populate modal content without showing it (for tab switching)
 function populateModalContent(mic, allMicsAtVenue = null) {
     if (!mic) return;
+    activeModalMicId = mic.id || null;
 
     // 1. HEADER - Venue name and time(s)
     modalVenueName.innerText = mic.title || 'Unknown Venue';
@@ -519,6 +537,10 @@ function populateModalContent(mic, allMicsAtVenue = null) {
         infoParts.push(`<div class="info-badge info-badge-flyer" onclick="event.stopPropagation(); openFlyerLightbox('${venueImg}')">Flyer ↗</div>`);
     }
 
+    // 6. Calendar badge (icon only)
+    const calIcon1 = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="14" height="16" rx="2"/><line x1="7" y1="2" x2="7" y2="6"/><line x1="13" y1="2" x2="13" y2="6"/><line x1="3" y1="10" x2="17" y2="10"/><path d="M14 14l7-7"/><path d="M16 7h5v5"/></svg>';
+    infoParts.push(`<div class="info-badge info-badge-cal" onclick="event.stopPropagation(); addMicToCalendar('${mic.id}')" aria-label="Add to Calendar" title="Add to Calendar">${calIcon1}</div>`);
+
     modalInfoRow.innerHTML = infoParts.join('');
 
     // 4. NOTE TEXT - Description only (if there's meaningful content)
@@ -583,7 +605,7 @@ function populateModalContent(mic, allMicsAtVenue = null) {
         } else {
             modalPlanBtn.style.display = 'flex';
             const isInRoute = STATE.route?.includes(mic.id);
-            modalPlanBtn.textContent = isInRoute ? 'Scheduled \u2713' : '+ Schedule';
+            modalPlanBtn.textContent = isInRoute ? 'In Night \u2713' : '+ Add to Night';
             modalPlanBtn.classList.toggle('btn-scheduled', isInRoute);
         }
     }
@@ -607,6 +629,7 @@ function populateModalContent(mic, allMicsAtVenue = null) {
 
 function openVenueModal(mic) {
     if (!mic) return;
+    activeModalMicId = mic.id || null;
 
     // Find all mics at this venue (same address/coordinates)
     const venueMics = (STATE?.mics || []).filter(m =>
@@ -768,6 +791,10 @@ function openVenueModal(mic) {
         infoParts.push(`<div class="info-badge info-badge-flyer" onclick="event.stopPropagation(); openFlyerLightbox('${venueImg}')">Flyer ↗</div>`);
     }
 
+    // 6. Calendar badge (icon only)
+    const calIcon2 = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="14" height="16" rx="2"/><line x1="7" y1="2" x2="7" y2="6"/><line x1="13" y1="2" x2="13" y2="6"/><line x1="3" y1="10" x2="17" y2="10"/><path d="M14 14l7-7"/><path d="M16 7h5v5"/></svg>';
+    infoParts.push(`<div class="info-badge info-badge-cal" onclick="event.stopPropagation(); addMicToCalendar('${mic.id}')" aria-label="Add to Calendar" title="Add to Calendar">${calIcon2}</div>`);
+
     modalInfoRow.innerHTML = infoParts.join('');
 
     // 4. NOTE TEXT - Description only (if there's meaningful content)
@@ -830,7 +857,7 @@ function openVenueModal(mic) {
         } else {
             modalPlanBtn.style.display = 'flex';
             const isInRoute = STATE.route?.includes(mic.id);
-            modalPlanBtn.textContent = isInRoute ? 'Scheduled \u2713' : '+ Schedule';
+            modalPlanBtn.textContent = isInRoute ? 'In Night \u2713' : '+ Add to Night';
             modalPlanBtn.classList.toggle('btn-scheduled', isInRoute);
         }
     }
@@ -849,6 +876,11 @@ function openVenueModal(mic) {
 
     // Show modal
     venueModal.classList.add('active');
+
+    // Update URL hash for deep linking
+    if (mic.id && !mic.id.startsWith('warning-')) {
+        history.replaceState(null, '', `#mic=${mic.id}`);
+    }
 
     // Accessibility: Focus trap and management
     modalTriggerElement = document.activeElement;
@@ -1019,6 +1051,19 @@ function showAlertModal(line, alertText) {
     modal.classList.add('show');
 }
 
+// Compact departure display for route cards (prevents footer overflow).
+function formatDepartureLabel(date) {
+    const full = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    return full.replace(' AM', 'a').replace(' PM', 'p');
+}
+
+function summarizeDepartureTimes(times, maxVisible = 2) {
+    if (!times || times.length === 0) return '';
+    const shown = times.slice(0, maxVisible);
+    const remainder = times.length - shown.length;
+    return remainder > 0 ? `${shown.join(', ')} +${remainder}` : shown.join(', ');
+}
+
 // Display subway routes in new card format
 async function displaySubwayRoutes(routes, mic, walkOption = null, schedule = null) {
     if (!routes || routes.length === 0) {
@@ -1159,7 +1204,9 @@ async function displaySubwayRoutes(routes, mic, walkOption = null, schedule = nu
 
                 displayTimeRange = `${formatT(departure)} - ${formatT(arrival)}`;
                 displayDuration = Math.round((arrival - departure) / 60000);
-                depTimesStr = trainDepartures.map(iso => formatT(new Date(iso))).join(', ');
+                depTimesStr = summarizeDepartureTimes(
+                    trainDepartures.map(iso => formatDepartureLabel(new Date(iso)))
+                );
             }
         }
         // Priority 2: Need to leave within 30 min - use real-time MTA (only if Priority 1 didn't find trains)
@@ -1197,7 +1244,9 @@ async function displaySubwayRoutes(routes, mic, walkOption = null, schedule = nu
 
                         displayTimeRange = `${formatT(departure)} - ${formatT(arrival)}`;
                         displayDuration = Math.round((arrival - departure) / 60000);
-                        depTimesStr = trainDepartures.map(iso => formatT(new Date(iso))).join(', ');
+                        depTimesStr = summarizeDepartureTimes(
+                    trainDepartures.map(iso => formatDepartureLabel(new Date(iso)))
+                );
                     }
                 } catch (e) {
                     console.warn('Failed to fetch MTA arrivals:', e);
@@ -1656,6 +1705,12 @@ function openFlyerLightbox(src) {
 
 function closeVenueModal() {
     venueModal.classList.remove('active');
+    activeModalMicId = null;
+
+    // Clear hash when modal closes
+    if (window.location.hash.startsWith('#mic=')) {
+        history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
 
     // Accessibility: Remove focus trap and restore focus
     if (modalFocusTrapHandler) {
@@ -1668,4 +1723,50 @@ function closeVenueModal() {
         modalTriggerElement.focus();
         modalTriggerElement = null;
     }
+}
+
+// Share a mic via deep link
+function shareMic(micId) {
+    const url = `${window.location.origin}${window.location.pathname}#mic=${micId}`;
+
+    // Update hash in URL
+    history.replaceState(null, '', `#mic=${micId}`);
+
+    // Try native share on mobile, clipboard on desktop
+    if (navigator.share) {
+        const mic = STATE.mics.find(m => m.id === micId);
+        const title = mic ? `${mic.title} - ${mic.timeStr} ${mic.day}` : 'Open Mic';
+        navigator.share({ title, url }).catch(() => {});
+    } else if (navigator.clipboard) {
+        navigator.clipboard.writeText(url).then(() => {
+            // Flash the header share button green briefly
+            if (modalShareBtn) {
+                modalShareBtn.classList.add('copied');
+                setTimeout(() => {
+                    modalShareBtn.classList.remove('copied');
+                }, 1500);
+            }
+            if (typeof toastService !== 'undefined') {
+                toastService.show('Link copied!', { duration: 2000 });
+            }
+        });
+    }
+}
+
+// Open a mic from a deep link hash (called after data loads)
+function openMicFromHash() {
+    const hash = window.location.hash;
+    if (!hash.startsWith('#mic=')) return false;
+    const micId = hash.slice(5);
+    const mic = STATE.mics.find(m => m.id === micId);
+    if (mic) {
+        // Fly to the mic and open its modal
+        if (typeof locateMic === 'function') {
+            locateMic(mic.lat, mic.lng, mic.id);
+        } else {
+            openVenueModal(mic);
+        }
+        return true;
+    }
+    return false;
 }
