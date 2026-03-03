@@ -236,8 +236,8 @@
 }
 .time-display { font-size: 18px; font-weight: 700; color: #ffffff; letter-spacing: -0.5px; }
 .modal-share-btn {
-    width: 26px;
-    height: 26px;
+    width: 34px;
+    height: 34px;
     border: none;
     border-radius: 6px;
     background: transparent;
@@ -249,8 +249,8 @@
     transition: color 0.15s ease, background 0.15s ease, transform 0.12s ease;
 }
 .modal-share-btn svg {
-    width: 15px;
-    height: 15px;
+    width: 19px;
+    height: 19px;
 }
 .modal-share-btn:hover {
     background: rgba(161, 161, 170, 0.07);
@@ -385,13 +385,17 @@
     background: rgba(41, 151, 255, 0.1);
     border-color: rgba(41, 151, 255, 0.25);
     color: #2997ff;
-    padding: 6px 8px;
+    padding: 6px 10px;
     cursor: pointer;
     transition: all 0.15s ease;
+    gap: 5px;
+    font-size: 12px;
+    font-weight: 500;
 }
 .info-badge-cal svg {
-    width: 14px;
-    height: 14px;
+    width: 13px;
+    height: 13px;
+    flex-shrink: 0;
 }
 .info-badge-cal:active {
     transform: scale(0.93);
