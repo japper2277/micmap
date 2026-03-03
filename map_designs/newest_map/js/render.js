@@ -1016,7 +1016,7 @@ function render(mode) {
             }
         }
 
-        expandedList.innerHTML = `${conflictBanner}${itemsHtml}${suggestionsHtml}${toolsRow}`;
+        expandedList.innerHTML = `${conflictBanner}${itemsHtml}${toolsRow}${suggestionsHtml}`;
         scheduleMountTarget.appendChild(expandedList);
 
         if (typeof initScheduleReorder === 'function') {

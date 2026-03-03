@@ -800,8 +800,9 @@ body.plan-mode .happening-now-card-label {
 .schedule-tools {
     display: flex;
     justify-content: center;
-    padding-top: 10px;
-    margin-top: 4px;
+    padding: 10px 16px 6px;
+    margin-bottom: 6px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .schedule-tool-btn {
