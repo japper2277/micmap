@@ -278,6 +278,7 @@ function init() {
 
     // Load Slotted signup availability
     loadSlottedData();
+    loadCotlData();
 
     // Tomorrow notice button handler
     const tomorrowBtn = document.getElementById('tomorrow-btn');
@@ -350,6 +351,20 @@ function showOnboardingHints() {
         }, delay);
         timers.push(t);
     });
+}
+
+// Load Comedians on the Loose signup slot availability (scraped hourly via GitHub Actions)
+async function loadCotlData() {
+    try {
+        const res = await fetch(`${CONFIG.apiBase}/api/v1/mics/slots/cotl`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.success) {
+            STATE.slottedSlots[data.venueName] = data;
+        }
+    } catch (e) {
+        // Non-critical — silently fail
+    }
 }
 
 // Load Slotted.co signup slot availability

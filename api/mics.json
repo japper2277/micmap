@@ -2076,7 +2076,7 @@
   {
     "name": "Comedians on the Loose",
     "day": "Tuesday",
-    "startTime": "7:00 PM",
+    "startTime": "7:30 PM",
     "endTime": "8:55 PM",
     "venueName": "Black Cat LES",
     "borough": "Manhattan",
@@ -2275,23 +2275,6 @@
     "stageTime": "3min",
     "signUpDetails": "signup there",
     "host": "(@statusmic)",
-    "notes": null
-  },
-  {
-    "name": "Comedians on the Loose",
-    "day": "Tuesday",
-    "startTime": "9:00 PM",
-    "endTime": "10:55 PM",
-    "venueName": "Black Cat LES",
-    "borough": "Manhattan",
-    "neighborhood": "LES",
-    "address": "172 Rivington St, New York, NY 10002, USA",
-    "lat": 40.7190777,
-    "lon": -73.9912865,
-    "cost": "$6 cash",
-    "stageTime": "7min",
-    "signUpDetails": "https://www.comediansontheloose.com/open-mics",
-    "host": "Sonja Savanovic (@cotlcomedy)",
     "notes": null
   },
   {

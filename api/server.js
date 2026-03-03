@@ -2150,14 +2150,49 @@ app.get('/api/proxy/calred', async (req, res) => {
 
 // Slotted.co signup availability
 app.get('/api/v1/mics/slots/:slottedId', async (req, res) => {
+  const { slottedId } = req.params;
   try {
-    const data = await getSlottedData(req.params.slottedId);
+    // COTL slots are stored in Redis, not via the Slotted service
+    if (slottedId === 'cotl') {
+      const { redis, isRedisConnected } = require('./config/cache');
+      if (!isRedisConnected()) {
+        return res.status(503).json({ success: false, error: 'Cache unavailable' });
+      }
+      const raw = await redis.get('micmap:cotl:slots');
+      if (!raw) return res.status(404).json({ success: false, error: 'No COTL slot data yet' });
+      const data = JSON.parse(raw);
+      res.set('Cache-Control', 'public, max-age=300');
+      return res.json({ success: true, ...data });
+    }
+
+    const data = await getSlottedData(slottedId);
     if (!data) return res.status(404).json({ success: false, error: 'Unknown slotted ID' });
     res.set('Cache-Control', 'public, max-age=300');
     res.json({ success: true, ...data });
   } catch (err) {
     console.error('Slotted endpoint error:', err.message);
     res.status(500).json({ success: false, error: 'Failed to fetch slot data' });
+  }
+});
+
+// Receive COTL slot data from GitHub Actions scraper
+app.post('/admin/cotl-slots', async (req, res) => {
+  try {
+    const { redis, isRedisConnected } = require('./config/cache');
+    if (!isRedisConnected()) {
+      return res.status(503).json({ success: false, error: 'Cache unavailable' });
+    }
+    const data = req.body;
+    if (!data || !Array.isArray(data.slots)) {
+      return res.status(400).json({ success: false, error: 'Invalid payload: expected { slots: [...] }' });
+    }
+    // Store for 4 hours (scraper runs hourly, so this gives a comfortable buffer)
+    await redis.setex('micmap:cotl:slots', 4 * 60 * 60, JSON.stringify(data));
+    console.log(`✅ COTL slots updated: ${data.slots.length} slot(s)`);
+    res.json({ success: true, slotCount: data.slots.length });
+  } catch (err) {
+    console.error('COTL slots POST error:', err.message);
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 

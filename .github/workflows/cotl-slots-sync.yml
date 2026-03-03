@@ -1,0 +1,31 @@
+name: COTL Slots Sync
+
+on:
+  schedule:
+    - cron: '0 * * * *'   # Every hour
+  workflow_dispatch:       # Allow manual trigger from GitHub UI
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install Puppeteer browser
+        run: npx puppeteer browsers install chrome
+
+      - name: Scrape COTL signup slots
+        run: node scripts/scrape-cotl-slots.js --post
+        env:
+          MICMAP_API_BASE: https://micmap-production.up.railway.app
