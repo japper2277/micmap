@@ -40,3 +40,16 @@ gtfs_supplemented/stop_times.txt
 
 # Local Netlify folder
 .netlify
+
+# Generated logs
+logs/
+
+# Link audit reports
+link-audit.md
+link_audit_report.md
+
+# Demo / prototype / wireframe HTML files
+map_designs/newest_map/demo-*.html
+map_designs/newest_map/proto-*.html
+map_designs/newest_map/prototype-*.html
+map_designs/newest_map/wireframes/
