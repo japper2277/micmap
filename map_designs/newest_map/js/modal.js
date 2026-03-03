@@ -574,7 +574,7 @@ function populateModalContent(mic, allMicsAtVenue = null) {
             return h === micHour;
         });
         if (matchedSlot) {
-            spotsLabel = matchedSlot.spotsLeft === 0 ? ' (FULL)' : ` (${matchedSlot.spotsLeft}/${matchedSlot.capacity} spots)`;
+            spotsLabel = matchedSlot.spotsLeft === 0 ? ' (FULL)' : ` (${matchedSlot.spotsLeft}/${matchedSlot.capacity} spots left)`;
         }
     }
     const hasSignupUrl = !!mic.signupUrl;
@@ -826,7 +826,7 @@ function openVenueModal(mic) {
             return h === micHour;
         });
         if (matchedSlot) {
-            spotsLabel = matchedSlot.spotsLeft === 0 ? ' (FULL)' : ` (${matchedSlot.spotsLeft}/${matchedSlot.capacity} spots)`;
+            spotsLabel = matchedSlot.spotsLeft === 0 ? ' (FULL)' : ` (${matchedSlot.spotsLeft}/${matchedSlot.capacity} spots left)`;
         }
     }
     const hasSignupUrl = !!mic.signupUrl;

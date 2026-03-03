@@ -1261,7 +1261,7 @@ function render(mode) {
             });
             if (matchedSlot) {
                 const isFull = matchedSlot.spotsLeft === 0;
-                spotsBadge = `<span class="spots-badge ${isFull ? 'spots-full' : ''}">${isFull ? 'FULL' : matchedSlot.spotsLeft + '/' + matchedSlot.capacity + ' spots'}</span>`;
+                spotsBadge = `<span class="spots-badge ${isFull ? 'spots-full' : ''}">${isFull ? 'FULL' : matchedSlot.spotsLeft + '/' + matchedSlot.capacity + ' spots left'}</span>`;
             }
         }
 
