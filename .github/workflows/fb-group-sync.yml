@@ -1,0 +1,43 @@
+name: FB Group Signup Sync
+
+on:
+  schedule:
+    - cron: '30 * * * *'     # Every hour at :30
+  workflow_dispatch:          # Allow manual trigger
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install Puppeteer browser
+        run: npx puppeteer browsers install chrome
+
+      - name: Scrape FB group posts
+        run: node scripts/scrape-fb-group.js --limit 20
+        env:
+          GITHUB_ACTIONS: 'true'
+          FB_COOKIES: ${{ secrets.FB_COOKIES }}
+          MICMAP_API_BASE: ${{ secrets.MICMAP_API_BASE || 'https://micmap-production.up.railway.app' }}
+          PUPPETEER_EXECUTABLE_PATH: ''
+
+      - name: Warn on scrape failure
+        if: failure()
+        run: |
+          echo "::error::FB scrape failed. If cookies expired, refresh locally with:"
+          echo "::error::  1. Launch Chrome: /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222 --user-data-dir=logs/fb-chrome-profile"
+          echo "::error::  2. Log into Facebook"
+          echo "::error::  3. Run: node scripts/fb-export-cookies.js --set-secret"

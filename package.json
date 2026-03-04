@@ -7,7 +7,9 @@
     "ig:scrape": "node scripts/scrape-ig-stories.js",
     "ig:apply": "node scripts/apply-ig-signups.js",
     "ig:review": "node scripts/build-ig-review-checklist.js",
-    "ig:test": "node --test scripts/tests/ig-sync.test.js"
+    "ig:test": "node --test scripts/tests/ig-sync.test.js",
+    "fb:scrape": "node scripts/scrape-fb-group.js",
+    "fb:export-cookies": "node scripts/fb-export-cookies.js"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

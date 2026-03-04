@@ -2290,6 +2290,85 @@ app.get('/api/v1/admin/lb-compare/latest', (req, res) => {
   });
 });
 
+// --- Facebook Groups Watcher webhook ---
+let fbWebhookService = null;
+try {
+  fbWebhookService = require('./services/fb-webhook');
+} catch (e) {
+  console.warn('FB webhook service not available:', e.message);
+}
+
+// Receive webhook POST from Groups Watcher extension or scraper
+app.post('/admin/fb-group-post', async (req, res) => {
+  if (!fbWebhookService) {
+    return res.status(503).json({ success: false, error: 'FB webhook service not available' });
+  }
+
+  const post = req.body;
+  if (!post || (!post.text && !post.images)) {
+    return res.status(400).json({ success: false, error: 'Payload must include text or images' });
+  }
+
+  const postId = post.id || `fb_${Date.now()}`;
+
+  // Dedup: check if this post was already processed
+  try {
+    const { redis, isRedisConnected } = require('./config/cache');
+    if (isRedisConnected()) {
+      const existing = await redis.exists(`micmap:fb:raw:${postId}`);
+      if (existing) {
+        return res.json({ success: true, postId, status: 'duplicate' });
+      }
+    }
+  } catch (err) {
+    console.warn(`[FB webhook] dedup check failed for ${postId}:`, err.message);
+  }
+
+  // Respond immediately, process async
+  res.json({ success: true, postId, status: 'processing' });
+
+  try {
+    await fbWebhookService.processPost(post);
+  } catch (err) {
+    console.error(`[FB webhook] processing error for ${postId}:`, err.message);
+  }
+});
+
+// Review queue: items needing human review
+app.get('/admin/fb-review-queue', async (req, res) => {
+  if (!fbWebhookService) {
+    return res.status(503).json({ success: false, error: 'FB webhook service not available' });
+  }
+
+  try {
+    const items = await fbWebhookService.getReviewQueue();
+    res.json({ success: true, count: items.length, items });
+  } catch (err) {
+    console.error('[FB webhook] review queue error:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Apply a safe_write or reviewed entry to MongoDB
+app.post('/admin/fb-apply', async (req, res) => {
+  if (!fbWebhookService) {
+    return res.status(503).json({ success: false, error: 'FB webhook service not available' });
+  }
+
+  const entry = req.body;
+  if (!entry || !entry.matchedMicId) {
+    return res.status(400).json({ success: false, error: 'Payload must include matchedMicId' });
+  }
+
+  try {
+    const result = await fbWebhookService.applyEntry(entry);
+    res.json({ success: true, ...result });
+  } catch (err) {
+    console.error('[FB webhook] apply error:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({ error: 'Endpoint not found' });
