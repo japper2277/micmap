@@ -42,7 +42,10 @@ gtfs_supplemented/stop_times.txt
 .netlify
 
 # Generated logs
-logs/
+logs/*
+!logs/.gitkeep
+!logs/ig-review.md
+!logs/ig-review.json
 
 # Link audit reports
 link-audit.md

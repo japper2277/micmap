@@ -19,17 +19,26 @@ function buildSignUpDetailsCandidate(analysis) {
   return url || instructions;
 }
 
-function makeNotesLine({ analysis, handle, source, postUrl }) {
+function makeNotesLine({ analysis, handle, source, postUrl, sourceType }) {
   const date = todayEtDate();
-  const channel = source === 'post' ? 'post' : 'story';
   const urlPart = postUrl ? ` (${postUrl})` : '';
   const spotsPart = Number.isInteger(analysis?.spotsLeft)
     ? ` spots ${analysis.spotsLeft}${Number.isInteger(analysis?.capacity) ? `/${analysis.capacity}` : ''}`
     : '';
+
+  if (sourceType === 'fb_group') {
+    return `[FB sync ${date}] group post${urlPart}${spotsPart}`;
+  }
+
+  const channel = source === 'post' ? 'post' : 'story';
   return `[IG sync ${date}] @${handle} ${channel}${urlPart}${spotsPart}`;
 }
 
-function addRiskIfDifferent(risks, field, extracted, existing, normalizer = normalizeText) {
+function sourceLabel(sourceType) {
+  return sourceType === 'fb_group' ? 'FB group post' : 'IG content';
+}
+
+function addRiskIfDifferent(risks, field, extracted, existing, normalizer = normalizeText, sourceType) {
   const a = normalizer(extracted);
   const b = normalizer(existing);
   if (!a) return;
@@ -38,12 +47,12 @@ function addRiskIfDifferent(risks, field, extracted, existing, normalizer = norm
       field,
       from: existing || null,
       to: extracted,
-      reason: `${field} differs from extracted IG content`
+      reason: `${field} differs from extracted ${sourceLabel(sourceType)}`
     });
   }
 }
 
-function classifyIgCandidate({ analysis, matchedMic, handle, source, postUrl }) {
+function classifyIgCandidate({ analysis, matchedMic, handle, source, postUrl, sourceType }) {
   const result = {
     classification: 'ignore',
     reasons: [],
@@ -58,7 +67,7 @@ function classifyIgCandidate({ analysis, matchedMic, handle, source, postUrl }) 
       host: analysis?.host || null,
       cost: analysis?.cost || null,
       stageTime: analysis?.stageTime || null,
-      notesLine: makeNotesLine({ analysis, handle, source, postUrl })
+      notesLine: makeNotesLine({ analysis, handle, source, postUrl, sourceType })
     }
   };
 
@@ -89,13 +98,13 @@ function classifyIgCandidate({ analysis, matchedMic, handle, source, postUrl }) 
   }
 
   // Risky fields: extracted schedule/venue/core metadata differs from current record.
-  addRiskIfDifferent(result.riskyChanges, 'day', analysis?.day, matchedMic.day, normalizeDay);
-  addRiskIfDifferent(result.riskyChanges, 'startTime', analysis?.time, matchedMic.startTime, normalizeTime);
-  addRiskIfDifferent(result.riskyChanges, 'venueName', analysis?.venueName, matchedMic.venueName, normalizeText);
-  addRiskIfDifferent(result.riskyChanges, 'name', analysis?.micName, matchedMic.name, normalizeText);
-  addRiskIfDifferent(result.riskyChanges, 'host', analysis?.host, matchedMic.host, normalizeText);
-  addRiskIfDifferent(result.riskyChanges, 'cost', analysis?.cost, matchedMic.cost, normalizeText);
-  addRiskIfDifferent(result.riskyChanges, 'stageTime', analysis?.stageTime, matchedMic.stageTime, normalizeText);
+  addRiskIfDifferent(result.riskyChanges, 'day', analysis?.day, matchedMic.day, normalizeDay, sourceType);
+  addRiskIfDifferent(result.riskyChanges, 'startTime', analysis?.time, matchedMic.startTime, normalizeTime, sourceType);
+  addRiskIfDifferent(result.riskyChanges, 'venueName', analysis?.venueName, matchedMic.venueName, normalizeText, sourceType);
+  addRiskIfDifferent(result.riskyChanges, 'name', analysis?.micName, matchedMic.name, normalizeText, sourceType);
+  addRiskIfDifferent(result.riskyChanges, 'host', analysis?.host, matchedMic.host, normalizeText, sourceType);
+  addRiskIfDifferent(result.riskyChanges, 'cost', analysis?.cost, matchedMic.cost, normalizeText, sourceType);
+  addRiskIfDifferent(result.riskyChanges, 'stageTime', analysis?.stageTime, matchedMic.stageTime, normalizeText, sourceType);
 
   if (result.riskyChanges.length > 0) {
     result.classification = 'review_required';
@@ -116,6 +125,7 @@ function classifyIgCandidate({ analysis, matchedMic, handle, source, postUrl }) 
 
 module.exports = {
   buildSignUpDetailsCandidate,
+  classifyCandidate: classifyIgCandidate,
   classifyIgCandidate,
   makeNotesLine,
   todayEtDate
