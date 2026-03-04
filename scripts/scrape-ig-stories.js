@@ -21,6 +21,7 @@ const {
   extractJsonFromModelText,
   normalizeAnalysis
 } = require('./lib/ig-model-parse');
+const { inferContext } = require('./lib/ig-context-inference');
 
 const IG_USERNAME = process.env.IG_USERNAME;
 const IG_PASSWORD = process.env.IG_PASSWORD;
@@ -200,30 +201,34 @@ async function scrapeStories(page, handle) {
   const maxFrames = 20;
 
   for (let frameIndex = 0; frameIndex < maxFrames; frameIndex += 1) {
-    await new Promise((resolve) => setTimeout(resolve, 2500));
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 2500));
 
-    // Pause any playing video so we get a clean screenshot
-    await page.evaluate(() => {
-      const videos = document.querySelectorAll('video');
-      videos.forEach((v) => v.pause());
-    });
-    await new Promise((resolve) => setTimeout(resolve, 500));
+      // Pause any playing video so we get a clean screenshot
+      await page.evaluate(() => {
+        const videos = document.querySelectorAll('video');
+        videos.forEach((v) => v.pause());
+      });
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
-    const screenshotPath = path.join(__dirname, `../logs/ig-story-${handle}-${frameIndex}.png`);
-    fs.mkdirSync(path.dirname(screenshotPath), { recursive: true });
-    await page.screenshot({ path: screenshotPath, fullPage: false });
+      const screenshotPath = path.join(__dirname, `../logs/ig-story-${handle}-${frameIndex}.png`);
+      fs.mkdirSync(path.dirname(screenshotPath), { recursive: true });
+      await page.screenshot({ path: screenshotPath, fullPage: false });
 
-    captures.push({
-      source: 'story',
-      postUrl: null,
-      screenshotPath
-    });
+      captures.push({
+        source: 'story',
+        postUrl: null,
+        screenshotPath
+      });
 
-    // Try multiple ways to advance the story
-    await page.keyboard.press('ArrowRight');
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    if (!page.url().includes(`/stories/${handle}`)) break;
+      // Advance to next story frame
+      await page.keyboard.press('ArrowRight');
+      await new Promise((resolve) => setTimeout(resolve, 2300));
+      if (!page.url().includes(`/stories/${handle}`)) break;
+    } catch (err) {
+      console.log(`Story frame ${frameIndex} failed: ${err.message} — moving on`);
+      break;
+    }
   }
 
   return captures;
@@ -420,7 +425,11 @@ async function main() {
           console.error(`Gemini analysis failed for ${capture.screenshotPath}: ${error.message}`);
         }
 
-        const analysis = normalizeAnalysis(analysisRaw);
+        const analysisNorm = normalizeAnalysis(analysisRaw);
+        const { enrichedAnalysis: analysis, inferences } = inferContext(analysisNorm, entry, new Date());
+        if (inferences.length) {
+          console.log(`  Context inferred: ${inferences.map((inf) => `${inf.field}="${inf.value}"`).join(', ')}`);
+        }
         const confidence = estimateConfidence(analysis);
         const matched = matchMicFromWatchlist(mics, entry, analysis);
         const classified = classifyIgCandidate({
@@ -437,6 +446,7 @@ async function main() {
           postUrl: capture.postUrl,
           screenshotPath: capture.screenshotPath,
           analysis,
+          inferences,
           confidence,
           classification: classified.classification,
           matchedMicRef: toMatchedMicRef(matched),
