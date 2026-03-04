@@ -17,8 +17,12 @@ function normalizeText(value) {
   return normalizeSpace(value).toLowerCase().replace(/[^a-z0-9\s]/g, ' ');
 }
 
-function toTokenSet(value) {
-  return new Set(normalizeText(value).split(/\s+/).filter(Boolean));
+const STOPWORDS = new Set(['the', 'a', 'an', 'at', 'of', 'in', 'on', 'and', 'for', 'to', 'comedy', 'club', 'bar', 'mic', 'open']);
+
+function toTokenSet(value, { keepStopwords = false } = {}) {
+  const tokens = normalizeText(value).split(/\s+/).filter(Boolean);
+  if (keepStopwords) return new Set(tokens);
+  return new Set(tokens.filter((t) => !STOPWORDS.has(t) && !/^\d+$/.test(t)));
 }
 
 function overlapScore(a, b) {
@@ -169,13 +173,19 @@ async function scrapeLive(url, headful = false) {
         const atIdx = titleText.indexOf('@');
         const venueLine = atIdx >= 0 ? titleText.slice(atIdx + 1).split(' - ')[0].trim() : '';
 
-        // Find enclosing card to get the signup link
+        // Find enclosing card to get the signup link.
+        // Walk up to find a container that is card-sized (50–2000 chars)
+        // rather than a huge section or the entire page.
         let container = titleEl.parentElement;
-        for (let i = 0; i < 6 && container; i += 1) {
-          if ((container.innerText || '').length > 50) break;
+        let bestContainer = container;
+        for (let i = 0; i < 8 && container; i += 1) {
+          const len = (container.innerText || '').length;
+          if (len >= 50 && len <= 2000) { bestContainer = container; break; }
+          if (len > 2000) break;
+          bestContainer = container;
           container = container.parentElement;
         }
-        const linkEl = container ? container.querySelector('a[href]') : null;
+        const linkEl = bestContainer ? bestContainer.querySelector('a[href]') : null;
         const href = linkEl ? linkEl.href : null;
 
         // Day = last heading above this card

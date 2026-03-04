@@ -12,5 +12,88 @@
     ],
     "signupType": "comment",
     "notes": "Posts signup flyers in stories/posts; comics comment on IG to sign up"
+  },
+  {
+    "handle": "csweetcomedy",
+    "micSelectors": [
+      {
+        "name": "C Sweet Comedy",
+        "day": "Sunday",
+        "startTime": "4:00 PM",
+        "venueName": "Phoenix bar"
+      }
+    ],
+    "signupType": "unknown",
+    "notes": ""
+  },
+  {
+    "handle": "jonmahoneycomedy",
+    "micSelectors": [
+      {
+        "name": "Stumble Inn",
+        "day": "Monday",
+        "startTime": "8:00 PM",
+        "venueName": "Stumble Inn"
+      }
+    ],
+    "signupType": "unknown",
+    "notes": ""
+  },
+  {
+    "handle": "shareef_taher_haha",
+    "micSelectors": [
+      {
+        "name": "Shareef's Mic",
+        "day": "Saturday",
+        "startTime": "1:00 PM",
+        "venueName": "Pioneers Bar"
+      }
+    ],
+    "signupType": "unknown",
+    "notes": ""
+  },
+  {
+    "handle": "shayayanyc",
+    "micSelectors": [
+      {
+        "name": "Pure Chaos",
+        "day": "Tuesday",
+        "startTime": "7:00 PM",
+        "venueName": "Alphaville bar"
+      },
+      {
+        "name": "1st/3rd Tues Pure Chaos",
+        "day": "Tuesday",
+        "startTime": "10:30 PM",
+        "venueName": "Rose R&R Bar"
+      }
+    ],
+    "signupType": "unknown",
+    "notes": ""
+  },
+  {
+    "handle": "statusmic",
+    "micSelectors": [],
+    "signupType": "unknown",
+    "notes": "User-requested watch"
+  },
+  {
+    "handle": "finitejestmic",
+    "micSelectors": [
+      {
+        "name": "finite jest",
+        "day": "Wednesday",
+        "startTime": "6:30 PM",
+        "venueName": "Flop House Comedy Club"
+      }
+    ],
+    "signupType": "unknown",
+    "notes": ""
+  },
+  {
+    "handle": "laughingbuddhacomedy",
+    "micSelectors": [],
+    "signupType": "link",
+    "notes": "26+ mics across multiple venues; too many selectors to list. Primary data source is website scraper (scripts/check-laughing-buddha.js). IG watch for signup announcements and schedule changes."
   }
 ]
