@@ -999,32 +999,10 @@ let routePolyline = null;
 
 // Update route line on map
 function updateRouteLine() {
-    // Remove existing line
     if (routePolyline) {
         map.removeLayer(routePolyline);
         routePolyline = null;
     }
-
-    // Need at least 2 points to draw a line
-    if (STATE.route.length < 2) return;
-
-    // Get coordinates for each mic in route
-    const points = STATE.route
-        .map(id => STATE.mics.find(m => m.id === id))
-        .filter(m => m && m.lat && m.lng)
-        .map(m => [m.lat, m.lng]);
-
-    if (points.length < 2) return;
-
-    // Create dashed polyline
-    routePolyline = L.polyline(points, {
-        color: '#22c55e',      // Green to match selected markers
-        weight: 3,
-        opacity: 0.8,
-        dashArray: '10, 10',
-        lineCap: 'round',
-        lineJoin: 'round'
-    }).addTo(map);
 }
 
 // Get duration for a specific mic (per-mic override or global fallback)
