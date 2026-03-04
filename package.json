@@ -3,9 +3,14 @@
     "start": "cd api && node server.js",
     "watch": "node scripts/watch-mics.js",
     "generate": "node scripts/generate-venue-list.js",
-    "check:lb": "node scripts/check-laughing-buddha.js"
+    "check:lb": "node scripts/check-laughing-buddha.js",
+    "ig:scrape": "node scripts/scrape-ig-stories.js",
+    "ig:apply": "node scripts/apply-ig-signups.js",
+    "ig:review": "node scripts/build-ig-review-checklist.js",
+    "ig:test": "node --test scripts/tests/ig-sync.test.js"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@capacitor/cli": "^8.0.0",
     "@capacitor/core": "^8.0.0",
     "@capacitor/ios": "^8.0.0",

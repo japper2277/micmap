@@ -1,0 +1,16 @@
+[
+  {
+    "handle": "thefearcitycomedyclub",
+    "micSelectors": [
+      {
+        "name": "*6 or 11* Fun Mug RIFF Mic",
+        "day": "Friday",
+        "startTime": "6:00 PM",
+        "venueName": "The Fear City Comedy Club",
+        "host": "@thefearcitycomedyclub"
+      }
+    ],
+    "signupType": "comment",
+    "notes": "Posts signup flyers in stories/posts; comics comment on IG to sign up"
+  }
+]

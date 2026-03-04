@@ -1,0 +1,81 @@
+name: IG Stories Signup Sync
+
+on:
+  schedule:
+    - cron: '0 * * * *'      # Every hour
+  workflow_dispatch:          # Allow manual trigger
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install Puppeteer browser
+        run: npx puppeteer browsers install chrome
+
+      - name: Scrape Instagram stories
+        run: node scripts/scrape-ig-stories.js --report logs/ig-stories-report.json
+        env:
+          GITHUB_ACTIONS: 'true'
+          IG_COOKIES: ${{ secrets.IG_COOKIES }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          PUPPETEER_EXECUTABLE_PATH: ''
+
+      - name: Warn on scrape failure
+        if: failure()
+        run: |
+          echo "::error::IG scrape failed. If cookies expired, refresh locally with:"
+          echo "::error::  1. Launch Chrome: /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222 --user-data-dir=logs/ig-chrome-profile"
+          echo "::error::  2. Log into Instagram"
+          echo "::error::  3. Run: node scripts/ig-export-cookies.js --set-secret"
+
+      - name: Apply safe signup updates
+        run: node scripts/apply-ig-signups.js --report logs/ig-stories-report.json --write --summary logs/ig-apply-summary.json
+
+      - name: Build IG review checklist
+        run: node scripts/build-ig-review-checklist.js --report logs/ig-stories-report.json --apply-summary logs/ig-apply-summary.json --review-json logs/ig-review.json --review-md logs/ig-review.md
+
+      - name: Check for relevant changes
+        id: diff
+        run: |
+          if [ -n "$(git status --porcelain -- api/mics.json logs/ig-review.md logs/ig-review.json)" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Open PR if files changed
+        if: steps.diff.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ig-stories-sync-${{ github.run_number }}
+          title: "IG stories sync: safe signup updates + review queue"
+          body: |
+            Automated Instagram stories/posts sync.
+
+            This PR contains:
+            - Safe signup-field updates applied to `api/mics.json`
+            - Review checklist for risky/unmatched items:
+              - `logs/ig-review.md`
+              - `logs/ig-review.json`
+
+            Review checklist items before merge.
+          commit-message: "IG stories sync: safe signup updates and review artifacts"
+          labels: mics-sync,ig-sync
