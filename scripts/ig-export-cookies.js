@@ -51,13 +51,14 @@ async function main() {
   }
 
   const json = JSON.stringify(igCookies);
+  const b64 = Buffer.from(json).toString('base64');
 
   if (setSecret) {
     try {
-      execSync(`echo '${json.replace(/'/g, "'\\''")}' | gh secret set IG_COOKIES`, {
+      execSync(`echo '${b64}' | gh secret set IG_COOKIES`, {
         stdio: 'inherit'
       });
-      console.log(`\nSet IG_COOKIES secret (${igCookies.length} cookies)`);
+      console.log(`\nSet IG_COOKIES secret (${igCookies.length} cookies, base64 encoded)`);
     } catch (err) {
       console.error('Failed to set secret via gh CLI. Make sure gh is installed and authenticated.');
       console.error('You can manually set it: gh secret set IG_COOKIES < cookies.json');

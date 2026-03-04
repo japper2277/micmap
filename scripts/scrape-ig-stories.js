@@ -373,8 +373,13 @@ async function main() {
       const ok = await isLoggedIn(page);
       if (!ok) throw new Error('Not logged into Instagram in Chrome. Please log in via Chrome first.');
     } else if (process.env.IG_COOKIES) {
-      // CI mode: load cookies from env var
-      const envCookies = JSON.parse(process.env.IG_COOKIES);
+      // CI mode: load cookies from env var (base64-encoded JSON)
+      let raw = process.env.IG_COOKIES;
+      // Detect base64 vs raw JSON
+      if (!raw.startsWith('[')) {
+        raw = Buffer.from(raw, 'base64').toString('utf8');
+      }
+      const envCookies = JSON.parse(raw);
       await page.setCookie(...envCookies);
       console.log(`Loaded ${envCookies.length} cookies from IG_COOKIES env var`);
       const ok = await isLoggedIn(page);
