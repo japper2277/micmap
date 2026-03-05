@@ -53,6 +53,70 @@ function showListSkeleton() {
         </div>`;
 }
 
+// Build commute display HTML for a single mic
+function buildCommuteHtml(mic) {
+    if (mic.transitMins !== undefined) {
+        if (mic.transitType === 'walk') {
+            const walkIcon = `<svg viewBox="0 0 24 24"><path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/></svg>`;
+            return `<div class="commute-live commute-walk">${walkIcon}${mic.transitMins}m</div>`;
+        } else if (mic.transitType === 'transit' && mic.route && mic.route.legs) {
+            const rideLegs = mic.route.legs.filter(l => l.type === 'ride');
+            if (rideLegs.length > 0) {
+                let displayMins = mic.transitMins;
+                const route = mic.route;
+                if (route.scheduledDepartureTimes && route.scheduledDepartureTimes.length > 0 && mic.start instanceof Date) {
+                    const now = new Date();
+                    const adjustedTotal = route.adjustedTotalTime ?? route.totalTime ?? 15;
+                    const walkTo = route.walkToStation || 0;
+                    const walkFrom = route.walkToVenue || 0;
+                    const ride = Math.max(0, (route.totalTime || adjustedTotal) - walkTo - walkFrom);
+                    const targetArrival = new Date(mic.start.getTime() - 15 * 60000);
+                    const latestTrain = new Date(targetArrival.getTime() - (ride + walkFrom) * 60000);
+                    const walkBuffer = walkTo <= 3 ? walkTo : (walkTo - 2);
+                    const earliestCatchable = new Date(now.getTime() + walkBuffer * 60000);
+                    const catchable = route.scheduledDepartureTimes.filter(iso => {
+                        const t = new Date(iso);
+                        return t >= earliestCatchable && t <= latestTrain;
+                    });
+                    if (catchable.length > 0) {
+                        const lastTrain = new Date(catchable[catchable.length - 1]);
+                        let departure = new Date(lastTrain.getTime() - walkTo * 60000);
+                        if (departure < now) departure = now;
+                        const arrival = new Date(lastTrain.getTime() + (ride + walkFrom) * 60000);
+                        displayMins = Math.round((arrival - departure) / 60000);
+                    }
+                }
+                const lines = [];
+                rideLegs.forEach(leg => {
+                    if (leg.line && !lines.includes(leg.line)) lines.push(leg.line);
+                });
+                const badges = lines.slice(0, 3).map(line =>
+                    `<span class="commute-badge b-${escapeHtml(line)}">${escapeHtml(line)}</span>`
+                ).join('');
+                return `<div class="commute-live commute-transit">${badges}<span class="commute-time">${displayMins}m</span></div>`;
+            } else {
+                return `<div class="commute-live commute-estimate">~${mic.transitMins}m</div>`;
+            }
+        } else {
+            return `<div class="commute-live commute-estimate">~${mic.transitMins}m</div>`;
+        }
+    } else if (mic.distanceMiles !== undefined) {
+        return `<span class="commute-distance">${mic.distanceMiles < 0.1 ? Math.round(mic.distanceMiles * 5280) + 'ft' : mic.distanceMiles.toFixed(1) + 'mi'}</span>`;
+    }
+    return '';
+}
+
+// Update commute displays in-place without full re-render
+function updateCommuteDisplays() {
+    STATE.mics.forEach(mic => {
+        const card = document.getElementById(`card-${mic.id}`);
+        if (!card) return;
+        const slots = card.querySelectorAll('.commute-slot');
+        const html = buildCommuteHtml(mic);
+        slots.forEach(slot => { slot.innerHTML = html; });
+    });
+}
+
 // Format set time (e.g., "5" -> "5min", "3-5min" -> "3-5min", "5min" -> "5min")
 function formatSetTime(setTime) {
     if (!setTime) return '5min';
@@ -787,33 +851,38 @@ function render(mode) {
                 toggleScheduleExpanded();
             }
         };
+        const stopsLabel = routeMics.length === 1 ? '1 Stop' : `${routeMics.length} Stops`;
         scheduleCard.innerHTML = `
             <div class="my-schedule-card-left">
-                <span class="my-schedule-icon">🎤</span>
-                <span class="my-schedule-card-count">${routeMics.length}</span>
-                <span class="my-schedule-card-label">My Night</span>
+                <div class="my-schedule-icon-box">🎤</div>
+                <div class="my-schedule-card-info">
+                    <div class="my-schedule-title-row">
+                        <span class="my-schedule-card-label">My Night</span>
+                        <span class="my-schedule-stops-badge">${stopsLabel}</span>
+                    </div>
+                    <span class="my-schedule-card-preview">${rangeText}</span>
+                </div>
             </div>
             <div class="my-schedule-card-right">
-                <span class="my-schedule-card-preview">${rangeText}</span>
-                <div class="schedule-share-wrap" style="position:relative">
-                    <button class="schedule-share-btn" onclick="event.stopPropagation(); toggleScheduleShareMenu(this)" aria-label="Share schedule">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/>
+                <div class="schedule-share-wrap">
+                    <button class="schedule-action-icon" onclick="event.stopPropagation(); toggleScheduleShareMenu(this)" aria-label="Share schedule">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
                             <polyline points="16 6 12 2 8 6"/>
                             <line x1="12" y1="2" x2="12" y2="15"/>
                         </svg>
                     </button>
                     <div class="schedule-share-menu" id="schedule-share-menu">
                         <button class="schedule-share-option" onclick="event.stopPropagation(); copyScheduleAsText(); closeScheduleShareMenu();">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
                                 <polyline points="16 6 12 2 8 6"/>
                                 <line x1="12" y1="2" x2="12" y2="15"/>
                             </svg>
                             Share Link
                         </button>
                         <button class="schedule-share-option" onclick="event.stopPropagation(); exportScheduleToCalendar(); closeScheduleShareMenu();">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
                                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
                                 <line x1="16" y1="2" x2="16" y2="6"/>
                                 <line x1="8" y1="2" x2="8" y2="6"/>
@@ -823,9 +892,11 @@ function render(mode) {
                         </button>
                     </div>
                 </div>
-                <svg class="my-schedule-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M6 9l6 6 6-6"/>
-                </svg>
+                <button class="schedule-action-icon schedule-chevron-btn" aria-label="Expand schedule">
+                    <svg class="my-schedule-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                </button>
             </div>
         `;
         scheduleMountTarget.appendChild(scheduleCard);
@@ -1050,7 +1121,11 @@ function render(mode) {
         }
 
         expandedList.innerHTML = `${conflictBanner}${itemsHtml}${toolsRow}${suggestionsHtml}`;
-        scheduleMountTarget.appendChild(expandedList);
+        if (STATE.planMode && scheduleSlot) {
+            container.prepend(expandedList);
+        } else {
+            scheduleCard.after(expandedList);
+        }
 
         if (typeof initScheduleReorder === 'function') {
             initScheduleReorder(expandedList);
@@ -1200,63 +1275,7 @@ function render(mode) {
         };
 
         // Build commute display - show line badges for transit, walk icon for walking
-        let commuteDisplay = '';
-        if (mic.transitMins !== undefined) {
-            if (mic.transitType === 'walk') {
-                // Walking - show walk icon + time
-                const walkIcon = `<svg viewBox="0 0 24 24"><path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/></svg>`;
-                commuteDisplay = `<div class="commute-live commute-walk">${walkIcon}${mic.transitMins}m</div>`;
-            } else if (mic.transitType === 'transit' && mic.route && mic.route.legs) {
-                // Transit with route data - show line badge(s) + time
-                const rideLegs = mic.route.legs.filter(l => l.type === 'ride');
-                if (rideLegs.length > 0) {
-                    // Recalculate duration using scheduled train times (matches modal logic)
-                    let displayMins = mic.transitMins;
-                    const route = mic.route;
-                    if (route.scheduledDepartureTimes && route.scheduledDepartureTimes.length > 0 && mic.start instanceof Date) {
-                        const now = new Date();
-                        const adjustedTotal = route.adjustedTotalTime ?? route.totalTime ?? 15;
-                        const walkTo = route.walkToStation || 0;
-                        const walkFrom = route.walkToVenue || 0;
-                        const ride = Math.max(0, (route.totalTime || adjustedTotal) - walkTo - walkFrom);
-                        const targetArrival = new Date(mic.start.getTime() - 15 * 60000);
-                        const latestTrain = new Date(targetArrival.getTime() - (ride + walkFrom) * 60000);
-                        const walkBuffer = walkTo <= 3 ? walkTo : (walkTo - 2);
-                        const earliestCatchable = new Date(now.getTime() + walkBuffer * 60000);
-                        const catchable = route.scheduledDepartureTimes.filter(iso => {
-                            const t = new Date(iso);
-                            return t >= earliestCatchable && t <= latestTrain;
-                        });
-                        if (catchable.length > 0) {
-                            const lastTrain = new Date(catchable[catchable.length - 1]);
-                            let departure = new Date(lastTrain.getTime() - walkTo * 60000);
-                            if (departure < now) departure = now;
-                            const arrival = new Date(lastTrain.getTime() + (ride + walkFrom) * 60000);
-                            displayMins = Math.round((arrival - departure) / 60000);
-                        }
-                    }
-
-                    // Get unique lines (max 3 for 3-transfer routes)
-                    const lines = [];
-                    rideLegs.forEach(leg => {
-                        if (leg.line && !lines.includes(leg.line)) lines.push(leg.line);
-                    });
-                    const badges = lines.slice(0, 3).map(line =>
-                        `<span class="commute-badge b-${escapeHtml(line)}">${escapeHtml(line)}</span>`
-                    ).join('');
-                    commuteDisplay = `<div class="commute-live commute-transit">${badges}<span class="commute-time">${displayMins}m</span></div>`;
-                } else {
-                    // Fallback if no ride legs found
-                    commuteDisplay = `<div class="commute-live commute-estimate">~${mic.transitMins}m</div>`;
-                }
-            } else {
-                // Estimate - just show ~time (no icon)
-                commuteDisplay = `<div class="commute-live commute-estimate">~${mic.transitMins}m</div>`;
-            }
-        } else if (mic.distanceMiles !== undefined) {
-            // Show distance if no transit time
-            commuteDisplay = `<span class="commute-distance">${mic.distanceMiles < 0.1 ? Math.round(mic.distanceMiles * 5280) + 'ft' : mic.distanceMiles.toFixed(1) + 'mi'}</span>`;
-        }
+        const commuteDisplay = buildCommuteHtml(mic);
 
         // Status row HTML
         const statusClass = mic.status === 'live' ? 'is-live' : (mic.status === 'upcoming' ? 'is-upcoming' : 'is-future');
@@ -1379,7 +1398,7 @@ function render(mode) {
                             <span class="price-badge">${safePrice}</span>
                             ${spotsBadge}
                             ${conflictTag}
-                            ${commuteDisplay}
+                            <span class="commute-slot">${commuteDisplay}</span>
                         </div>
                     </div>
                     <div class="action-col">
@@ -1407,7 +1426,7 @@ function render(mode) {
                             <span class="price-badge">${safePrice}</span>
                             ${spotsBadge}
                             ${conflictTag}
-                            ${commuteDisplay}
+                            <span class="commute-slot">${commuteDisplay}</span>
                         </div>
                     </div>
                     <div class="action-col">

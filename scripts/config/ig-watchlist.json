@@ -95,5 +95,62 @@
     "micSelectors": [],
     "signupType": "link",
     "notes": "26+ mics across multiple venues; too many selectors to list. Primary data source is website scraper (scripts/check-laughing-buddha.js). IG watch for signup announcements and schedule changes."
+  },
+  {
+    "handle": "noisecomplaintcomedy",
+    "micSelectors": [
+      {
+        "name": "Noise complaint mic",
+        "day": "Thursday",
+        "startTime": "6:00 PM",
+        "venueName": "Halyards",
+        "host": "Xavier Maurice (@noisecomplaintcomedy)"
+      }
+    ],
+    "signupType": "form",
+    "notes": "Posts signup form on IG every Wednesday for Thursday mic"
+  },
+  {
+    "handle": "cotlcomedy",
+    "micSelectors": [
+      {
+        "name": "Comedians on the Loose",
+        "day": "Monday",
+        "startTime": "7:30 PM",
+        "venueName": "Black Cat LES"
+      },
+      {
+        "name": "Comedians on the Loose",
+        "day": "Tuesday",
+        "startTime": "7:30 PM",
+        "venueName": "Black Cat LES"
+      },
+      {
+        "name": "Comedians on the Loose",
+        "day": "Thursday",
+        "startTime": "7:00 PM",
+        "venueName": "Black Cat LES"
+      },
+      {
+        "name": "Comedians on the Loose",
+        "day": "Thursday",
+        "startTime": "9:00 PM",
+        "venueName": "Black Cat LES"
+      },
+      {
+        "name": "Comedians on the Loose",
+        "day": "Saturday",
+        "startTime": "7:00 PM",
+        "venueName": "Black Cat LES"
+      },
+      {
+        "name": "Comedians on the Loose",
+        "day": "Saturday",
+        "startTime": "9:00 PM",
+        "venueName": "Black Cat LES"
+      }
+    ],
+    "signupType": "link",
+    "notes": "Runs 6 mics/week at Black Cat LES. Signup via comediansontheloose.com"
   }
 ]

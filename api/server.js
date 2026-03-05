@@ -28,6 +28,16 @@ try {
   startSlottedRefresh = () => {};
 }
 
+// Bushwick Comedy Club availability scraper
+let getBushwickData, startBushwickRefresh;
+try {
+  ({ getBushwickData, startBushwickRefresh } = require('./services/bushwick'));
+} catch (e) {
+  console.warn('⚠️ Bushwick service not available:', e.message);
+  getBushwickData = async () => null;
+  startBushwickRefresh = () => {};
+}
+
 // Logging
 const { requestLoggingMiddleware } = require('./middleware/logging');
 const logger = require('./utils/logger');
@@ -510,6 +520,38 @@ app.get('/api/v1/mics', cacheMiddleware, async (req, res) => {
       }
     } catch (e) {
       console.warn('⚠️ Failed to inject slotted mics:', e.message);
+    }
+
+    // Inject Bushwick Comedy Club availability data into matching mics
+    try {
+      const bushwickData = await getBushwickData();
+      if (bushwickData && bushwickData.slots) {
+        for (const mic of mics) {
+          if (mic.venueName !== 'Bushwick Comedy Club') continue;
+
+          // Find a matching slot by day + approximate time
+          const micDay = mic.day;
+          const matchingSlot = bushwickData.slots.find(slot => {
+            const slotDate = new Date(slot.date + 'T12:00:00');
+            const slotDay = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][slotDate.getDay()];
+            if (slotDay !== micDay) return false;
+
+            // Compare times (rough match: same hour)
+            const micHour = parseInt((mic.startTime || '').match(/(\d+)/)?.[1] || '0');
+            const slotHour = parseInt((slot.time || '').match(/(\d+)/)?.[1] || '0');
+            return micHour === slotHour;
+          });
+
+          if (matchingSlot) {
+            mic.capacity = matchingSlot.capacity;
+            mic.soldOut = matchingSlot.soldOut;
+            mic.eventUrl = matchingSlot.eventUrl;
+            mic.nextDate = matchingSlot.date;
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('⚠️ Failed to inject Bushwick data:', e.message);
     }
 
     // Allow browser to cache for 5 min, CDN for 10 min
@@ -2175,6 +2217,50 @@ app.get('/api/v1/mics/slots/:slottedId', async (req, res) => {
   }
 });
 
+// Bushwick Comedy Club availability (prefer Redis from Puppeteer scraper, fall back to JSON-LD)
+app.get('/api/v1/mics/slots/bushwick', async (req, res) => {
+  try {
+    // Try Redis first (Puppeteer data with exact spotsLeft)
+    const { redis, isRedisConnected } = require('./config/cache');
+    if (isRedisConnected()) {
+      const raw = await redis.get('micmap:bushwick:slots');
+      if (raw) {
+        const data = JSON.parse(raw);
+        res.set('Cache-Control', 'public, max-age=300');
+        return res.json({ success: true, ...data });
+      }
+    }
+    // Fall back to JSON-LD scrape (soldOut only, no spotsLeft)
+    const data = await getBushwickData();
+    if (!data) return res.status(404).json({ success: false, error: 'No Bushwick data available' });
+    res.set('Cache-Control', 'public, max-age=300');
+    res.json({ success: true, ...data });
+  } catch (err) {
+    console.error('Bushwick endpoint error:', err.message);
+    res.status(500).json({ success: false, error: 'Failed to fetch Bushwick data' });
+  }
+});
+
+// Receive Bushwick slot data from GitHub Actions scraper
+app.post('/admin/bushwick-slots', async (req, res) => {
+  try {
+    const { redis, isRedisConnected } = require('./config/cache');
+    if (!isRedisConnected()) {
+      return res.status(503).json({ success: false, error: 'Cache unavailable' });
+    }
+    const data = req.body;
+    if (!data || !Array.isArray(data.slots)) {
+      return res.status(400).json({ success: false, error: 'Invalid payload: expected { slots: [...] }' });
+    }
+    await redis.setex('micmap:bushwick:slots', 4 * 60 * 60, JSON.stringify(data));
+    console.log(`✅ Bushwick slots updated: ${data.slots.length} slot(s)`);
+    res.json({ success: true, slotCount: data.slots.length });
+  } catch (err) {
+    console.error('Bushwick slots POST error:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // Receive COTL slot data from GitHub Actions scraper
 app.post('/admin/cotl-slots', async (req, res) => {
   try {
@@ -2397,6 +2483,7 @@ if (process.env.NODE_ENV !== 'test') {
     console.log(`📍 Health check: http://localhost:${PORT}/health`);
     console.log(`📋 Mics endpoint: http://localhost:${PORT}/api/v1/mics`);
     startSlottedRefresh();
+    startBushwickRefresh();
   });
 }
 

@@ -281,6 +281,7 @@ function init() {
     // Load Slotted signup availability
     loadSlottedData();
     loadCotlData();
+    loadBushwickData();
 
     // Tomorrow notice button handler
     const tomorrowBtn = document.getElementById('tomorrow-btn');
@@ -363,6 +364,20 @@ function showOnboardingHints() {
 async function loadCotlData() {
     try {
         const res = await fetch(`${CONFIG.apiBase}/api/v1/mics/slots/cotl`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.success) {
+            STATE.slottedSlots[data.venueName] = data;
+        }
+    } catch (e) {
+        // Non-critical — silently fail
+    }
+}
+
+// Load Bushwick Comedy Club signup slot availability
+async function loadBushwickData() {
+    try {
+        const res = await fetch(`${CONFIG.apiBase}/api/v1/mics/slots/bushwick`);
         if (!res.ok) return;
         const data = await res.json();
         if (data.success) {

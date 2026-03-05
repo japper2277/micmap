@@ -179,16 +179,13 @@ body.plan-mode .happening-now-card-label {
 .my-schedule-card {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 12px 14px;
+    gap: 12px;
+    padding: 14px 16px;
     margin: 8px 12px;
-    /* Glassmorphism effect */
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: #18181b;
+    border: 1px solid #27272a;
     border-radius: 14px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.04) inset;
     cursor: pointer;
     transition: all 0.2s;
     animation: scheduleSlideIn 0.3s ease;
@@ -213,8 +210,8 @@ body.plan-mode .happening-now-card-label {
 }
 
 .my-schedule-card:hover {
-    background: rgba(255, 255, 255, 0.12);
-    border-color: rgba(255, 255, 255, 0.2);
+    background: #1c1c20;
+    border-color: #3f3f46;
 }
 
 .my-schedule-card:active {
@@ -230,51 +227,87 @@ body.plan-mode .happening-now-card-label {
 .my-schedule-card-left {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
+    min-width: 0;
 }
 
-.my-schedule-icon {
-    width: 18px;
-    height: 18px;
-    color: var(--green);
+.my-schedule-icon-box {
+    font-size: 22px;
+    line-height: 1;
     flex-shrink: 0;
 }
 
-/* Pill-shaped count badge */
-.my-schedule-card-count {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 22px;
-    height: 22px;
-    padding: 0 7px;
-    background: rgba(34, 197, 94, 0.2);
-    border-radius: 11px;
-    font-weight: 700;
-    font-size: 12px;
-    color: var(--green);
-    line-height: 1;
+.my-schedule-card-info {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
 }
 
-/* Label text - white for contrast on glass */
-.my-schedule-card-label {
-    font-size: 15px;
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.92);
-}
-
-.my-schedule-card-right {
+.my-schedule-title-row {
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
+.my-schedule-card-label {
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.01em;
+}
+
+.my-schedule-stops-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    background: rgba(34, 197, 94, 0.15);
+    border: 1px solid rgba(34, 197, 94, 0.25);
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #4ade80;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+
+.my-schedule-card-right {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+    margin-left: auto;
+}
+
+.schedule-action-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: #52525b;
+    cursor: pointer;
+    transition: all 0.15s;
+    flex-shrink: 0;
+}
+
+.schedule-action-icon:hover {
+    background: #27272a;
+    color: #a1a1aa;
+}
+
+.schedule-action-icon:active {
+    transform: scale(0.92);
+}
+
 .my-schedule-card-preview {
     font-size: 13px;
-    color: rgba(255, 255, 255, 0.6);
-    max-width: 120px;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    color: #71717a;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
     white-space: nowrap;
 }
 
@@ -317,13 +350,12 @@ body.plan-mode .happening-now-card-label {
     top: calc(100% + 6px);
     right: 0;
     min-width: 160px;
-    background: rgba(50, 50, 50, 0.95);
-    backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: #1f1f23;
+    border: 1px solid #3f3f46;
     border-radius: 12px;
     padding: 4px;
     z-index: 1000;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
 }
 
 .schedule-share-menu.is-open {
@@ -347,24 +379,30 @@ body.plan-mode .happening-now-card-label {
 }
 
 .schedule-share-option:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: #27272a;
 }
 
 .schedule-share-option:active {
-    background: rgba(255, 255, 255, 0.15);
+    background: #3f3f46;
 }
 
 .schedule-share-option svg {
     flex-shrink: 0;
-    color: rgba(255, 255, 255, 0.6);
+    color: #71717a;
 }
 
 .my-schedule-chevron {
-    width: 18px;
-    height: 18px;
-    color: var(--green);
+    width: 20px;
+    height: 20px;
+    color: #4ade80;
     flex-shrink: 0;
     transition: transform 0.25s ease;
+}
+
+.my-schedule-card.expanded {
+    border-radius: 14px 14px 0 0;
+    border-bottom-color: transparent;
+    margin-bottom: 0;
 }
 
 .my-schedule-card.expanded .my-schedule-chevron {
@@ -376,8 +414,8 @@ body.plan-mode .happening-now-card-label {
     position: relative;
     margin: -6px 12px 12px;
     padding: 10px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: #18181b;
+    border: 1px solid #27272a;
     border-top: none;
     border-radius: 0 0 12px 12px;
     overflow: hidden;
@@ -400,13 +438,9 @@ body.plan-mode .happening-now-card-label {
 }
 
 .my-schedule-expanded.is-open {
-    max-height: min(72vh, 760px);
+    max-height: 3000px;
     opacity: 1;
     transform: translateY(0);
-    overflow-y: auto;
-    overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
 }
 
 @keyframes expandDown {
@@ -1760,6 +1794,11 @@ body.plan-mode .stream-item.in-route .plan-commute-corner {
     margin: 0 8px;
     color: #333;
     font-size: 10px;
+}
+
+/* Commute slot wrapper (for in-place transit updates) */
+.commute-slot {
+    display: contents;
 }
 
 /* Commute Display - Apple Dark Glass Pill */

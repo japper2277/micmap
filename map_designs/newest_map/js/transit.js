@@ -570,8 +570,8 @@ const transitService = {
                 }
             }));
 
-            // Progressive render: update markers as commute times come in
-            render(STATE.currentMode);
+            // Progressive update: patch commute badges in-place (no full re-render)
+            updateCommuteDisplays();
 
             // 10ms delay between batches (local OSRM is fast)
             if (i + BATCH_SIZE < uniqueVenues.length) {

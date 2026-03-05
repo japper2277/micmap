@@ -47,7 +47,7 @@ _All external sites referenced in MicFinder NYC mic data._
 - **Saturday 3:00 PM** | FUNY Open Mic @ West Side Comedy Club
 
 ## [bushwickcomedy.com](https://bushwickcomedy.com) — 6 mics
-**Status:** ⬜ Not started
+**Status:** ✅ Done — Wix Events JSON-LD scraper built
 
 - **Tuesday 7:00 PM** | Bushwick Comedy Club @ Bushwick Comedy Club
 - **Monday 7:30 PM** | Bushwick Comedy Club @ Bushwick Comedy Club

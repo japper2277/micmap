@@ -469,25 +469,41 @@ function exportScheduleToCalendar() {
 }
 
 function copyScheduleAsText() {
-    const routeMics = (STATE.route || [])
-        .map(id => STATE.mics.find(m => m.id === id))
-        .filter(m => m && m.start)
-        .sort((a, b) => a.start - b.start);
-    if (routeMics.length === 0) return;
+    const routeIds = STATE.route || [];
+    if (routeIds.length === 0) return;
 
-    const dateLabel = getMicCalendarDate(routeMics[0]).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
-    const lines = routeMics.map(m => {
-        const time = m.start.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-        const venue = m.title || m.venue || 'Mic';
-        const hood = m.hood || m.neighborhood || '';
-        return `${time} - ${venue}${hood ? ` (${hood})` : ''}`;
+    const stops = routeIds.map(id => {
+        const mins = typeof getMicDuration === 'function' ? getMicDuration(id) : (STATE.setDuration || 45);
+        return `${id}:${mins}`;
     });
+    const shareUrl = `https://micfinder.io/?plan=${stops.join(',')}`;
 
-    const text = `${dateLabel}\n${lines.join('\n')}`;
-    if (navigator.clipboard) {
-        navigator.clipboard.writeText(text).then(() => {
+    const isMobile = /iPhone|iPad|Android/i.test(navigator.userAgent);
+    if (isMobile && navigator.share) {
+        navigator.share({ title: 'My Night – MicFinder NYC', url: shareUrl }).catch(() => {});
+    } else if (navigator.clipboard) {
+        navigator.clipboard.writeText(shareUrl).then(() => {
             if (typeof toastService !== 'undefined') {
-                toastService.show('Schedule copied!', { duration: 2000 });
+                toastService.show('Link copied!', { duration: 2000 });
+            }
+        });
+    }
+}
+
+function copyScheduleLink() {
+    const routeIds = STATE.route || [];
+    if (routeIds.length === 0) return;
+
+    const stops = routeIds.map(id => {
+        const mins = typeof getMicDuration === 'function' ? getMicDuration(id) : (STATE.setDuration || 45);
+        return `${id}:${mins}`;
+    });
+    const shareUrl = `https://micfinder.io/?plan=${stops.join(',')}`;
+
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(shareUrl).then(() => {
+            if (typeof toastService !== 'undefined') {
+                toastService.show('Link copied!', { duration: 2000 });
             }
         });
     }

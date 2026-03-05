@@ -5,10 +5,19 @@
 
 // Schedule share menu
 function toggleScheduleShareMenu(btn) {
-    const menu = btn.closest('.schedule-share-wrap').querySelector('.schedule-share-menu');
-    const isOpen = menu.classList.contains('is-open');
+    const wrap = btn.closest('.schedule-share-wrap');
+    const menu = wrap.querySelector('.schedule-share-menu') || document.querySelector('.schedule-share-menu.is-open');
+    const isOpen = menu && menu.classList.contains('is-open');
     closeScheduleShareMenu();
     if (!isOpen) {
+        // Move to body to escape transform/overflow containers
+        const rect = btn.getBoundingClientRect();
+        menu._originalParent = wrap;
+        document.body.appendChild(menu);
+        menu.style.position = 'fixed';
+        menu.style.top = (rect.bottom + 6) + 'px';
+        menu.style.right = (window.innerWidth - rect.right) + 'px';
+        menu.style.left = 'auto';
         menu.classList.add('is-open');
         // Close on outside click
         setTimeout(() => {
@@ -19,7 +28,14 @@ function toggleScheduleShareMenu(btn) {
 
 function closeScheduleShareMenu() {
     const menu = document.querySelector('.schedule-share-menu.is-open');
-    if (menu) menu.classList.remove('is-open');
+    if (menu) {
+        menu.classList.remove('is-open');
+        // Move back to original parent
+        if (menu._originalParent) {
+            menu._originalParent.appendChild(menu);
+            delete menu._originalParent;
+        }
+    }
 }
 
 // Confirm before exiting plan mode if route has items
