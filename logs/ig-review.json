@@ -1,0 +1,96 @@
+{
+  "autoAppliedSafeWrites": [
+    {
+      "handle": "thefearcitycomedyclub",
+      "source": "story",
+      "postUrl": null,
+      "confidence": 0.65,
+      "micRef": {
+        "name": "Fear City Mic",
+        "day": "Friday",
+        "startTime": "10:00 PM",
+        "venueName": "The Fear City Comedy Club",
+        "index": 0
+      },
+      "before": {
+        "signUpDetails": null,
+        "notes": null
+      },
+      "changes": [
+        {
+          "field": "flyerUrl",
+          "from": "http://localhost:3001/data/flyers/friday-10-00-pm-the-fear-city-comedy-club.png",
+          "to": "https://micmap-production.up.railway.app/data/flyers/friday-10-00-pm-the-fear-city-comedy-club.png"
+        },
+        {
+          "field": "flyerDate",
+          "from": null,
+          "to": "2026-03-05"
+        }
+      ]
+    }
+  ],
+  "reviewRequired": [
+    {
+      "handle": "thefearcitycomedyclub",
+      "source": "story",
+      "confidence": 0.65,
+      "postUrl": null,
+      "screenshotPath": "/home/runner/work/micmap/micmap/logs/ig-story-thefearcitycomedyclub-0.png",
+      "analysis": {
+        "isSignup": true,
+        "micName": "The 9pm Mic",
+        "day": "Thursday",
+        "date": null,
+        "time": "9pm",
+        "venueName": null,
+        "signupInstructions": null,
+        "signupUrl": null,
+        "spotsLeft": null,
+        "capacity": null,
+        "host": null,
+        "cost": null,
+        "stageTime": null,
+        "notes": null
+      },
+      "matchedMicRef": {
+        "index": 0,
+        "method": "host_venue_fallback",
+        "name": "Fear City Mic",
+        "day": "Friday",
+        "startTime": "10:00 PM",
+        "venueName": "The Fear City Comedy Club",
+        "host": "@thefearcitycomedyclub"
+      },
+      "riskyChanges": [
+        {
+          "field": "day",
+          "from": "Friday",
+          "to": "Thursday",
+          "reason": "day differs from extracted IG content"
+        },
+        {
+          "field": "startTime",
+          "from": "10:00 PM",
+          "to": "9pm",
+          "reason": "startTime differs from extracted IG content"
+        },
+        {
+          "field": "name",
+          "from": "Fear City Mic",
+          "to": "The 9pm Mic",
+          "reason": "name differs from extracted IG content"
+        }
+      ],
+      "reasons": [
+        "extracted risky fields differ from current mic record"
+      ]
+    }
+  ],
+  "unmatchedCandidates": [],
+  "counts": {
+    "autoAppliedSafeWrites": 1,
+    "reviewRequired": 1,
+    "unmatchedCandidates": 0
+  }
+}
