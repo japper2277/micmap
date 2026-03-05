@@ -2207,6 +2207,23 @@ app.get('/api/v1/mics/slots/:slottedId', async (req, res) => {
       return res.json({ success: true, ...data });
     }
 
+    // Bushwick slots: Redis (Puppeteer) first, fall back to JSON-LD scrape
+    if (slottedId === 'bushwick') {
+      const { redis, isRedisConnected } = require('./config/cache');
+      if (isRedisConnected()) {
+        const raw = await redis.get('micmap:bushwick:slots');
+        if (raw) {
+          const data = JSON.parse(raw);
+          res.set('Cache-Control', 'public, max-age=300');
+          return res.json({ success: true, ...data });
+        }
+      }
+      const data = await getBushwickData();
+      if (!data) return res.status(404).json({ success: false, error: 'No Bushwick data available' });
+      res.set('Cache-Control', 'public, max-age=300');
+      return res.json({ success: true, ...data });
+    }
+
     const data = await getSlottedData(slottedId);
     if (!data) return res.status(404).json({ success: false, error: 'Unknown slotted ID' });
     res.set('Cache-Control', 'public, max-age=300');
@@ -2214,30 +2231,6 @@ app.get('/api/v1/mics/slots/:slottedId', async (req, res) => {
   } catch (err) {
     console.error('Slotted endpoint error:', err.message);
     res.status(500).json({ success: false, error: 'Failed to fetch slot data' });
-  }
-});
-
-// Bushwick Comedy Club availability (prefer Redis from Puppeteer scraper, fall back to JSON-LD)
-app.get('/api/v1/mics/slots/bushwick', async (req, res) => {
-  try {
-    // Try Redis first (Puppeteer data with exact spotsLeft)
-    const { redis, isRedisConnected } = require('./config/cache');
-    if (isRedisConnected()) {
-      const raw = await redis.get('micmap:bushwick:slots');
-      if (raw) {
-        const data = JSON.parse(raw);
-        res.set('Cache-Control', 'public, max-age=300');
-        return res.json({ success: true, ...data });
-      }
-    }
-    // Fall back to JSON-LD scrape (soldOut only, no spotsLeft)
-    const data = await getBushwickData();
-    if (!data) return res.status(404).json({ success: false, error: 'No Bushwick data available' });
-    res.set('Cache-Control', 'public, max-age=300');
-    res.json({ success: true, ...data });
-  } catch (err) {
-    console.error('Bushwick endpoint error:', err.message);
-    res.status(500).json({ success: false, error: 'Failed to fetch Bushwick data' });
   }
 });
 

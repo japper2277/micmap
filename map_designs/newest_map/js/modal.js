@@ -578,7 +578,11 @@ function populateModalContent(mic, allMicsAtVenue = null) {
             return h === micHour;
         });
         if (matchedSlot) {
-            spotsLabel = matchedSlot.spotsLeft === 0 ? ' (FULL)' : ` (${matchedSlot.spotsLeft}/${matchedSlot.capacity} spots left)`;
+            if (matchedSlot.soldOut || matchedSlot.spotsLeft === 0) {
+                spotsLabel = ' (FULL)';
+            } else if (matchedSlot.spotsLeft != null) {
+                spotsLabel = ` (${matchedSlot.spotsLeft}/${matchedSlot.capacity} spots left)`;
+            }
         }
     }
     const hasSignupUrl = !!mic.signupUrl;
@@ -827,7 +831,11 @@ function openVenueModal(mic) {
             return h === micHour;
         });
         if (matchedSlot) {
-            spotsLabel = matchedSlot.spotsLeft === 0 ? ' (FULL)' : ` (${matchedSlot.spotsLeft}/${matchedSlot.capacity} spots left)`;
+            if (matchedSlot.soldOut || matchedSlot.spotsLeft === 0) {
+                spotsLabel = ' (FULL)';
+            } else if (matchedSlot.spotsLeft != null) {
+                spotsLabel = ` (${matchedSlot.spotsLeft}/${matchedSlot.capacity} spots left)`;
+            }
         }
     }
     const hasSignupUrl = !!mic.signupUrl;
@@ -1856,6 +1864,45 @@ function openMicFromDeepLink() {
         return true;
     }
     return false;
+}
+
+// Load a shared plan from ?plan=id1:45,id2:60 deep link
+function loadPlanFromDeepLink() {
+    const params = new URLSearchParams(window.location.search);
+    const planParam = params.get('plan');
+    if (!planParam) return false;
+
+    const entries = planParam.split(',').filter(Boolean);
+    const ids = [];
+    entries.forEach((entry) => {
+        const [id, mins] = entry.split(':');
+        const mic = STATE.mics.find((m) => m.id === id);
+        if (mic) {
+            ids.push(id);
+            // Store custom duration if provided
+            if (mins && STATE.micDurations) {
+                STATE.micDurations[id] = parseInt(mins, 10) || 45;
+            }
+        }
+    });
+
+    if (ids.length === 0) return false;
+
+    STATE.route = ids;
+
+    // Activate plan mode UI
+    STATE.planMode = true;
+    document.body.classList.add('plan-mode', 'has-route');
+    if (typeof updateRouteClass === 'function') updateRouteClass();
+    if (typeof updateMarkerStates === 'function') updateMarkerStates();
+
+    // Clean the URL so refreshing doesn't re-trigger
+    const cleanUrl = new URL(window.location.href);
+    cleanUrl.searchParams.delete('plan');
+    cleanUrl.searchParams.delete('web');
+    window.history.replaceState({}, '', cleanUrl.pathname + cleanUrl.search);
+
+    return true;
 }
 
 // Backward compat alias
