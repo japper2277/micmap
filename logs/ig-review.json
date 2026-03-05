@@ -1,0 +1,121 @@
+{
+  "autoAppliedSafeWrites": [],
+  "reviewRequired": [
+    {
+      "handle": "thefearcitycomedyclub",
+      "source": "story",
+      "confidence": 0.73,
+      "postUrl": null,
+      "screenshotPath": "/home/runner/work/micmap/micmap/logs/ig-story-thefearcitycomedyclub-0.png",
+      "analysis": {
+        "isSignup": true,
+        "micName": "Sacred Cow Open Mic",
+        "day": "Wednesday",
+        "date": null,
+        "time": "6:00 PM",
+        "venueName": "The Fear City Comedy Club",
+        "signupInstructions": null,
+        "signupUrl": null,
+        "spotsLeft": null,
+        "capacity": null,
+        "host": null,
+        "cost": null,
+        "stageTime": null,
+        "notes": null
+      },
+      "matchedMicRef": {
+        "index": 0,
+        "method": "host_venue_fallback",
+        "name": "Fear City Mic",
+        "day": "Friday",
+        "startTime": "10:00 PM",
+        "venueName": "The Fear City Comedy Club",
+        "host": "@thefearcitycomedyclub"
+      },
+      "riskyChanges": [
+        {
+          "field": "day",
+          "from": "Friday",
+          "to": "Wednesday",
+          "reason": "day differs from extracted IG content"
+        },
+        {
+          "field": "startTime",
+          "from": "10:00 PM",
+          "to": "6:00 PM",
+          "reason": "startTime differs from extracted IG content"
+        },
+        {
+          "field": "name",
+          "from": "Fear City Mic",
+          "to": "Sacred Cow Open Mic",
+          "reason": "name differs from extracted IG content"
+        }
+      ],
+      "reasons": [
+        "extracted risky fields differ from current mic record"
+      ]
+    },
+    {
+      "handle": "thefearcitycomedyclub",
+      "source": "story",
+      "confidence": 0.65,
+      "postUrl": null,
+      "screenshotPath": "/home/runner/work/micmap/micmap/logs/ig-story-thefearcitycomedyclub-1.png",
+      "analysis": {
+        "isSignup": true,
+        "micName": "Uncut Gems Open Mic",
+        "day": "Wednesday",
+        "date": null,
+        "time": "9pm",
+        "venueName": null,
+        "signupInstructions": null,
+        "signupUrl": null,
+        "spotsLeft": null,
+        "capacity": null,
+        "host": null,
+        "cost": null,
+        "stageTime": null,
+        "notes": null
+      },
+      "matchedMicRef": {
+        "index": 0,
+        "method": "host_venue_fallback",
+        "name": "Fear City Mic",
+        "day": "Friday",
+        "startTime": "10:00 PM",
+        "venueName": "The Fear City Comedy Club",
+        "host": "@thefearcitycomedyclub"
+      },
+      "riskyChanges": [
+        {
+          "field": "day",
+          "from": "Friday",
+          "to": "Wednesday",
+          "reason": "day differs from extracted IG content"
+        },
+        {
+          "field": "startTime",
+          "from": "10:00 PM",
+          "to": "9pm",
+          "reason": "startTime differs from extracted IG content"
+        },
+        {
+          "field": "name",
+          "from": "Fear City Mic",
+          "to": "Uncut Gems Open Mic",
+          "reason": "name differs from extracted IG content"
+        }
+      ],
+      "reasons": [
+        "extracted risky fields differ from current mic record"
+      ]
+    }
+  ],
+  "unmatchedCandidates": [],
+  "counts": {
+    "autoAppliedSafeWrites": 0,
+    "reviewRequired": 2,
+    "unmatchedCandidates": 0
+  }
+}
