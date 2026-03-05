@@ -490,24 +490,71 @@ function copyScheduleAsText() {
     }
 }
 
-function copyScheduleLink() {
-    const routeIds = STATE.route || [];
-    if (routeIds.length === 0) return;
+// =================================================================
+// Plan Response Service — poll for friend responses on shared plans
+// =================================================================
 
+function getPlanHash(routeIds) {
+    if (!routeIds || routeIds.length === 0) return null;
     const stops = routeIds.map(id => {
         const mins = typeof getMicDuration === 'function' ? getMicDuration(id) : (STATE.setDuration || 45);
         return `${id}:${mins}`;
     });
-    const shareUrl = `https://micfinder.io/?plan=${stops.join(',')}`;
-
-    if (navigator.clipboard) {
-        navigator.clipboard.writeText(shareUrl).then(() => {
-            if (typeof toastService !== 'undefined') {
-                toastService.show('Link copied!', { duration: 2000 });
-            }
-        });
-    }
+    const sorted = stops.sort().join(',');
+    let hash = 0;
+    for (let i = 0; i < sorted.length; i++) hash = ((hash << 5) - hash + sorted.charCodeAt(i)) | 0;
+    return Math.abs(hash).toString(16).padStart(8, '0').slice(0, 12);
 }
+
+const planResponseService = {
+    _interval: null,
+    _lastCount: 0,
+
+    start() {
+        this.stop();
+        this._poll(); // immediate first poll
+        this._interval = setInterval(() => this._poll(), 30000);
+    },
+
+    stop() {
+        if (this._interval) { clearInterval(this._interval); this._interval = null; }
+        this._lastCount = 0;
+        STATE.planResponses = [];
+    },
+
+    async _poll() {
+        const hash = getPlanHash(STATE.route);
+        if (!hash) return;
+        try {
+            const res = await fetch(`${CONFIG.apiBase}/api/v1/plans/${hash}/responses`);
+            const data = await res.json();
+            if (!data.responses) return;
+
+            const prev = STATE.planResponses || [];
+            STATE.planResponses = data.responses;
+
+            // Toast for new responses
+            if (prev.length > 0 && data.responses.length > prev.length) {
+                const newOnes = data.responses.slice(prev.length);
+                newOnes.forEach(r => {
+                    const mic = STATE.mics.find(m => m.id === r.micId);
+                    const venue = mic ? (mic.venueName || mic.title) : 'a mic';
+                    const verb = r.response === 'in' ? 'is in for' : "can't make";
+                    if (typeof toastService !== 'undefined') {
+                        toastService.show(`${r.name} ${verb} ${venue}`, 'info', 4000);
+                    }
+                });
+            }
+
+            // Re-render if plan mode active
+            if (STATE.planMode && typeof render === 'function') {
+                render(STATE.currentMode);
+            }
+        } catch (e) {
+            // Silent fail — polling is non-critical
+        }
+    }
+};
 
 // =================================================================
 // HERE Walking API - Accurate pedestrian routing

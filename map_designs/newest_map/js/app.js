@@ -100,6 +100,13 @@ async function loadData() {
             openMicFromHash();
         }
 
+        // Check for shared plan deep link (e.g. ?plan=id1:45,id2:60&web=1)
+        if (typeof loadPlanFromDeepLink === 'function') {
+            if (loadPlanFromDeepLink() && typeof planResponseService !== 'undefined') {
+                planResponseService.start();
+            }
+        }
+
         // Check if transit calculation was pending (location arrived before mics loaded)
         if (STATE.pendingTransitCalc && STATE.userLocation) {
             STATE.pendingTransitCalc = false;
@@ -547,6 +554,7 @@ function togglePlanMode() {
         initPlanFilterRow(); // Initialize the time filter row in header
         render(STATE.currentMode);
         updateMarkerStates(); // Show commute labels on markers AFTER render (adds commute-loaded)
+        if (typeof planResponseService !== 'undefined') planResponseService.start();
     } else {
         exitPlanMode();
     }
@@ -558,6 +566,7 @@ function exitPlanMode() {
     if (STATE.route.length > 0 && typeof persistPlanState === 'function') {
         persistPlanState();
     }
+    if (typeof planResponseService !== 'undefined') planResponseService.stop();
     STATE.planMode = false;
     STATE.route = [];
     STATE.dismissed = [];

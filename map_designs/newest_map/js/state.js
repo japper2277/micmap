@@ -54,6 +54,9 @@ const STATE = {
     // Per-mic stay durations (overrides global setDuration)
     micDurations: JSON.parse(localStorage.getItem('planMicDurations') || '{}'), // { micId: minutes }
 
+    // Friend responses on shared plans
+    planResponses: [],              // [{ name, micId, response, at }]
+
     // Slotted signup availability
     slottedSlots: {}              // { venueName: { slots: [...], signupUrl, lastFetched } }
 };

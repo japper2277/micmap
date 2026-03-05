@@ -157,10 +157,12 @@ async function login(page) {
 
 async function scrapeStories(page, handle) {
   const storyUrl = `https://www.instagram.com/stories/${handle}/`;
-  await page.goto(storyUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
-  await new Promise((resolve) => setTimeout(resolve, 3000));
+  await page.goto(storyUrl, { waitUntil: 'networkidle2', timeout: 30000 });
+  await new Promise((resolve) => setTimeout(resolve, 4000));
 
+  console.log(`Story URL after nav: ${page.url()}`);
   if (!page.url().includes(`/stories/${handle}`)) {
+    console.log('Redirected away from stories — no active stories');
     return [];
   }
 
@@ -183,6 +185,7 @@ async function scrapeStories(page, handle) {
   if (viewStoryClicked) {
     console.log(`Clicked "View story" consent prompt (via ${viewStoryClicked})`);
     await new Promise((resolve) => setTimeout(resolve, 4000));
+    console.log(`URL after consent click: ${page.url()}`);
   } else {
     // Check if we see the consent text at all
     const pageText = await page.evaluate(() => document.body.innerText);
@@ -211,6 +214,7 @@ async function scrapeStories(page, handle) {
       });
       await new Promise((resolve) => setTimeout(resolve, 500));
 
+      console.log(`  Frame ${frameIndex} URL: ${page.url()}`);
       const screenshotPath = path.join(__dirname, `../logs/ig-story-${handle}-${frameIndex}.png`);
       fs.mkdirSync(path.dirname(screenshotPath), { recursive: true });
       await page.screenshot({ path: screenshotPath, fullPage: false });

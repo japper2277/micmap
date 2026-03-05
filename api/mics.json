@@ -3349,7 +3349,9 @@
     "stageTime": "4min",
     "signUpDetails": "Sign up form posted on IG every Wednesday https://www.instagram.com/friday_mic",
     "host": "Xavier Maurice (@noisecomplaintcomedy)",
-    "notes": null
+    "notes": null,
+    "flyerUrl": "https://micmap-production.up.railway.app/data/flyers/thursday-6-00-pm-halyards.png",
+    "flyerDate": "2026-03-05"
   },
   {
     "name": "BK Made Open Mic",

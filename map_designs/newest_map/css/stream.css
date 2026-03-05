@@ -564,6 +564,28 @@ body.plan-mode .happening-now-card-label {
 }
 
 
+/* Friend response badges on plan cards */
+.rsvp-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 6px;
+}
+.rsvp-badge {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 500;
+}
+.rsvp-badge-in {
+    background: rgba(74,222,128,0.1);
+    color: #4ade80;
+}
+.rsvp-badge-out {
+    background: rgba(161,161,170,0.08);
+    color: #71717a;
+}
+
 /* Travel indicator between schedule items */
 .my-schedule-travel {
     display: flex;

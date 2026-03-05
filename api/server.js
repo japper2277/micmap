@@ -2275,6 +2275,52 @@ app.post('/admin/cotl-slots', async (req, res) => {
   }
 });
 
+// ─── Plan Responses (Phase 2: collaborative planning) ─────────────────────
+
+const PLAN_RESPONSE_TTL = 48 * 60 * 60; // 48 hours
+
+app.post('/api/v1/plans/:planHash/responses', async (req, res) => {
+  try {
+    const { redis, isRedisConnected } = require('./config/cache');
+    if (!isRedisConnected()) {
+      return res.status(503).json({ success: false, error: 'Cache unavailable' });
+    }
+    const { name, micId, response } = req.body;
+    if (!name || !micId || !['in', 'out'].includes(response)) {
+      return res.status(400).json({ success: false, error: 'Required: name, micId, response (in|out)' });
+    }
+
+    const key = `micmap:plan:${req.params.planHash}:responses`;
+    const raw = await redis.get(key);
+    let responses = raw ? JSON.parse(raw) : [];
+
+    // Dedupe: remove previous response from same name+micId
+    responses = responses.filter(r => !(r.name === name && r.micId === micId));
+    responses.push({ name, micId, response, at: Date.now() });
+
+    await redis.setex(key, PLAN_RESPONSE_TTL, JSON.stringify(responses));
+    res.json({ success: true, responses });
+  } catch (err) {
+    console.error('Plan response POST error:', err.message);
+    res.status(500).json({ success: false, error: 'Failed to save response' });
+  }
+});
+
+app.get('/api/v1/plans/:planHash/responses', async (req, res) => {
+  try {
+    const { redis, isRedisConnected } = require('./config/cache');
+    if (!isRedisConnected()) {
+      return res.json({ success: true, responses: [] });
+    }
+    const key = `micmap:plan:${req.params.planHash}:responses`;
+    const raw = await redis.get(key);
+    res.json({ success: true, responses: raw ? JSON.parse(raw) : [] });
+  } catch (err) {
+    console.error('Plan response GET error:', err.message);
+    res.json({ success: true, responses: [] });
+  }
+});
+
 // Single mic lookup by ID (must come after /mics/slots to avoid catching "slots" as :id)
 app.get('/api/v1/mics/:id', async (req, res) => {
   try {

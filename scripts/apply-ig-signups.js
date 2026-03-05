@@ -103,6 +103,19 @@ async function copyFlyer(entry, mic, dryRun) {
   return `${FLYER_BASE_URL}/${filename}`;
 }
 
+async function applyFlyerOnly(mic, entry, dryRun) {
+  const changes = [];
+  const flyerUrl = await copyFlyer(entry, mic, dryRun);
+  if (flyerUrl && flyerUrl !== mic.flyerUrl) {
+    changes.push({ field: 'flyerUrl', from: mic.flyerUrl || null, to: flyerUrl });
+    mic.flyerUrl = flyerUrl;
+    const dateStr = new Date().toISOString().slice(0, 10);
+    mic.flyerDate = dateStr;
+    changes.push({ field: 'flyerDate', from: null, to: dateStr });
+  }
+  return changes;
+}
+
 async function applyEntryToMic(mic, entry, dryRun) {
   const changes = [];
 
@@ -171,13 +184,16 @@ async function main() {
   };
 
   for (const entry of entries) {
-    if (entry.classification !== 'safe_write') {
+    const isSafeWrite = entry.classification === 'safe_write';
+    const isReviewWithMatch = entry.classification === 'review_required' && entry.matchedMicRef;
+
+    if (!isSafeWrite && !isReviewWithMatch) {
       summary.skipped += 1;
       summary.skippedReasons.non_safe_classification += 1;
       continue;
     }
 
-    if (Number(entry.confidence || 0) < SAFE_CONFIDENCE_THRESHOLD) {
+    if (isSafeWrite && Number(entry.confidence || 0) < SAFE_CONFIDENCE_THRESHOLD) {
       summary.skipped += 1;
       summary.skippedReasons.low_confidence += 1;
       continue;
@@ -197,7 +213,10 @@ async function main() {
       notes: mic.notes || null
     };
 
-    const entryChanges = await applyEntryToMic(mic, entry, args.dryRun || !args.write);
+    // For review_required, only copy the flyer (skip field changes)
+    const entryChanges = isReviewWithMatch && !isSafeWrite
+      ? await applyFlyerOnly(mic, entry, args.dryRun || !args.write)
+      : await applyEntryToMic(mic, entry, args.dryRun || !args.write);
     if (entryChanges.length === 0) {
       summary.skipped += 1;
       summary.skippedReasons.no_effective_change += 1;

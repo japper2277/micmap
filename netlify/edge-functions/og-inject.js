@@ -114,6 +114,11 @@ function buildMicPage(mic, micId, url) {
 function buildPlanPage(mics, planIds, url) {
   const webUrl = `${url.origin}/?plan=${planIds}&web=1`;
   const stopCount = mics.length;
+  // Simple hash: sum char codes of sorted plan string, mod to 12-char hex
+  const sorted = planIds.split(',').sort().join(',');
+  let hash = 0;
+  for (let i = 0; i < sorted.length; i++) hash = ((hash << 5) - hash + sorted.charCodeAt(i)) | 0;
+  const planHash = Math.abs(hash).toString(16).padStart(8, '0').slice(0, 12);
 
   let ogTitle = 'My Night – MicFinder NYC';
   let ogDesc = `${stopCount} stop${stopCount !== 1 ? 's' : ''} tonight`;
@@ -133,10 +138,11 @@ function buildPlanPage(mics, planIds, url) {
     timeRange = mics[0]?.startTime || '';
   }
 
-  // Build stop cards
+  // Build stop cards with response buttons
   const stopsHtml = mics
     .map((m) => {
-      const time = esc(m.startTime || '').replace(/\s*(AM|PM)/i, '');
+      const micId = m._id || m.id;
+      const time = esc(m.startTime || '');
       const name = esc(m.venueName || m.name || '');
       const hood = esc(m.neighborhood || '');
       const cost =
@@ -145,7 +151,7 @@ function buildPlanPage(mics, planIds, url) {
       const detail = [hood, cost].filter(Boolean).join(' · ');
 
       return `
-      <div class="stop-card">
+      <div class="stop-card" data-mic="${esc(micId)}">
         <div class="stop-left">
           <div class="stop-time">${time}</div>
           ${stageTime ? `<div class="stop-stage">${stageTime}</div>` : ''}
@@ -155,13 +161,18 @@ function buildPlanPage(mics, planIds, url) {
           <div class="stop-venue">${name}</div>
           ${detail ? `<div class="stop-detail">${detail}</div>` : ''}
           <div class="stop-stay">Stay <span class="stop-stay-val">${m.stayMins} min</span></div>
+          <div class="rsvp-row">
+            <button class="rsvp-btn rsvp-in" onclick="respond('${esc(micId)}','in',this)">I'm in</button>
+            <button class="rsvp-btn rsvp-out" onclick="respond('${esc(micId)}','out',this)">Can't make it</button>
+          </div>
+          <div class="rsvp-names" id="rsvp-${esc(micId)}"></div>
         </div>
       </div>`;
     })
     .join('');
 
   const cardHtml = `
-    <div class="plan-card">
+    <div class="plan-card" data-plan-hash="${planHash}">
       <div class="plan-header">
         <div>
           <div class="plan-title">My Night <span class="stops-badge">${stopCount} Stop${stopCount !== 1 ? 's' : ''}</span></div>
@@ -173,11 +184,66 @@ function buildPlanPage(mics, planIds, url) {
       </div>
     </div>`;
 
+  const responseScript = `
+  <script>
+    var API='${API_BASE}',PH='${planHash}',userName=localStorage.getItem('mf_name')||'';
+    function getName(cb){
+      if(userName)return cb(userName);
+      var row=document.createElement('div');
+      row.className='name-prompt';
+      row.innerHTML='<input class="name-input" placeholder="Your name" maxlength="20" autofocus/><button class="name-go" onclick="submitName(this)">Go</button>';
+      document.querySelector('.plan-header').appendChild(row);
+      row.querySelector('input').addEventListener('keydown',function(e){if(e.key==='Enter')submitName(row.querySelector('button'));});
+      window._nameCb=cb;
+    }
+    function submitName(btn){
+      var input=btn.parentElement.querySelector('input');
+      var n=input.value.trim();
+      if(!n)return input.focus();
+      userName=n;localStorage.setItem('mf_name',n);
+      btn.parentElement.remove();
+      if(window._nameCb){window._nameCb(n);window._nameCb=null;}
+    }
+    function respond(micId,type,btn){
+      getName(function(name){
+        var card=btn.closest('.stop-card');
+        card.querySelectorAll('.rsvp-btn').forEach(function(b){b.classList.remove('active');});
+        btn.classList.add('active');
+        fetch(API+'/api/v1/plans/'+PH+'/responses',{
+          method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({name:name,micId:micId,response:type})
+        }).then(function(r){return r.json();}).then(function(d){if(d.responses)renderAll(d.responses);});
+      });
+    }
+    function renderAll(responses){
+      document.querySelectorAll('.stop-card').forEach(function(card){
+        var mid=card.dataset.mic;
+        var el=card.querySelector('.rsvp-names');
+        var mine=responses.filter(function(r){return r.micId===mid;});
+        el.innerHTML=mine.map(function(r){
+          return '<span class="rsvp-tag '+(r.response==='in'?'rsvp-tag-in':'rsvp-tag-out')+'">'+esc(r.name)+(r.response==='in'?' is in':' can\\'t make it')+'</span>';
+        }).join('');
+        // Restore my button state
+        if(userName){
+          var my=mine.find(function(r){return r.name===userName;});
+          if(my){
+            card.querySelectorAll('.rsvp-btn').forEach(function(b){b.classList.remove('active');});
+            if(my.response==='in')card.querySelector('.rsvp-in').classList.add('active');
+            else card.querySelector('.rsvp-out').classList.add('active');
+          }
+        }
+      });
+    }
+    function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+    // Load existing responses on page load
+    fetch(API+'/api/v1/plans/'+PH+'/responses').then(function(r){return r.json();}).then(function(d){if(d.responses)renderAll(d.responses);});
+  <\\/script>`;
+
   return pageShell({
     ogTitle,
     ogDesc,
     canonical: `https://micfinder.io/?plan=${planIds}`,
-    cardHtml,
+    cardHtml: cardHtml + responseScript,
     webUrl,
     extraCss: PLAN_CSS,
   });
@@ -279,6 +345,80 @@ const PLAN_CSS = `
     .stop-stay-val {
       color: #e4e4e7;
       font-weight: 600;
+    }
+    .rsvp-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .rsvp-btn {
+      flex: 1;
+      padding: 8px 0;
+      border: 1px solid #3f3f46;
+      border-radius: 8px;
+      background: transparent;
+      color: #a1a1aa;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .rsvp-btn:active { transform: scale(0.97); }
+    .rsvp-in.active {
+      background: rgba(74,222,128,0.15);
+      border-color: #4ade80;
+      color: #4ade80;
+    }
+    .rsvp-out.active {
+      background: rgba(161,161,170,0.12);
+      border-color: #71717a;
+      color: #71717a;
+    }
+    .rsvp-names {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+    }
+    .rsvp-tag {
+      font-size: 12px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-weight: 500;
+    }
+    .rsvp-tag-in {
+      background: rgba(74,222,128,0.1);
+      color: #4ade80;
+    }
+    .rsvp-tag-out {
+      background: rgba(161,161,170,0.08);
+      color: #71717a;
+    }
+    .name-prompt {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .name-input {
+      flex: 1;
+      padding: 8px 12px;
+      border: 1px solid #3f3f46;
+      border-radius: 8px;
+      background: #27272a;
+      color: #fff;
+      font-size: 14px;
+      outline: none;
+    }
+    .name-input:focus { border-color: #3b82f6; }
+    .name-go {
+      padding: 8px 16px;
+      background: #3b82f6;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
     }
 `;
 

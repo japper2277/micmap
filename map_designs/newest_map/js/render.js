@@ -1007,6 +1007,13 @@ function render(mode) {
                                 </div>
                             </div>
                         </div>
+                        ${(() => {
+                            const responses = (STATE.planResponses || []).filter(r => r.micId === mic.id);
+                            if (responses.length === 0) return '';
+                            return '<div class="rsvp-badges">' + responses.map(r =>
+                                `<span class="rsvp-badge ${r.response === 'in' ? 'rsvp-badge-in' : 'rsvp-badge-out'}">${escapeHtml(r.name)}${r.response === 'in' ? ' is in' : " can't make it"}</span>`
+                            ).join('') + '</div>';
+                        })()}
                     </div>
                     <div class="my-schedule-item-actions stacked">
                         <button class="schedule-drag-handle" onclick="event.stopPropagation();" aria-label="Drag to reorder" title="Drag to reorder">
