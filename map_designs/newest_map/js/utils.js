@@ -268,8 +268,18 @@ function processMics(rawMics) {
             day = CONFIG.dayNames[new Date().getDay()];
         }
 
+        // Expire flyers older than 7 days
+        let flyerUrl = m.flyerUrl || null;
+        let flyerDate = m.flyerDate || null;
+        if (flyerUrl && flyerDate) {
+            const age = (Date.now() - new Date(flyerDate + 'T00:00:00').getTime()) / 86400000;
+            if (age > 7) { flyerUrl = null; flyerDate = null; }
+        }
+
         return {
             ...m,
+            flyerUrl,
+            flyerDate,
             id: m._id || m.id,  // Normalize MongoDB _id to id
             title: venueName,
             venue: venueName,

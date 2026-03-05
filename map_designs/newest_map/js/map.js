@@ -69,7 +69,7 @@ function shortenVenueName(name) {
         'corner store bk': 'Corner Store',
 
         // Other long names
-        'greenwich village comedy club': 'Greenwich',
+        'greenwich village comedy club': 'GV Comedy',
         'pine box rock shop': 'Pine Box',
         'pete\'s candy store': 'Pete\'s',
         'caravan of dreams': 'Caravan',

@@ -11,6 +11,7 @@
  *   node scripts/scrape-fb-group.js                           # headless, local cookies
  *   node scripts/scrape-fb-group.js --headful --dry-run       # local Chrome, no POST
  *   node scripts/scrape-fb-group.js --limit 10 --api http://localhost:3001
+ *   node scripts/scrape-fb-group.js --group-url <url>         # override group URL
  */
 
 require('dotenv').config({ path: require('path').join(__dirname, '../api/.env') });
@@ -22,26 +23,135 @@ const puppeteer = require('puppeteer');
 const GROUP_URL = 'https://www.facebook.com/groups/nyccomedyscene';
 const GROUP_URL_NUMERIC = 'https://www.facebook.com/groups/198219734918102';
 const COOKIES_PATH = path.join(__dirname, '../logs/fb-cookies.json');
+const TEMP_PROFILE_DIR = path.join(__dirname, '../logs/fb-headless-profile');
 const IS_GITHUB_ACTIONS = process.env.GITHUB_ACTIONS === 'true';
 const DEFAULT_API_BASE = process.env.MICMAP_API_BASE || 'https://micmap-production.up.railway.app';
+const CHROME_PATH_CANDIDATES = [
+  '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+  '/Applications/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing'
+];
 
 function parseArgs(argv) {
   const out = {
     headful: false,
     dryRun: false,
+    debug: false,
+    help: false,
     limit: 20,
-    apiBase: DEFAULT_API_BASE
+    apiBase: DEFAULT_API_BASE,
+    groupUrl: null
   };
 
   for (let i = 2; i < argv.length; i += 1) {
     const arg = argv[i];
     if (arg === '--headful') out.headful = true;
     else if (arg === '--dry-run') out.dryRun = true;
+    else if (arg === '--debug') out.debug = true;
+    else if (arg === '--help' || arg === '-h') out.help = true;
+    else if (arg === '--numeric') out.groupUrl = GROUP_URL_NUMERIC;
     else if (arg === '--limit' && argv[i + 1]) out.limit = parseInt(argv[++i], 10);
     else if (arg === '--api' && argv[i + 1]) out.apiBase = argv[++i];
+    else if (arg === '--group-url' && argv[i + 1]) out.groupUrl = argv[++i];
   }
 
+  if (!Number.isFinite(out.limit) || out.limit <= 0) out.limit = 20;
   return out;
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function isTransientPageError(err) {
+  const msg = String(err?.message || err || '').toLowerCase();
+  return (
+    msg.includes('detached frame') ||
+    msg.includes('frame was detached') ||
+    msg.includes('execution context was destroyed') ||
+    msg.includes('cannot find context with specified id') ||
+    msg.includes('target closed') ||
+    msg.includes('net::err_aborted')
+  );
+}
+
+async function retryTransient(label, fn, attempts = 3) {
+  let lastErr = null;
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastErr = err;
+      if (!isTransientPageError(err) || attempt >= attempts) {
+        throw err;
+      }
+      console.warn(`[retry] ${label} failed (${err.message}) — retrying (${attempt}/${attempts})`);
+      await sleep(700 * attempt);
+    }
+  }
+  throw lastErr;
+}
+
+function pickChromeExecutable() {
+  if (process.env.PUPPETEER_EXECUTABLE_PATH) return process.env.PUPPETEER_EXECUTABLE_PATH;
+  for (const candidate of CHROME_PATH_CANDIDATES) {
+    if (fs.existsSync(candidate)) return candidate;
+  }
+  return null;
+}
+
+function buildLaunchConfig(headful) {
+  const launchConfig = {
+    headless: headful ? false : 'new',
+    defaultViewport: { width: 1280, height: 900 },
+    timeout: 120000,
+    userDataDir: TEMP_PROFILE_DIR,
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-breakpad',
+      '--disable-crash-reporter',
+      '--disable-features=Translate,MediaRouter'
+    ]
+  };
+
+  const executablePath = pickChromeExecutable();
+  if (executablePath) {
+    launchConfig.executablePath = executablePath;
+  }
+  return launchConfig;
+}
+
+function printHelp() {
+  console.log(
+    'Usage:\n' +
+    '  node scripts/scrape-fb-group.js [options]\n\n' +
+    'Options:\n' +
+    '  --headful               Use visible browser (tries remote-debugging Chrome first)\n' +
+    '  --dry-run               Extract only, do not POST to API\n' +
+    '  --debug                 Print detailed extraction diagnostics\n' +
+    '  --limit <n>             Max posts to process (default: 20)\n' +
+    '  --api <url>             API base URL (default from MICMAP_API_BASE)\n' +
+    '  --group-url <url>       Use an explicit Facebook group URL\n' +
+    '  --numeric               Shortcut for numeric group URL\n' +
+    '  --help, -h              Show this help'
+  );
+}
+
+async function launchBrowser(headful) {
+  const launchConfig = buildLaunchConfig(headful);
+  try {
+    return await puppeteer.launch(launchConfig);
+  } catch (err) {
+    const execPath = launchConfig.executablePath || '(Puppeteer default)';
+    throw new Error(
+      `${err.message}\n` +
+      `Launch config: headful=${headful} executablePath=${execPath} userDataDir=${launchConfig.userDataDir}\n` +
+      'Try one of:\n' +
+      '  1) export PUPPETEER_EXECUTABLE_PATH="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"\n' +
+      '  2) node scripts/scrape-fb-group.js --headful (with Chrome remote debugging enabled)'
+    );
+  }
 }
 
 async function loadCookies(page) {
@@ -71,185 +181,535 @@ async function loadCookies(page) {
 }
 
 async function verifyLogin(page) {
-  await page.goto('https://www.facebook.com/', { waitUntil: 'networkidle2', timeout: 30000 });
-  await new Promise((resolve) => setTimeout(resolve, 3000));
+  await retryTransient(
+    'verifyLogin.goto',
+    () => page.goto('https://www.facebook.com/', { waitUntil: 'networkidle2', timeout: 30000 }),
+    4
+  );
+  await sleep(3000);
 
   const url = page.url();
   if (url.includes('/login') || url.includes('checkpoint')) return false;
 
-  const hasLoginForm = await page.evaluate(() => {
-    return !!document.querySelector('input[name="email"]') && !!document.querySelector('input[name="pass"]');
-  });
+  const hasLoginForm = await retryTransient(
+    'verifyLogin.evaluate',
+    () => page.evaluate(() => {
+      return !!document.querySelector('input[name="email"]') && !!document.querySelector('input[name="pass"]');
+    }),
+    4
+  );
 
   return !hasLoginForm;
 }
 
 async function dismissDialogs(page) {
-  const dismissed = await page.evaluate(() => {
-    const results = [];
+  const dismissed = await retryTransient(
+    'dismissDialogs.evaluate',
+    () => page.evaluate(() => {
+      const results = [];
 
-    for (const btn of document.querySelectorAll('button, [role="button"]')) {
-      const text = (btn.textContent || '').trim().toLowerCase();
-      if (text === 'allow all cookies' || text === 'accept all' || text === 'allow essential and optional cookies') {
-        btn.click();
-        results.push(`cookie: "${text}"`);
-        break;
-      }
-    }
-
-    for (const btn of document.querySelectorAll('button, [role="button"], a')) {
-      const text = (btn.textContent || '').trim().toLowerCase();
-      if (text === 'not now' || text === 'decline' || text === 'close') {
-        btn.click();
-        results.push(`dialog: "${text}"`);
-        break;
-      }
-    }
-
-    return results;
-  });
-
-  if (dismissed.length) {
-    console.log(`Dismissed dialogs: ${dismissed.join(', ')}`);
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-  }
-}
-
-async function scrollAndLoad(page, scrollCount) {
-  for (let i = 0; i < scrollCount; i += 1) {
-    await page.evaluate(() => window.scrollBy(0, window.innerHeight * 2));
-    await new Promise((resolve) => setTimeout(resolve, 2500));
-    await dismissDialogs(page);
-  }
-}
-
-function hashText(text) {
-  let hash = 0;
-  for (let i = 0; i < text.length && i < 200; i++) {
-    hash = ((hash << 5) - hash + text.charCodeAt(i)) | 0;
-  }
-  return Math.abs(hash);
-}
-
-async function extractPosts(page, limit) {
-  return page.evaluate((lim) => {
-    const feed = document.querySelector('[role="feed"]');
-    if (!feed) return [];
-
-    const posts = [];
-    const seenHashes = new Set();
-
-    for (const child of feed.children) {
-      if (posts.length >= lim) break;
-
-      // Extract text from dir="auto" divs, deduplicated
-      const textParts = [];
-      const seen = new Set();
-      child.querySelectorAll('div[dir="auto"]').forEach((d) => {
-        const t = d.textContent.trim();
-        if (t.length > 15 && !seen.has(t) && t !== 'Facebook') {
-          seen.add(t);
-          textParts.push(t);
-        }
-      });
-      const text = textParts.join('\n');
-      if (text.length < 20) continue;
-
-      // Generate stable ID from text content
-      let hash = 0;
-      for (let i = 0; i < text.length && i < 200; i++) {
-        hash = ((hash << 5) - hash + text.charCodeAt(i)) | 0;
-      }
-      const postId = `fb_${Math.abs(hash)}`;
-      if (seenHashes.has(postId)) continue;
-      seenHashes.add(postId);
-
-      // Extract author from user profile links
-      let author = null;
-      for (const a of child.querySelectorAll('a[href*="/user/"]')) {
-        const t = a.textContent.trim();
-        if (t.length > 1 && t.length < 60 && t !== 'Facebook') {
-          author = t;
+      for (const btn of document.querySelectorAll('button, [role="button"]')) {
+        const text = (btn.textContent || '').trim().toLowerCase();
+        if (text === 'allow all cookies' || text === 'accept all' || text === 'allow essential and optional cookies') {
+          btn.click();
+          results.push(`cookie: "${text}"`);
           break;
         }
       }
 
-      // Extract external links (signup URLs, etc.)
-      // FB wraps external links as l.facebook.com/l.php?u=<encoded_url>
-      // Link preview cards use aria-label with the site name (href points to FB)
+      for (const btn of document.querySelectorAll('button, [role="button"], a')) {
+        const text = (btn.textContent || '').trim().toLowerCase();
+        if (text === 'not now' || text === 'decline' || text === 'close') {
+          btn.click();
+          results.push(`dialog: "${text}"`);
+          break;
+        }
+      }
+
+      return results;
+    }),
+    3
+  ).catch(() => []);
+
+  if (dismissed.length) {
+    console.log(`Dismissed dialogs: ${dismissed.join(', ')}`);
+    await sleep(1500);
+  }
+}
+
+async function inspectPageState(page) {
+  return retryTransient(
+    'inspectPageState.evaluate',
+    () => page.evaluate(() => {
+      const text = (document.body?.innerText || '').toLowerCase();
+      return {
+        url: window.location.href,
+        hasFeed: !!document.querySelector('[role="feed"]'),
+        articleCount: document.querySelectorAll('[role="article"]').length,
+        hasLoginForm: !!document.querySelector('input[name="email"]') && !!document.querySelector('input[name="pass"]'),
+        unavailableHint:
+          text.includes('this content isn\'t available right now') ||
+          text.includes('this content is not available right now') ||
+          text.includes('content isn\'t available') ||
+          text.includes('content is unavailable') ||
+          text.includes('go to feed')
+      };
+    }),
+    4
+  );
+}
+
+async function waitForFeed(page, timeoutMs = 25000) {
+  try {
+    await retryTransient(
+      'waitForFeed.waitForFunction',
+      () => page.waitForFunction(
+        () => !!document.querySelector('[role="feed"]') || document.querySelectorAll('[role="article"]').length > 0,
+        { timeout: timeoutMs }
+      ),
+      3
+    );
+  } catch {
+    // We'll inspect page state and decide what to do next.
+  }
+  return inspectPageState(page);
+}
+
+async function createLoggedInPage(browser) {
+  let lastErr = null;
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    const page = await browser.newPage();
+    try {
+      await page.setUserAgent(
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+      );
+      await loadCookies(page);
+      const loggedIn = await verifyLogin(page);
+      if (!loggedIn) {
+        if (IS_GITHUB_ACTIONS) {
+          throw new Error('FB_COOKIES session expired. Refresh with: node scripts/fb-export-cookies.js --set-secret');
+        }
+        throw new Error('Not logged into Facebook. Export cookies first: node scripts/fb-export-cookies.js');
+      }
+      return page;
+    } catch (err) {
+      lastErr = err;
+      await page.close().catch(() => {});
+      if (isTransientPageError(err) && attempt < 3) {
+        console.warn(`[retry] createLoggedInPage failed (${err.message}) — retrying (${attempt}/3)`);
+        await sleep(1000 * attempt);
+        continue;
+      }
+      throw err;
+    }
+  }
+  throw lastErr || new Error('Failed to create logged-in Facebook page');
+}
+
+async function navigateToGroup(page, preferredUrl = null) {
+  const urlOrder = preferredUrl
+    ? [preferredUrl]
+    : [GROUP_URL_NUMERIC, GROUP_URL];
+
+  for (const url of urlOrder) {
+    console.log(`Navigating to ${url}`);
+    await retryTransient(
+      'navigateToGroup.goto',
+      () => page.goto(url, { waitUntil: 'domcontentloaded', timeout: 45000 }),
+      4
+    );
+    await sleep(3500);
+    await dismissDialogs(page);
+    const state = await waitForFeed(page);
+
+    if (state.hasLoginForm) {
+      throw new Error('Facebook session is not logged in. Re-export cookies: node scripts/fb-export-cookies.js');
+    }
+    if (state.hasFeed || state.articleCount > 0) {
+      return { url, state };
+    }
+
+    if (state.unavailableHint) {
+      console.warn(`Group page unavailable at ${url}; trying fallback URL if available...`);
+    }
+  }
+
+  const finalState = await inspectPageState(page);
+  throw new Error(
+    'Could not load Facebook group feed. ' +
+    `url=${finalState.url} feed=${finalState.hasFeed} articles=${finalState.articleCount}. ` +
+    'Make sure your account is logged in and is a member of the group.'
+  );
+}
+
+async function extractPosts(page, limit, debug = false) {
+  const result = await page.evaluate((lim) => {
+    const authorSelectors = [
+      'h2 a[role="link"]',
+      'h3 a[role="link"]',
+      'a[role="link"][href*="/user/"]',
+      'a[role="link"][href*="/profile.php"]',
+      'a[href*="/groups/"][href*="/user/"]'
+    ];
+
+    const nodes = [];
+    const seenNodes = new Set();
+    const hasVisibleContent = (node) => {
+      if (!node) return false;
+      const text = (node.innerText || '').trim();
+      if (text.length > 0) return true;
+      return Boolean(
+        node.querySelector(
+          'img[src*="scontent"], a[href], div[role="button"], button, [role="link"]'
+        )
+      );
+    };
+    const pushNode = (node) => {
+      if (!node || seenNodes.has(node)) return;
+      seenNodes.add(node);
+      nodes.push(node);
+    };
+
+    const feed = document.querySelector('[role="feed"]');
+    const feedChildren = feed ? Array.from(feed.children) : [];
+    const findFeedChild = (el) => {
+      for (const child of feedChildren) {
+        if (child.contains(el)) return child;
+      }
+      return null;
+    };
+
+    for (const article of document.querySelectorAll('[role="article"]')) {
+      const t = (article.innerText || '').trim();
+      if (t.length > 0 || article.querySelector('img[src*="scontent"]')) {
+        pushNode(article);
+      }
+    }
+
+    if (feed) {
+      for (const anchor of feed.querySelectorAll(authorSelectors.join(', '))) {
+        pushNode(findFeedChild(anchor));
+      }
+      for (const signalEl of feed.querySelectorAll(
+        'img[src*="scontent"], a[href*="/posts/"], a[href*="story_fbid="], a[href*="/permalink/"], a[href*="/photo/"], a[href*="/photos/"], a[href*="/stories/"], div[role="button"], button'
+      )) {
+        pushNode(findFeedChild(signalEl));
+      }
+      for (const child of feedChildren) {
+        if (hasVisibleContent(child)) pushNode(child);
+      }
+    }
+
+    if (!nodes.length) return { posts: [], debugEntries: [] };
+
+    const posts = [];
+    const debugEntries = [];
+    const seenHashes = new Set();
+    let hitLimit = false;
+
+    const isUnavailablePlaceholder = (value) => {
+      const text = (value || '').toLowerCase();
+      return (
+        text.includes('this content isn\'t available right now') ||
+        text.includes('this content is not available right now') ||
+        text.includes('content isn\'t available') ||
+        text.includes('content is unavailable') ||
+        text.includes('owner only shared it with a small group')
+      );
+    };
+
+    const isNonPostUiText = (value) => {
+      const text = (value || '').toLowerCase();
+      if (!text) return true;
+      if (isUnavailablePlaceholder(text)) return true;
+
+      if (
+        text.startsWith('sort group feed by') ||
+        text.startsWith('new york comedy scene private') ||
+        text.startsWith('groups new york city comedy scene public')
+      ) {
+        return true;
+      }
+
+      const signals = [
+        /private group/,
+        /public group/,
+        /\bmember since\b/,
+        /\bfacebook group for\b/,
+        /\bpost your open mic/,
+        /\bsort group feed/,
+        /\bwrite something\b/,
+        /\bcreate job\b/,
+        /\bfeeling\/activity\b/,
+        /\bcheck in\b/,
+        /\bnew posts\b/
+      ];
+      let hits = 0;
+      for (const signal of signals) {
+        if (signal.test(text)) hits += 1;
+      }
+      if (hits >= 2) return true;
+
+      if ((/private\s*·/.test(text) || /public\s*·/.test(text)) && /\bmembers\b/.test(text)) {
+        return true;
+      }
+
+      return false;
+    };
+
+    const hashFromText = (text) => {
+      let hash = 0;
+      for (let i = 0; i < text.length && i < 200; i += 1) {
+        hash = ((hash << 5) - hash + text.charCodeAt(i)) | 0;
+      }
+      return Math.abs(hash);
+    };
+
+    const normalizeExternalUrl = (rawHref, absoluteHref) => {
+      let url = null;
+      try {
+        const abs = absoluteHref || rawHref;
+        if (!abs) return null;
+        const parsed = new URL(abs, window.location.origin);
+        if (parsed.hostname.includes('l.facebook.com') || parsed.pathname === '/l.php') {
+          const wrapped = parsed.searchParams.get('u');
+          if (wrapped) url = decodeURIComponent(wrapped);
+        }
+      } catch {
+        // Ignore parse issues and continue below.
+      }
+
+      if (!url && absoluteHref && /^https?:\/\//i.test(absoluteHref)) {
+        url = absoluteHref;
+      }
+      if (!url) return null;
+
+      try {
+        const parsedUrl = new URL(url);
+        parsedUrl.searchParams.delete('fbclid');
+        if (parsedUrl.hostname.includes('facebook.com') || parsedUrl.hostname.includes('fb.com')) {
+          return null;
+        }
+        return parsedUrl.toString();
+      } catch {
+        return null;
+      }
+    };
+
+    const findAuthor = (node) => {
+      for (const selector of authorSelectors) {
+        for (const a of node.querySelectorAll(selector)) {
+          const t = (a.textContent || '').replace(/\s+/g, ' ').trim();
+          if (
+            t.length > 1 &&
+            t.length < 80 &&
+            t !== 'Facebook' &&
+            !/comment|reply|share|like|more|see all/i.test(t)
+          ) {
+            return t;
+          }
+        }
+      }
+      return null;
+    };
+
+    for (let idx = 0; idx < nodes.length; idx += 1) {
+      const child = nodes[idx];
+
+      const authorGuess = findAuthor(child);
+      const hasAuthorMarker = Boolean(authorGuess);
+      const hasEngagementMarker = Array.from(child.querySelectorAll('div[role="button"],button'))
+        .some((b) => /like|comment|share/i.test((b.textContent || '').toLowerCase()));
+      const hasTimeMarker = Array.from(child.querySelectorAll('a[role="link"],span,abbr'))
+        .some((n) => /^(just now|yesterday|\d+\s?(m|min|h|hr|d|w))$/i.test((n.textContent || '').trim()));
+
+      let permalink = null;
+      for (const a of child.querySelectorAll('a[href]')) {
+        const href = a.href || '';
+        const pm = href.match(/\/permalink\/(\d+)/) ||
+                   href.match(/\/posts\/(\d+)/) ||
+                   href.match(/\/groups\/[^/]+\/posts\/(\d+)/) ||
+                   href.match(/story_fbid=(\d+)/);
+        if (pm) {
+          permalink = href.split('#')[0];
+          break;
+        }
+      }
+
+      let imageUrl = null;
+      for (const img of child.querySelectorAll('img[src*="scontent"]')) {
+        const w = parseInt(img.getAttribute('width'), 10) || img.naturalWidth || 0;
+        const h = parseInt(img.getAttribute('height'), 10) || img.naturalHeight || 0;
+        if (w > 100 && h > 100) {
+          imageUrl = img.src;
+          break;
+        }
+      }
+
+      const isPostLikeNode = hasAuthorMarker && (Boolean(permalink) || Boolean(imageUrl) || hasTimeMarker || hasEngagementMarker);
+
+      // Extract text from dir="auto" elements first, then fallback to innerText lines.
+      const textParts = [];
+      const seenText = new Set();
+      const textEls = child.querySelectorAll('div[dir="auto"], span[dir="auto"], p');
+      textEls.forEach((d) => {
+        const t = (d.textContent || '').replace(/\s+/g, ' ').trim();
+        if (t.length > 5 && !seenText.has(t) && t !== 'Facebook') {
+          seenText.add(t);
+          textParts.push(t);
+        }
+      });
+
+      if (textParts.length === 0) {
+        const fallbackLines = (child.innerText || '')
+          .split('\n')
+          .map((line) => line.replace(/\s+/g, ' ').trim())
+          .filter((line) => line.length > 5)
+          .slice(0, 20);
+        fallbackLines.forEach((line) => {
+          if (!seenText.has(line) && line !== 'Facebook') {
+            seenText.add(line);
+            textParts.push(line);
+          }
+        });
+      }
+
+      const text = textParts.join('\n');
+      let effectiveText = text;
+      if (effectiveText.length < 20 && isPostLikeNode && imageUrl) {
+        effectiveText = '[image-only post]';
+      }
+
+      const entry = {
+        childIndex: idx,
+        textNodes: textEls.length,
+        textLength: effectiveText.length,
+        preview: effectiveText.slice(0, 80).replace(/\n/g, ' '),
+        postId: `fb_node_${idx}`,
+        authorGuess,
+        markers: {
+          author: hasAuthorMarker,
+          time: hasTimeMarker,
+          actions: hasEngagementMarker,
+          permalink: Boolean(permalink),
+          image: Boolean(imageUrl)
+        },
+        skipReason: null
+      };
+
+      if (hitLimit) {
+        entry.skipReason = 'limit_reached';
+        debugEntries.push(entry);
+        continue;
+      }
+
+      if (!isPostLikeNode) {
+        entry.skipReason = 'not_post_like_node';
+        debugEntries.push(entry);
+        continue;
+      }
+
+      if (effectiveText.length < 20) {
+        entry.skipReason = `text_too_short (${effectiveText.length} < 20)`;
+        debugEntries.push(entry);
+        continue;
+      }
+
+      if (isNonPostUiText(effectiveText)) {
+        entry.skipReason = isUnavailablePlaceholder(effectiveText) ? 'unavailable_placeholder' : 'non_post_ui_block';
+        debugEntries.push(entry);
+        continue;
+      }
+
       const externalLinks = [];
       const seenLinks = new Set();
       for (const a of child.querySelectorAll('a[href]')) {
-        const href = a.href;
-        let url = null;
+        const rawHref = a.getAttribute('href') || '';
+        const href = a.href || rawHref;
+        let url = normalizeExternalUrl(rawHref, href);
 
-        // 1. Facebook redirect wrapper (l.facebook.com/l.php?u=...)
-        const m = href.match(/l\.facebook\.com\/l\.php\?u=([^&]+)/);
-        if (m) {
-          try { url = decodeURIComponent(m[1]).split('?fbclid')[0]; } catch {}
-        }
-
-        // 2. Link text that looks like a URL
         if (!url) {
-          const linkText = a.textContent.trim();
+          const linkText = (a.textContent || '').trim();
           if (/^https?:\/\/[^\s]+/.test(linkText) && !linkText.includes('facebook.com')) {
-            url = linkText;
+            url = linkText.replace(/[.)]+$/, '');
           }
         }
 
-        // 3. Link preview cards: aria-label contains site name + title
-        //    (href is facebook.com/groups/... but the label has the destination)
         if (!url) {
           const label = a.getAttribute('aria-label') || '';
-          // Match known signup platforms in aria-label
           const platformMatch = label.match(/\b(tixol\w*|punchup|slotted|eventbrite|dice\.fm|shotgun\w*|humanitix|lu\.ma)\b/i);
           if (platformMatch) {
-            // Include the aria-label as context since we can't get the actual URL
             url = `[link-preview] ${label}`;
           }
         }
 
-        if (url && !seenLinks.has(url) && !url.includes('facebook.com')) {
+        if (url && !seenLinks.has(url)) {
           seenLinks.add(url);
           externalLinks.push(url);
         }
       }
 
-      // Try to find a FB permalink (some posts have them)
-      let permalink = null;
-      for (const a of child.querySelectorAll('a[href]')) {
-        const href = a.href;
-        const pm = href.match(/\/permalink\/(\d+)/) ||
-                   href.match(/\/posts\/(\d+)/) ||
-                   href.match(/story_fbid=(\d+)/);
-        if (pm) {
-          permalink = href;
-          break;
-        }
-      }
-
-      // Also extract URLs from plain text (not wrapped in <a> tags)
       const urlRegex = /https?:\/\/[^\s),]+/g;
       let match;
       while ((match = urlRegex.exec(text)) !== null) {
-        const url = match[0].replace(/[.)]+$/, ''); // trim trailing punctuation
+        const url = match[0].replace(/[.)]+$/, '');
         if (!seenLinks.has(url) && !url.includes('facebook.com')) {
           seenLinks.add(url);
           externalLinks.push(url);
         }
       }
 
+      const primaryExternalLink = externalLinks.find((link) => /^https?:\/\//i.test(link)) || null;
+      const normalizedSeedText = effectiveText.toLowerCase().replace(/\s+/g, ' ').slice(0, 300);
+      const postSeed = permalink || imageUrl || primaryExternalLink || normalizedSeedText || `${idx}:${(child.innerText || '').slice(0, 80)}`;
+      const postId = `fb_${hashFromText(postSeed)}`;
+      entry.postId = postId;
+
+      if (seenHashes.has(postId)) {
+        entry.skipReason = `duplicate_hash (${postId})`;
+        debugEntries.push(entry);
+        continue;
+      }
+      seenHashes.add(postId);
+
+      entry.skipReason = null;
+      debugEntries.push(entry);
+
       posts.push({
         id: postId,
-        text,
-        author,
-        url: permalink,
-        links: externalLinks.length > 0 ? externalLinks : undefined
+        text: effectiveText,
+        author: authorGuess || null,
+        url: permalink || undefined,
+        links: externalLinks.length > 0 ? externalLinks : undefined,
+        imageUrl: imageUrl || undefined
       });
+
+      if (posts.length >= lim) hitLimit = true;
     }
 
-    return posts;
+    return { posts, debugEntries };
   }, limit);
+
+  if (debug && result.debugEntries.length > 0) {
+    const skipStats = {};
+    for (const entry of result.debugEntries) {
+      const key = entry.skipReason || 'captured';
+      skipStats[key] = (skipStats[key] || 0) + 1;
+    }
+
+    console.log(`\n--- DEBUG: extractPosts() — ${result.debugEntries.length} candidate nodes ---`);
+    for (const e of result.debugEntries) {
+      const status = e.skipReason ? `SKIP(${e.skipReason})` : 'CAPTURED';
+      const markerText = `author=${e.markers?.author ? 1 : 0} img=${e.markers?.image ? 1 : 0} actions=${e.markers?.actions ? 1 : 0} permalink=${e.markers?.permalink ? 1 : 0}`;
+      console.log(`  [${e.childIndex}] ${status} | textNodes=${e.textNodes} textLen=${e.textLength} id=${e.postId} | ${markerText}`);
+      if (e.authorGuess) console.log(`        authorGuess="${e.authorGuess}"`);
+      if (e.preview) console.log(`        "${e.preview}"`);
+    }
+    console.log(`  skipStats: ${JSON.stringify(skipStats)}`);
+    console.log('--- END DEBUG ---\n');
+  }
+
+  return result.posts;
 }
 
 async function postToWebhook(apiBase, post) {
@@ -283,9 +743,17 @@ async function findGroupTab(browser) {
 }
 
 async function main() {
-  const { headful, dryRun, limit, apiBase } = parseArgs(process.argv);
+  const { headful, dryRun, debug, help, limit, apiBase, groupUrl } = parseArgs(process.argv);
 
-  console.log(`FB Group Scraper — limit=${limit} dryRun=${dryRun} api=${apiBase}`);
+  if (help) {
+    printHelp();
+    return;
+  }
+
+  console.log(
+    `FB Group Scraper — limit=${limit} dryRun=${dryRun} debug=${debug} api=${apiBase}` +
+    (groupUrl ? ` groupUrl=${groupUrl}` : '')
+  );
 
   let browser;
   let connectedToRunning = false;
@@ -301,24 +769,15 @@ async function main() {
         defaultViewport: null
       });
       connectedToRunning = true;
-    } catch {
-      console.error(
-        'Could not connect to Chrome. Start Chrome with remote debugging:\n' +
-        '  /Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome ' +
-        '--remote-debugging-port=9222 --user-data-dir="logs/fb-chrome-profile"\n' +
-        'Then re-run this script.'
+    } catch (err) {
+      console.warn(
+        'Could not connect to Chrome remote debugging; launching a local browser instead.\n' +
+        `Reason: ${err.message}`
       );
-      process.exit(1);
+      browser = await launchBrowser(true);
     }
   } else {
-    browser = await puppeteer.launch({
-      headless: 'new',
-      defaultViewport: { width: 1280, height: 900 },
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
-      ...(process.env.PUPPETEER_EXECUTABLE_PATH
-        ? { executablePath: process.env.PUPPETEER_EXECUTABLE_PATH }
-        : {})
-    });
+    browser = await launchBrowser(false);
   }
 
   const summary = { total: 0, posted: 0, duplicate: 0, errors: 0, skipped: 0 };
@@ -332,72 +791,35 @@ async function main() {
       page = await findGroupTab(browser);
       if (page) {
         console.log('Found existing group tab — using it');
+        const existingState = await waitForFeed(page, 12000);
+        if (existingState.hasLoginForm || (!existingState.hasFeed && existingState.articleCount === 0)) {
+          await navigateToGroup(page, groupUrl);
+        }
       } else {
         // No group tab open — use first tab and navigate
         const pages = await browser.pages();
         page = pages[0] || await browser.newPage();
-        console.log(`Navigating to ${GROUP_URL}`);
-        await page.goto(GROUP_URL, { waitUntil: 'networkidle2', timeout: 30000 });
-        await new Promise((resolve) => setTimeout(resolve, 4000));
-
-        // Verify it loaded
-        const hasFeed = await page.evaluate(() => !!document.querySelector('[role="feed"]'));
-        if (!hasFeed) {
-          throw new Error(
-            'Could not load group feed. Make sure you are:\n' +
-            '  1. Logged into Facebook in the Chrome window\n' +
-            '  2. A member of the NYC Comedy Scene group\n' +
-            '  3. Navigate to the group page manually, then re-run this script'
-          );
-        }
+        await navigateToGroup(page, groupUrl);
       }
     } else {
-      // Headless: new page with cookies
-      page = await browser.newPage();
-      await page.setUserAgent(
-        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-      );
-      await loadCookies(page);
-
-      const loggedIn = await verifyLogin(page);
-      if (!loggedIn) {
-        if (IS_GITHUB_ACTIONS) {
-          throw new Error('FB_COOKIES session expired. Refresh with: node scripts/fb-export-cookies.js --set-secret');
-        }
-        throw new Error('Not logged into Facebook. Export cookies first: node scripts/fb-export-cookies.js');
-      }
+      // Headless / standalone headful: new page with cookies
+      page = await createLoggedInPage(browser);
       console.log('Facebook login verified');
-
-      console.log(`Navigating to ${GROUP_URL}`);
-      await page.goto(GROUP_URL, { waitUntil: 'networkidle2', timeout: 30000 });
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-      await dismissDialogs(page);
-
-      const pageUrl = page.url();
-      if (pageUrl.includes('/login') || pageUrl.includes('checkpoint')) {
-        throw new Error('Redirected away from group — session may be invalid');
-      }
+      await navigateToGroup(page, groupUrl);
     }
 
-    // Scroll to top for consistent results
-    await page.evaluate(() => window.scrollTo(0, 0));
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    // FB virtualizes the DOM (~5-10 posts at once), so we scroll
-    // and extract repeatedly, accumulating unique posts until we
-    // stop finding new ones or hit the limit.
+    // FB heavily virtualizes group feeds. Capture what's currently visible first,
+    // then dense-sample while scrolling in smaller increments.
     const allPosts = new Map();
     const MAX_SCROLLS = 30;
+    const DENSE_STEPS_PER_SCROLL = 8;
+    const DENSE_DELTA_Y = 420;
+    const DENSE_SETTLE_MS = 320;
+    const DENSE_LONG_SETTLE_EVERY = 6;
+    const DENSE_LONG_SETTLE_MS = 1200;
     let emptyRounds = 0;
 
-    // Extract top-of-feed posts before any scrolling
-    const topBatch = await extractPosts(page, limit * 2);
-    for (const post of topBatch) allPosts.set(post.id, post);
-    console.log(`Top of feed: ${topBatch.length} posts`);
-
-    console.log(`Scrolling and extracting (limit=${limit}, max scrolls=${MAX_SCROLLS})...`);
-    for (let i = 0; i < MAX_SCROLLS; i += 1) {
-      const batch = await extractPosts(page, limit * 2);
+    const mergeBatch = (batch) => {
       let newCount = 0;
       for (const post of batch) {
         if (!allPosts.has(post.id)) {
@@ -405,11 +827,40 @@ async function main() {
           newCount += 1;
         }
       }
+      return newCount;
+    };
 
-      console.log(`  scroll ${i + 1}: ${batch.length} in DOM, ${newCount} new (${allPosts.size} total)`);
+    // First pass: capture currently rendered/visible cards before moving.
+    const visibleBatch = await extractPosts(page, limit * 3, debug);
+    const visibleNew = mergeBatch(visibleBatch);
+    console.log(`Visible snapshot: ${visibleBatch.length} in DOM, ${visibleNew} new (${allPosts.size} total)`);
+
+    console.log(`Scrolling and extracting (limit=${limit}, max scrolls=${MAX_SCROLLS})...`);
+    for (let i = 0; i < MAX_SCROLLS; i += 1) {
+      let scrollNew = 0;
+      let scrollSeen = 0;
+
+      for (let step = 0; step < DENSE_STEPS_PER_SCROLL; step += 1) {
+        await page.mouse.wheel({ deltaY: DENSE_DELTA_Y });
+        await sleep(DENSE_SETTLE_MS);
+
+        if ((step + 1) % DENSE_LONG_SETTLE_EVERY === 0) {
+          await sleep(DENSE_LONG_SETTLE_MS);
+          await dismissDialogs(page);
+        }
+
+        const batch = await extractPosts(page, limit * 3, debug);
+        const newCount = mergeBatch(batch);
+        scrollNew += newCount;
+        scrollSeen += batch.length;
+
+        if (allPosts.size >= limit) break;
+      }
+
+      console.log(`  scroll ${i + 1}: ${scrollSeen} sampled, ${scrollNew} new (${allPosts.size} total)`);
 
       if (allPosts.size >= limit) break;
-      if (newCount === 0) {
+      if (scrollNew === 0) {
         emptyRounds += 1;
         if (emptyRounds >= 3) {
           console.log('  No new posts for 3 scrolls — stopping');
@@ -418,14 +869,6 @@ async function main() {
       } else {
         emptyRounds = 0;
       }
-
-      // Use mouse wheel to trigger FB's infinite scroll naturally
-      for (let s = 0; s < 5; s += 1) {
-        await page.mouse.wheel({ deltaY: 1200 });
-        await new Promise((resolve) => setTimeout(resolve, 600));
-      }
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-      await dismissDialogs(page);
     }
 
     const posts = Array.from(allPosts.values()).slice(0, limit);
@@ -437,6 +880,7 @@ async function main() {
       for (const post of posts) {
         const preview = post.text.slice(0, 120).replace(/\n/g, ' ');
         console.log(`  [${post.id}] ${post.author || 'Unknown'}: ${preview}...`);
+        if (post.imageUrl) console.log(`    image: ${post.imageUrl.slice(0, 100)}...`);
         if (post.links) {
           for (const link of post.links) console.log(`    link: ${link}`);
         }

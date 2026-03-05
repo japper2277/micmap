@@ -3,6 +3,25 @@
    Map-first route planning - click markers to build route
    ================================================================= */
 
+// Schedule share menu
+function toggleScheduleShareMenu(btn) {
+    const menu = btn.closest('.schedule-share-wrap').querySelector('.schedule-share-menu');
+    const isOpen = menu.classList.contains('is-open');
+    closeScheduleShareMenu();
+    if (!isOpen) {
+        menu.classList.add('is-open');
+        // Close on outside click
+        setTimeout(() => {
+            document.addEventListener('click', closeScheduleShareMenu, { once: true });
+        }, 0);
+    }
+}
+
+function closeScheduleShareMenu() {
+    const menu = document.querySelector('.schedule-share-menu.is-open');
+    if (menu) menu.classList.remove('is-open');
+}
+
 // Confirm before exiting plan mode if route has items
 function confirmExitPlanMode() {
     if (STATE.route.length > 0) {

@@ -75,3 +75,29 @@ const toastService = {
         }, finalDuration);
     }
 };
+
+// Apple HUD-style centered celebration overlay
+// Appended directly to <body> so it escapes toast-container positioning
+function showCelebrateHUD(venueName) {
+    // Remove any existing HUD
+    const existing = document.querySelector('.celebrate-hud');
+    if (existing) existing.remove();
+
+    const hud = document.createElement('div');
+    hud.className = 'celebrate-hud';
+    hud.innerHTML = `
+        <svg class="celebrate-hud-check" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 6L9 17l-5-5"/>
+        </svg>
+        <div class="celebrate-hud-title">Added to Your Night</div>
+        <div class="celebrate-hud-venue">${typeof escapeHtml === 'function' ? escapeHtml(venueName) : venueName}</div>
+    `;
+    document.body.appendChild(hud);
+
+    requestAnimationFrame(() => hud.classList.add('show'));
+
+    setTimeout(() => {
+        hud.classList.add('dismiss');
+        setTimeout(() => hud.remove(), 400);
+    }, 1600);
+}

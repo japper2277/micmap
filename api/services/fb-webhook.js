@@ -134,7 +134,17 @@ async function processPost(post) {
     }
   }
 
-  console.log(`[FB webhook] postId=${postId} classification=${classified.classification} confidence=${confidence} match=${match?.method || 'none'}`);
+  // Save flyer image URL on matched mic
+  if (match?.mic?._id && post.imageUrl) {
+    try {
+      await Mic.findByIdAndUpdate(match.mic._id, { $set: { flyerUrl: post.imageUrl } });
+      result.flyerUrlSaved = true;
+    } catch (err) {
+      console.error(`[FB webhook] Failed to save flyerUrl for mic ${match.mic._id}: ${err.message}`);
+    }
+  }
+
+  console.log(`[FB webhook] postId=${postId} classification=${classified.classification} confidence=${confidence} match=${match?.method || 'none'}${result.flyerUrlSaved ? ' flyerUrl=saved' : ''}`);
   return result;
 }
 

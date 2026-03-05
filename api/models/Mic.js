@@ -98,6 +98,10 @@ const micSchema = new mongoose.Schema({
   score: {
     type: Number,
     default: 0
+  },
+  flyerUrl: {
+    type: String,
+    default: null
   }
 }, {
   timestamps: true // Adds createdAt and updatedAt automatically

@@ -772,6 +772,13 @@ function render(mode) {
             scheduleCard.classList.toggle('expanded', STATE.scheduleExpanded);
             scheduleCard.setAttribute('aria-expanded', STATE.scheduleExpanded ? 'true' : 'false');
             expandedList.classList.toggle('is-open', STATE.scheduleExpanded);
+
+            // Expand drawer when opening My Night so user can see the content
+            if (STATE.scheduleExpanded && typeof getDrawerState === 'function' && typeof setDrawerState === 'function' && typeof DRAWER_STATES !== 'undefined') {
+                if (getDrawerState() === DRAWER_STATES.PEEK) {
+                    setDrawerState(DRAWER_STATES.OPEN);
+                }
+            }
         };
         scheduleCard.onclick = toggleScheduleExpanded;
         scheduleCard.onkeydown = (e) => {
@@ -788,6 +795,34 @@ function render(mode) {
             </div>
             <div class="my-schedule-card-right">
                 <span class="my-schedule-card-preview">${rangeText}</span>
+                <div class="schedule-share-wrap" style="position:relative">
+                    <button class="schedule-share-btn" onclick="event.stopPropagation(); toggleScheduleShareMenu(this)" aria-label="Share schedule">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/>
+                            <polyline points="16 6 12 2 8 6"/>
+                            <line x1="12" y1="2" x2="12" y2="15"/>
+                        </svg>
+                    </button>
+                    <div class="schedule-share-menu" id="schedule-share-menu">
+                        <button class="schedule-share-option" onclick="event.stopPropagation(); copyScheduleAsText(); closeScheduleShareMenu();">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/>
+                                <polyline points="16 6 12 2 8 6"/>
+                                <line x1="12" y1="2" x2="12" y2="15"/>
+                            </svg>
+                            Share Link
+                        </button>
+                        <button class="schedule-share-option" onclick="event.stopPropagation(); exportScheduleToCalendar(); closeScheduleShareMenu();">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                <line x1="16" y1="2" x2="16" y2="6"/>
+                                <line x1="8" y1="2" x2="8" y2="6"/>
+                                <line x1="3" y1="10" x2="21" y2="10"/>
+                            </svg>
+                            Add to Cal
+                        </button>
+                    </div>
+                </div>
                 <svg class="my-schedule-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M6 9l6 6 6-6"/>
                 </svg>
@@ -916,13 +951,11 @@ function render(mode) {
         const sortBtn = routeOutOfOrder
             ? `<button class="schedule-tool-btn" onclick="event.stopPropagation(); sortRouteByTime();" aria-label="Sort schedule by time">Sort by time</button>`
             : '';
-        const toolsRow = `
+        const toolsRow = sortBtn ? `
             <div class="schedule-tools" onclick="event.stopPropagation()">
                 ${sortBtn}
-                <button class="schedule-tool-btn" onclick="event.stopPropagation(); exportScheduleToCalendar();" aria-label="Add schedule to Google Calendar">Add to Calendar</button>
-                <button class="schedule-tool-btn" onclick="event.stopPropagation(); copyScheduleAsText();" aria-label="Copy schedule as text">Copy</button>
             </div>
-        `;
+        ` : '';
 
         // Suggested Mics Section
         let suggestionsHtml = '';
@@ -1230,7 +1263,8 @@ function render(mode) {
         const statusText = getStatusText(mic, mic.status);
 
         // Safely escape user data for HTML
-        const safeTitle = escapeHtml(mic.title || 'Unknown Venue');
+        const rawTitle = mic.title || 'Unknown Venue';
+        const safeTitle = escapeHtml(rawTitle.toLowerCase() === 'greenwich village comedy club' ? 'GV Comedy Club' : rawTitle);
         const safeHood = escapeHtml((mic.hood || 'NYC').toUpperCase());
         // Normalize price display - shorten "FREE (buy something...)" to "FREE (BUY SMTH)"
         let priceDisplay = (mic.price || 'Free').toUpperCase();

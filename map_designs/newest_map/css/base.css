@@ -325,6 +325,71 @@ a:focus-visible {
     padding-right: var(--space-md);
 }
 
+/* Celebrate HUD - Apple-style centered overlay */
+.celebrate-hud {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.6);
+    z-index: 10001;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 28px 36px;
+    min-width: 180px;
+    background: rgba(28, 28, 30, 0.92);
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+    border-radius: 22px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    pointer-events: none;
+    transition: none;
+}
+.celebrate-hud.show {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+    animation: hud-pop 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.celebrate-hud.dismiss {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.9);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+}
+.celebrate-hud-check {
+    color: var(--green, #4ade80);
+    stroke-dasharray: 30;
+    stroke-dashoffset: 30;
+    animation: hud-check-draw 0.5s 0.15s ease forwards;
+}
+.celebrate-hud-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.95);
+    letter-spacing: -0.01em;
+    margin-top: 4px;
+}
+.celebrate-hud-venue {
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.5);
+    max-width: 200px;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+@keyframes hud-pop {
+    0% { transform: translate(-50%, -50%) scale(0.6); opacity: 0; }
+    60% { transform: translate(-50%, -50%) scale(1.05); opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(1); }
+}
+@keyframes hud-check-draw {
+    to { stroke-dashoffset: 0; }
+}
+
 /* Pulsating toast */
 .toast-pulsate {
     animation: toast-pulse 2s ease-in-out infinite;

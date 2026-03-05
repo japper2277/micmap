@@ -7,6 +7,8 @@ const path = require('path');
 const MICS_PATH = path.join(__dirname, '../api/mics.json');
 const DEFAULT_REPORT_PATH = path.join(__dirname, '../logs/ig-stories-report.json');
 const DEFAULT_SUMMARY_PATH = path.join(__dirname, '../logs/ig-apply-summary.json');
+const FLYERS_DIR = path.join(__dirname, '../api/public/data/flyers');
+const FLYER_BASE_URL = 'https://micmap-production.up.railway.app/data/flyers';
 const SAFE_CONFIDENCE_THRESHOLD = 0.85;
 
 function parseArgs(argv) {
@@ -73,7 +75,35 @@ function appendNoteIdempotent(existingNotes, noteLine) {
   return `${current}\n${cleanLine}`;
 }
 
-function applyEntryToMic(mic, entry) {
+function slugify(str) {
+  return String(str || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
+async function copyFlyer(entry, mic, dryRun) {
+  const src = entry.screenshotPath;
+  if (!src) return null;
+
+  try {
+    fs.accessSync(src, fs.constants.R_OK);
+  } catch {
+    return null;
+  }
+
+  const filename = `${slugify(mic.day)}-${slugify(mic.startTime)}-${slugify(mic.venueName)}.png`;
+  const dest = path.join(FLYERS_DIR, filename);
+
+  if (!dryRun) {
+    fs.mkdirSync(FLYERS_DIR, { recursive: true });
+    fs.copyFileSync(src, dest);
+  }
+
+  return `${FLYER_BASE_URL}/${filename}`;
+}
+
+async function applyEntryToMic(mic, entry, dryRun) {
   const changes = [];
 
   const nextSignUp = normalizeSpace(entry.candidateFields?.signUpDetails);
@@ -99,10 +129,23 @@ function applyEntryToMic(mic, entry) {
     }
   }
 
+  const flyerUrl = await copyFlyer(entry, mic, dryRun);
+  if (flyerUrl && flyerUrl !== mic.flyerUrl) {
+    changes.push({
+      field: 'flyerUrl',
+      from: mic.flyerUrl || null,
+      to: flyerUrl
+    });
+    mic.flyerUrl = flyerUrl;
+    const dateStr = new Date().toISOString().slice(0, 10);
+    mic.flyerDate = dateStr;
+    changes.push({ field: 'flyerDate', from: null, to: dateStr });
+  }
+
   return changes;
 }
 
-function main() {
+async function main() {
   const args = parseArgs(process.argv);
   const report = loadJson(args.reportPath);
   const mics = loadJson(MICS_PATH);
@@ -154,7 +197,7 @@ function main() {
       notes: mic.notes || null
     };
 
-    const entryChanges = applyEntryToMic(mic, entry);
+    const entryChanges = await applyEntryToMic(mic, entry, args.dryRun || !args.write);
     if (entryChanges.length === 0) {
       summary.skipped += 1;
       summary.skippedReasons.no_effective_change += 1;
@@ -205,6 +248,8 @@ if (require.main === module) {
 module.exports = {
   appendNoteIdempotent,
   applyEntryToMic,
+  copyFlyer,
   parseArgs,
-  resolveMicIndex
+  resolveMicIndex,
+  slugify
 };

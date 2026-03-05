@@ -99,9 +99,8 @@ function initModal() {
     if (modalShareBtn) {
         modalShareBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            if (activeModalMicId) {
-                shareMic(activeModalMicId);
-            }
+            if (!activeModalMicId) return;
+            toggleShareMenu(modalShareBtn, activeModalMicId);
         });
     }
 
@@ -114,6 +113,14 @@ function initModal() {
             // Toggle mic in/out of route
             if (typeof toggleMicInRoute === 'function') {
                 toggleMicInRoute(mic.id, true); // skipZoom = true
+            }
+
+            const venueName = mic.title || mic.venue || 'Mic';
+            const wasAdded = STATE.route.includes(mic.id);
+            if (wasAdded) {
+                showCelebrateHUD(venueName);
+            } else if (typeof toastService !== 'undefined' && toastService.show) {
+                toastService.show(`Removed ${venueName}`, 'warning');
             }
 
             // Close modal
@@ -532,14 +539,11 @@ function populateModalContent(mic, allMicsAtVenue = null) {
     }
 
     // 5. Flyer badge (when venue has a poster image)
-    const venueImg = typeof getVenueImage === 'function' ? getVenueImage(mic.venueName || mic.title) : null;
-    if (venueImg) {
-        infoParts.push(`<div class="info-badge info-badge-flyer" onclick="event.stopPropagation(); openFlyerLightbox('${venueImg}')">Flyer ↗</div>`);
+    const venueImg1 = mic.flyerUrl || (typeof getVenueImage === 'function' ? getVenueImage(mic.venueName || mic.title) : null);
+    if (venueImg1) {
+        const flyerDateAttr1 = mic.flyerDate ? `'${mic.flyerDate}'` : 'null';
+        infoParts.push(`<div class="info-badge info-badge-flyer" onclick="event.stopPropagation(); openFlyerLightbox('${venueImg1}', ${flyerDateAttr1})">Flyer ↗</div>`);
     }
-
-    // 6. Calendar badge
-    const calIcon1 = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="12" y1="14" x2="12" y2="18"/><line x1="10" y1="16" x2="14" y2="16"/></svg>';
-    infoParts.push(`<div class="info-badge info-badge-cal" onclick="event.stopPropagation(); addMicToCalendar('${mic.id}')" aria-label="Add to Calendar" title="Add to Calendar">${calIcon1} Add to Cal</div>`);
 
     modalInfoRow.innerHTML = infoParts.join('');
 
@@ -786,14 +790,11 @@ function openVenueModal(mic) {
     }
 
     // 5. Flyer badge (when venue has a poster image)
-    const venueImg = typeof getVenueImage === 'function' ? getVenueImage(mic.venueName || mic.title) : null;
-    if (venueImg) {
-        infoParts.push(`<div class="info-badge info-badge-flyer" onclick="event.stopPropagation(); openFlyerLightbox('${venueImg}')">Flyer ↗</div>`);
+    const venueImg2 = mic.flyerUrl || (typeof getVenueImage === 'function' ? getVenueImage(mic.venueName || mic.title) : null);
+    if (venueImg2) {
+        const flyerDateAttr2 = mic.flyerDate ? `'${mic.flyerDate}'` : 'null';
+        infoParts.push(`<div class="info-badge info-badge-flyer" onclick="event.stopPropagation(); openFlyerLightbox('${venueImg2}', ${flyerDateAttr2})">Flyer ↗</div>`);
     }
-
-    // 6. Calendar badge
-    const calIcon2 = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="12" y1="14" x2="12" y2="18"/><line x1="10" y1="16" x2="14" y2="16"/></svg>';
-    infoParts.push(`<div class="info-badge info-badge-cal" onclick="event.stopPropagation(); addMicToCalendar('${mic.id}')" aria-label="Add to Calendar" title="Add to Calendar">${calIcon2} Add to Cal</div>`);
 
     modalInfoRow.innerHTML = infoParts.join('');
 
@@ -1685,11 +1686,20 @@ function findNearestStations(lat, lng, count = 2) {
 }
 
 // Fullscreen flyer lightbox
-function openFlyerLightbox(src) {
+function openFlyerLightbox(src, flyerDate) {
+    let dateLabel = '';
+    if (flyerDate) {
+        const d = new Date(flyerDate + 'T00:00:00');
+        const formatted = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        dateLabel = `<div class="flyer-lightbox-date">From IG Story · ${formatted}</div>`;
+    }
     const overlay = document.createElement('div');
     overlay.className = 'flyer-lightbox';
     overlay.innerHTML = `
-        <img src="${src}" alt="Venue flyer" />
+        <div class="flyer-lightbox-content">
+            ${dateLabel}
+            <img src="${src}" alt="Venue flyer" />
+        </div>
         <button class="flyer-lightbox-close" aria-label="Close">&times;</button>
     `;
     overlay.addEventListener('click', () => {
@@ -1720,6 +1730,61 @@ function closeVenueModal() {
         modalTriggerElement.focus();
         modalTriggerElement = null;
     }
+}
+
+// Share menu popover (Share Link + Add to Calendar)
+function toggleShareMenu(anchor, micId) {
+    // If menu already open, close it
+    const existing = document.getElementById('share-popover');
+    if (existing) {
+        existing.remove();
+        return;
+    }
+
+    const menu = document.createElement('div');
+    menu.id = 'share-popover';
+    menu.className = 'share-popover';
+    menu.innerHTML = `
+        <button class="share-popover-item" data-action="share">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M8.5 6.5L12 3l3.5 3.5"/><path d="M6 11.5v7A2.5 2.5 0 0 0 8.5 21h7A2.5 2.5 0 0 0 18 18.5v-7"/></svg>
+            Share Link
+        </button>
+        <button class="share-popover-item" data-action="calendar">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>
+            Add to Cal
+        </button>
+    `;
+
+    // Position below the button
+    const rect = anchor.getBoundingClientRect();
+    const card = anchor.closest('.venue-card');
+    const cardRect = card.getBoundingClientRect();
+    menu.style.position = 'absolute';
+    menu.style.top = (rect.bottom - cardRect.top + 4) + 'px';
+    menu.style.right = (cardRect.right - rect.right) + 'px';
+
+    card.style.position = 'relative';
+    card.appendChild(menu);
+
+    // Handle clicks
+    menu.addEventListener('click', (e) => {
+        const item = e.target.closest('.share-popover-item');
+        if (!item) return;
+        e.stopPropagation();
+        const action = item.dataset.action;
+        if (action === 'share') shareMic(micId);
+        if (action === 'calendar') addMicToCalendar(micId);
+        menu.remove();
+    });
+
+    // Close on outside click
+    const closeHandler = (e) => {
+        if (!menu.contains(e.target) && e.target !== anchor) {
+            menu.remove();
+            document.removeEventListener('click', closeHandler, true);
+        }
+    };
+    setTimeout(() => document.addEventListener('click', closeHandler, true), 0);
 }
 
 // Share a mic via deep link
