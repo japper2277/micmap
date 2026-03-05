@@ -2196,6 +2196,22 @@ app.post('/admin/cotl-slots', async (req, res) => {
   }
 });
 
+// Single mic lookup by ID (must come after /mics/slots to avoid catching "slots" as :id)
+app.get('/api/v1/mics/:id', async (req, res) => {
+  try {
+    const mic = await Mic.findById(req.params.id).lean();
+    if (!mic) return res.status(404).json({ success: false, error: 'Mic not found' });
+    res.set('Cache-Control', 'public, max-age=300');
+    res.json({ success: true, mic });
+  } catch (error) {
+    if (error.name === 'CastError') {
+      return res.status(400).json({ success: false, error: 'Invalid mic ID' });
+    }
+    console.error('Single mic lookup error:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch mic' });
+  }
+});
+
 // Trigger Laughing Buddha live-vs-local compare job (for web launch automation).
 app.post('/api/v1/admin/lb-compare/run', async (req, res) => {
   const now = Date.now();

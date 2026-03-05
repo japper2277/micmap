@@ -261,7 +261,7 @@ function openVenueModalWithMics(mics) {
         populateModalContent(primaryMic, venueMics);
         venueModal.classList.add('active');
         if (primaryMic.id && !primaryMic.id.startsWith('warning-')) {
-            history.replaceState(null, '', `#mic=${primaryMic.id}`);
+            setMicInUrl(primaryMic.id);
         }
         modalTriggerElement = document.activeElement;
         setupFocusTrap(venueModal);
@@ -343,7 +343,7 @@ function openVenueModalWithMics(mics) {
     // Show modal
     venueModal.classList.add('active');
     if (firstVenueMics[0].id && !firstVenueMics[0].id.startsWith('warning-')) {
-        history.replaceState(null, '', `#mic=${firstVenueMics[0].id}`);
+        setMicInUrl(firstVenueMics[0].id);
     }
 
     // Accessibility
@@ -878,9 +878,9 @@ function openVenueModal(mic) {
     // Show modal
     venueModal.classList.add('active');
 
-    // Update URL hash for deep linking
+    // Update URL for deep linking
     if (mic.id && !mic.id.startsWith('warning-')) {
-        history.replaceState(null, '', `#mic=${mic.id}`);
+        setMicInUrl(mic.id);
     }
 
     // Accessibility: Focus trap and management
@@ -1714,9 +1714,13 @@ function closeVenueModal() {
     venueModal.classList.remove('active');
     activeModalMicId = null;
 
-    // Clear hash when modal closes
-    if (window.location.hash.startsWith('#mic=')) {
-        history.replaceState(null, '', window.location.pathname + window.location.search);
+    // Clear ?mic= param (and legacy #mic= hash) when modal closes
+    const closeUrl = new URL(window.location);
+    const hadMicParam = closeUrl.searchParams.has('mic') || closeUrl.hash.startsWith('#mic=');
+    if (hadMicParam) {
+        closeUrl.searchParams.delete('mic');
+        closeUrl.hash = '';
+        history.replaceState(null, '', closeUrl);
     }
 
     // Accessibility: Remove focus trap and restore focus
@@ -1787,20 +1791,34 @@ function toggleShareMenu(anchor, micId) {
     setTimeout(() => document.addEventListener('click', closeHandler, true), 0);
 }
 
+// Set ?mic= query param in URL without reload
+function setMicInUrl(micId) {
+    const url = new URL(window.location);
+    if (micId) {
+        url.searchParams.set('mic', micId);
+    } else {
+        url.searchParams.delete('mic');
+    }
+    // Also clear any legacy hash
+    url.hash = '';
+    history.replaceState(null, '', url);
+}
+
 // Share a mic via deep link
 function shareMic(micId) {
-    const url = `${window.location.origin}${window.location.pathname}#mic=${micId}`;
+    const shareUrl = `https://micfinder.io/?mic=${micId}`;
 
-    // Update hash in URL
-    history.replaceState(null, '', `#mic=${micId}`);
+    // Update URL
+    setMicInUrl(micId);
 
     // Try native share on mobile, clipboard on desktop
     if (navigator.share) {
         const mic = STATE.mics.find(m => m.id === micId);
         const title = mic ? `${mic.title} - ${mic.timeStr} ${mic.day}` : 'Open Mic';
-        navigator.share({ title, url }).catch(() => {});
+        const text = mic ? `${mic.title} · ${mic.timeStr} ${mic.day}` : '';
+        navigator.share({ title, text, url: shareUrl }).catch(() => {});
     } else if (navigator.clipboard) {
-        navigator.clipboard.writeText(url).then(() => {
+        navigator.clipboard.writeText(shareUrl).then(() => {
             // Flash the header share button green briefly
             if (modalShareBtn) {
                 modalShareBtn.classList.add('copied');
@@ -1815,14 +1833,21 @@ function shareMic(micId) {
     }
 }
 
-// Open a mic from a deep link hash (called after data loads)
-function openMicFromHash() {
-    const hash = window.location.hash;
-    if (!hash.startsWith('#mic=')) return false;
-    const micId = hash.slice(5);
+// Open a mic from a deep link (called after data loads)
+function openMicFromDeepLink() {
+    // Check ?mic= query param first, fall back to legacy #mic= hash
+    const params = new URLSearchParams(window.location.search);
+    let micId = params.get('mic');
+    if (!micId) {
+        const hash = window.location.hash;
+        if (hash.startsWith('#mic=')) {
+            micId = hash.slice(5);
+        }
+    }
+    if (!micId) return false;
+
     const mic = STATE.mics.find(m => m.id === micId);
     if (mic) {
-        // Fly to the mic and open its modal
         if (typeof locateMic === 'function') {
             locateMic(mic.lat, mic.lng, mic.id);
         } else {
@@ -1832,3 +1857,6 @@ function openMicFromHash() {
     }
     return false;
 }
+
+// Backward compat alias
+const openMicFromHash = openMicFromDeepLink;

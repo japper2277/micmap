@@ -22,6 +22,11 @@
   [headers.values]
     Cache-Control = "public, max-age=0, must-revalidate"
 
+# Edge function: inject dynamic OG tags for shared mic links
+[[edge_functions]]
+  function = "og-inject"
+  path = "/"
+
 # API proxy settings (if needed)
 [[redirects]]
   from = "/api/*"

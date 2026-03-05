@@ -93,8 +93,10 @@ async function loadData() {
             if (typeof updateMarkerStates === 'function') updateMarkerStates();
         }
 
-        // Check for deep link to a specific mic (e.g. #mic=abc123)
-        if (typeof openMicFromHash === 'function') {
+        // Check for deep link to a specific mic (e.g. ?mic=abc123 or legacy #mic=abc123)
+        if (typeof openMicFromDeepLink === 'function') {
+            openMicFromDeepLink();
+        } else if (typeof openMicFromHash === 'function') {
             openMicFromHash();
         }
 
@@ -296,11 +298,15 @@ function init() {
     // Show onboarding hints for first-time visitors
     showOnboardingHints();
 
-    // Handle back/forward navigation for deep links
-    window.addEventListener('hashchange', () => {
-        if (window.location.hash.startsWith('#mic=') && typeof openMicFromHash === 'function') {
-            openMicFromHash();
-        } else if (!window.location.hash && venueModal && venueModal.classList.contains('active')) {
+    // Handle back/forward navigation for deep links (?mic= and legacy #mic=)
+    window.addEventListener('popstate', () => {
+        const params = new URLSearchParams(window.location.search);
+        const hasMicParam = params.has('mic');
+        const hasMicHash = window.location.hash.startsWith('#mic=');
+
+        if ((hasMicParam || hasMicHash) && typeof openMicFromDeepLink === 'function') {
+            openMicFromDeepLink();
+        } else if (!hasMicParam && !hasMicHash && venueModal && venueModal.classList.contains('active')) {
             closeVenueModal();
         }
     });
