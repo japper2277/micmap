@@ -6,6 +6,24 @@
 const MICMAP_SHARED_KEY = 'micmap.shared.v1';
 const COMEDY_DAY_ROLLOVER_HOUR = 4;
 
+// Fuzzy lookup for slot data — handles name mismatches from processMics transforms
+function getSlotData(mic) {
+    const slots = STATE.slottedSlots;
+    if (!slots || !mic) return null;
+    // Direct match by title or venue
+    if (slots[mic.title]) return slots[mic.title];
+    if (slots[mic.venue]) return slots[mic.venue];
+    // Apply same transforms as processMics to slot keys and compare
+    const title = (mic.title || '').toLowerCase();
+    for (const key of Object.keys(slots)) {
+        const normalized = key.replace(/Comedy Club/gi, 'CC').toLowerCase();
+        if (normalized === title) return slots[key];
+        // Prefix match (e.g. "Sesh Comedy" matches "Sesh Comedy Open Mic")
+        if (normalized.startsWith(title) || title.startsWith(normalized)) return slots[key];
+    }
+    return null;
+}
+
 function supportsAfterMidnightPlanning() {
     return Boolean(CONFIG && CONFIG.supportsAfterMidnightMics);
 }

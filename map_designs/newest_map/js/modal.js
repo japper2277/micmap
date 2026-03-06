@@ -399,7 +399,7 @@ function populateModalContent(mic, allMicsAtVenue = null) {
         modalMicTime.innerHTML = btnsHtml;
     } else if (allMicsAtVenue && allMicsAtVenue.length > 1) {
         // Normal mode with multiple times — clickable pills to switch between times
-        const slotData = STATE.slottedSlots?.[mic.title] || STATE.slottedSlots?.[mic.venue];
+        const slotData = typeof getSlotData === 'function' ? getSlotData(mic) : null;
         const targetDate2 = (typeof getActivePlanningDate === 'function')
             ? getActivePlanningDate()
             : new Date();
@@ -561,7 +561,7 @@ function populateModalContent(mic, allMicsAtVenue = null) {
     // 4. ACTION BUTTONS
     // Build spots label from Slotted data
     let spotsLabel = '';
-    const slottedData = STATE.slottedSlots?.[mic.title] || STATE.slottedSlots?.[mic.venue];
+    const slottedData = typeof getSlotData === 'function' ? getSlotData(mic) : null;
     if (slottedData && mic.start) {
         const targetDate = (typeof getActivePlanningDate === 'function')
             ? getActivePlanningDate()
@@ -814,7 +814,7 @@ function openVenueModal(mic) {
     // 5. ACTION BUTTONS - Sign up and IG
     // Build spots label from Slotted data
     let spotsLabel = '';
-    const slottedData2 = STATE.slottedSlots?.[mic.title] || STATE.slottedSlots?.[mic.venue];
+    const slottedData2 = typeof getSlotData === 'function' ? getSlotData(mic) : null;
     if (slottedData2 && mic.start) {
         const targetDate = (typeof getActivePlanningDate === 'function')
             ? getActivePlanningDate()

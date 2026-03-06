@@ -1301,7 +1301,7 @@ function render(mode) {
 
         // Slotted signup spots badge
         let spotsBadge = '';
-        const slottedData = STATE.slottedSlots?.[mic.title] || STATE.slottedSlots?.[mic.venue];
+        const slottedData = typeof getSlotData === 'function' ? getSlotData(mic) : null;
         if (slottedData) {
             // Determine which date we're rendering from shared planning context.
             const targetDate = (typeof getActivePlanningDate === 'function')
