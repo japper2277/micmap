@@ -14,8 +14,8 @@
     "stageTime": "3-5min",
     "host": "@thefearcitycomedyclub",
     "notes": null,
-    "flyerUrl": "http://localhost:3001/data/flyers/friday-10-00-pm-the-fear-city-comedy-club.png",
-    "flyerDate": "2026-03-05"
+    "flyerUrl": "https://micmap-production.up.railway.app/data/flyers/friday-10-00-pm-the-fear-city-comedy-club.png",
+    "flyerDate": "2026-03-06"
   },
   {
     "name": "Producer's Club",
