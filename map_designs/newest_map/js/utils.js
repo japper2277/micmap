@@ -255,7 +255,8 @@ function extractSignupEmail(signupText) {
 // 3-tier system: live (green), upcoming (red, <2hrs), future (gray)
 function getStatus(startDate) {
     const diffMins = startDate ? (startDate - getNow()) / 60000 : 999;
-    if (diffMins > -90 && diffMins <= 0) return 'live';      // Green pulsing
+    if (diffMins > -60 && diffMins <= 0) return 'live';      // Green pulsing (1 hour)
+    if (diffMins <= -60) return 'ended';                      // Past
     if (diffMins > 0 && diffMins <= 120) return 'upcoming';  // Red (<2 hours)
     return 'future';                                          // Gray (tonight/later)
 }
@@ -268,7 +269,8 @@ function processMics(rawMics) {
 
         // 3-tier status: live, upcoming, future
         let status = 'future';
-        if (diffMins > -90 && diffMins <= 0) status = 'live';
+        if (diffMins > -60 && diffMins <= 0) status = 'live';
+        else if (diffMins <= -60) status = 'ended';
         else if (diffMins > 0 && diffMins <= 120) status = 'upcoming';
 
         // API field mapping: name, venueName, signUpDetails, lon
@@ -508,7 +510,7 @@ function copyScheduleAsText() {
         const mins = typeof getMicDuration === 'function' ? getMicDuration(id) : (STATE.setDuration || 45);
         return `${id}:${mins}`;
     });
-    const shareUrl = `https://micfinder.io/?plan=${stops.join(',')}`;
+    const shareUrl = `https://micfinder.io/share/?plan=${stops.join(',')}`;
 
     const isMobile = /iPhone|iPad|Android/i.test(navigator.userAgent);
     if (isMobile && navigator.share) {
@@ -516,7 +518,7 @@ function copyScheduleAsText() {
     } else if (navigator.clipboard) {
         navigator.clipboard.writeText(shareUrl).then(() => {
             if (typeof toastService !== 'undefined') {
-                toastService.show('Link copied!', { duration: 2000 });
+                toastService.show('Copied', 'success', { duration: 1500 });
             }
         });
     }

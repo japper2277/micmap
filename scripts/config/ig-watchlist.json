@@ -136,6 +136,19 @@
     "notes": "Just show up, 1 drink min, 5 min sets"
   },
   {
+    "handle": "johnthaller",
+    "micSelectors": [
+      {
+        "name": "PIT Improv Jam FeelGoodFriday",
+        "day": "Friday",
+        "startTime": "5:00 PM",
+        "venueName": "The PIT NYC"
+      }
+    ],
+    "signupType": "unknown",
+    "notes": ""
+  },
+  {
     "handle": "micdupnyc",
     "micSelectors": [],
     "signupType": "unknown",

@@ -186,8 +186,9 @@ async function main() {
   for (const entry of entries) {
     const isSafeWrite = entry.classification === 'safe_write';
     const isReviewWithMatch = entry.classification === 'review_required' && entry.matchedMicRef;
+    const isFlyerCandidate = entry.source === 'story' && entry.matchedMicRef;
 
-    if (!isSafeWrite && !isReviewWithMatch) {
+    if (!isSafeWrite && !isReviewWithMatch && !isFlyerCandidate) {
       summary.skipped += 1;
       summary.skippedReasons.non_safe_classification += 1;
       continue;
@@ -213,8 +214,9 @@ async function main() {
       notes: mic.notes || null
     };
 
-    // For review_required, only copy the flyer (skip field changes)
-    const entryChanges = isReviewWithMatch && !isSafeWrite
+    // For review_required or flyer-only candidates, just copy the flyer (skip field changes)
+    const flyerOnly = (isReviewWithMatch || isFlyerCandidate) && !isSafeWrite;
+    const entryChanges = flyerOnly
       ? await applyFlyerOnly(mic, entry, args.dryRun || !args.write)
       : await applyEntryToMic(mic, entry, args.dryRun || !args.write);
     if (entryChanges.length === 0) {

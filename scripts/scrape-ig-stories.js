@@ -667,7 +667,7 @@ async function scrapeRecentPosts(page, handle, limit = 3) {
 
 async function analyzeWithGemini(imagePath) {
   const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-lite' });
+  const model = genAI.getGenerativeModel({ model: 'gemini-flash-lite-latest' });
 
   const imageData = fs.readFileSync(imagePath).toString('base64');
 

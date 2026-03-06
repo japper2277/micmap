@@ -13,9 +13,7 @@
     "cost": "$5",
     "stageTime": "3-5min",
     "host": "@thefearcitycomedyclub",
-    "notes": null,
-    "flyerUrl": "https://micmap-production.up.railway.app/data/flyers/friday-10-00-pm-the-fear-city-comedy-club.png",
-    "flyerDate": "2026-03-05"
+    "notes": null
   },
   {
     "name": "Producer's Club",
@@ -476,7 +474,9 @@
     "stageTime": null,
     "signUpDetails": "Improv Jams & Open Mics | Peoples Improv Theater",
     "host": "John T Haller (@johnthaller)",
-    "notes": null
+    "notes": null,
+    "flyerUrl": "https://micmap-production.up.railway.app/data/flyers/friday-5-00-pm-the-pit-nyc.png",
+    "flyerDate": "2026-03-06"
   },
   {
     "name": "Bushwick Comedy Club",
@@ -986,9 +986,7 @@
     "stageTime": "3-5min",
     "signUpDetails": "Sign up at venue",
     "host": "@thefearcitycomedyclub",
-    "notes": null,
-    "flyerUrl": "https://micmap-production.up.railway.app/data/flyers/tuesday-6-00-pm-the-fear-city-comedy-club.png",
-    "flyerDate": "2026-03-05"
+    "notes": null
   },
   {
     "name": "Producer's Club",
@@ -1859,23 +1857,6 @@
     "stageTime": "5+min",
     "signUpDetails": "https://www.laughingbuddhacomedy.com/mics",
     "host": "Laughing Buddha Staff (@laughingbuddhacomedy)",
-    "notes": null
-  },
-  {
-    "name": "GVCC mic",
-    "day": "Tuesday",
-    "startTime": "5:15 PM",
-    "endTime": "6:30 PM",
-    "venueName": "Greenwich Village Comedy Club",
-    "borough": "Manhattan",
-    "neighborhood": "Greenwich Village",
-    "address": "99 MacDougal St, New York, NY 10012, USA",
-    "lat": 40.7296565,
-    "lon": -74.001091,
-    "cost": "$5 (cash only)",
-    "stageTime": "5min",
-    "signUpDetails": "Show up go up (sugu)",
-    "host": "Steve Arons",
     "notes": null
   },
   {
@@ -4295,23 +4276,6 @@
     "signUpDetails": "Email DrewAndPeterMic@gmail.com",
     "host": "Drew Tessier (@comedybydrew)",
     "notes": "1 hour mic, 10 comics max, must stay entire time"
-  },
-  {
-    "name": "Greenwich Village CC",
-    "day": "Sunday",
-    "startTime": "5:00 PM",
-    "endTime": "6:45 PM",
-    "venueName": "Greenwich Village Comedy Club",
-    "borough": "Manhattan",
-    "neighborhood": "Greenwich Village",
-    "address": "99 MacDougal St, New York, NY 10012, USA",
-    "lat": 40.7296565,
-    "lon": -74.001091,
-    "cost": "$5 (cash only)",
-    "stageTime": "5min",
-    "signUpDetails": "Email DrewAndPeterMic@gmail.com",
-    "host": "Drew Tessier (@comedybydrew)",
-    "notes": null
   },
   {
     "name": "Greenwich Village CC",
