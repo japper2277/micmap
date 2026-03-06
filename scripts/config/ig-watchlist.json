@@ -111,6 +111,31 @@
     "notes": "Posts signup form on IG every Wednesday for Thursday mic"
   },
   {
+    "handle": "phoenixcomedynyc",
+    "micSelectors": [
+      {
+        "name": "Phoenix Bar",
+        "day": "Friday",
+        "startTime": "6:00 PM",
+        "venueName": "Phoenix Bar Avenue A"
+      },
+      {
+        "name": "Phoenix Bar",
+        "day": "Monday",
+        "startTime": "6:00 PM",
+        "venueName": "Phoenix Bar Avenue A"
+      },
+      {
+        "name": "Phoenix Bar",
+        "day": "Wednesday",
+        "startTime": "6:00 PM",
+        "venueName": "Phoenix Bar Avenue A"
+      }
+    ],
+    "signupType": "walk-in",
+    "notes": "Just show up, 1 drink min, 5 min sets"
+  },
+  {
     "handle": "micdupnyc",
     "micSelectors": [],
     "signupType": "unknown",

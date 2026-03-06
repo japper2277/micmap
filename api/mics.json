@@ -1326,7 +1326,9 @@
     "stageTime": "5min",
     "signUpDetails": "Sign up in person",
     "host": "Hetty Ra (@phoenixcomedynyc)",
-    "notes": null
+    "notes": null,
+    "flyerUrl": "https://micmap-production.up.railway.app/data/flyers/friday-6-00-pm-phoenix-bar-avenue-a.png",
+    "flyerDate": "2026-03-06"
   },
   {
     "name": "fozzie bear presents",
