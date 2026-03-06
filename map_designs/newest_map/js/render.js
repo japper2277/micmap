@@ -413,6 +413,17 @@ function render(mode) {
     // Update drawer subtitle — surface the most relevant next mic
     const subtitleEl = document.getElementById('drawer-subtitle');
     if (subtitleEl) {
+        // Wire up CTA tap → expand drawer
+        if (!subtitleEl._ctaHandler) {
+            subtitleEl._ctaHandler = () => {
+                if (subtitleEl.classList.contains('cta')) {
+                    if (typeof setDrawerState === 'function' && typeof DRAWER_STATES !== 'undefined') {
+                        setDrawerState(DRAWER_STATES.OPEN);
+                    }
+                }
+            };
+            subtitleEl.addEventListener('click', subtitleEl._ctaHandler);
+        }
         if (filtered.length === 0) {
             subtitleEl.textContent = 'No Mics Match Your Filters';
             subtitleEl.classList.remove('cta');
@@ -871,135 +882,85 @@ function render(mode) {
             }
         }
 
-        const stopsLabel = routeMics.length === 1 ? '1 Stop' : `${routeMics.length} Stops`;
-        const inPlanMode = STATE.planMode && scheduleSlot;
+        const scheduleCard = document.createElement('div');
+        scheduleCard.className = `my-schedule-card${STATE.scheduleExpanded ? ' expanded' : ''}`;
+        scheduleCard.setAttribute('role', 'button');
+        scheduleCard.setAttribute('aria-expanded', STATE.scheduleExpanded ? 'true' : 'false');
+        scheduleCard.setAttribute('tabindex', '0');
+        scheduleCard.setAttribute('aria-label', `Toggle My Night details for ${scheduleDayLabel}`);
+        const expandedList = document.createElement('div');
+        expandedList.className = `my-schedule-expanded${STATE.scheduleExpanded ? ' is-open' : ''}`;
 
-        // In plan mode: render the collapsible card in the sticky header slot
-        // Otherwise: render an inline section header integrated with the list
-        let scheduleCard = null;
-        if (inPlanMode) {
-            scheduleCard = document.createElement('div');
-            scheduleCard.className = `my-schedule-card${STATE.scheduleExpanded ? ' expanded' : ''}`;
-            scheduleCard.setAttribute('role', 'button');
+        const toggleScheduleExpanded = () => {
+            if ('vibrate' in navigator) navigator.vibrate(8);
+            STATE.scheduleExpanded = !STATE.scheduleExpanded;
+            scheduleCard.classList.toggle('expanded', STATE.scheduleExpanded);
             scheduleCard.setAttribute('aria-expanded', STATE.scheduleExpanded ? 'true' : 'false');
-            scheduleCard.setAttribute('tabindex', '0');
-            scheduleCard.setAttribute('aria-label', `Toggle My Night details for ${scheduleDayLabel}`);
-            scheduleCard.innerHTML = `
-                <div class="my-schedule-card-left">
-                    <div class="my-schedule-icon-box">🎤</div>
-                    <div class="my-schedule-card-info">
-                        <div class="my-schedule-title-row">
-                            <span class="my-schedule-card-label">My Night</span>
-                            <span class="my-schedule-stops-badge">${stopsLabel}</span>
-                        </div>
-                        <span class="my-schedule-card-preview">${rangeText}</span>
+            expandedList.classList.toggle('is-open', STATE.scheduleExpanded);
+
+            // Expand drawer when opening My Night so user can see the content
+            if (STATE.scheduleExpanded && typeof getDrawerState === 'function' && typeof setDrawerState === 'function' && typeof DRAWER_STATES !== 'undefined') {
+                if (getDrawerState() === DRAWER_STATES.PEEK) {
+                    setDrawerState(DRAWER_STATES.OPEN);
+                }
+            }
+        };
+        scheduleCard.onclick = toggleScheduleExpanded;
+        scheduleCard.onkeydown = (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                toggleScheduleExpanded();
+            }
+        };
+        const stopsLabel = routeMics.length === 1 ? '1 Stop' : `${routeMics.length} Stops`;
+        scheduleCard.innerHTML = `
+            <div class="my-schedule-card-left">
+                <div class="my-schedule-icon-box">🎤</div>
+                <div class="my-schedule-card-info">
+                    <div class="my-schedule-title-row">
+                        <span class="my-schedule-card-label">My Night</span>
+                        <span class="my-schedule-stops-badge">${stopsLabel}</span>
                     </div>
+                    <span class="my-schedule-card-preview">${rangeText}</span>
                 </div>
-                <div class="my-schedule-card-right">
-                    <div class="schedule-share-wrap">
-                        <button class="schedule-action-icon" onclick="event.stopPropagation(); toggleScheduleShareMenu(this)" aria-label="Share schedule">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
-                                <polyline points="16 6 12 2 8 6"/>
-                                <line x1="12" y1="2" x2="12" y2="15"/>
-                            </svg>
-                        </button>
-                        <div class="schedule-share-menu" id="schedule-share-menu">
-                            <button class="schedule-share-option" onclick="event.stopPropagation(); copyScheduleAsText(); closeScheduleShareMenu();">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
-                                    <polyline points="16 6 12 2 8 6"/>
-                                    <line x1="12" y1="2" x2="12" y2="15"/>
-                                </svg>
-                                Share Link
-                            </button>
-                            <button class="schedule-share-option" onclick="event.stopPropagation(); exportScheduleToCalendar(); closeScheduleShareMenu();">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                                    <line x1="16" y1="2" x2="16" y2="6"/>
-                                    <line x1="8" y1="2" x2="8" y2="6"/>
-                                    <line x1="3" y1="10" x2="21" y2="10"/>
-                                </svg>
-                                Add to Cal
-                            </button>
-                        </div>
-                    </div>
-                    <button class="schedule-action-icon schedule-chevron-btn" aria-label="Expand schedule">
-                        <svg class="my-schedule-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="6 9 12 15 18 9"/>
+            </div>
+            <div class="my-schedule-card-right">
+                <div class="schedule-share-wrap">
+                    <button class="schedule-action-icon" onclick="event.stopPropagation(); toggleScheduleShareMenu(this)" aria-label="Share schedule">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+                            <polyline points="16 6 12 2 8 6"/>
+                            <line x1="12" y1="2" x2="12" y2="15"/>
                         </svg>
                     </button>
-                </div>
-            `;
-
-            const expandedList_plan = document.createElement('div');
-            expandedList_plan.className = `my-schedule-expanded${STATE.scheduleExpanded ? ' is-open' : ''}`;
-
-            const toggleScheduleExpanded = () => {
-                if ('vibrate' in navigator) navigator.vibrate(8);
-                STATE.scheduleExpanded = !STATE.scheduleExpanded;
-                scheduleCard.classList.toggle('expanded', STATE.scheduleExpanded);
-                scheduleCard.setAttribute('aria-expanded', STATE.scheduleExpanded ? 'true' : 'false');
-                expandedList_plan.classList.toggle('is-open', STATE.scheduleExpanded);
-                if (STATE.scheduleExpanded && typeof getDrawerState === 'function' && typeof setDrawerState === 'function' && typeof DRAWER_STATES !== 'undefined') {
-                    if (getDrawerState() === DRAWER_STATES.PEEK) {
-                        setDrawerState(DRAWER_STATES.OPEN);
-                    }
-                }
-            };
-            scheduleCard.onclick = toggleScheduleExpanded;
-            scheduleCard.onkeydown = (e) => {
-                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleScheduleExpanded(); }
-            };
-            scheduleMountTarget.appendChild(scheduleCard);
-        } else {
-            // Inline section header — no card, always expanded
-            const nightHeader = document.createElement('div');
-            nightHeader.className = 'my-night-inline-header';
-            nightHeader.innerHTML = `
-                <div class="my-night-inline-title">
-                    <span>My Night</span>
-                    <span class="my-schedule-stops-badge">${stopsLabel}</span>
-                    ${rangeText ? `<span class="my-night-inline-range">${rangeText}</span>` : ''}
-                </div>
-                <div class="my-night-inline-actions">
-                    <div class="schedule-share-wrap">
-                        <button class="schedule-action-icon" onclick="toggleScheduleShareMenu(this)" aria-label="Share schedule">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                    <div class="schedule-share-menu" id="schedule-share-menu">
+                        <button class="schedule-share-option" onclick="event.stopPropagation(); copyScheduleAsText(); closeScheduleShareMenu();">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
                                 <polyline points="16 6 12 2 8 6"/>
                                 <line x1="12" y1="2" x2="12" y2="15"/>
                             </svg>
+                            Share Link
                         </button>
-                        <div class="schedule-share-menu" id="schedule-share-menu">
-                            <button class="schedule-share-option" onclick="event.stopPropagation(); copyScheduleAsText(); closeScheduleShareMenu();">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
-                                    <polyline points="16 6 12 2 8 6"/>
-                                    <line x1="12" y1="2" x2="12" y2="15"/>
-                                </svg>
-                                Share Link
-                            </button>
-                            <button class="schedule-share-option" onclick="event.stopPropagation(); exportScheduleToCalendar(); closeScheduleShareMenu();">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                                    <line x1="16" y1="2" x2="16" y2="6"/>
-                                    <line x1="8" y1="2" x2="8" y2="6"/>
-                                    <line x1="3" y1="10" x2="21" y2="10"/>
-                                </svg>
-                                Add to Cal
-                            </button>
-                        </div>
+                        <button class="schedule-share-option" onclick="event.stopPropagation(); exportScheduleToCalendar(); closeScheduleShareMenu();">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                <line x1="16" y1="2" x2="16" y2="6"/>
+                                <line x1="8" y1="2" x2="8" y2="6"/>
+                                <line x1="3" y1="10" x2="21" y2="10"/>
+                            </svg>
+                            Add to Cal
+                        </button>
                     </div>
                 </div>
-            `;
-            scheduleMountTarget.appendChild(nightHeader);
-        }
-
-        const expandedList = document.createElement('div');
-        expandedList.className = inPlanMode
-            ? `my-schedule-expanded${STATE.scheduleExpanded ? ' is-open' : ''}`
-            : 'my-schedule-expanded my-schedule-inline is-open';
+                <button class="schedule-action-icon schedule-chevron-btn" aria-label="Expand schedule">
+                    <svg class="my-schedule-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                </button>
+            </div>
+        `;
+        scheduleMountTarget.appendChild(scheduleCard);
 
         const routeOutOfOrder = (typeof isRouteChronological === 'function')
             ? !isRouteChronological(STATE.route)
