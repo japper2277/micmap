@@ -308,6 +308,12 @@ async function validateStoryFrame(page, handle) {
     const handleLower = targetHandle.toLowerCase();
     const url = window.location.href.toLowerCase();
 
+    // 0. Reject if the consent prompt ("View as ...?") is visible
+    const bodyText = document.body.innerText || '';
+    if (/view as\b/i.test(bodyText) && /view story/i.test(bodyText)) {
+      return { valid: false, reason: 'consent-prompt-visible' };
+    }
+
     // 1. If URL confirms we're on the target's story, trust it
     if (url.includes(`/stories/${handleLower}/`) || url.includes(`/stories/${handleLower}?`)) {
       return { valid: true };
@@ -604,6 +610,13 @@ async function scrapeStories(page, handle) {
     console.log('Re-navigating to story URL for remaining frames...');
     await page.goto(storyUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
     await sleep(4000);
+    // Re-navigation may show consent prompt again — dismiss it
+    const renavSurface = await waitForStorySurface(page, handle, 8000);
+    if (renavSurface?.hasViewStoryPrompt) {
+      console.log('Consent prompt reappeared after re-nav — clicking through...');
+      await clickViewStoryPrompt(page);
+      await sleep(3000);
+    }
     // Skip past the first frame we already captured
     if (isStoryUrl(page.url(), handle)) {
       await page.keyboard.press('ArrowRight');
