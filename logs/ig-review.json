@@ -1,0 +1,174 @@
+{
+  "autoAppliedSafeWrites": [
+    {
+      "handle": "thefearcitycomedyclub",
+      "source": "story",
+      "postUrl": null,
+      "confidence": 0.65,
+      "micRef": {
+        "name": "Fear City Mic",
+        "day": "Friday",
+        "startTime": "10:00 PM",
+        "venueName": "The Fear City Comedy Club",
+        "index": 0
+      },
+      "before": {
+        "signUpDetails": null,
+        "notes": null
+      },
+      "changes": [
+        {
+          "field": "flyerUrl",
+          "from": "http://localhost:3001/data/flyers/friday-10-00-pm-the-fear-city-comedy-club.png",
+          "to": "https://micmap-production.up.railway.app/data/flyers/friday-10-00-pm-the-fear-city-comedy-club.png"
+        },
+        {
+          "field": "flyerDate",
+          "from": null,
+          "to": "2026-03-06"
+        }
+      ]
+    },
+    {
+      "handle": "cotlcomedy",
+      "source": "story",
+      "postUrl": null,
+      "confidence": 0.81,
+      "micRef": {
+        "name": "Comedians on the Loose",
+        "day": "Monday",
+        "startTime": "7:30 PM",
+        "venueName": "Black Cat LES",
+        "index": 94
+      },
+      "before": {
+        "signUpDetails": "https://www.comediansontheloose.com/open-mics",
+        "notes": null
+      },
+      "changes": [
+        {
+          "field": "flyerUrl",
+          "from": null,
+          "to": "https://micmap-production.up.railway.app/data/flyers/monday-7-30-pm-black-cat-les.png"
+        },
+        {
+          "field": "flyerDate",
+          "from": null,
+          "to": "2026-03-06"
+        }
+      ]
+    }
+  ],
+  "reviewRequired": [
+    {
+      "handle": "thefearcitycomedyclub",
+      "source": "story",
+      "confidence": 0.65,
+      "postUrl": null,
+      "screenshotPath": "/home/runner/work/micmap/micmap/logs/ig-story-thefearcitycomedyclub-0.png",
+      "analysis": {
+        "isSignup": true,
+        "micName": "Thursday Mic",
+        "day": "Thursday",
+        "date": null,
+        "time": "9pm",
+        "venueName": null,
+        "signupInstructions": null,
+        "signupUrl": null,
+        "spotsLeft": null,
+        "capacity": null,
+        "host": null,
+        "cost": null,
+        "stageTime": null,
+        "notes": null
+      },
+      "matchedMicRef": {
+        "index": 0,
+        "method": "host_venue_fallback",
+        "name": "Fear City Mic",
+        "day": "Friday",
+        "startTime": "10:00 PM",
+        "venueName": "The Fear City Comedy Club",
+        "host": "@thefearcitycomedyclub"
+      },
+      "riskyChanges": [
+        {
+          "field": "day",
+          "from": "Friday",
+          "to": "Thursday",
+          "reason": "day differs from extracted IG content"
+        },
+        {
+          "field": "startTime",
+          "from": "10:00 PM",
+          "to": "9pm",
+          "reason": "startTime differs from extracted IG content"
+        },
+        {
+          "field": "name",
+          "from": "Fear City Mic",
+          "to": "Thursday Mic",
+          "reason": "name differs from extracted IG content"
+        }
+      ],
+      "reasons": [
+        "extracted risky fields differ from current mic record"
+      ]
+    },
+    {
+      "handle": "cotlcomedy",
+      "source": "story",
+      "confidence": 0.81,
+      "postUrl": null,
+      "screenshotPath": "/home/runner/work/micmap/micmap/logs/ig-story-cotlcomedy-0.png",
+      "analysis": {
+        "isSignup": true,
+        "micName": "MIC",
+        "day": null,
+        "date": null,
+        "time": "9:00 PM",
+        "venueName": null,
+        "signupInstructions": "CHECK OUR WEBSITE FOR ANY AVAILABLE SPOTS OR TRY YOUR LUCK AS A WALK-IN",
+        "signupUrl": "comediansontheloose.com/open-mics",
+        "spotsLeft": null,
+        "capacity": null,
+        "host": null,
+        "cost": null,
+        "stageTime": null,
+        "notes": "CHECK-IN STARTS AT 8:50 PM"
+      },
+      "matchedMicRef": {
+        "index": 94,
+        "method": "selector_exact",
+        "name": "Comedians on the Loose",
+        "day": "Monday",
+        "startTime": "7:30 PM",
+        "venueName": "Black Cat LES",
+        "host": "Sonja Savanovic (@cotlcomedy)"
+      },
+      "riskyChanges": [
+        {
+          "field": "startTime",
+          "from": "7:30 PM",
+          "to": "9:00 PM",
+          "reason": "startTime differs from extracted IG content"
+        },
+        {
+          "field": "name",
+          "from": "Comedians on the Loose",
+          "to": "MIC",
+          "reason": "name differs from extracted IG content"
+        }
+      ],
+      "reasons": [
+        "extracted risky fields differ from current mic record"
+      ]
+    }
+  ],
+  "unmatchedCandidates": [],
+  "counts": {
+    "autoAppliedSafeWrites": 2,
+    "reviewRequired": 2,
+    "unmatchedCandidates": 0
+  }
+}
