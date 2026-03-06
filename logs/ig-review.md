@@ -4,19 +4,12 @@ Report: `/home/runner/work/micmap/micmap/logs/ig-stories-report.json`
 Apply summary: `/home/runner/work/micmap/micmap/logs/ig-apply-summary.json`
 
 ## Summary
-- Auto-applied safe writes: 4
+- Auto-applied safe writes: 0
 - Review-required updates: 10
 - Unmatched/new candidates: 3
 
 ## Auto-applied Safe Writes
-- 1. Friday 10:00 PM Fear City Mic @ The Fear City Comedy Club
-  Fields: flyerUrl, flyerDate
-- 2. Saturday 1:00 PM Shareef's Mic @ Pioneers Bar
-  Fields: flyerUrl, flyerDate
-- 3. Tuesday 7:00 PM Pure Chaos @ Alphaville bar
-  Fields: flyerUrl, flyerDate
-- 4. Friday 5:00 PM PIT Improv Jam FeelGoodFriday @ The PIT NYC
-  Fields: flyerUrl, flyerDate
+- None
 
 ## Review-Required Updates
 ### 1. @thefearcitycomedyclub (story)
@@ -45,21 +38,20 @@ Apply summary: `/home/runner/work/micmap/micmap/logs/ig-apply-summary.json`
 ### 3. @csweetcomedy (post)
 - [ ] Approve
 - [ ] Reject
-- Confidence: 0.88
+- Confidence: 0.77
 - Matched mic: Sunday 4:00 PM C Sweet Comedy @ Phoenix bar
 - Post URL: https://www.instagram.com/csweetcomedy/p/DVTzYEfjbKN/
 - Screenshot: `/home/runner/work/micmap/micmap/logs/ig-post-csweetcomedy-0.png`
 - Reasons: extracted risky fields differ from current mic record
 - Risky diffs:
   - name: `C Sweet Comedy` -> `C Sweet Comedy Open Mic`
-  - host: `C Sweet Comedy (@csweetcomedy)` -> `csweetcomedy`
-  - cost: `$5` -> `1 drink minimum`
+  - cost: `$5` -> `1 drink`
   - stageTime: `5min` -> `5 minutes`
 
 ### 4. @csweetcomedy (post)
 - [ ] Approve
 - [ ] Reject
-- Confidence: 0.8
+- Confidence: 0.88
 - Matched mic: Sunday 4:00 PM C Sweet Comedy @ Phoenix bar
 - Post URL: https://www.instagram.com/csweetcomedy/p/DUv1aV8AGg3/
 - Screenshot: `/home/runner/work/micmap/micmap/logs/ig-post-csweetcomedy-2.png`
@@ -67,7 +59,7 @@ Apply summary: `/home/runner/work/micmap/micmap/logs/ig-apply-summary.json`
 - Risky diffs:
   - name: `C Sweet Comedy` -> `C Sweet Comedy Open Mic`
   - host: `C Sweet Comedy (@csweetcomedy)` -> `csweetcomedy`
-  - cost: `$5` -> `1 drink`
+  - cost: `$5` -> `1 drink minimum`
   - stageTime: `5min` -> `5 minutes`
 
 ### 5. @shayayanyc (story)
@@ -99,14 +91,15 @@ Apply summary: `/home/runner/work/micmap/micmap/logs/ig-apply-summary.json`
 - Screenshot: `/home/runner/work/micmap/micmap/logs/ig-story-phoenixcomedynyc-0.png`
 - Reasons: extracted risky fields differ from current mic record
 - Risky diffs:
+  - venueName: `Phoenix Bar Avenue A` -> `Phoenix Comedy NYC (implied by handle)`
   - name: `Phoenix Bar` -> `Phoenix Mic`
-  - cost: `1 drink min` -> `1 drink minimum`
+  - cost: `1 drink min` -> `1 drink`
   - stageTime: `5min` -> `5 min`
 
 ### 8. @micdupnyc (story)
 - [ ] Approve
 - [ ] Reject
-- Confidence: 0.73
+- Confidence: 0.63
 - Matched mic: Unmatched record
 - Screenshot: `/home/runner/work/micmap/micmap/logs/ig-story-micdupnyc-0.png`
 - Reasons: no matching mic found for extracted signup content
@@ -116,7 +109,7 @@ Apply summary: `/home/runner/work/micmap/micmap/logs/ig-apply-summary.json`
 ### 9. @micdupnyc (story)
 - [ ] Approve
 - [ ] Reject
-- Confidence: 0.86
+- Confidence: 0.99
 - Matched mic: Unmatched record
 - Screenshot: `/home/runner/work/micmap/micmap/logs/ig-story-micdupnyc-1.png`
 - Reasons: no matching mic found for extracted signup content
@@ -126,18 +119,22 @@ Apply summary: `/home/runner/work/micmap/micmap/logs/ig-apply-summary.json`
 ### 10. @cotlcomedy (story)
 - [ ] Approve
 - [ ] Reject
-- Confidence: 0.81
+- Confidence: 0.99
 - Matched mic: Monday 7:30 PM Comedians on the Loose @ Black Cat LES
 - Screenshot: `/home/runner/work/micmap/micmap/logs/ig-story-cotlcomedy-0.png`
 - Reasons: extracted risky fields differ from current mic record
 - Risky diffs:
   - startTime: `7:30 PM` -> `9:10 PM`
-  - name: `Comedians on the Loose` -> `9 PM Mic (Start Time Adjusted)`
+  - venueName: `Black Cat LES` -> `null`
+  - name: `Comedians on the Loose` -> `9 PM Mic`
+  - host: `Sonja Savanovic (@cotlcomedy)` -> `null`
+  - cost: `$6 cash` -> `null`
+  - stageTime: `5min` -> `null`
 
 ## Unmatched / New Candidate Events
 - 1. @laughingbuddhacomedy 10:30PM Mic Friday 10:30 PM
-  Signup: [Link associated with 'REGISTER' button]
-- 2. @micdupnyc Mics Friday 5:00 PM
-- 3. @micdupnyc Soup of the Day!  9:00 PM
-  Signup: https://venmo.com
+  Signup: [Link available via 'REGISTER' button]
+- 2. @micdupnyc (no mic name) Friday 5:00 PM
+- 3. @micdupnyc Soup of the Day! null 9:00 PM
+  Signup: venmo.com
 
