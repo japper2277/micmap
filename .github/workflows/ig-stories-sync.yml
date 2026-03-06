@@ -54,28 +54,24 @@ jobs:
       - name: Check for relevant changes
         id: diff
         run: |
-          if [ -n "$(git status --porcelain -- api/mics.json logs/ig-review.md logs/ig-review.json)" ]; then
+          if [ -n "$(git status --porcelain -- api/mics.json api/public/data/flyers/ logs/ig-review.md logs/ig-review.json)" ]; then
             echo "changed=true" >> $GITHUB_OUTPUT
           else
             echo "changed=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Open PR if files changed
+      - name: Commit and push changes directly
         if: steps.diff.outputs.changed == 'true'
-        uses: peter-evans/create-pull-request@v6
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ig-stories-sync-${{ github.run_number }}
-          title: "IG stories sync: safe signup updates + review queue"
-          body: |
-            Automated Instagram stories/posts sync.
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add api/mics.json api/public/data/flyers/ logs/ig-review.md logs/ig-review.json
+          git commit -m "IG stories sync: signup updates + flyers [automated]"
+          git push
 
-            This PR contains:
-            - Safe signup-field updates applied to `api/mics.json`
-            - Review checklist for risky/unmatched items:
-              - `logs/ig-review.md`
-              - `logs/ig-review.json`
-
-            Review checklist items before merge.
-          commit-message: "IG stories sync: safe signup updates and review artifacts"
-          labels: mics-sync,ig-sync
+      - name: Seed production database
+        if: steps.diff.outputs.changed == 'true'
+        run: node api/scripts/seed-database.js
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          REDIS_URL: ${{ secrets.REDIS_URL }}
