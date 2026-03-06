@@ -14,7 +14,7 @@
     "stageTime": "3-5min",
     "host": "@thefearcitycomedyclub",
     "notes": null,
-    "flyerUrl": "http://localhost:3001/data/flyers/friday-10-00-pm-the-fear-city-comedy-club.png",
+    "flyerUrl": "https://micmap-production.up.railway.app/data/flyers/friday-10-00-pm-the-fear-city-comedy-club.png",
     "flyerDate": "2026-03-05"
   },
   {
@@ -985,7 +985,7 @@
     "signUpDetails": "Sign up at venue",
     "host": "@thefearcitycomedyclub",
     "notes": null,
-    "flyerUrl": "http://localhost:3001/data/flyers/tuesday-6-00-pm-the-fear-city-comedy-club.png",
+    "flyerUrl": "https://micmap-production.up.railway.app/data/flyers/tuesday-6-00-pm-the-fear-city-comedy-club.png",
     "flyerDate": "2026-03-05"
   },
   {
@@ -1322,7 +1322,7 @@
     "address": "447 E 13th St, New York, NY 10009, USA",
     "lat": 40.7299744,
     "lon": -73.9811697,
-    "cost": "1 drink min ($4 pineapple juice, really $3 with $1 tip)",
+    "cost": "1 drink min",
     "stageTime": "5min",
     "signUpDetails": "Sign up in person",
     "host": "Hetty Ra (@phoenixcomedynyc)",
@@ -2650,7 +2650,7 @@
     "address": "447 E 13th St, New York, NY 10009, USA",
     "lat": 40.7299744,
     "lon": -73.9811697,
-    "cost": "1 drink min ($4 pineapple juice, really $3 with $1 tip)",
+    "cost": "1 drink min",
     "stageTime": "5min",
     "signUpDetails": "in person only",
     "host": "Wayne Charles II (@phoenixcomedynyc)",

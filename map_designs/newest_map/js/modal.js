@@ -542,7 +542,8 @@ function populateModalContent(mic, allMicsAtVenue = null) {
     const venueImg1 = mic.flyerUrl || (typeof getVenueImage === 'function' ? getVenueImage(mic.venueName || mic.title) : null);
     if (venueImg1) {
         const flyerDateAttr1 = mic.flyerDate ? `'${mic.flyerDate}'` : 'null';
-        infoParts.push(`<div class="info-badge info-badge-flyer" onclick="event.stopPropagation(); openFlyerLightbox('${venueImg1}', ${flyerDateAttr1})">Flyer ↗</div>`);
+        const flyerLabel1 = mic.flyerDate ? `IG Verified (${formatFlyerDateShort(mic.flyerDate)})` : 'Flyer ↗';
+        infoParts.push(`<div class="info-badge info-badge-flyer" onclick="event.stopPropagation(); openFlyerLightbox('${venueImg1}', ${flyerDateAttr1})">${flyerLabel1}</div>`);
     }
 
     modalInfoRow.innerHTML = infoParts.join('');
@@ -799,7 +800,8 @@ function openVenueModal(mic) {
     const venueImg2 = mic.flyerUrl || (typeof getVenueImage === 'function' ? getVenueImage(mic.venueName || mic.title) : null);
     if (venueImg2) {
         const flyerDateAttr2 = mic.flyerDate ? `'${mic.flyerDate}'` : 'null';
-        infoParts.push(`<div class="info-badge info-badge-flyer" onclick="event.stopPropagation(); openFlyerLightbox('${venueImg2}', ${flyerDateAttr2})">Flyer ↗</div>`);
+        const flyerLabel2 = mic.flyerDate ? `IG Verified (${formatFlyerDateShort(mic.flyerDate)})` : 'Flyer ↗';
+        infoParts.push(`<div class="info-badge info-badge-flyer" onclick="event.stopPropagation(); openFlyerLightbox('${venueImg2}', ${flyerDateAttr2})">${flyerLabel2}</div>`);
     }
 
     modalInfoRow.innerHTML = infoParts.join('');
@@ -1695,6 +1697,11 @@ function findNearestStations(lat, lng, count = 2) {
     stationsWithDist.sort((a, b) => a.dist - b.dist);
 
     return stationsWithDist.slice(0, count);
+}
+
+function formatFlyerDateShort(dateStr) {
+    const d = new Date(dateStr + 'T00:00:00');
+    return `${d.getMonth() + 1}/${d.getDate()}`;
 }
 
 // Fullscreen flyer lightbox

@@ -55,17 +55,17 @@
     }
 }
 
-/* --- FLYER BADGE (info row) --- */
+/* --- IG VERIFIED / FLYER BADGE (info row) --- */
 .info-badge-flyer {
-    background: rgba(168, 85, 247, 0.12) !important;
-    border-color: rgba(168, 85, 247, 0.3) !important;
-    color: #c084fc !important;
+    background: rgba(225, 48, 108, 0.12) !important;
+    border-color: rgba(225, 48, 108, 0.3) !important;
+    color: #e1306c !important;
     cursor: pointer;
     transition: all 0.15s;
 }
 .info-badge-flyer:hover {
-    background: rgba(168, 85, 247, 0.2) !important;
-    border-color: rgba(168, 85, 247, 0.5) !important;
+    background: rgba(225, 48, 108, 0.2) !important;
+    border-color: rgba(225, 48, 108, 0.5) !important;
 }
 .info-badge-flyer:active {
     transform: scale(0.95);
