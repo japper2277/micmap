@@ -304,7 +304,9 @@
     "stageTime": "5min",
     "signUpDetails": "Comment on IG @csweetcomedy. Sign up in person",
     "host": "C Sweet Comedy (@csweetcomedy)",
-    "notes": null
+    "notes": null,
+    "flyerUrl": "https://micmap-production.up.railway.app/data/flyers/sunday-4-00-pm-phoenix-bar.png",
+    "flyerDate": "2026-03-06"
   },
   {
     "name": "Producer's Club",
@@ -1617,7 +1619,9 @@
     "stageTime": "5min",
     "signUpDetails": "https://www.comediansontheloose.com/open-mics",
     "host": "Sonja Savanovic (@cotlcomedy)",
-    "notes": null
+    "notes": null,
+    "flyerUrl": "https://micmap-production.up.railway.app/data/flyers/monday-7-30-pm-black-cat-les.png",
+    "flyerDate": "2026-03-06"
   },
   {
     "name": "1st/3rd/5th Open to suggestions mic",
@@ -2705,7 +2709,9 @@
     "stageTime": null,
     "signUpDetails": "https://checkout.square.site/merchant/MLE3S94S31KSN/checkout/SIS6B57KN346S6DZKXCFZ26T",
     "host": "Flop House host (@flophousecomedy)",
-    "notes": null
+    "notes": null,
+    "flyerUrl": "https://micmap-production.up.railway.app/data/flyers/wednesday-6-30-pm-flop-house-comedy-club.png",
+    "flyerDate": "2026-03-06"
   },
   {
     "name": "the ham mic",
