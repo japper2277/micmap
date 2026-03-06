@@ -1311,7 +1311,7 @@ function render(mode) {
             // Match slot by date and start time (e.g., mic at "5:00 PM" matches slot "5:00pm – 6:00pm")
             const micHour = mic.start ? mic.start.getHours() : null;
             const matchedSlot = slottedData.slots.find(s => {
-                if (s.date !== dateStr) return false;
+                if (!slotMatchesDate(s, dateStr)) return false;
                 const slotHourMatch = s.time.match(/(\d+):(\d+)(am|pm)/i);
                 if (!slotHourMatch) return false;
                 let slotHour = parseInt(slotHourMatch[1]);
@@ -1321,7 +1321,8 @@ function render(mode) {
             });
             if (matchedSlot) {
                 const isFull = matchedSlot.spotsLeft === 0;
-                spotsBadge = `<span class="spots-badge ${isFull ? 'spots-full' : ''}">${isFull ? 'FULL' : matchedSlot.spotsLeft + '/' + matchedSlot.capacity + ' spots left'}</span>`;
+                const spotsText = isFull ? 'FULL' : (matchedSlot.capacity ? matchedSlot.spotsLeft + '/' + matchedSlot.capacity + ' spots left' : matchedSlot.spotsLeft + ' spots left');
+                spotsBadge = `<span class="spots-badge ${isFull ? 'spots-full' : ''}">${spotsText}</span>`;
             }
         }
 

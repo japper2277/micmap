@@ -285,8 +285,9 @@ function init() {
     // Kick off live-data parity check in the background on app launch.
     triggerLaunchLiveCompare();
 
-    // Load signup slot availability (Slotted.co, COTL, Bushwick)
+    // Load signup slot availability (Slotted.co, Square, COTL, Bushwick)
     loadAllSlottedData();
+    loadSquareData();
     loadCotlData();
     loadBushwickData();
 
@@ -410,6 +411,27 @@ async function loadAllSlottedData() {
     for (const slug of slugs) {
         try {
             const res = await fetch(`${CONFIG.apiBase}/api/v1/mics/slots/${slug}`);
+            if (!res.ok) continue;
+            const data = await res.json();
+            if (data.success) {
+                STATE.slottedSlots[data.venueName] = data;
+            }
+        } catch (e) {
+            // Non-critical — silently fail
+        }
+    }
+}
+
+// Load Square checkout signup availability (auto-discovered from mic signUpDetails)
+async function loadSquareData() {
+    const urls = new Set();
+    for (const mic of STATE.mics) {
+        const details = (mic.signUpDetails || mic.signupUrl || '');
+        if (details.includes('checkout.square.site')) urls.add(details.trim());
+    }
+    for (const url of urls) {
+        try {
+            const res = await fetch(`${CONFIG.apiBase}/api/v1/mics/slots/square?url=${encodeURIComponent(url)}`);
             if (!res.ok) continue;
             const data = await res.json();
             if (data.success) {

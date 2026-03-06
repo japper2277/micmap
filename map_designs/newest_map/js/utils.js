@@ -6,6 +6,17 @@
 const MICMAP_SHARED_KEY = 'micmap.shared.v1';
 const COMEDY_DAY_ROLLOVER_HOUR = 4;
 
+// Check if a slot matches a target date (handles both date strings and day names)
+function slotMatchesDate(slot, dateStr) {
+    if (slot.date) return slot.date === dateStr;
+    if (slot.day) {
+        const d = new Date(dateStr + 'T12:00:00');
+        const dayName = CONFIG.dayNames[d.getDay()];
+        return slot.day.toLowerCase() === dayName.toLowerCase();
+    }
+    return false;
+}
+
 // Fuzzy lookup for slot data — handles name mismatches from processMics transforms
 function getSlotData(mic) {
     const slots = STATE.slottedSlots;
@@ -20,6 +31,9 @@ function getSlotData(mic) {
         if (normalized === title) return slots[key];
         // Prefix match (e.g. "Sesh Comedy" matches "Sesh Comedy Open Mic")
         if (normalized.startsWith(title) || title.startsWith(normalized)) return slots[key];
+        // Match by signup URL (for Square checkout etc.)
+        const entry = slots[key];
+        if (entry.signupUrl && mic.signupUrl && entry.signupUrl === mic.signupUrl) return entry;
     }
     return null;
 }

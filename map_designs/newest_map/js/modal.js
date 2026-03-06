@@ -419,14 +419,14 @@ function populateModalContent(mic, allMicsAtVenue = null) {
             if (slotData && m.start) {
                 const mh = m.start.getHours();
                 const slot = slotData.slots.find(s => {
-                    if (s.date !== dateStr2) return false;
+                    if (!slotMatchesDate(s, dateStr2)) return false;
                     const pm = s.time.match(/(\d+):(\d+)(am|pm)/i);
                     if (!pm) return false;
                     let sh = parseInt(pm[1]);
                     if (pm[3].toLowerCase() === 'pm' && sh !== 12) sh += 12;
                     return sh === mh;
                 });
-                if (slot) spotsInfo = slot.spotsLeft === 0 ? 'FULL' : `${slot.spotsLeft}/${slot.capacity}`;
+                if (slot) spotsInfo = slot.spotsLeft === 0 ? 'FULL' : (slot.capacity ? `${slot.spotsLeft}/${slot.capacity}` : `${slot.spotsLeft}`);
             }
             const isActive = m.id === mic.id;
             const activeClass = isActive ? ' active' : '';
@@ -569,7 +569,7 @@ function populateModalContent(mic, allMicsAtVenue = null) {
         const dateStr = targetDate.toISOString().split('T')[0];
         const micHour = mic.start.getHours();
         const matchedSlot = slottedData.slots.find(s => {
-            if (s.date !== dateStr) return false;
+            if (!slotMatchesDate(s, dateStr)) return false;
             const m = s.time.match(/(\d+):(\d+)(am|pm)/i);
             if (!m) return false;
             let h = parseInt(m[1]);
@@ -581,7 +581,9 @@ function populateModalContent(mic, allMicsAtVenue = null) {
             if (matchedSlot.soldOut || matchedSlot.spotsLeft === 0) {
                 spotsLabel = ' (FULL)';
             } else if (matchedSlot.spotsLeft != null) {
-                spotsLabel = ` (${matchedSlot.spotsLeft}/${matchedSlot.capacity} spots left)`;
+                spotsLabel = matchedSlot.capacity
+                    ? ` (${matchedSlot.spotsLeft}/${matchedSlot.capacity} spots left)`
+                    : ` (${matchedSlot.spotsLeft} spots left)`;
             }
         }
     }
@@ -822,7 +824,7 @@ function openVenueModal(mic) {
         const dateStr = targetDate.toISOString().split('T')[0];
         const micHour = mic.start.getHours();
         const matchedSlot = slottedData2.slots.find(s => {
-            if (s.date !== dateStr) return false;
+            if (!slotMatchesDate(s, dateStr)) return false;
             const m = s.time.match(/(\d+):(\d+)(am|pm)/i);
             if (!m) return false;
             let h = parseInt(m[1]);
@@ -834,7 +836,9 @@ function openVenueModal(mic) {
             if (matchedSlot.soldOut || matchedSlot.spotsLeft === 0) {
                 spotsLabel = ' (FULL)';
             } else if (matchedSlot.spotsLeft != null) {
-                spotsLabel = ` (${matchedSlot.spotsLeft}/${matchedSlot.capacity} spots left)`;
+                spotsLabel = matchedSlot.capacity
+                    ? ` (${matchedSlot.spotsLeft}/${matchedSlot.capacity} spots left)`
+                    : ` (${matchedSlot.spotsLeft} spots left)`;
             }
         }
     }

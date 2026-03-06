@@ -28,6 +28,15 @@ try {
   startSlottedRefresh = () => {};
 }
 
+// Square checkout signup scraper
+let getSquareData;
+try {
+  ({ getSquareData } = require('./services/square-checkout'));
+} catch (e) {
+  console.warn('⚠️ Square checkout service not available:', e.message);
+  getSquareData = async () => null;
+}
+
 // Bushwick Comedy Club availability scraper
 let getBushwickData, startBushwickRefresh;
 try {
@@ -2231,6 +2240,23 @@ app.get('/api/v1/mics/slots/:slottedId', async (req, res) => {
   } catch (err) {
     console.error('Slotted endpoint error:', err.message);
     res.status(500).json({ success: false, error: 'Failed to fetch slot data' });
+  }
+});
+
+// Square checkout signup availability (e.g. Flop House Comedy)
+app.get('/api/v1/mics/slots/square', async (req, res) => {
+  const { url } = req.query;
+  if (!url || !url.includes('checkout.square.site')) {
+    return res.status(400).json({ success: false, error: 'Required: ?url=https://checkout.square.site/...' });
+  }
+  try {
+    const data = await getSquareData(url);
+    if (!data) return res.status(404).json({ success: false, error: 'Could not fetch Square data' });
+    res.set('Cache-Control', 'public, max-age=300');
+    res.json({ success: true, ...data });
+  } catch (err) {
+    console.error('Square endpoint error:', err.message);
+    res.status(500).json({ success: false, error: 'Failed to fetch Square data' });
   }
 });
 
