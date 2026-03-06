@@ -497,12 +497,40 @@ body.plan-mode.map-interacted .plan-overlay {
     overflow: hidden;
 }
 
+.title-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+}
+
 .title-text {
     font-size: 20px;
     font-weight: 600;
     color: #ffffff;
     margin: 0;
     letter-spacing: 0.2px;
+}
+
+.drawer-subtitle {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color 0.2s ease;
+}
+
+.drawer-subtitle.cta {
+    color: #f43f5e;
+}
+
+.drawer-subtitle.cta::after {
+    content: ' ›';
+    font-size: 15px;
+    font-weight: 600;
 }
 
 .count-text {
