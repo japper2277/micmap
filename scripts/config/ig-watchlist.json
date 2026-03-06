@@ -111,6 +111,12 @@
     "notes": "Posts signup form on IG every Wednesday for Thursday mic"
   },
   {
+    "handle": "micdupnyc",
+    "micSelectors": [],
+    "signupType": "unknown",
+    "notes": "Mic Dup NYC - check stories/posts for mic schedule and signup details"
+  },
+  {
     "handle": "cotlcomedy",
     "micSelectors": [
       {

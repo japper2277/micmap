@@ -3268,7 +3268,7 @@
   },
   {
     "name": "Let's Go Mental",
-    "day": "Thursday",
+    "day": "Wednesday",
     "startTime": "5:00 PM",
     "endTime": "6:00 PM",
     "venueName": "Hotel Edison",
@@ -3279,7 +3279,7 @@
     "lon": -73.9862944,
     "cost": "Free",
     "stageTime": "5min",
-    "signUpDetails": "https://standupny.com/upcoming-shows/#/events",
+    "signUpDetails": "https://standupny.com/upcoming-shows/#/events/174587",
     "host": "Jonah (10 comic cap) (@standupny)",
     "notes": null
   },
