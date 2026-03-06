@@ -1615,7 +1615,9 @@
     "stageTime": "5min",
     "signUpDetails": "https://www.comediansontheloose.com/open-mics",
     "host": "Sonja Savanovic (@cotlcomedy)",
-    "notes": null
+    "notes": null,
+    "flyerUrl": "https://micmap-production.up.railway.app/data/flyers/monday-7-30-pm-black-cat-les.png",
+    "flyerDate": "2026-03-06"
   },
   {
     "name": "1st/3rd/5th Open to suggestions mic",
