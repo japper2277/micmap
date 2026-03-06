@@ -285,8 +285,8 @@ function init() {
     // Kick off live-data parity check in the background on app launch.
     triggerLaunchLiveCompare();
 
-    // Load Slotted signup availability
-    loadSlottedData();
+    // Load signup slot availability (Slotted.co, COTL, Bushwick)
+    loadAllSlottedData();
     loadCotlData();
     loadBushwickData();
 
@@ -395,17 +395,29 @@ async function loadBushwickData() {
     }
 }
 
-// Load Slotted.co signup slot availability
-async function loadSlottedData() {
-    try {
-        const res = await fetch(`${CONFIG.apiBase}/api/v1/mics/slots/seshopenmics`);
-        if (!res.ok) return;
-        const data = await res.json();
-        if (data.success) {
-            STATE.slottedSlots[data.venueName] = data;
+// Load all Slotted.co signup availability — auto-discovers slugs from mic signUpDetails
+async function loadAllSlottedData() {
+    const slugs = new Set();
+    for (const mic of STATE.mics) {
+        const details = (mic.signUpDetails || mic.signupUrl || '').toLowerCase();
+        const match = details.match(/slotted\.co\/([a-z0-9_-]+)/);
+        if (match) slugs.add(match[1]);
+    }
+    // If mics haven't loaded yet, fall back to known slugs
+    if (slugs.size === 0) {
+        ['seshopenmics', 'wednesdaymic', 'gig-mic', 'adhdcomedy', 'yve9r1gg'].forEach(s => slugs.add(s));
+    }
+    for (const slug of slugs) {
+        try {
+            const res = await fetch(`${CONFIG.apiBase}/api/v1/mics/slots/${slug}`);
+            if (!res.ok) continue;
+            const data = await res.json();
+            if (data.success) {
+                STATE.slottedSlots[data.venueName] = data;
+            }
+        } catch (e) {
+            // Non-critical — silently fail
         }
-    } catch (e) {
-        // Non-critical — silently fail
     }
 }
 

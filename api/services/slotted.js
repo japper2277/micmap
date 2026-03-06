@@ -14,6 +14,22 @@ const SLOTTED_PAGES = {
   seshopenmics: {
     url: 'https://slotted.co/seshopenmics',
     venueName: 'Sesh Comedy Open Mic'
+  },
+  wednesdaymic: {
+    url: 'https://slotted.co/wednesdaymic',
+    venueName: 'Broadway Comedy Club'
+  },
+  'gig-mic': {
+    url: 'https://slotted.co/gig-mic',
+    venueName: 'Broadway Comedy Club'
+  },
+  adhdcomedy: {
+    url: 'https://slotted.co/adhdcomedy',
+    venueName: 'ADHD Comedy'
+  },
+  yve9r1gg: {
+    url: 'https://slotted.co/yve9r1gg',
+    venueName: 'Caravan of Dreams'
   }
 };
 
@@ -21,8 +37,11 @@ const SLOTTED_PAGES = {
  * Fetch and parse a slotted.co page for signup data
  */
 async function fetchSlottedPage(slottedId) {
-  const page = SLOTTED_PAGES[slottedId];
-  if (!page) return null;
+  // Known pages have explicit venue names; unknown slugs are auto-discovered
+  const page = SLOTTED_PAGES[slottedId] || {
+    url: `https://slotted.co/${slottedId}`,
+    venueName: null  // will be derived from sheet title
+  };
 
   const resp = await fetch(page.url, {
     headers: {
@@ -85,7 +104,7 @@ async function fetchSlottedPage(slottedId) {
   }
 
   return {
-    venueName: page.venueName,
+    venueName: page.venueName || sheet.title || slottedId,
     sheetTitle: sheet.title || '',
     signupUrl: sheet.publicUrl || page.url,
     slots,
@@ -97,7 +116,6 @@ async function fetchSlottedPage(slottedId) {
  * Get slotted data for a given ID (with caching)
  */
 async function getSlottedData(slottedId) {
-  if (!SLOTTED_PAGES[slottedId]) return null;
 
   const cached = cache[slottedId];
   if (cached && (Date.now() - cached.fetchedAt) < CACHE_TTL) {
