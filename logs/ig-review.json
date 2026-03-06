@@ -1,0 +1,90 @@
+{
+  "autoAppliedSafeWrites": [
+    {
+      "handle": "cotlcomedy",
+      "source": "story",
+      "postUrl": null,
+      "confidence": 0.81,
+      "micRef": {
+        "name": "Comedians on the Loose",
+        "day": "Monday",
+        "startTime": "7:30 PM",
+        "venueName": "Black Cat LES",
+        "index": 94
+      },
+      "before": {
+        "signUpDetails": "https://www.comediansontheloose.com/open-mics",
+        "notes": null
+      },
+      "changes": [
+        {
+          "field": "flyerUrl",
+          "from": null,
+          "to": "https://micmap-production.up.railway.app/data/flyers/monday-7-30-pm-black-cat-les.png"
+        },
+        {
+          "field": "flyerDate",
+          "from": null,
+          "to": "2026-03-06"
+        }
+      ]
+    }
+  ],
+  "reviewRequired": [
+    {
+      "handle": "cotlcomedy",
+      "source": "story",
+      "confidence": 0.81,
+      "postUrl": null,
+      "screenshotPath": "/home/runner/work/micmap/micmap/logs/ig-story-cotlcomedy-0.png",
+      "analysis": {
+        "isSignup": true,
+        "micName": "MIC",
+        "day": null,
+        "date": null,
+        "time": "9:00 PM",
+        "venueName": null,
+        "signupInstructions": "CHECK OUR WEBSITE FOR ANY AVAILABLE SPOTS OR TRY YOUR LUCK AS A WALK-IN",
+        "signupUrl": "comediansontheloose.com/open-mics",
+        "spotsLeft": null,
+        "capacity": null,
+        "host": null,
+        "cost": null,
+        "stageTime": null,
+        "notes": "CHECK-IN STARTS AT 8:50 PM"
+      },
+      "matchedMicRef": {
+        "index": 94,
+        "method": "selector_exact",
+        "name": "Comedians on the Loose",
+        "day": "Monday",
+        "startTime": "7:30 PM",
+        "venueName": "Black Cat LES",
+        "host": "Sonja Savanovic (@cotlcomedy)"
+      },
+      "riskyChanges": [
+        {
+          "field": "startTime",
+          "from": "7:30 PM",
+          "to": "9:00 PM",
+          "reason": "startTime differs from extracted IG content"
+        },
+        {
+          "field": "name",
+          "from": "Comedians on the Loose",
+          "to": "MIC",
+          "reason": "name differs from extracted IG content"
+        }
+      ],
+      "reasons": [
+        "extracted risky fields differ from current mic record"
+      ]
+    }
+  ],
+  "unmatchedCandidates": [],
+  "counts": {
+    "autoAppliedSafeWrites": 1,
+    "reviewRequired": 1,
+    "unmatchedCandidates": 0
+  }
+}
