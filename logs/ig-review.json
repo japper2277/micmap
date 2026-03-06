@@ -1,84 +1,113 @@
 {
   "autoAppliedSafeWrites": [
     {
-      "handle": "csweetcomedy",
-      "source": "post",
-      "postUrl": "https://www.instagram.com/csweetcomedy/p/DVTzYEfjbKN/",
-      "confidence": 0.75,
-      "micRef": {
-        "name": "C Sweet Comedy",
-        "day": "Sunday",
-        "startTime": "4:00 PM",
-        "venueName": "Phoenix bar",
-        "index": 17
-      },
-      "before": {
-        "signUpDetails": "Comment on IG @csweetcomedy. Sign up in person",
-        "notes": null
-      },
-      "changes": [
-        {
-          "field": "flyerUrl",
-          "from": null,
-          "to": "https://micmap-production.up.railway.app/data/flyers/sunday-4-00-pm-phoenix-bar.png"
-        },
-        {
-          "field": "flyerDate",
-          "from": null,
-          "to": "2026-03-06"
-        }
-      ]
-    },
-    {
-      "handle": "finitejestmic",
-      "source": "post",
-      "postUrl": "https://www.instagram.com/finitejestmic/p/DOuU3TijF0G/",
-      "confidence": 0.69,
-      "micRef": {
-        "name": "finite jest",
-        "day": "Wednesday",
-        "startTime": "6:30 PM",
-        "venueName": "Flop House Comedy Club",
-        "index": 158
-      },
-      "before": {
-        "signUpDetails": "https://checkout.square.site/merchant/MLE3S94S31KSN/checkout/SIS6B57KN346S6DZKXCFZ26T",
-        "notes": null
-      },
-      "changes": [
-        {
-          "field": "flyerUrl",
-          "from": null,
-          "to": "https://micmap-production.up.railway.app/data/flyers/wednesday-6-30-pm-flop-house-comedy-club.png"
-        },
-        {
-          "field": "flyerDate",
-          "from": null,
-          "to": "2026-03-06"
-        }
-      ]
-    },
-    {
-      "handle": "cotlcomedy",
+      "handle": "thefearcitycomedyclub",
       "source": "story",
       "postUrl": null,
-      "confidence": 0.81,
+      "confidence": 0,
       "micRef": {
-        "name": "Comedians on the Loose",
-        "day": "Monday",
-        "startTime": "7:30 PM",
-        "venueName": "Black Cat LES",
-        "index": 94
+        "name": "Fear City Mic",
+        "day": "Friday",
+        "startTime": "10:00 PM",
+        "venueName": "The Fear City Comedy Club",
+        "index": 0
       },
       "before": {
-        "signUpDetails": "https://www.comediansontheloose.com/open-mics",
+        "signUpDetails": null,
         "notes": null
       },
       "changes": [
         {
           "field": "flyerUrl",
           "from": null,
-          "to": "https://micmap-production.up.railway.app/data/flyers/monday-7-30-pm-black-cat-les.png"
+          "to": "https://micmap-production.up.railway.app/data/flyers/friday-10-00-pm-the-fear-city-comedy-club.png"
+        },
+        {
+          "field": "flyerDate",
+          "from": null,
+          "to": "2026-03-06"
+        }
+      ]
+    },
+    {
+      "handle": "shareef_taher_haha",
+      "source": "story",
+      "postUrl": null,
+      "confidence": 0,
+      "micRef": {
+        "name": "Shareef's Mic",
+        "day": "Saturday",
+        "startTime": "1:00 PM",
+        "venueName": "Pioneers Bar",
+        "index": 215
+      },
+      "before": {
+        "signUpDetails": "DM IN ADVANCE Shareef Taher on fb or IG (@shareef_taher_haha) *walkins waitlist for no shows, so no guarantee*",
+        "notes": null
+      },
+      "changes": [
+        {
+          "field": "flyerUrl",
+          "from": null,
+          "to": "https://micmap-production.up.railway.app/data/flyers/saturday-1-00-pm-pioneers-bar.png"
+        },
+        {
+          "field": "flyerDate",
+          "from": null,
+          "to": "2026-03-06"
+        }
+      ]
+    },
+    {
+      "handle": "shayayanyc",
+      "source": "story",
+      "postUrl": null,
+      "confidence": 0.57,
+      "micRef": {
+        "name": "Pure Chaos",
+        "day": "Tuesday",
+        "startTime": "7:00 PM",
+        "venueName": "Alphaville bar",
+        "index": 134
+      },
+      "before": {
+        "signUpDetails": "Check schedule & signup link in bio IG @shayayanyc",
+        "notes": null
+      },
+      "changes": [
+        {
+          "field": "flyerUrl",
+          "from": null,
+          "to": "https://micmap-production.up.railway.app/data/flyers/tuesday-7-00-pm-alphaville-bar.png"
+        },
+        {
+          "field": "flyerDate",
+          "from": null,
+          "to": "2026-03-06"
+        }
+      ]
+    },
+    {
+      "handle": "johnthaller",
+      "source": "story",
+      "postUrl": null,
+      "confidence": 0,
+      "micRef": {
+        "name": "PIT Improv Jam FeelGoodFriday",
+        "day": "Friday",
+        "startTime": "5:00 PM",
+        "venueName": "The PIT NYC",
+        "index": 27
+      },
+      "before": {
+        "signUpDetails": "Improv Jams & Open Mics | Peoples Improv Theater",
+        "notes": null
+      },
+      "changes": [
+        {
+          "field": "flyerUrl",
+          "from": "https://micmap-production.up.railway.app/data/flyers/friday-5-00-pm-the-pit-nyc.png?v=2",
+          "to": "https://micmap-production.up.railway.app/data/flyers/friday-5-00-pm-the-pit-nyc.png"
         },
         {
           "field": "flyerDate",
@@ -92,21 +121,21 @@
     {
       "handle": "thefearcitycomedyclub",
       "source": "story",
-      "confidence": 0.65,
+      "confidence": 0.84,
       "postUrl": null,
-      "screenshotPath": "/home/runner/work/micmap/micmap/logs/ig-story-thefearcitycomedyclub-0.png",
+      "screenshotPath": "/home/runner/work/micmap/micmap/logs/ig-story-thefearcitycomedyclub-2.png",
       "analysis": {
         "isSignup": true,
-        "micName": "The 9pm Thursday Mic",
-        "day": "Thursday",
+        "micName": "The Prophet Mic",
+        "day": "Friday",
         "date": null,
-        "time": "9:00 PM",
-        "venueName": null,
-        "signupInstructions": null,
+        "time": "6:00 PM",
+        "venueName": "The Fear City Comedy Club",
+        "signupInstructions": "Contact via @theprophetmic",
         "signupUrl": null,
         "spotsLeft": null,
         "capacity": null,
-        "host": null,
+        "host": "Michael Sitver & Derek Ahmed",
         "cost": null,
         "stageTime": null,
         "notes": null
@@ -121,67 +150,6 @@
         "host": "@thefearcitycomedyclub"
       },
       "riskyChanges": [
-        {
-          "field": "day",
-          "from": "Friday",
-          "to": "Thursday",
-          "reason": "day differs from extracted IG content"
-        },
-        {
-          "field": "startTime",
-          "from": "10:00 PM",
-          "to": "9:00 PM",
-          "reason": "startTime differs from extracted IG content"
-        },
-        {
-          "field": "name",
-          "from": "Fear City Mic",
-          "to": "The 9pm Thursday Mic",
-          "reason": "name differs from extracted IG content"
-        }
-      ],
-      "reasons": [
-        "extracted risky fields differ from current mic record"
-      ]
-    },
-    {
-      "handle": "thefearcitycomedyclub",
-      "source": "story",
-      "confidence": 0.86,
-      "postUrl": null,
-      "screenshotPath": "/home/runner/work/micmap/micmap/logs/ig-story-thefearcitycomedyclub-1.png",
-      "analysis": {
-        "isSignup": true,
-        "micName": "OPEN MIC",
-        "day": "Thursday",
-        "date": null,
-        "time": "6:00 PM",
-        "venueName": "THE FEAR CITY COMEDY CLUB",
-        "signupInstructions": "Sign-ups at the door",
-        "signupUrl": null,
-        "spotsLeft": null,
-        "capacity": null,
-        "host": "RALPH DURAN",
-        "cost": "Free to watch",
-        "stageTime": null,
-        "notes": "All welcome!"
-      },
-      "matchedMicRef": {
-        "index": 0,
-        "method": "host_venue_fallback",
-        "name": "Fear City Mic",
-        "day": "Friday",
-        "startTime": "10:00 PM",
-        "venueName": "The Fear City Comedy Club",
-        "host": "@thefearcitycomedyclub"
-      },
-      "riskyChanges": [
-        {
-          "field": "day",
-          "from": "Friday",
-          "to": "Thursday",
-          "reason": "day differs from extracted IG content"
-        },
         {
           "field": "startTime",
           "from": "10:00 PM",
@@ -191,74 +159,13 @@
         {
           "field": "name",
           "from": "Fear City Mic",
-          "to": "OPEN MIC",
+          "to": "The Prophet Mic",
           "reason": "name differs from extracted IG content"
         },
         {
           "field": "host",
           "from": "@thefearcitycomedyclub",
-          "to": "RALPH DURAN",
-          "reason": "host differs from extracted IG content"
-        },
-        {
-          "field": "cost",
-          "from": "$5",
-          "to": "Free to watch",
-          "reason": "cost differs from extracted IG content"
-        }
-      ],
-      "reasons": [
-        "extracted risky fields differ from current mic record"
-      ]
-    },
-    {
-      "handle": "thefearcitycomedyclub",
-      "source": "story",
-      "confidence": 0.76,
-      "postUrl": null,
-      "screenshotPath": "/home/runner/work/micmap/micmap/logs/ig-story-thefearcitycomedyclub-4.png",
-      "analysis": {
-        "isSignup": true,
-        "micName": "THE PROPHET MIC",
-        "day": "Fridays",
-        "date": null,
-        "time": "6PM",
-        "venueName": "The Fear City Comedy Club",
-        "signupInstructions": null,
-        "signupUrl": null,
-        "spotsLeft": null,
-        "capacity": null,
-        "host": "MICHAEL SITVER & DEREK AHMED",
-        "cost": null,
-        "stageTime": null,
-        "notes": null
-      },
-      "matchedMicRef": {
-        "index": 0,
-        "method": "host_venue_fallback",
-        "name": "Fear City Mic",
-        "day": "Friday",
-        "startTime": "10:00 PM",
-        "venueName": "The Fear City Comedy Club",
-        "host": "@thefearcitycomedyclub"
-      },
-      "riskyChanges": [
-        {
-          "field": "startTime",
-          "from": "10:00 PM",
-          "to": "6PM",
-          "reason": "startTime differs from extracted IG content"
-        },
-        {
-          "field": "name",
-          "from": "Fear City Mic",
-          "to": "THE PROPHET MIC",
-          "reason": "name differs from extracted IG content"
-        },
-        {
-          "field": "host",
-          "from": "@thefearcitycomedyclub",
-          "to": "MICHAEL SITVER & DEREK AHMED",
+          "to": "Michael Sitver & Derek Ahmed",
           "reason": "host differs from extracted IG content"
         }
       ],
@@ -271,7 +178,7 @@
       "source": "story",
       "confidence": 0.76,
       "postUrl": null,
-      "screenshotPath": "/home/runner/work/micmap/micmap/logs/ig-story-thefearcitycomedyclub-5.png",
+      "screenshotPath": "/home/runner/work/micmap/micmap/logs/ig-story-thefearcitycomedyclub-3.png",
       "analysis": {
         "isSignup": true,
         "micName": "Friday Mic",
@@ -286,7 +193,7 @@
         "host": "Charlie Vogel",
         "cost": null,
         "stageTime": null,
-        "notes": null
+        "notes": "Tagged user @charlietvogel and host is Charlie Vogel."
       },
       "matchedMicRef": {
         "index": 0,
@@ -318,7 +225,7 @@
     {
       "handle": "csweetcomedy",
       "source": "post",
-      "confidence": 0.75,
+      "confidence": 0.88,
       "postUrl": "https://www.instagram.com/csweetcomedy/p/DVTzYEfjbKN/",
       "screenshotPath": "/home/runner/work/micmap/micmap/logs/ig-post-csweetcomedy-0.png",
       "analysis": {
@@ -326,16 +233,16 @@
         "micName": "C Sweet Comedy Open Mic",
         "day": "Sunday",
         "date": null,
-        "time": "4pm",
+        "time": "4:00 PM",
         "venueName": "Phoenix Bar",
-        "signupInstructions": null,
+        "signupInstructions": "1 drink/5 minutes (Implied sign-up requirement/cost structure)",
         "signupUrl": null,
         "spotsLeft": null,
         "capacity": null,
-        "host": null,
-        "cost": "1 drink/5 minutes",
-        "stageTime": null,
-        "notes": null
+        "host": "csweetcomedy",
+        "cost": "1 drink minimum",
+        "stageTime": "5 minutes",
+        "notes": "Event is every Sunday."
       },
       "matchedMicRef": {
         "index": 17,
@@ -354,53 +261,16 @@
           "reason": "name differs from extracted IG content"
         },
         {
+          "field": "host",
+          "from": "C Sweet Comedy (@csweetcomedy)",
+          "to": "csweetcomedy",
+          "reason": "host differs from extracted IG content"
+        },
+        {
           "field": "cost",
           "from": "$5",
-          "to": "1 drink/5 minutes",
+          "to": "1 drink minimum",
           "reason": "cost differs from extracted IG content"
-        }
-      ],
-      "reasons": [
-        "extracted risky fields differ from current mic record"
-      ]
-    },
-    {
-      "handle": "csweetcomedy",
-      "source": "post",
-      "confidence": 0.75,
-      "postUrl": "https://www.instagram.com/csweetcomedy/p/DUv1aV8AGg3/",
-      "screenshotPath": "/home/runner/work/micmap/micmap/logs/ig-post-csweetcomedy-2.png",
-      "analysis": {
-        "isSignup": true,
-        "micName": "C Sweet Comedy Open Mic",
-        "day": "Sunday",
-        "date": null,
-        "time": "4pm",
-        "venueName": "Phoenix Bar",
-        "signupInstructions": null,
-        "signupUrl": null,
-        "spotsLeft": null,
-        "capacity": null,
-        "host": null,
-        "cost": null,
-        "stageTime": "5 minutes",
-        "notes": "1 drink"
-      },
-      "matchedMicRef": {
-        "index": 17,
-        "method": "selector_exact",
-        "name": "C Sweet Comedy",
-        "day": "Sunday",
-        "startTime": "4:00 PM",
-        "venueName": "Phoenix bar",
-        "host": "C Sweet Comedy (@csweetcomedy)"
-      },
-      "riskyChanges": [
-        {
-          "field": "name",
-          "from": "C Sweet Comedy",
-          "to": "C Sweet Comedy Open Mic",
-          "reason": "name differs from extracted IG content"
         },
         {
           "field": "stageTime",
@@ -414,54 +284,109 @@
       ]
     },
     {
-      "handle": "finitejestmic",
+      "handle": "csweetcomedy",
       "source": "post",
-      "confidence": 0.69,
-      "postUrl": "https://www.instagram.com/finitejestmic/p/DOuU3TijF0G/",
-      "screenshotPath": "/home/runner/work/micmap/micmap/logs/ig-post-finitejestmic-2.png",
+      "confidence": 0.8,
+      "postUrl": "https://www.instagram.com/csweetcomedy/p/DUv1aV8AGg3/",
+      "screenshotPath": "/home/runner/work/micmap/micmap/logs/ig-post-csweetcomedy-2.png",
       "analysis": {
         "isSignup": true,
-        "micName": "FINITE JEST MIC SHOW",
-        "day": null,
-        "date": "2025-09-24",
-        "time": "8:00 PM",
-        "venueName": "FLOP HOUSE COMEDY CLUB",
+        "micName": "C Sweet Comedy Open Mic",
+        "day": "Sunday",
+        "date": null,
+        "time": "4pm",
+        "venueName": "Phoenix Bar",
         "signupInstructions": null,
         "signupUrl": null,
         "spotsLeft": null,
         "capacity": null,
-        "host": "JOAN FLAHERTY & MOLLY WINIARSKI",
+        "host": "csweetcomedy",
+        "cost": "1 drink",
+        "stageTime": "5 minutes",
+        "notes": "Every Sunday. Venue address: 447 E13 St"
+      },
+      "matchedMicRef": {
+        "index": 17,
+        "method": "selector_exact",
+        "name": "C Sweet Comedy",
+        "day": "Sunday",
+        "startTime": "4:00 PM",
+        "venueName": "Phoenix bar",
+        "host": "C Sweet Comedy (@csweetcomedy)"
+      },
+      "riskyChanges": [
+        {
+          "field": "name",
+          "from": "C Sweet Comedy",
+          "to": "C Sweet Comedy Open Mic",
+          "reason": "name differs from extracted IG content"
+        },
+        {
+          "field": "host",
+          "from": "C Sweet Comedy (@csweetcomedy)",
+          "to": "csweetcomedy",
+          "reason": "host differs from extracted IG content"
+        },
+        {
+          "field": "cost",
+          "from": "$5",
+          "to": "1 drink",
+          "reason": "cost differs from extracted IG content"
+        },
+        {
+          "field": "stageTime",
+          "from": "5min",
+          "to": "5 minutes",
+          "reason": "stageTime differs from extracted IG content"
+        }
+      ],
+      "reasons": [
+        "extracted risky fields differ from current mic record"
+      ]
+    },
+    {
+      "handle": "shayayanyc",
+      "source": "story",
+      "confidence": 0.57,
+      "postUrl": null,
+      "screenshotPath": "/home/runner/work/micmap/micmap/logs/ig-story-shayayanyc-0.png",
+      "analysis": {
+        "isSignup": true,
+        "micName": "Funny Pool Club",
+        "day": "Sunday",
+        "date": null,
+        "time": null,
+        "venueName": null,
+        "signupInstructions": null,
+        "signupUrl": null,
+        "spotsLeft": null,
+        "capacity": null,
+        "host": null,
         "cost": null,
         "stageTime": null,
         "notes": null
       },
       "matchedMicRef": {
-        "index": 158,
+        "index": 134,
         "method": "selector_exact",
-        "name": "finite jest",
-        "day": "Wednesday",
-        "startTime": "6:30 PM",
-        "venueName": "Flop House Comedy Club",
-        "host": "Flop House host (@flophousecomedy)"
+        "name": "Pure Chaos",
+        "day": "Tuesday",
+        "startTime": "7:00 PM",
+        "venueName": "Alphaville bar",
+        "host": "PURE CHAOS (@purechaoscomedy)"
       },
       "riskyChanges": [
         {
-          "field": "startTime",
-          "from": "6:30 PM",
-          "to": "8:00 PM",
-          "reason": "startTime differs from extracted IG content"
+          "field": "day",
+          "from": "Tuesday",
+          "to": "Sunday",
+          "reason": "day differs from extracted IG content"
         },
         {
           "field": "name",
-          "from": "finite jest",
-          "to": "FINITE JEST MIC SHOW",
+          "from": "Pure Chaos",
+          "to": "Funny Pool Club",
           "reason": "name differs from extracted IG content"
-        },
-        {
-          "field": "host",
-          "from": "Flop House host (@flophousecomedy)",
-          "to": "JOAN FLAHERTY & MOLLY WINIARSKI",
-          "reason": "host differs from extracted IG content"
         }
       ],
       "reasons": [
@@ -471,24 +396,24 @@
     {
       "handle": "laughingbuddhacomedy",
       "source": "story",
-      "confidence": 0.99,
+      "confidence": 0.96,
       "postUrl": null,
       "screenshotPath": "/home/runner/work/micmap/micmap/logs/ig-story-laughingbuddhacomedy-0.png",
       "analysis": {
         "isSignup": true,
-        "micName": "null",
+        "micName": "10:30PM Mic",
         "day": "Friday",
-        "date": "2020-03-06",
+        "date": "202X-03-06",
         "time": "10:30 PM",
-        "venueName": "null",
+        "venueName": "laughingbuddhacomedy",
         "signupInstructions": "MAKE SURE TO REGISTER IN ADVANCE!",
-        "signupUrl": "null",
+        "signupUrl": "[Link associated with 'REGISTER' button]",
         "spotsLeft": null,
         "capacity": null,
-        "host": "null",
-        "cost": "null",
-        "stageTime": "null",
-        "notes": "null"
+        "host": null,
+        "cost": null,
+        "stageTime": null,
+        "notes": "The mic is packed with audience."
       },
       "matchedMicRef": null,
       "riskyChanges": [
@@ -506,22 +431,22 @@
     {
       "handle": "phoenixcomedynyc",
       "source": "story",
-      "confidence": 0.77,
+      "confidence": 0.85,
       "postUrl": null,
       "screenshotPath": "/home/runner/work/micmap/micmap/logs/ig-story-phoenixcomedynyc-0.png",
       "analysis": {
         "isSignup": true,
         "micName": "Phoenix Mic",
-        "day": "Fri",
+        "day": "Friday",
         "date": null,
         "time": "6:00 PM",
-        "venueName": null,
-        "signupInstructions": "Just Show Up",
+        "venueName": "Phoenix Bar Avenue A",
+        "signupInstructions": "Just Show Up. (Requirement: 1 drink)",
         "signupUrl": null,
         "spotsLeft": null,
         "capacity": null,
         "host": null,
-        "cost": "1 drink",
+        "cost": "1 drink minimum",
         "stageTime": "5 min",
         "notes": null
       },
@@ -544,7 +469,7 @@
         {
           "field": "cost",
           "from": "1 drink min",
-          "to": "1 drink",
+          "to": "1 drink minimum",
           "reason": "cost differs from extracted IG content"
         },
         {
@@ -559,20 +484,20 @@
       ]
     },
     {
-      "handle": "cotlcomedy",
+      "handle": "micdupnyc",
       "source": "story",
-      "confidence": 0.81,
+      "confidence": 0.73,
       "postUrl": null,
-      "screenshotPath": "/home/runner/work/micmap/micmap/logs/ig-story-cotlcomedy-0.png",
+      "screenshotPath": "/home/runner/work/micmap/micmap/logs/ig-story-micdupnyc-0.png",
       "analysis": {
         "isSignup": true,
-        "micName": "MIC",
-        "day": null,
+        "micName": "Mics",
+        "day": "Friday",
         "date": null,
-        "time": "7 PM",
+        "time": "5:00 PM",
         "venueName": null,
-        "signupInstructions": "CHECK OUR WEBSITE FOR ANY AVAILABLE SPOTS OR TRY YOUR LUCK AS A WALK-IN (BE AT THE VENUE AT LEAST AT 6:40 TO BE ADDED TO THE WAIT LIST)",
-        "signupUrl": "comediansontheloose.com/open-mics",
+        "signupInstructions": "Contact @shanelawler6",
+        "signupUrl": null,
         "spotsLeft": null,
         "capacity": null,
         "host": null,
@@ -580,31 +505,52 @@
         "stageTime": null,
         "notes": null
       },
-      "matchedMicRef": {
-        "index": 94,
-        "method": "selector_exact",
-        "name": "Comedians on the Loose",
-        "day": "Monday",
-        "startTime": "7:30 PM",
-        "venueName": "Black Cat LES",
-        "host": "Sonja Savanovic (@cotlcomedy)"
-      },
+      "matchedMicRef": null,
       "riskyChanges": [
         {
-          "field": "startTime",
-          "from": "7:30 PM",
-          "to": "7 PM",
-          "reason": "startTime differs from extracted IG content"
-        },
-        {
-          "field": "name",
-          "from": "Comedians on the Loose",
-          "to": "MIC",
-          "reason": "name differs from extracted IG content"
+          "field": "record_match",
+          "from": null,
+          "to": "unmatched",
+          "reason": "potential new event or missing selector mapping"
         }
       ],
       "reasons": [
-        "extracted risky fields differ from current mic record"
+        "no matching mic found for extracted signup content"
+      ]
+    },
+    {
+      "handle": "micdupnyc",
+      "source": "story",
+      "confidence": 0.86,
+      "postUrl": null,
+      "screenshotPath": "/home/runner/work/micmap/micmap/logs/ig-story-micdupnyc-1.png",
+      "analysis": {
+        "isSignup": true,
+        "micName": "Soup of the Day!",
+        "day": null,
+        "date": "2024-03-11",
+        "time": "9:00 PM",
+        "venueName": null,
+        "signupInstructions": "Get your tickets ahead of time via VENMO.COM",
+        "signupUrl": "https://venmo.com",
+        "spotsLeft": null,
+        "capacity": null,
+        "host": "Shawn Kinnear & micdupnyc",
+        "cost": "$15 + 1 Drink",
+        "stageTime": null,
+        "notes": "Features 3 Improv Teams, 6 Comics, 1 Night, Surprise Guest!! Location appears to be 358 W 44th St. NYC"
+      },
+      "matchedMicRef": null,
+      "riskyChanges": [
+        {
+          "field": "record_match",
+          "from": null,
+          "to": "unmatched",
+          "reason": "potential new event or missing selector mapping"
+        }
+      ],
+      "reasons": [
+        "no matching mic found for extracted signup content"
       ]
     },
     {
@@ -612,22 +558,22 @@
       "source": "story",
       "confidence": 0.81,
       "postUrl": null,
-      "screenshotPath": "/home/runner/work/micmap/micmap/logs/ig-story-cotlcomedy-1.png",
+      "screenshotPath": "/home/runner/work/micmap/micmap/logs/ig-story-cotlcomedy-0.png",
       "analysis": {
         "isSignup": true,
-        "micName": "MIC",
+        "micName": "9 PM Mic (Start Time Adjusted)",
         "day": null,
         "date": null,
-        "time": "9:00 PM",
+        "time": "9:10 PM",
         "venueName": null,
-        "signupInstructions": "CHECK OUR WEBSITE",
-        "signupUrl": "comediansontheloose.com/open-mics",
+        "signupInstructions": "Check website for any available spots or try your luck as a walk-in. Check-in starts at 8:50 PM.",
+        "signupUrl": "COMEDIANSONTHELOOSE.COM/OPEN-MICS",
         "spotsLeft": null,
         "capacity": null,
         "host": null,
         "cost": null,
         "stageTime": null,
-        "notes": "Or try your luck as a walk-in"
+        "notes": "The mic originally scheduled for 9 PM will start at 9:10 PM. Check-in starts at 8:50 PM."
       },
       "matchedMicRef": {
         "index": 94,
@@ -642,13 +588,13 @@
         {
           "field": "startTime",
           "from": "7:30 PM",
-          "to": "9:00 PM",
+          "to": "9:10 PM",
           "reason": "startTime differs from extracted IG content"
         },
         {
           "field": "name",
           "from": "Comedians on the Loose",
-          "to": "MIC",
+          "to": "9 PM Mic (Start Time Adjusted)",
           "reason": "name differs from extracted IG content"
         }
       ],
@@ -661,24 +607,94 @@
     {
       "handle": "laughingbuddhacomedy",
       "source": "story",
-      "confidence": 0.99,
+      "confidence": 0.96,
       "postUrl": null,
       "screenshotPath": "/home/runner/work/micmap/micmap/logs/ig-story-laughingbuddhacomedy-0.png",
       "analysis": {
         "isSignup": true,
-        "micName": "null",
+        "micName": "10:30PM Mic",
         "day": "Friday",
-        "date": "2020-03-06",
+        "date": "202X-03-06",
         "time": "10:30 PM",
-        "venueName": "null",
+        "venueName": "laughingbuddhacomedy",
         "signupInstructions": "MAKE SURE TO REGISTER IN ADVANCE!",
-        "signupUrl": "null",
+        "signupUrl": "[Link associated with 'REGISTER' button]",
         "spotsLeft": null,
         "capacity": null,
-        "host": "null",
-        "cost": "null",
-        "stageTime": "null",
-        "notes": "null"
+        "host": null,
+        "cost": null,
+        "stageTime": null,
+        "notes": "The mic is packed with audience."
+      },
+      "matchedMicRef": null,
+      "riskyChanges": [
+        {
+          "field": "record_match",
+          "from": null,
+          "to": "unmatched",
+          "reason": "potential new event or missing selector mapping"
+        }
+      ],
+      "reasons": [
+        "no matching mic found for extracted signup content"
+      ]
+    },
+    {
+      "handle": "micdupnyc",
+      "source": "story",
+      "confidence": 0.73,
+      "postUrl": null,
+      "screenshotPath": "/home/runner/work/micmap/micmap/logs/ig-story-micdupnyc-0.png",
+      "analysis": {
+        "isSignup": true,
+        "micName": "Mics",
+        "day": "Friday",
+        "date": null,
+        "time": "5:00 PM",
+        "venueName": null,
+        "signupInstructions": "Contact @shanelawler6",
+        "signupUrl": null,
+        "spotsLeft": null,
+        "capacity": null,
+        "host": null,
+        "cost": null,
+        "stageTime": null,
+        "notes": null
+      },
+      "matchedMicRef": null,
+      "riskyChanges": [
+        {
+          "field": "record_match",
+          "from": null,
+          "to": "unmatched",
+          "reason": "potential new event or missing selector mapping"
+        }
+      ],
+      "reasons": [
+        "no matching mic found for extracted signup content"
+      ]
+    },
+    {
+      "handle": "micdupnyc",
+      "source": "story",
+      "confidence": 0.86,
+      "postUrl": null,
+      "screenshotPath": "/home/runner/work/micmap/micmap/logs/ig-story-micdupnyc-1.png",
+      "analysis": {
+        "isSignup": true,
+        "micName": "Soup of the Day!",
+        "day": null,
+        "date": "2024-03-11",
+        "time": "9:00 PM",
+        "venueName": null,
+        "signupInstructions": "Get your tickets ahead of time via VENMO.COM",
+        "signupUrl": "https://venmo.com",
+        "spotsLeft": null,
+        "capacity": null,
+        "host": "Shawn Kinnear & micdupnyc",
+        "cost": "$15 + 1 Drink",
+        "stageTime": null,
+        "notes": "Features 3 Improv Teams, 6 Comics, 1 Night, Surprise Guest!! Location appears to be 358 W 44th St. NYC"
       },
       "matchedMicRef": null,
       "riskyChanges": [
@@ -695,8 +711,8 @@
     }
   ],
   "counts": {
-    "autoAppliedSafeWrites": 3,
-    "reviewRequired": 11,
-    "unmatchedCandidates": 1
+    "autoAppliedSafeWrites": 4,
+    "reviewRequired": 10,
+    "unmatchedCandidates": 3
   }
 }

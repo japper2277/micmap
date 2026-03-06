@@ -13,7 +13,9 @@
     "cost": "$5",
     "stageTime": "3-5min",
     "host": "@thefearcitycomedyclub",
-    "notes": null
+    "notes": null,
+    "flyerUrl": "https://micmap-production.up.railway.app/data/flyers/friday-10-00-pm-the-fear-city-comedy-club.png",
+    "flyerDate": "2026-03-06"
   },
   {
     "name": "Producer's Club",
@@ -475,7 +477,7 @@
     "signUpDetails": "Improv Jams & Open Mics | Peoples Improv Theater",
     "host": "John T Haller (@johnthaller)",
     "notes": null,
-    "flyerUrl": "https://micmap-production.up.railway.app/data/flyers/friday-5-00-pm-the-pit-nyc.png?v=2",
+    "flyerUrl": "https://micmap-production.up.railway.app/data/flyers/friday-5-00-pm-the-pit-nyc.png",
     "flyerDate": "2026-03-06"
   },
   {
@@ -2299,7 +2301,9 @@
     "stageTime": "5min",
     "signUpDetails": "Check schedule & signup link in bio IG @shayayanyc",
     "host": "PURE CHAOS (@purechaoscomedy)",
-    "notes": null
+    "notes": null,
+    "flyerUrl": "https://micmap-production.up.railway.app/data/flyers/tuesday-7-00-pm-alphaville-bar.png",
+    "flyerDate": "2026-03-06"
   },
   {
     "name": "BUCKET Pandamonium",
@@ -3680,7 +3684,9 @@
     "stageTime": "5 or 10min",
     "signUpDetails": "DM IN ADVANCE Shareef Taher on fb or IG (@shareef_taher_haha) *walkins waitlist for no shows, so no guarantee*",
     "host": "Shareef Taher (@shareef_taher)",
-    "notes": null
+    "notes": null,
+    "flyerUrl": "https://micmap-production.up.railway.app/data/flyers/saturday-1-00-pm-pioneers-bar.png",
+    "flyerDate": "2026-03-06"
   },
   {
     "name": "Producer's Club",
