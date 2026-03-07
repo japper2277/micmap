@@ -79,6 +79,10 @@ async function scrapeEventPage(page, url) {
     const title = document.querySelector('[data-hook="event-title"]')?.textContent?.trim() || '';
     const dateText = document.querySelector('[data-hook="event-full-date"]')?.textContent?.trim() || '';
 
+    // Check for sold out state (Wix removes the quantity picker when sold out)
+    const bodyText = document.body.innerText || '';
+    const isSoldOut = /sold\s*out/i.test(bodyText);
+
     // Click the dropdown to expand it
     const picker = document.querySelector('[data-hook="quantity-picker"]');
     if (picker) {
@@ -86,26 +90,31 @@ async function scrapeEventPage(page, url) {
       trigger.click();
     }
 
-    return { title, dateText, hasPicker: !!picker };
+    return { title, dateText, hasPicker: !!picker, isSoldOut };
   });
 
-  if (!data.hasPicker) {
+  if (!data.hasPicker && !data.isSoldOut) {
     console.warn(`  No quantity picker found on: ${url}`);
     return null;
   }
 
-  // Wait for dropdown to open
-  await new Promise(r => setTimeout(r, 800));
+  let spotsLeft = 0;
+  if (data.isSoldOut) {
+    spotsLeft = 0;
+  } else {
+    // Wait for dropdown to open
+    await new Promise(r => setTimeout(r, 800));
 
-  // Read all dropdown option values
-  const spotsLeft = await page.evaluate(() => {
-    const options = document.querySelectorAll('[role="option"]');
-    const nums = [...options].map(el => parseInt(el.textContent.trim())).filter(n => !isNaN(n));
-    return nums.length > 0 ? Math.max(...nums) : 0;
-  });
+    // Read all dropdown option values
+    spotsLeft = await page.evaluate(() => {
+      const options = document.querySelectorAll('[role="option"]');
+      const nums = [...options].map(el => parseInt(el.textContent.trim())).filter(n => !isNaN(n));
+      return nums.length > 0 ? Math.max(...nums) : 0;
+    });
 
-  // Close the dropdown by clicking elsewhere
-  await page.evaluate(() => document.body.click());
+    // Close the dropdown by clicking elsewhere
+    await page.evaluate(() => document.body.click());
+  }
 
   // Parse date from the event date text: "Mar 06, 2026, 6:30 PM – 7:30 PM"
   const dateMatch = data.dateText.match(/([A-Za-z]+)\s+(\d{1,2}),\s+(\d{4}),\s+(\d{1,2}:\d{2}\s*[AP]M)/i);
