@@ -552,8 +552,9 @@ app.get('/api/v1/mics', cacheMiddleware, async (req, res) => {
           });
 
           if (matchingSlot) {
+            mic.spotsLeft = matchingSlot.spotsLeft;
             mic.capacity = matchingSlot.capacity;
-            mic.soldOut = matchingSlot.soldOut;
+            mic.soldOut = matchingSlot.spotsLeft === 0;
             mic.eventUrl = matchingSlot.eventUrl;
             mic.nextDate = matchingSlot.date;
           }

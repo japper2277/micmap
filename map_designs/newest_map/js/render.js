@@ -1368,7 +1368,7 @@ function render(mode) {
             const targetDate = (typeof getActivePlanningDate === 'function')
                 ? getActivePlanningDate()
                 : new Date();
-            const dateStr = targetDate.toISOString().split('T')[0];
+            const dateStr = targetDate.getFullYear() + '-' + String(targetDate.getMonth() + 1).padStart(2, '0') + '-' + String(targetDate.getDate()).padStart(2, '0');
             // Match slot by date and start time (e.g., mic at "5:00 PM" matches slot "5:00pm – 6:00pm")
             const micHour = mic.start ? mic.start.getHours() : null;
             const matchedSlot = slottedData.slots.find(s => {

@@ -403,7 +403,7 @@ function populateModalContent(mic, allMicsAtVenue = null) {
         const targetDate2 = (typeof getActivePlanningDate === 'function')
             ? getActivePlanningDate()
             : new Date();
-        const dateStr2 = targetDate2.toISOString().split('T')[0];
+        const dateStr2 = targetDate2.getFullYear() + '-' + String(targetDate2.getMonth() + 1).padStart(2, '0') + '-' + String(targetDate2.getDate()).padStart(2, '0');
 
         // Filter out past mics for today mode (started > 30 min ago)
         const now2 = new Date();
@@ -568,7 +568,7 @@ function populateModalContent(mic, allMicsAtVenue = null) {
         const targetDate = (typeof getActivePlanningDate === 'function')
             ? getActivePlanningDate()
             : new Date();
-        const dateStr = targetDate.toISOString().split('T')[0];
+        const dateStr = targetDate.getFullYear() + '-' + String(targetDate.getMonth() + 1).padStart(2, '0') + '-' + String(targetDate.getDate()).padStart(2, '0');
         const micHour = mic.start.getHours();
         const matchedSlot = slottedData.slots.find(s => {
             if (!slotMatchesDate(s, dateStr)) return false;
@@ -825,7 +825,7 @@ function openVenueModal(mic) {
         const targetDate = (typeof getActivePlanningDate === 'function')
             ? getActivePlanningDate()
             : new Date();
-        const dateStr = targetDate.toISOString().split('T')[0];
+        const dateStr = targetDate.getFullYear() + '-' + String(targetDate.getMonth() + 1).padStart(2, '0') + '-' + String(targetDate.getDate()).padStart(2, '0');
         const micHour = mic.start.getHours();
         const matchedSlot = slottedData2.slots.find(s => {
             if (!slotMatchesDate(s, dateStr)) return false;
