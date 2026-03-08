@@ -108,6 +108,11 @@ function buildCommuteHtml(mic) {
 
 // Update commute displays in-place without full re-render
 function updateCommuteDisplays() {
+    // Measure content height before update to compensate for layout shift
+    const listContent = document.getElementById('list-content');
+    const scrollBefore = listContent ? listContent.scrollTop : 0;
+    const heightBefore = listContent ? listContent.scrollHeight : 0;
+
     STATE.mics.forEach(mic => {
         const card = document.getElementById(`card-${mic.id}`);
         if (!card) return;
@@ -115,6 +120,14 @@ function updateCommuteDisplays() {
         const html = buildCommuteHtml(mic);
         slots.forEach(slot => { slot.innerHTML = html; });
     });
+
+    // Compensate scroll position for height growth above viewport
+    if (listContent && scrollBefore > 0) {
+        const heightDelta = listContent.scrollHeight - heightBefore;
+        if (heightDelta > 0) {
+            listContent.scrollTop = scrollBefore + heightDelta;
+        }
+    }
 }
 
 // Format set time (e.g., "5" -> "5min", "3-5min" -> "3-5min", "5min" -> "5min")
@@ -1607,6 +1620,9 @@ function render(mode) {
     if ((STATE.planMode || STATE.route?.length > 0) && typeof updateMarkerStates === 'function') {
         updateMarkerStates();
     }
+
+    // Update floating "My Night" pill (mobile)
+    if (typeof updateMyNightPill === 'function') updateMyNightPill();
 }
 
 // Fetch live departure times and update card displays
@@ -1668,5 +1684,221 @@ function flipCard(btn) {
     const card = btn.closest('.stream-item');
     if (card) {
         card.classList.toggle('flipped');
+    }
+}
+
+/* =================================================================
+   MY NIGHT PILL + SHEET (mobile map-first UX)
+   ================================================================= */
+
+// Show/hide the floating "My Night" pill based on route count
+function updateMyNightPill() {
+    const pill = document.getElementById('my-night-pill');
+    const countEl = document.getElementById('pill-count');
+    if (!pill || !countEl) return;
+
+    // Only on mobile
+    if (window.matchMedia('(min-width: 768px)').matches) return;
+
+    const count = (STATE.route || []).length;
+
+    if (count > 0) {
+        pill.classList.add('visible');
+        countEl.textContent = count;
+        // Pulse animation on count change
+        countEl.classList.remove('pulse');
+        void countEl.offsetWidth; // force reflow
+        countEl.classList.add('pulse');
+    } else {
+        pill.classList.remove('visible');
+    }
+}
+
+// Open the "My Night" bottom sheet
+function openMyNightSheet() {
+    const overlay = document.getElementById('my-night-overlay');
+    const content = document.getElementById('my-night-sheet-content');
+    if (!overlay || !content) return;
+
+    const routeMics = (STATE.route || []).map(id => STATE.mics.find(m => m.id === id)).filter(Boolean);
+
+    // Update header with date
+    const headerH2 = document.querySelector('#my-night-sheet .my-night-sheet-header h2');
+    if (headerH2) {
+        const now = new Date();
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const tonight = now.getHours() >= 5; // After 5am = "Tonight"
+        const dayLabel = tonight ? 'Tonight' : days[now.getDay()] + ' Night';
+        headerH2.textContent = `${dayLabel}, ${months[now.getMonth()]} ${now.getDate()}`;
+    }
+
+    // Wrap header content if not already wrapped
+    const headerEl = document.querySelector('#my-night-sheet .my-night-sheet-header');
+    if (headerEl && !headerEl.querySelector('.my-night-header-top')) {
+        const h2 = headerEl.querySelector('h2');
+        const shareBtn = headerEl.querySelector('.my-night-sheet-share');
+        const topRow = document.createElement('div');
+        topRow.className = 'my-night-header-top';
+        if (h2) topRow.appendChild(h2);
+        if (shareBtn) topRow.appendChild(shareBtn);
+        headerEl.prepend(topRow);
+    }
+
+    // Add/update summary line
+    let summaryEl = headerEl?.querySelector('.my-night-sheet-summary');
+    if (routeMics.length > 0) {
+        const fmtShort = (d) => {
+            if (!d) return '';
+            const h = d.getHours();
+            const displayH = h > 12 ? h - 12 : (h === 0 ? 12 : h);
+            const ampm = h >= 12 ? 'p' : 'a';
+            return `${displayH}${ampm}m`;
+        };
+        const sorted = [...routeMics].sort((a, b) => (a.start || 0) - (b.start || 0));
+        const first = sorted[0]?.start;
+        const last = sorted[sorted.length - 1]?.start;
+        const stopWord = routeMics.length === 1 ? 'stop' : 'stops';
+        let summaryText = `${routeMics.length} ${stopWord}`;
+        if (first && last) {
+            summaryText += ` · ${fmtShort(first)}–${fmtShort(last)}`;
+        }
+        if (!summaryEl && headerEl) {
+            summaryEl = document.createElement('div');
+            summaryEl.className = 'my-night-sheet-summary';
+            headerEl.appendChild(summaryEl);
+        }
+        if (summaryEl) summaryEl.textContent = summaryText;
+    } else {
+        if (summaryEl) summaryEl.remove();
+    }
+
+    if (routeMics.length === 0) {
+        content.innerHTML = `
+            <div class="my-night-empty">
+                <div class="my-night-empty-icon">🎤</div>
+                <div class="my-night-empty-title">No stops yet</div>
+                <div class="my-night-empty-hint">Tap a mic on the map and hit<br><strong>Add to Tonight</strong> to start planning</div>
+                <button class="my-night-empty-cta" onclick="closeMyNightSheet()">Browse Mics</button>
+            </div>`;
+    } else {
+        const fmtTime = (d) => {
+            if (!d) return '';
+            const h = d.getHours();
+            const m = d.getMinutes();
+            const displayH = h > 12 ? h - 12 : (h === 0 ? 12 : h);
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            return m === 0 ? `${displayH} ${ampm}` : `${displayH}:${m.toString().padStart(2, '0')} ${ampm}`;
+        };
+
+        let html = '';
+        routeMics.forEach((mic, idx) => {
+            const timeStr = mic.start ? fmtTime(mic.start) : '';
+            const venueName = mic.title || mic.venue || 'Mic';
+            const hood = mic.hood || mic.neighborhood || '';
+            const price = mic.price || 'Free';
+            const meta = [hood, price].filter(Boolean).join(' · ');
+
+            html += `
+                <div class="my-night-stop" onclick="event.stopPropagation(); closeMyNightSheet(); if(typeof locateMic==='function') locateMic(${mic.lat}, ${mic.lng}, '${mic.id}');" style="cursor:pointer;">
+                    <div class="my-night-stop-number">${idx + 1}</div>
+                    <div class="my-night-stop-time">${escapeHtml(timeStr)}</div>
+                    <div class="my-night-stop-info">
+                        <div class="my-night-stop-venue">${escapeHtml(venueName)}</div>
+                        <div class="my-night-stop-meta">${escapeHtml(meta)}</div>
+                    </div>
+                    <button class="my-night-stop-remove" onclick="event.stopPropagation(); removeFromMyNight('${mic.id}')" aria-label="Remove ${escapeHtml(venueName)}">✕</button>
+                </div>
+            `;
+
+            // Travel connector between stops
+            if (idx < routeMics.length - 1) {
+                html += '<div class="my-night-travel"><div class="my-night-travel-dot"></div></div>';
+            }
+        });
+        content.innerHTML = html;
+    }
+
+    // Show/hide share button
+    const shareBtn = document.getElementById('my-night-share-btn');
+    if (shareBtn) {
+        shareBtn.style.display = routeMics.length >= 1 ? 'flex' : 'none';
+    }
+
+    overlay.classList.add('active');
+}
+
+// Close the "My Night" bottom sheet
+function closeMyNightSheet() {
+    const overlay = document.getElementById('my-night-overlay');
+    if (overlay) overlay.classList.remove('active');
+}
+
+// Remove mic from route via My Night sheet
+function removeFromMyNight(micId) {
+    // Haptic feedback
+    if ('vibrate' in navigator) navigator.vibrate(10);
+
+    // Remove from route without adding to dismissed list (not plan mode dismissal)
+    STATE.route = STATE.route.filter(id => id !== micId);
+    if (typeof updateRouteClass === 'function') updateRouteClass();
+    if (typeof updateMarkerStates === 'function') updateMarkerStates();
+    if (typeof updateRouteLine === 'function') updateRouteLine();
+    if (typeof persistPlanState === 'function') persistPlanState();
+    render(STATE.currentMode);
+
+    updateMyNightPill();
+    // Re-render the sheet content
+    if (document.getElementById('my-night-overlay')?.classList.contains('active')) {
+        openMyNightSheet();
+    }
+    // Close sheet if no stops left
+    if (STATE.route.length === 0) {
+        closeMyNightSheet();
+    }
+}
+
+// Share nudge after 2nd stop (Phase 4)
+function showShareNudge() {
+    // Only show once per session
+    if (sessionStorage.getItem('shareNudgeShown')) return;
+    // Only on mobile
+    if (window.matchMedia('(min-width: 768px)').matches) return;
+
+    sessionStorage.setItem('shareNudgeShown', '1');
+
+    if (typeof toastService !== 'undefined' && toastService.show) {
+        toastService.show('Your night is taking shape! Share with friends?', 'info', {
+            duration: 5000,
+            actionLabel: 'Share',
+            action: () => shareMyNight()
+        });
+    }
+}
+
+// Share using native API when available, fallback to clipboard
+function shareMyNight() {
+    // Build share text from route
+    const routeMics = (STATE.route || []).map(id => STATE.mics.find(m => m.id === id)).filter(Boolean);
+    if (routeMics.length === 0) return;
+
+    const lines = routeMics.map(mic => {
+        const time = mic.start ? mic.start.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : '';
+        const venue = mic.title || mic.venue || 'Mic';
+        return `${time} - ${venue}`;
+    });
+    const text = `My Night Plan:\n${lines.join('\n')}`;
+
+    // Build share URL if available
+    const shareUrl = typeof buildShareUrl === 'function' ? buildShareUrl() : '';
+
+    if (navigator.share) {
+        navigator.share({
+            title: 'My Night - Open Mic Plan',
+            text: text,
+            url: shareUrl
+        }).catch(() => {}); // User cancelled - no-op
+    } else if (typeof copyScheduleAsText === 'function') {
+        copyScheduleAsText();
     }
 }
