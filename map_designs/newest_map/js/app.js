@@ -36,21 +36,6 @@ async function loadData() {
         const rawMics = data.mics || data; // Handle both { mics: [...] } and raw array
         STATE.mics = processMics(rawMics);
 
-        // Hardcoded venue warnings (shown as banner cards at top of list)
-        CONFIG.dayNames.forEach(day => {
-            STATE.mics.push({
-                id: `warning-comedy-shop-${day}`,
-                title: 'Comedy Shop',
-                venueName: 'Comedy Shop',
-                venue: 'Comedy Shop',
-                day: day,
-                warning: "Multiple women have alleged sexual abuse by this venue's owner",
-                warningLink: 'https://www.instagram.com/p/DUPKOE_EaCE/',
-                lat: 40.7288305,
-                lng: -74.0001342
-            });
-        });
-
         // Hydrate route from saved schedules for the active planning day
         const activeDate = (typeof getActivePlanningDate === 'function')
             ? getActivePlanningDate()
@@ -143,21 +128,6 @@ async function refreshMicData() {
         const data = await response.json();
         const rawMics = data.mics || data;
         STATE.mics = processMics(rawMics);
-
-        // Re-add venue warnings
-        CONFIG.dayNames.forEach(day => {
-            STATE.mics.push({
-                id: `warning-comedy-shop-${day}`,
-                title: 'Comedy Shop',
-                venueName: 'Comedy Shop',
-                venue: 'Comedy Shop',
-                day: day,
-                warning: "Multiple women have alleged sexual abuse by this venue's owner",
-                warningLink: 'https://www.instagram.com/p/DUPKOE_EaCE/',
-                lat: 40.7288305,
-                lng: -74.0001342
-            });
-        });
 
         // Re-render the current view mode (don't re-run mode routing)
         render(STATE.currentMode);
