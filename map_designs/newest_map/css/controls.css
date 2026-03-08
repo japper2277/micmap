@@ -525,6 +525,8 @@ body.plan-mode.map-interacted .plan-overlay {
 
 .drawer-subtitle.cta {
     color: #f43f5e;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .drawer-subtitle.cta::after {

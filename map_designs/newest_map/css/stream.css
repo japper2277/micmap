@@ -1598,6 +1598,48 @@ body.plan-mode .happening-now-card-label {
     margin-left: auto;
 }
 
+/* Add-to-night button (mobile cards) */
+.add-mic-btn {
+    height: 28px;
+    padding: 0 10px;
+    border-radius: 8px;
+    background: rgba(34, 197, 94, 0.12);
+    border: 1px solid rgba(34, 197, 94, 0.35);
+    color: var(--green);
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+}
+
+.add-mic-btn:hover {
+    background: rgba(34, 197, 94, 0.22);
+    border-color: rgba(34, 197, 94, 0.55);
+}
+
+.add-mic-btn:active {
+    transform: scale(0.95);
+}
+
+.add-mic-btn.added {
+    background: rgba(34, 197, 94, 0.18);
+    border-color: rgba(34, 197, 94, 0.5);
+    color: #fff;
+    pointer-events: none;
+    animation: addMicPop 0.3s ease;
+}
+
+@keyframes addMicPop {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.08); }
+    100% { transform: scale(1); }
+}
+
 /* Plan Mode: Rectangular + Add button (inline, not floating) */
 .plan-add-btn {
     display: none; /* Hidden by default */

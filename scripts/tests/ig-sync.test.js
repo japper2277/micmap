@@ -147,7 +147,7 @@ test('classifyIgCandidate marks schedule diffs as review_required', () => {
   assert.ok(out.riskyChanges.some((c) => c.field === 'startTime'));
 });
 
-test('applyEntryToMic is idempotent for notes/signUpDetails', () => {
+test('applyEntryToMic is idempotent for notes/signUpDetails', async () => {
   const mic = {
     signUpDetails: 'Sign up in person',
     notes: null
@@ -160,9 +160,9 @@ test('applyEntryToMic is idempotent for notes/signUpDetails', () => {
     }
   };
 
-  const first = applyEntryToMic(mic, entry);
+  const first = await applyEntryToMic(mic, entry);
   assert.ok(first.length >= 1);
 
-  const second = applyEntryToMic(mic, entry);
+  const second = await applyEntryToMic(mic, entry);
   assert.equal(second.length, 0);
 });

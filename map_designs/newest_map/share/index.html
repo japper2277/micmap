@@ -1,0 +1,2284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Night - MicFinder NYC</title>
+    <meta property="og:title" content="My Night - MicFinder NYC">
+    <meta property="og:description" content="Check out my open mic night plan!">
+    <meta property="og:type" content="website">
+    <meta name="theme-color" content="#000000">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700;800&family=Space+Mono:wght@400;700&display=swap">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #000;
+            --card: #1c1c1e;
+            --card-border: rgba(255, 255, 255, 0.12);
+            --card-hover: #2c2c2e;
+            --text: #fafafa;
+            --text-muted: #8e8e93;
+            --text-dim: #636366;
+            --accent: #f43f5e;
+            --accent-glow: rgba(244, 63, 94, 0.15);
+            --green: #22c55e;
+            --green-bright: #4ade80;
+            --green-bg: rgba(34, 197, 94, 0.15);
+            --green-border: rgba(34, 197, 94, 0.25);
+            --red-bg: rgba(248, 113, 113, 0.1);
+            --red-border: rgba(248, 113, 113, 0.2);
+            --timeline: #3f3f46;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0 16px env(safe-area-inset-bottom, 16px);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Touch system */
+        button, a, [role="button"] {
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Loading */
+        .loading-screen {
+            position: fixed; inset: 0;
+            background: var(--bg);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 999;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+        .loading-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+        .loader {
+            width: 32px; height: 32px;
+            border: 3px solid rgba(255, 255, 255, 0.12);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Header */
+        .header {
+            width: 100%; max-width: 480px;
+            padding: 48px 0 8px;
+            text-align: center;
+            position: relative;
+        }
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -50%; right: -50%;
+            height: 200px;
+            background: radial-gradient(ellipse at center top, rgba(244, 63, 94, 0.08) 0%, transparent 60%);
+            pointer-events: none;
+        }
+        .header-brand {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .header-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 34px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+            margin-bottom: 6px;
+            position: relative;
+        }
+        .header-date {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            position: relative;
+        }
+        .header-meta {
+            font-size: 14px;
+            color: var(--text-dim);
+            position: relative;
+        }
+        .header-meta .dot { margin: 0 6px; }
+
+        /* Going section */
+        .going-section {
+            width: 100%; max-width: 480px;
+            margin: 24px 0 8px;
+        }
+        .going-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .going-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-dim);
+        }
+        .going-count {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 8px;
+            background: var(--green-bg);
+            border: 1px solid var(--green-border);
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--green-bright);
+            letter-spacing: 0.02em;
+        }
+        .going-content {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .going-avatars {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .going-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 99px;
+            font-size: 13px;
+            font-weight: 600;
+            border: 1px solid;
+            animation: chipIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes chipIn { from { opacity: 0; transform: scale(0.9); } }
+        .going-chip.in {
+            background: rgba(74, 222, 128, 0.1);
+            border-color: var(--green-border);
+            color: var(--green-bright);
+        }
+        .going-chip.out {
+            background: var(--red-bg);
+            border-color: var(--red-border);
+            color: #f87171;
+        }
+        .going-chip .chip-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .going-chip.in .chip-dot { background: var(--green-bright); }
+        .going-chip.out .chip-dot { background: #f87171; }
+        .going-chip .chip-ig-icon { flex-shrink: 0; opacity: 0.7; }
+        .going-empty {
+            font-size: 13px;
+            color: var(--text-dim);
+            font-style: italic;
+        }
+
+        /* Avatar stack */
+        .avatar-stack {
+            display: flex;
+            align-items: center;
+        }
+        .avatar-circle {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+            color: #fff;
+            border: 2px solid var(--bg);
+            margin-left: -6px;
+            flex-shrink: 0;
+        }
+        .avatar-circle:first-child { margin-left: 0; }
+        .avatar-stack-count {
+            margin-left: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        /* Timeline */
+        .timeline {
+            width: 100%; max-width: 480px;
+            margin: 16px 0 24px;
+            position: relative;
+        }
+
+        .stop-card {
+            position: relative;
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            padding: 20px;
+            margin-bottom: 0;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            transition: background 0.2s, border-color 0.2s;
+            animation: cardEnter 0.3s ease both;
+        }
+        .stop-card:hover {
+            background: var(--card-hover);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        @keyframes cardEnter {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes cardSwapOut {
+            to { opacity: 0; transform: translateX(-30px); }
+        }
+        @keyframes cardSwapIn {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .stop-top {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+        }
+        .stop-time-col {
+            flex-shrink: 0;
+            text-align: right;
+            min-width: 72px;
+        }
+        .stop-time {
+            font-family: 'Space Mono', monospace;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            font-variant-numeric: tabular-nums;
+        }
+        .stop-duration {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-dim);
+            margin-top: 2px;
+        }
+        .stop-info { flex: 1; min-width: 0; }
+        .stop-venue {
+            font-size: 17px;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            margin-bottom: 4px;
+        }
+        .stop-meta {
+            font-size: 13px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .stop-meta .sep { color: var(--text-dim); }
+        .stop-price-free { color: var(--green-bright); font-weight: 600; }
+
+        /* RSVP buttons per stop */
+        .stop-rsvp {
+            display: flex;
+            gap: 8px;
+            margin-top: 14px;
+        }
+        .rsvp-btn {
+            flex: 1;
+            padding: 10px 0;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            border: 1px solid #3f3f46;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-muted);
+            transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+            -webkit-tap-highlight-color: transparent;
+            position: relative;
+        }
+        .rsvp-btn:active {
+            transform: scale(0.97);
+            transition: transform 0.05s ease-out;
+        }
+        .rsvp-btn.rsvp-in {
+            border: none;
+            background: linear-gradient(180deg, #22c55e, #16a34a);
+            color: #fff;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 4px 12px rgba(0, 0, 0, 0.4);
+        }
+        .rsvp-btn.rsvp-out {
+            border: none;
+            background: linear-gradient(180deg, #ef4444, #dc2626);
+            color: #fff;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 4px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Who's going per stop */
+        .stop-responses {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 10px;
+        }
+        .stop-response-chip {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 99px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            animation: chipIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .stop-response-chip.in {
+            background: rgba(74, 222, 128, 0.1);
+            color: var(--green-bright);
+        }
+        .stop-response-chip.out {
+            background: var(--red-bg);
+            color: #f87171;
+            text-decoration: line-through;
+        }
+        .stop-response-chip .chip-ig-icon { flex-shrink: 0; opacity: 0.7; }
+
+        /* Suggestions panel */
+        .suggestions-panel {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .suggestions-panel.open {
+            max-height: 600px;
+        }
+        .suggestions-inner {
+            padding: 12px 0 4px;
+        }
+        .suggestions-label {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+        }
+        .suggestion-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            margin-bottom: 6px;
+            cursor: pointer;
+            transition: background 0.15s, border-color 0.15s;
+            animation: suggestionIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+        .suggestion-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+        .suggestion-card:active {
+            transform: scale(0.98);
+            transition: transform 0.05s;
+        }
+        @keyframes suggestionIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .suggestion-time {
+            font-family: 'Space Mono', monospace;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text);
+            flex-shrink: 0;
+            min-width: 48px;
+        }
+        .suggestion-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .suggestion-venue {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .suggestion-meta {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+        .suggestion-swap-btn {
+            flex-shrink: 0;
+            width: 32px; height: 32px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+        }
+        .suggestion-swap-btn:hover {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+        .suggestions-keep {
+            display: block;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-dim);
+            text-decoration: none;
+            padding: 8px 0 4px;
+            transition: color 0.2s;
+        }
+        .suggestions-keep:hover { color: var(--text-muted); }
+        .suggestions-empty {
+            font-size: 12px;
+            color: var(--text-dim);
+            font-style: italic;
+            padding: 8px 0;
+        }
+
+        /* Travel connector */
+        .travel-connector {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0 20px;
+            margin: 0;
+            height: 48px;
+            position: relative;
+        }
+        .travel-line {
+            flex: 1;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .travel-badge {
+            font-size: 11px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.35);
+            white-space: nowrap;
+        }
+
+        /* Identity section */
+        .identity-section {
+            width: 100%; max-width: 480px;
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        }
+        .identity-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 16px;
+        }
+        .ig-connect-btn {
+            width: 100%;
+            height: 48px;
+            border: none;
+            border-radius: 14px;
+            background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+            color: #fff;
+            font-size: 15px;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: transform 0.1s, opacity 0.2s;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 12px rgba(220, 39, 67, 0.3);
+        }
+        .ig-connect-btn:active { transform: scale(0.97); }
+        .ig-connect-btn:disabled {
+            opacity: 0.5;
+            cursor: default;
+        }
+        .identity-divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 16px 0;
+        }
+        .identity-divider-line {
+            flex: 1;
+            height: 1px;
+            background: var(--card-border);
+        }
+        .identity-divider-text {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .name-input-wrap {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .name-input {
+            flex: 1;
+            height: 48px;
+            background: var(--bg);
+            border: 1.5px solid var(--card-border);
+            border-radius: 14px;
+            color: var(--text);
+            font-size: 15px;
+            font-weight: 500;
+            padding: 0 16px;
+            outline: none;
+            font-family: inherit;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .name-input::placeholder { color: var(--text-dim); }
+        .name-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(244, 63, 94, 0.2);
+        }
+        .name-saved-indicator {
+            font-size: 12px;
+            color: var(--green-bright);
+            font-weight: 600;
+            margin-top: 8px;
+            display: none;
+            align-items: center;
+            gap: 4px;
+        }
+        .name-saved-indicator.show { display: flex; }
+
+        /* IG handle input */
+        .ig-input-section { margin-top: 0; }
+        .ig-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            background: var(--bg);
+            border: 1.5px solid var(--card-border);
+            border-radius: 14px;
+            overflow: hidden;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .ig-input-wrap:focus-within {
+            border-color: #dc2743;
+            box-shadow: 0 0 0 4px rgba(220, 39, 67, 0.2);
+        }
+        .ig-at {
+            padding: 0 0 0 16px;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-dim);
+            flex-shrink: 0;
+        }
+        .ig-input {
+            flex: 1;
+            height: 48px;
+            background: transparent;
+            border: none;
+            color: var(--text);
+            font-size: 15px;
+            font-weight: 500;
+            padding: 0 8px;
+            outline: none;
+            font-family: inherit;
+        }
+        .ig-input::placeholder { color: var(--text-dim); }
+        .ig-confirm-btn {
+            height: 36px;
+            padding: 0 16px;
+            margin: 6px 6px 6px 0;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(45deg, #e6683c, #dc2743);
+            color: #fff;
+            font-size: 13px;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: opacity 0.15s;
+        }
+        .ig-confirm-btn:active { opacity: 0.8; }
+        .ig-switch-link {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-dim);
+            text-decoration: none;
+            margin-top: 10px;
+            transition: color 0.2s;
+        }
+        .ig-switch-link:hover { color: var(--text-muted); }
+
+        /* Identity confirmed state */
+        .identity-confirmed {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .identity-confirmed-name {
+            font-size: 16px;
+            font-weight: 700;
+            flex: 1;
+        }
+        .identity-confirmed-change {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-dim);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .identity-confirmed-change:hover { color: var(--text-muted); }
+        .identity-confirmed-msg {
+            font-size: 12px;
+            color: var(--green-bright);
+            font-weight: 600;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* CTA */
+        .cta-section {
+            width: 100%; max-width: 480px;
+            margin-bottom: 48px;
+            text-align: center;
+        }
+        .cta-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            height: 52px;
+            background: linear-gradient(180deg, #f43f5e, #e11d48);
+            color: white;
+            font-size: 16px;
+            font-weight: 700;
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: transform 0.1s;
+            text-decoration: none;
+            -webkit-tap-highlight-color: transparent;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 4px 12px rgba(0, 0, 0, 0.4);
+        }
+        .cta-btn:active { transform: scale(0.97); transition: transform 0.05s ease-out; }
+        .cta-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-dim);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .cta-secondary:hover { color: var(--text-muted); }
+
+        /* Footer */
+        .share-footer {
+            width: 100%; max-width: 480px;
+            text-align: center;
+            padding: 0 0 32px;
+            font-size: 12px;
+            color: var(--text-dim);
+        }
+        .share-footer a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        /* Error state */
+        .error-state {
+            display: none;
+            width: 100%; max-width: 480px;
+            text-align: center;
+            padding: 80px 20px;
+        }
+        .error-state.show { display: block; }
+        .error-icon { font-size: 48px; margin-bottom: 16px; }
+        .error-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 20px;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+        .error-desc {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 32px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(30, 30, 30, 0.96);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--text);
+            padding: 12px 20px;
+            border-radius: 14px;
+            font-size: 14px;
+            font-weight: 600;
+            z-index: 100;
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            pointer-events: none;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+
+        /* Pulse animation for live responses */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .polling-dot {
+            display: inline-block;
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--green-bright);
+            margin-left: 6px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        /* Add a stop button */
+        .add-stop-btn {
+            width: 100%;
+            padding: 16px;
+            margin-top: 8px;
+            border: 2px dashed rgba(255, 255, 255, 0.15);
+            border-radius: 14px;
+            background: transparent;
+            color: var(--text-dim);
+            font-size: 14px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: border-color 0.2s, color 0.2s, background 0.2s;
+        }
+        .add-stop-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: var(--accent-glow);
+        }
+        .add-stop-btn:active {
+            transform: scale(0.98);
+            transition: transform 0.05s;
+        }
+        .add-stop-plus {
+            width: 24px; height: 24px;
+            border-radius: 50%;
+            border: 2px solid currentColor;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        /* Picker modal */
+        .picker-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+            transform: translateY(100%);
+            transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .picker-modal.open {
+            transform: translateY(0);
+        }
+        .picker-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            flex-shrink: 0;
+            border-bottom: 1px solid var(--card-border);
+        }
+        .picker-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+        }
+        .picker-close {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text);
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s;
+        }
+        .picker-close:hover { background: rgba(255, 255, 255, 0.15); }
+        .picker-map {
+            height: 45vh;
+            min-height: 200px;
+            flex-shrink: 0;
+        }
+        .picker-list {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 8px 0;
+        }
+        .picker-list-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: background 0.15s;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .picker-list-item:hover { background: rgba(255, 255, 255, 0.04); }
+        .picker-list-item:active { background: rgba(255, 255, 255, 0.08); }
+        .picker-list-item.in-plan {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+        .picker-list-item.selected {
+            background: var(--accent-glow);
+        }
+        .picker-item-time {
+            font-family: 'Space Mono', monospace;
+            font-size: 14px;
+            font-weight: 700;
+            flex-shrink: 0;
+            min-width: 52px;
+        }
+        .picker-item-info { flex: 1; min-width: 0; }
+        .picker-item-venue {
+            font-size: 14px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .picker-item-meta {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        .picker-item-check {
+            flex-shrink: 0;
+            color: var(--green-bright);
+            font-size: 14px;
+            font-weight: 700;
+        }
+        .picker-confirm {
+            flex-shrink: 0;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            background: rgba(30, 30, 30, 0.96);
+            border-top: 1px solid var(--card-border);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+        .picker-confirm.show { display: flex; }
+        .picker-confirm-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .picker-confirm-venue {
+            font-size: 14px;
+            font-weight: 700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .picker-confirm-time {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        .picker-confirm-btn {
+            flex-shrink: 0;
+            padding: 10px 24px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(180deg, #22c55e, #16a34a);
+            color: #fff;
+            font-size: 14px;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            transition: transform 0.1s;
+        }
+        .picker-confirm-btn:active { transform: scale(0.97); }
+
+        /* Picker map pill markers */
+        .picker-pin {
+            background: none;
+            border: none;
+        }
+        .picker-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            font-weight: 700;
+            color: #fff;
+            white-space: nowrap;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+            border: 1.5px solid rgba(255, 255, 255, 0.25);
+            transition: transform 0.15s;
+        }
+        .picker-pill:hover { transform: scale(1.1); }
+        .picker-pill.available { background: var(--accent); }
+        .picker-pill.in-plan { background: var(--green); opacity: 0.6; }
+
+        .picker-empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-dim);
+            font-size: 14px;
+        }
+
+        /* Hosted by */
+        .hosted-by {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            position: relative;
+        }
+        .hosted-by-name { font-weight: 700; color: var(--text); }
+        .hosted-by .avatar-circle { margin-left: 0; width: 22px; height: 22px; font-size: 9px; }
+
+        /* Identity bar (compact, after header) */
+        .identity-bar {
+            width: 100%; max-width: 480px;
+            text-align: center;
+            padding: 12px 0 4px;
+            font-size: 13px;
+            color: var(--text-dim);
+        }
+        .identity-bar-confirmed {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+        .identity-bar-confirmed .avatar-circle { margin-left: 0; width: 20px; height: 20px; font-size: 8px; }
+        .identity-bar-change {
+            font-size: 11px;
+            color: var(--text-dim);
+            text-decoration: underline;
+            cursor: pointer;
+            margin-left: 4px;
+        }
+        .identity-bar-change:hover { color: var(--text-muted); }
+
+        /* Plan context (empty state replacement) */
+        .plan-context {
+            width: 100%; max-width: 480px;
+            text-align: center;
+            padding: 16px 0;
+            font-size: 14px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+        .plan-context-stat {
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        /* Suggest a Spot */
+        .suggest-spot-section {
+            text-align: center;
+            margin-top: 16px;
+            padding: 4px 0;
+        }
+        .suggest-spot-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .suggest-spot-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 28px;
+            border-radius: 14px;
+            border: none;
+            background: rgba(244, 63, 94, 0.12);
+            color: var(--accent);
+            font-size: 14px;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background 0.15s, transform 0.1s;
+        }
+        .suggest-spot-btn:hover { background: rgba(244, 63, 94, 0.2); }
+        .suggest-spot-btn:active { transform: scale(0.97); }
+
+        /* Stop reactions */
+        .stop-reactions {
+            display: flex;
+            gap: 6px;
+            margin-top: 10px;
+        }
+        .react-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 99px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-dim);
+            font-size: 13px;
+            cursor: pointer;
+            transition: border-color 0.15s, background 0.15s;
+            font-family: inherit;
+        }
+        .react-btn:hover { border-color: rgba(255, 255, 255, 0.15); background: rgba(255, 255, 255, 0.06); }
+        .react-btn.active {
+            border-color: rgba(244, 63, 94, 0.4);
+            background: rgba(244, 63, 94, 0.1);
+            color: var(--text);
+        }
+        .react-btn span { font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+        /* Identity bottom sheet */
+        .identity-sheet {
+            position: fixed;
+            inset: 0;
+            z-index: 150;
+            display: none;
+        }
+        .identity-sheet.open { display: flex; flex-direction: column; justify-content: flex-end; }
+        .identity-sheet-backdrop {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            opacity: 0;
+            transition: opacity 0.25s;
+        }
+        .identity-sheet.open .identity-sheet-backdrop { opacity: 1; }
+        .identity-sheet-content {
+            position: relative;
+            background: var(--card);
+            border-top: 1px solid var(--card-border);
+            border-radius: 20px 20px 0 0;
+            padding: 28px 24px max(24px, env(safe-area-inset-bottom));
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .identity-sheet.open .identity-sheet-content { transform: translateY(0); }
+        .identity-sheet-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .identity-sheet .ig-input-wrap {
+            margin-bottom: 12px;
+        }
+        .identity-sheet .name-input-wrap {
+            margin-bottom: 16px;
+        }
+        .identity-sheet-confirm {
+            width: 100%;
+            height: 48px;
+            border: none;
+            border-radius: 14px;
+            background: linear-gradient(180deg, #22c55e, #16a34a);
+            color: #fff;
+            font-size: 15px;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 4px 12px rgba(0, 0, 0, 0.4);
+            transition: transform 0.1s;
+        }
+        .identity-sheet-confirm:active { transform: scale(0.97); }
+        .identity-sheet-or {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 12px 0;
+        }
+        .identity-sheet-or span { flex: 1; height: 1px; background: var(--card-border); }
+        .identity-sheet-or em { font-size: 12px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; font-style: normal; }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            body { padding: 0 12px; }
+            .header { padding-top: 32px; }
+            .header-title { font-size: 28px; }
+            .stop-card { padding: 16px; }
+            .stop-time { font-size: 16px; }
+            .stop-venue { font-size: 15px; }
+            .picker-map { height: 35vh; min-height: 180px; }
+            .picker-list-item { padding: 10px 16px; }
+            .picker-header { padding: 12px 16px; }
+            .picker-confirm { padding: 12px 16px; padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+        }
+
+        /* Reduced motion */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading -->
+    <div class="loading-screen" id="loading">
+        <div class="loader"></div>
+    </div>
+
+    <!-- Error -->
+    <div class="error-state" id="error">
+        <div class="error-icon">🎤</div>
+        <div class="error-title">Plan Not Found</div>
+        <div class="error-desc">This link might be expired or invalid.</div>
+        <a href="https://micfinder.io" class="cta-btn" style="max-width:280px;margin:0 auto;">Open MicFinder NYC</a>
+    </div>
+
+    <!-- Main Content (hidden until loaded) -->
+    <div id="content" style="display:none; width:100%; flex-direction:column; align-items:center;">
+        <header class="header">
+            <div class="header-brand">MicFinder NYC</div>
+            <h1 class="header-title" id="plan-title">My Night</h1>
+            <div class="header-date" id="plan-date"></div>
+            <div class="header-meta">
+                <span id="plan-stops-count"></span>
+                <span class="dot">&middot;</span>
+                <span id="plan-time-range"></span>
+            </div>
+            <div class="hosted-by" id="hosted-by" style="display:none;"></div>
+        </header>
+
+        <!-- Identity bar (compact) -->
+        <div class="identity-bar" id="identity-bar">Tap a stop to RSVP</div>
+
+        <!-- Timeline -->
+        <div class="timeline" id="timeline"></div>
+
+        <!-- Plan context (shown when no responses) -->
+        <div class="plan-context" id="plan-context" style="display:none;"></div>
+
+        <!-- Who's Going (after timeline, hidden when empty) -->
+        <section class="going-section" id="going-section" style="display:none;">
+            <div class="going-header">
+                <span class="going-title">Responses</span>
+                <span class="going-count" id="going-count">0</span>
+                <span class="polling-dot" title="Live updates"></span>
+            </div>
+            <div class="going-content" id="going-content">
+                <div class="going-avatars" id="going-list"></div>
+            </div>
+        </section>
+
+        <!-- CTA -->
+        <div class="cta-section">
+            <a href="https://micfinder.io" class="cta-btn" id="open-map-btn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+                Explore the Map
+            </a>
+            <a href="#" class="cta-secondary" onclick="copyShareLink(); return false;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+                Copy this link
+            </a>
+        </div>
+
+        <footer class="share-footer">
+            Planned with <a href="https://micfinder.io">MicFinder NYC</a>
+        </footer>
+    </div>
+
+    <!-- Identity Bottom Sheet -->
+    <div class="identity-sheet" id="identity-sheet">
+        <div class="identity-sheet-backdrop" onclick="closeIdentitySheet()"></div>
+        <div class="identity-sheet-content">
+            <div class="identity-sheet-title">Quick — who are you?</div>
+            <div class="ig-input-wrap" id="sheet-ig-wrap">
+                <span class="ig-at">@</span>
+                <input type="text" class="ig-input" id="sheet-ig-input" placeholder="instagram handle" maxlength="30" autocomplete="off" autocapitalize="off" spellcheck="false">
+            </div>
+            <div class="identity-sheet-or"><span></span><em>or</em><span></span></div>
+            <div class="name-input-wrap">
+                <input type="text" class="name-input" id="sheet-name-input" placeholder="Your name" maxlength="30" autocomplete="given-name">
+            </div>
+            <button class="identity-sheet-confirm" id="sheet-confirm-btn" onclick="confirmSheetIdentity()">Let's go</button>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <!-- Add Stop Picker Modal -->
+    <div class="picker-modal" id="picker-modal">
+        <div class="picker-header">
+            <span class="picker-title">Add a stop</span>
+            <button class="picker-close" onclick="closePickerModal()" aria-label="Close">&times;</button>
+        </div>
+        <div class="picker-map" id="picker-map"></div>
+        <div class="picker-list" id="picker-list"></div>
+        <div class="picker-confirm" id="picker-confirm">
+            <div class="picker-confirm-info">
+                <div class="picker-confirm-venue" id="picker-confirm-venue"></div>
+                <div class="picker-confirm-time" id="picker-confirm-time"></div>
+            </div>
+            <button class="picker-confirm-btn" onclick="confirmAddStop()">Add</button>
+        </div>
+    </div>
+
+    <script>
+    const API_BASE = 'https://micmap-production.up.railway.app';
+    let planStops = [];    // [{ id, mins, mic }]
+    let planHash = '';
+    let responses = [];    // [{ name, micId, response, at }]
+    let pollInterval = null;
+
+    // New state
+    let allMics = [];
+    let activeSuggestionStopId = null;
+    let igHandle = localStorage.getItem('shareIgHandle') || '';
+    let identityMode = localStorage.getItem('shareIdentityMode') || 'name';
+    let userName = '';
+    let pendingRsvp = null;
+
+    // Restore identity
+    if (identityMode === 'ig' && igHandle) {
+        userName = '@' + igHandle;
+    } else {
+        userName = localStorage.getItem('shareName') || '';
+    }
+
+    // ── Utilities ───────────────────────────────────────────────
+
+    function parsePlanParam() {
+        const params = new URLSearchParams(window.location.search);
+        const raw = params.get('plan');
+        if (!raw) return [];
+        return raw.split(',').filter(Boolean).map(entry => {
+            const [id, mins] = entry.split(':');
+            return { id, mins: parseInt(mins, 10) || 45 };
+        });
+    }
+
+    function computePlanHash(stops) {
+        const sorted = stops.map(s => `${s.id}:${s.mins}`).sort().join(',');
+        let hash = 0;
+        for (let i = 0; i < sorted.length; i++) hash = ((hash << 5) - hash + sorted.charCodeAt(i)) | 0;
+        return Math.abs(hash).toString(16).padStart(8, '0').slice(0, 12);
+    }
+
+    function fmtTime(timeStr) {
+        if (!timeStr) return '';
+        if (typeof timeStr === 'string' && timeStr.includes(':')) {
+            return timeStr.replace(':00', '').replace(' ', '');
+        }
+        return timeStr;
+    }
+
+    function parseTimeToDate(timeStr) {
+        if (!timeStr) return null;
+        const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+        if (!match) return null;
+        let h = parseInt(match[1]);
+        const m = parseInt(match[2]);
+        const ampm = match[3].toUpperCase();
+        if (ampm === 'PM' && h !== 12) h += 12;
+        if (ampm === 'AM' && h === 12) h = 0;
+        const d = new Date();
+        d.setHours(h, m, 0, 0);
+        return d;
+    }
+
+    function formatPrice(mic) {
+        const raw = mic.price || mic.cost || 0;
+        if (!raw || raw === 'Free' || raw === 0 || raw === '$0') return { text: 'Free', free: true };
+        const s = String(raw).replace(/^\$/, '').trim();
+        if (s.toLowerCase().startsWith('free')) return { text: s, free: true };
+        if (isNaN(parseFloat(s))) return { text: s, free: false };
+        return { text: `$${s}`, free: false };
+    }
+
+    function haversine(lat1, lon1, lat2, lon2) {
+        const R = 3959;
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        const el = document.createElement('span');
+        el.textContent = str;
+        return el.innerHTML;
+    }
+
+    // ── Reactions (localStorage-only) ──────────────────────────
+
+    function getReactionsKey() {
+        return `reactions:${planHash}`;
+    }
+
+    function getReactions() {
+        try {
+            return JSON.parse(localStorage.getItem(getReactionsKey()) || '{}');
+        } catch { return {}; }
+    }
+
+    function saveReactions(data) {
+        localStorage.setItem(getReactionsKey(), JSON.stringify(data));
+    }
+
+    function toggleReaction(stopId, emoji) {
+        const data = getReactions();
+        if (!data[stopId]) data[stopId] = {};
+        data[stopId][emoji] = !data[stopId][emoji];
+        saveReactions(data);
+        // Re-render just the reaction bar
+        const bar = document.getElementById(`reactions-${stopId}`);
+        if (bar) bar.innerHTML = renderReactionButtons(stopId);
+        if ('vibrate' in navigator) navigator.vibrate(5);
+    }
+
+    function renderReactionButtons(stopId) {
+        const data = getReactions();
+        const stopReactions = data[stopId] || {};
+        const emojis = [
+            { key: 'fire', icon: '\uD83D\uDD25' },
+            { key: 'mic', icon: '\uD83C\uDFA4' },
+            { key: 'eyes', icon: '\uD83D\uDC40' }
+        ];
+        return emojis.map(e => {
+            const active = stopReactions[e.key] ? ' active' : '';
+            const count = stopReactions[e.key] ? 1 : 0;
+            return `<button class="react-btn${active}" onclick="toggleReaction('${stopId}','${e.key}')">${e.icon} <span>${count}</span></button>`;
+        }).join('');
+    }
+
+    function getDayLabel(mic) {
+        const day = mic.day || mic.dayOfWeek || '';
+        if (!day) return '';
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const today = new Date();
+        const todayName = days[today.getDay()];
+        const tomorrow = days[(today.getDay() + 1) % 7];
+        if (day === todayName) return 'Tonight';
+        if (day === tomorrow) return 'Tomorrow';
+        return day;
+    }
+
+    // ── Avatar & IG Helpers ─────────────────────────────────────
+
+    function getAvatarColor(name) {
+        let hash = 0;
+        const str = (name || '').replace(/^@/, '');
+        for (let i = 0; i < str.length; i++) {
+            hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        const hue = Math.abs(hash) % 360;
+        return `hsl(${hue}, 65%, 45%)`;
+    }
+
+    function getAvatarHtml(name, size) {
+        size = size || 32;
+        const color = getAvatarColor(name);
+        const letter = (name || '?').replace(/^@/, '').charAt(0).toUpperCase();
+        return `<div class="avatar-circle" style="background:${color};width:${size}px;height:${size}px;font-size:${Math.round(size * 0.4)}px;" title="${escapeHtml(name)}">${escapeHtml(letter)}</div>`;
+    }
+
+    function getIgIcon(size) {
+        size = size || 12;
+        return `<svg class="chip-ig-icon" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg>`;
+    }
+
+    function isIgName(name) {
+        return name && name.startsWith('@');
+    }
+
+    // ── Data Fetching ───────────────────────────────────────────
+
+    async function fetchMics(ids) {
+        const res = await fetch(`${API_BASE}/api/v1/mics`);
+        const data = await res.json();
+        if (!data.success || !data.mics) return [];
+        allMics = data.mics;
+        return data.mics.filter(m => ids.includes(m._id || m.id));
+    }
+
+    // ── Suggestions ─────────────────────────────────────────────
+
+    function getSuggestions(stopId) {
+        const stop = planStops.find(s => s.id === stopId);
+        if (!stop || !stop.mic) return [];
+
+        const stopDay = stop.mic.day || stop.mic.dayOfWeek || '';
+        const stopTime = parseTimeToDate(stop.mic.time || stop.mic.startTime);
+        const planIds = new Set(planStops.map(s => s.id));
+
+        return allMics
+            .filter(m => {
+                const id = m._id || m.id;
+                if (planIds.has(id)) return false;
+                const mDay = m.day || m.dayOfWeek || '';
+                if (mDay !== stopDay) return false;
+                if (!stopTime) return true;
+                const mTime = parseTimeToDate(m.time || m.startTime);
+                if (!mTime) return false;
+                const diffHrs = Math.abs(mTime - stopTime) / (1000 * 60 * 60);
+                return diffHrs <= 1;
+            })
+            .sort((a, b) => {
+                const aTime = parseTimeToDate(a.time || a.startTime);
+                const bTime = parseTimeToDate(b.time || b.startTime);
+                const aDiff = aTime && stopTime ? Math.abs(aTime - stopTime) : Infinity;
+                const bDiff = bTime && stopTime ? Math.abs(bTime - stopTime) : Infinity;
+                if (aDiff !== bDiff) return aDiff - bDiff;
+                // Tiebreak: prefer different borough for variety
+                const stopBorough = stop.mic.borough || '';
+                const aNewBoro = (a.borough || '') !== stopBorough ? 0 : 1;
+                const bNewBoro = (b.borough || '') !== stopBorough ? 0 : 1;
+                return aNewBoro - bNewBoro;
+            })
+            .slice(0, 5);
+    }
+
+    function showSuggestions(stopId) {
+        // Close any other open panel
+        if (activeSuggestionStopId && activeSuggestionStopId !== stopId) {
+            hideSuggestions(activeSuggestionStopId);
+        }
+
+        const panel = document.getElementById(`suggestions-${stopId}`);
+        if (!panel) return;
+
+        const suggestions = getSuggestions(stopId);
+        activeSuggestionStopId = stopId;
+
+        if (suggestions.length === 0) {
+            panel.innerHTML = `<div class="suggestions-inner">
+                <div class="suggestions-label">Alternatives</div>
+                <div class="suggestions-empty">No similar mics found for this time slot</div>
+                <a href="#" class="suggestions-keep" onclick="hideSuggestions('${stopId}'); return false;">Dismiss</a>
+            </div>`;
+        } else {
+            panel.innerHTML = `<div class="suggestions-inner">
+                <div class="suggestions-label">Swap in an alternative</div>
+                ${suggestions.map((m, i) => {
+                    const id = m._id || m.id;
+                    const time = fmtTime(m.time || m.startTime);
+                    const venue = m.venueName || m.venue || m.title || 'Venue';
+                    const hood = m.neighborhood || m.hood || '';
+                    const price = formatPrice(m);
+                    return `<div class="suggestion-card" style="animation-delay:${i * 0.04}s" onclick="swapStop('${stopId}','${id}')">
+                        <span class="suggestion-time">${escapeHtml(time)}</span>
+                        <div class="suggestion-info">
+                            <div class="suggestion-venue">${escapeHtml(venue)}</div>
+                            <div class="suggestion-meta">${escapeHtml(hood)}${hood && price.text ? ' &middot; ' : ''}${price.free ? '<span style="color:var(--green-bright)">' + escapeHtml(price.text) + '</span>' : escapeHtml(price.text)}</div>
+                        </div>
+                        <div class="suggestion-swap-btn" title="Swap">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 16l-4-4 4-4"/><path d="M3 12h18"/></svg>
+                        </div>
+                    </div>`;
+                }).join('')}
+                <a href="#" class="suggestions-keep" onclick="hideSuggestions('${stopId}'); return false;">Keep original</a>
+            </div>`;
+        }
+
+        // Trigger slide open
+        requestAnimationFrame(() => panel.classList.add('open'));
+    }
+
+    function hideSuggestions(stopId) {
+        if (!stopId) stopId = activeSuggestionStopId;
+        if (!stopId) return;
+        const panel = document.getElementById(`suggestions-${stopId}`);
+        if (panel) {
+            panel.classList.remove('open');
+            // Clean up after transition
+            setTimeout(() => { if (!panel.classList.contains('open')) panel.innerHTML = ''; }, 350);
+        }
+        if (activeSuggestionStopId === stopId) activeSuggestionStopId = null;
+    }
+
+    async function swapStop(oldId, newMicId) {
+        const newMic = allMics.find(m => (m._id || m.id) === newMicId);
+        if (!newMic) return;
+
+        // Animate old card out
+        const oldCard = document.getElementById(`stop-${oldId}`);
+        if (oldCard) {
+            oldCard.style.animation = 'cardSwapOut 0.2s ease forwards';
+            await new Promise(r => setTimeout(r, 200));
+        }
+
+        // Replace in planStops
+        const idx = planStops.findIndex(s => s.id === oldId);
+        if (idx === -1) return;
+
+        const newId = newMic._id || newMic.id;
+        if (newMic._id && !newMic.id) newMic.id = newMic._id;
+
+        planStops[idx] = {
+            id: newId,
+            mins: planStops[idx].mins,
+            mic: newMic
+        };
+
+        // Recompute
+        planHash = computePlanHash(planStops);
+        responses = [];
+        activeSuggestionStopId = null;
+
+        // Update URL + header
+        rebuildPlanUrl();
+        updateHeaderMeta();
+
+        // Re-render
+        renderTimeline();
+        renderGoingSection();
+
+        // Animate new card in
+        const newCard = document.getElementById(`stop-${newId}`);
+        if (newCard) {
+            newCard.style.animation = 'cardSwapIn 0.3s ease both';
+        }
+
+        // Haptic
+        if ('vibrate' in navigator) navigator.vibrate([5, 30, 5]);
+
+        // Toast
+        const venue = newMic.venueName || newMic.venue || newMic.title || 'Venue';
+        showToast(`Swapped to ${venue}`);
+
+        // Delayed second toast about plan update
+        setTimeout(() => showToast('Plan updated \u2014 share the new link for fresh RSVPs'), 3000);
+    }
+
+    function rebuildPlanUrl() {
+        const planParam = planStops.map(s => `${s.id}:${s.mins}`).join(',');
+        const url = new URL(window.location);
+        url.searchParams.set('plan', planParam);
+        // Preserve the by param
+        const byParam = new URLSearchParams(window.location.search).get('by');
+        if (byParam) url.searchParams.set('by', byParam);
+        history.replaceState(null, '', url.toString());
+        document.getElementById('open-map-btn').href =
+            `https://micfinder.io/?plan=${planParam}`;
+    }
+
+    function updateHeaderMeta() {
+        document.getElementById('plan-stops-count').textContent =
+            planStops.length === 1 ? '1 stop' : `${planStops.length} stops`;
+        const firstMic = planStops[0]?.mic;
+        const lastMic = planStops[planStops.length - 1]?.mic;
+        if (firstMic && lastMic) {
+            const firstTime = fmtTime(firstMic.time || firstMic.startTime);
+            const lastTime = fmtTime(lastMic.time || lastMic.startTime);
+            document.getElementById('plan-time-range').textContent =
+                firstTime === lastTime ? firstTime : `${firstTime} - ${lastTime}`;
+        }
+    }
+
+    // ── Render ───────────────────────────────────────────────────
+
+    function renderTimeline() {
+        const container = document.getElementById('timeline');
+        container.innerHTML = '';
+
+        planStops.forEach((stop, idx) => {
+            const mic = stop.mic;
+            if (!mic) return;
+
+            const time = fmtTime(mic.time || mic.startTime);
+            const price = formatPrice(mic);
+            const hood = mic.neighborhood || mic.hood || '';
+            const venue = mic.venueName || mic.venue || mic.title || 'Venue';
+
+            // Stop card
+            const card = document.createElement('div');
+            card.className = 'stop-card';
+            card.id = `stop-${stop.id}`;
+            card.style.animationDelay = `${idx * 0.06}s`;
+
+            // Responses for this stop
+            const stopResponses = responses.filter(r => r.micId === stop.id);
+            const myResponse = userName ? stopResponses.find(r => r.name === userName) : null;
+
+            card.innerHTML = `
+                <div class="stop-top">
+                    <div class="stop-time-col">
+                        <div class="stop-time">${escapeHtml(time)}</div>
+                        <div class="stop-duration">${stop.mins}min</div>
+                    </div>
+                    <div class="stop-info">
+                        <div class="stop-venue">${escapeHtml(venue)}</div>
+                        <div class="stop-meta">
+                            ${hood ? `<span>${escapeHtml(hood)}</span><span class="sep">&middot;</span>` : ''}
+                            <span class="${price.free ? 'stop-price-free' : ''}">${escapeHtml(price.text)}</span>
+                        </div>
+                        <div class="stop-rsvp">
+                            <button class="rsvp-btn ${myResponse?.response === 'in' ? 'rsvp-in' : ''}"
+                                    onclick="rsvp('${stop.id}', 'in')"
+                                    data-stop="${stop.id}" data-action="in">I'm in</button>
+                            <button class="rsvp-btn ${myResponse?.response === 'out' ? 'rsvp-out' : ''}"
+                                    onclick="rsvp('${stop.id}', 'out')"
+                                    data-stop="${stop.id}" data-action="out">Can't make it</button>
+                        </div>
+                        ${stopResponses.length > 0 ? `<div class="stop-responses">${stopResponses.map(r =>
+                            `<span class="stop-response-chip ${r.response}">${isIgName(r.name) ? getIgIcon(10) : ''}${escapeHtml(r.name)}</span>`
+                        ).join('')}</div>` : ''}
+                        <div class="stop-reactions" id="reactions-${stop.id}">${renderReactionButtons(stop.id)}</div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(card);
+
+            // Suggestion panel placeholder
+            const sugPanel = document.createElement('div');
+            sugPanel.className = 'suggestions-panel';
+            sugPanel.id = `suggestions-${stop.id}`;
+            container.appendChild(sugPanel);
+
+            // Restore open suggestions if active
+            if (activeSuggestionStopId === stop.id) {
+                showSuggestions(stop.id);
+            }
+
+            // Travel connector between stops
+            if (idx < planStops.length - 1) {
+                const next = planStops[idx + 1];
+                const nextMic = next?.mic;
+                let travelText = '';
+                if (mic.lat && mic.lng && nextMic?.lat && nextMic?.lng) {
+                    const dist = haversine(mic.lat, mic.lng, nextMic.lat, nextMic.lng);
+                    const walkMins = Math.round(dist * 1.4 * 20);
+                    travelText = `~${Math.max(1, walkMins)} min`;
+                }
+                if (travelText) {
+                    const connector = document.createElement('div');
+                    connector.className = 'travel-connector';
+                    connector.innerHTML = `
+                        <div class="travel-line"></div>
+                        <span class="travel-badge">${travelText}</span>
+                        <div class="travel-line"></div>
+                    `;
+                    container.appendChild(connector);
+                }
+            }
+        });
+
+        // "Suggest a Spot" section
+        const suggestSection = document.createElement('div');
+        suggestSection.className = 'suggest-spot-section';
+        suggestSection.innerHTML = `
+            <div class="suggest-spot-label">Know a spot?</div>
+            <button class="suggest-spot-btn" onclick="openPickerModal()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                Suggest a Spot
+            </button>
+        `;
+        container.appendChild(suggestSection);
+    }
+
+    function renderGoingSection() {
+        const section = document.getElementById('going-section');
+        const content = document.getElementById('going-content');
+        const count = document.getElementById('going-count');
+        const planContext = document.getElementById('plan-context');
+
+        // Dedupe by name - latest response per person
+        const byPerson = {};
+        responses.forEach(r => {
+            if (!byPerson[r.name] || r.at > byPerson[r.name].at) {
+                byPerson[r.name] = r;
+            }
+        });
+        const people = Object.values(byPerson);
+
+        if (people.length === 0) {
+            // Hide going section, show plan context stats
+            section.style.display = 'none';
+            if (planContext) {
+                const numStops = planStops.length;
+                const hoods = new Set(planStops.map(s => s.mic?.neighborhood || s.mic?.hood || '').filter(Boolean));
+                const hoodCount = hoods.size;
+                planContext.innerHTML = `<span class="plan-context-stat">${numStops} open mic${numStops !== 1 ? 's' : ''}</span>` +
+                    (hoodCount > 0 ? ` &middot; <span class="plan-context-stat">${hoodCount} neighborhood${hoodCount !== 1 ? 's' : ''}</span>` : '') +
+                    ` &middot; One epic night`;
+                planContext.style.display = 'block';
+            }
+            return;
+        }
+
+        // Has responses — show going section, hide plan context
+        if (planContext) planContext.style.display = 'none';
+        section.style.display = 'block';
+
+        const inPeople = people.filter(p =>
+            responses.some(r => r.name === p.name && r.response === 'in')
+        );
+        count.textContent = inPeople.length;
+
+        let html = '';
+
+        // Avatar stack for "in" people
+        if (inPeople.length > 0) {
+            html += '<div class="avatar-stack">';
+            inPeople.forEach(p => { html += getAvatarHtml(p.name, 32); });
+            html += `<span class="avatar-stack-count">${inPeople.length} going</span>`;
+            html += '</div>';
+        }
+
+        // Chips for everyone
+        html += '<div class="going-avatars">';
+        html += people.map(p => {
+            const isIn = responses.some(r => r.name === p.name && r.response === 'in');
+            const cls = isIn ? 'in' : 'out';
+            const igIcon = isIgName(p.name) ? getIgIcon(11) : '';
+            return `<span class="going-chip ${cls}">${igIcon}<span class="chip-dot"></span>${escapeHtml(p.name)}</span>`;
+        }).join('');
+        html += '</div>';
+
+        content.innerHTML = html;
+    }
+
+    // ── Identity ─────────────────────────────────────────────────
+
+    function setupIdentitySection() {
+        // Set up sheet input handlers
+        const sheetIgInput = document.getElementById('sheet-ig-input');
+        const sheetNameInput = document.getElementById('sheet-name-input');
+
+        if (sheetIgInput) {
+            sheetIgInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') confirmSheetIdentity();
+            });
+        }
+        if (sheetNameInput) {
+            sheetNameInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') confirmSheetIdentity();
+            });
+        }
+
+        // Update identity bar display
+        updateIdentityBar();
+    }
+
+    function updateIdentityBar() {
+        const bar = document.getElementById('identity-bar');
+        if (!bar) return;
+
+        if (userName) {
+            const displayName = escapeHtml(userName);
+            const igIcon = isIgName(userName) ? getIgIcon(12) + ' ' : '';
+            bar.innerHTML = `<span class="identity-bar-confirmed">${getAvatarHtml(userName, 20)} ${igIcon}Responding as <strong>${displayName}</strong><span class="identity-bar-change" onclick="resetIdentity()">change</span></span>`;
+        } else {
+            bar.textContent = 'Tap a stop to RSVP';
+        }
+    }
+
+    function openIdentitySheet() {
+        const sheet = document.getElementById('identity-sheet');
+        sheet.classList.add('open');
+        document.body.style.overflow = 'hidden';
+        // Focus the IG input by default
+        setTimeout(() => {
+            const igInput = document.getElementById('sheet-ig-input');
+            if (igInput) igInput.focus();
+        }, 300);
+    }
+
+    function closeIdentitySheet() {
+        const sheet = document.getElementById('identity-sheet');
+        sheet.classList.remove('open');
+        document.body.style.overflow = '';
+        pendingRsvp = null;
+    }
+
+    function confirmSheetIdentity() {
+        const igInput = document.getElementById('sheet-ig-input');
+        const nameInput = document.getElementById('sheet-name-input');
+
+        const handle = (igInput?.value || '').trim().replace(/^@+/, '').replace(/[^a-zA-Z0-9._]/g, '');
+        const name = (nameInput?.value || '').trim();
+
+        if (handle) {
+            igHandle = handle;
+            identityMode = 'ig';
+            userName = '@' + handle;
+            localStorage.setItem('shareIgHandle', handle);
+            localStorage.setItem('shareIdentityMode', 'ig');
+            localStorage.setItem('shareName', userName);
+        } else if (name) {
+            userName = name;
+            identityMode = 'name';
+            localStorage.setItem('shareName', userName);
+            localStorage.setItem('shareIdentityMode', 'name');
+        } else {
+            // Nothing entered — focus the name input
+            if (nameInput) nameInput.focus();
+            return;
+        }
+
+        updateIdentityBar();
+        closeIdentitySheet();
+
+        // Fire the pending RSVP
+        if (pendingRsvp) {
+            const { micId, response } = pendingRsvp;
+            pendingRsvp = null;
+            rsvp(micId, response);
+        }
+    }
+
+    function resetIdentity() {
+        userName = '';
+        igHandle = '';
+        identityMode = 'name';
+        localStorage.removeItem('shareName');
+        localStorage.removeItem('shareIgHandle');
+        localStorage.setItem('shareIdentityMode', 'name');
+        updateIdentityBar();
+    }
+
+    // ── RSVP ─────────────────────────────────────────────────────
+
+    async function rsvp(micId, response) {
+        if (!userName) {
+            pendingRsvp = { micId, response };
+            openIdentitySheet();
+            return;
+        }
+
+        // Optimistic update
+        responses = responses.filter(r => !(r.name === userName && r.micId === micId));
+        responses.push({ name: userName, micId, response, at: Date.now() });
+        renderTimeline();
+        renderGoingSection();
+
+        if ('vibrate' in navigator) navigator.vibrate(8);
+
+        // Show/hide suggestions
+        if (response === 'out') {
+            showSuggestions(micId);
+        } else {
+            hideSuggestions(micId);
+        }
+
+        try {
+            const res = await fetch(`${API_BASE}/api/v1/plans/${planHash}/responses`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: userName, micId, response })
+            });
+            const data = await res.json();
+            if (data.responses) {
+                responses = data.responses;
+                renderTimeline();
+                renderGoingSection();
+            }
+        } catch (e) {
+            showToast('Could not save response');
+        }
+    }
+
+    // ── Polling ──────────────────────────────────────────────────
+
+    async function pollResponses() {
+        try {
+            const res = await fetch(`${API_BASE}/api/v1/plans/${planHash}/responses`);
+            const data = await res.json();
+            if (data.responses) {
+                const prevCount = responses.length;
+                responses = data.responses;
+                if (responses.length !== prevCount) {
+                    renderTimeline();
+                    renderGoingSection();
+                }
+            }
+        } catch (e) { /* silent */ }
+    }
+
+    // ── Toast & Share ────────────────────────────────────────────
+
+    let toastTimeout = null;
+    function showToast(msg) {
+        const toast = document.getElementById('toast');
+        toast.textContent = msg;
+        toast.classList.add('show');
+        clearTimeout(toastTimeout);
+        toastTimeout = setTimeout(() => toast.classList.remove('show'), 2500);
+    }
+
+    function copyShareLink() {
+        navigator.clipboard.writeText(window.location.href).then(() => {
+            showToast('Link copied!');
+        }).catch(() => {
+            showToast('Could not copy link');
+        });
+    }
+
+    // ── Add Stop Picker ─────────────────────────────────────────
+
+    let pickerMap = null;
+    let pickerMarkers = [];
+    let pickerSelectedMic = null;
+
+    function openPickerModal() {
+        const modal = document.getElementById('picker-modal');
+        modal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+
+        // Lazy-init map
+        if (!pickerMap) {
+            initPickerMap();
+        } else {
+            pickerMap.invalidateSize();
+        }
+
+        populatePicker();
+    }
+
+    function closePickerModal() {
+        const modal = document.getElementById('picker-modal');
+        modal.classList.remove('open');
+        document.body.style.overflow = '';
+        pickerSelectedMic = null;
+        document.getElementById('picker-confirm').classList.remove('show');
+    }
+
+    function initPickerMap() {
+        pickerMap = L.map('picker-map', {
+            zoomControl: false,
+            attributionControl: false
+        }).setView([40.72, -74.00], 12);
+
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            maxZoom: 19,
+            subdomains: 'abcd'
+        }).addTo(pickerMap);
+
+        L.control.zoom({ position: 'topright' }).addTo(pickerMap);
+    }
+
+    function populatePicker() {
+        // Clear existing markers
+        pickerMarkers.forEach(m => pickerMap.removeLayer(m));
+        pickerMarkers = [];
+        pickerSelectedMic = null;
+        document.getElementById('picker-confirm').classList.remove('show');
+
+        // Determine day of plan
+        const planDay = planStops[0]?.mic?.day || planStops[0]?.mic?.dayOfWeek || '';
+        const planIds = new Set(planStops.map(s => s.id));
+
+        // Filter same-day mics
+        const sameDayMics = allMics
+            .filter(m => {
+                const mDay = m.day || m.dayOfWeek || '';
+                return mDay === planDay;
+            })
+            .sort((a, b) => {
+                const aT = parseTimeToDate(a.time || a.startTime);
+                const bT = parseTimeToDate(b.time || b.startTime);
+                return (aT || 0) - (bT || 0);
+            });
+
+        const listEl = document.getElementById('picker-list');
+
+        if (sameDayMics.length === 0) {
+            listEl.innerHTML = '<div class="picker-empty">No other mics found for this day</div>';
+            return;
+        }
+
+        // Bounds for map
+        const bounds = [];
+
+        // Render list + markers
+        listEl.innerHTML = '';
+        sameDayMics.forEach(mic => {
+            const id = mic._id || mic.id;
+            const inPlan = planIds.has(id);
+            const time = fmtTime(mic.time || mic.startTime);
+            const venue = mic.venueName || mic.venue || mic.title || 'Venue';
+            const hood = mic.neighborhood || mic.hood || '';
+            const price = formatPrice(mic);
+
+            // List item
+            const item = document.createElement('div');
+            item.className = 'picker-list-item' + (inPlan ? ' in-plan' : '');
+            item.dataset.micId = id;
+            item.innerHTML = `
+                <span class="picker-item-time">${escapeHtml(time)}</span>
+                <div class="picker-item-info">
+                    <div class="picker-item-venue">${escapeHtml(venue)}</div>
+                    <div class="picker-item-meta">${escapeHtml(hood)}${hood && price.text ? ' \u00b7 ' : ''}${price.free ? '<span style="color:var(--green-bright)">' + escapeHtml(price.text) + '</span>' : escapeHtml(price.text)}</div>
+                </div>
+                ${inPlan ? '<span class="picker-item-check">\u2713 In plan</span>' : ''}
+            `;
+            if (!inPlan) {
+                item.addEventListener('click', () => selectPickerMic(mic, item));
+            }
+            listEl.appendChild(item);
+
+            // Map marker
+            if (mic.lat && (mic.lng || mic.lon)) {
+                const lng = mic.lng || mic.lon;
+                const pillClass = inPlan ? 'in-plan' : 'available';
+                const icon = L.divIcon({
+                    className: 'picker-pin',
+                    html: `<div class="picker-pill ${pillClass}">${escapeHtml(time)}</div>`,
+                    iconSize: null,
+                    iconAnchor: [20, 12]
+                });
+                const marker = L.marker([mic.lat, lng], { icon }).addTo(pickerMap);
+                if (!inPlan) {
+                    marker.on('click', () => {
+                        selectPickerMic(mic);
+                        // Scroll list item into view
+                        const el = listEl.querySelector(`[data-mic-id="${id}"]`);
+                        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    });
+                }
+                pickerMarkers.push(marker);
+                bounds.push([mic.lat, lng]);
+            }
+        });
+
+        // Fit map to markers
+        if (bounds.length > 0) {
+            pickerMap.fitBounds(bounds, { padding: [30, 30], maxZoom: 14 });
+        }
+    }
+
+    function selectPickerMic(mic, listItem) {
+        const id = mic._id || mic.id;
+        pickerSelectedMic = mic;
+
+        // Highlight in list
+        const listEl = document.getElementById('picker-list');
+        listEl.querySelectorAll('.picker-list-item.selected').forEach(el => el.classList.remove('selected'));
+        if (listItem) {
+            listItem.classList.add('selected');
+        } else {
+            const el = listEl.querySelector(`[data-mic-id="${id}"]`);
+            if (el) el.classList.add('selected');
+        }
+
+        // Show confirm bar
+        const venue = mic.venueName || mic.venue || mic.title || 'Venue';
+        const time = fmtTime(mic.time || mic.startTime);
+        const hood = mic.neighborhood || mic.hood || '';
+        document.getElementById('picker-confirm-venue').textContent = venue;
+        document.getElementById('picker-confirm-time').textContent = `${time}${hood ? ' \u00b7 ' + hood : ''}`;
+        document.getElementById('picker-confirm').classList.add('show');
+
+        // Pan map to marker
+        if (mic.lat && (mic.lng || mic.lon)) {
+            pickerMap.panTo([mic.lat, mic.lng || mic.lon], { animate: true });
+        }
+    }
+
+    function confirmAddStop() {
+        if (!pickerSelectedMic) return;
+
+        const mic = pickerSelectedMic;
+        const id = mic._id || mic.id;
+        if (mic._id && !mic.id) mic.id = mic._id;
+
+        // Add to planStops
+        planStops.push({ id, mins: 45, mic });
+
+        // Sort planStops by start time
+        planStops.sort((a, b) => {
+            const aT = parseTimeToDate(a.mic.time || a.mic.startTime);
+            const bT = parseTimeToDate(b.mic.time || b.mic.startTime);
+            return (aT || 0) - (bT || 0);
+        });
+
+        // Recompute hash + URL
+        planHash = computePlanHash(planStops);
+        rebuildPlanUrl();
+        updateHeaderMeta();
+
+        // Close modal + re-render
+        closePickerModal();
+        renderTimeline();
+        renderGoingSection();
+
+        // Haptic + toast
+        if ('vibrate' in navigator) navigator.vibrate([5, 30, 5]);
+        const venue = mic.venueName || mic.venue || mic.title || 'Venue';
+        showToast(`Added ${venue} to your plan`);
+    }
+
+    // ── Init ─────────────────────────────────────────────────────
+
+    async function init() {
+        const loading = document.getElementById('loading');
+        const error = document.getElementById('error');
+        const content = document.getElementById('content');
+
+        const entries = parsePlanParam();
+        if (entries.length === 0) {
+            loading.classList.add('hidden');
+            error.classList.add('show');
+            return;
+        }
+
+        try {
+            const ids = entries.map(e => e.id);
+            const mics = await fetchMics(ids);
+
+            if (mics.length === 0) {
+                loading.classList.add('hidden');
+                error.classList.add('show');
+                return;
+            }
+
+            // Match entries to mic data, preserving order
+            planStops = entries.map(entry => {
+                const mic = mics.find(m => (m._id || m.id) === entry.id);
+                return { ...entry, mic };
+            }).filter(s => s.mic);
+
+            if (planStops.length === 0) {
+                loading.classList.add('hidden');
+                error.classList.add('show');
+                return;
+            }
+
+            // Normalize mic IDs
+            planStops.forEach(s => {
+                if (s.mic._id && !s.mic.id) s.mic.id = s.mic._id;
+                s.id = s.mic.id || s.mic._id;
+            });
+
+            planHash = computePlanHash(planStops);
+
+            // Header
+            const firstMic = planStops[0].mic;
+            const dayLabel = getDayLabel(firstMic);
+            document.getElementById('plan-date').textContent = dayLabel || firstMic.day || '';
+            updateHeaderMeta();
+
+            // Hosted by
+            const hostParam = new URLSearchParams(window.location.search).get('by');
+            if (hostParam) {
+                const hostedByEl = document.getElementById('hosted-by');
+                const displayHost = hostParam.startsWith('@') ? hostParam : (hostParam.match(/^[a-zA-Z0-9._]+$/) && !hostParam.includes(' ')) ? '@' + hostParam : hostParam;
+                hostedByEl.innerHTML = `${getAvatarHtml(displayHost, 22)} Planned by <span class="hosted-by-name">${isIgName(displayHost) ? getIgIcon(12) + ' ' : ''}${escapeHtml(displayHost)}</span>`;
+                hostedByEl.style.display = 'flex';
+            }
+
+            // Set open map link with plan param
+            const mapUrl = `https://micfinder.io/?plan=${new URLSearchParams(window.location.search).get('plan')}`;
+            document.getElementById('open-map-btn').href = mapUrl;
+
+            // Fetch existing responses
+            try {
+                const res = await fetch(`${API_BASE}/api/v1/plans/${planHash}/responses`);
+                const data = await res.json();
+                if (data.responses) responses = data.responses;
+            } catch (e) { /* ok */ }
+
+            // Render
+            renderTimeline();
+            renderGoingSection();
+            setupIdentitySection();
+
+            // Show content
+            loading.classList.add('hidden');
+            content.style.display = 'flex';
+
+            // Start polling
+            pollInterval = setInterval(pollResponses, 15000);
+
+        } catch (e) {
+            console.error('Share page init error:', e);
+            loading.classList.add('hidden');
+            error.classList.add('show');
+        }
+    }
+
+    init();
+    </script>
+</body>
+</html>

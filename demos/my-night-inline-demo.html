@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Night Inline Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+    --rose: #f43f5e;
+    --green: #22c55e;
+    --green-dark: #16a34a;
+    --bg-base: #000;
+    --bg-card: #1c1c1e;
+    --bg-hover: #2c2c2e;
+    --text-primary: #fff;
+    --text-secondary: #8e8e93;
+    --text-tertiary: #636366;
+    --border-subtle: rgba(255, 255, 255, 0.08);
+    --border-default: rgba(255, 255, 255, 0.12);
+    --space-sm: 8px;
+    --space-md: 12px;
+    --space-lg: 16px;
+    --space-xl: 20px;
+    --radius-md: 12px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    background: #000;
+    color: #fff;
+    font-family: 'Inter', -apple-system, sans-serif;
+    max-width: 420px;
+    margin: 0 auto;
+    min-height: 100vh;
+}
+
+/* ========================================
+   INLINE "MY NIGHT" HEADER (replaces card)
+   ======================================== */
+.my-night-inline-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px 10px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(0, 0, 0, 0.72);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.my-night-inline-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.my-night-inline-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.01em;
+}
+
+.my-night-inline-dot {
+    color: rgba(255, 255, 255, 0.25);
+    font-size: 14px;
+}
+
+.my-night-stops-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    background: rgba(34, 197, 94, 0.15);
+    border: 1px solid rgba(34, 197, 94, 0.25);
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #4ade80;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+
+.my-night-inline-range {
+    font-size: 13px;
+    font-weight: 500;
+    color: #71717a;
+}
+
+.my-night-inline-right {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.my-night-share-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+    color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.my-night-share-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* ========================================
+   SCHEDULE ITEMS (inline, no wrapper card)
+   ======================================== */
+.my-schedule-inline-list {
+    padding: 6px 12px 0;
+}
+
+.my-schedule-item {
+    display: flex;
+    align-items: center;
+    padding: 11px 14px;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    margin-bottom: 8px;
+}
+
+.my-schedule-item-time-col {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 54px;
+    flex-shrink: 0;
+    gap: 1px;
+    padding-right: 12px;
+    margin-right: 12px;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.my-schedule-item-time {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+    color: #fff;
+    line-height: 1.1;
+}
+
+.my-schedule-item-set {
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.32);
+}
+
+.my-schedule-item-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.my-schedule-item-venue {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.my-schedule-item-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.my-schedule-item-price.free { color: var(--green); }
+
+.my-schedule-item-duration-row {
+    margin-top: 4px;
+}
+.my-schedule-item-duration {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.45);
+    cursor: pointer;
+}
+.duration-label { font-weight: 500; }
+.duration-value-chip {
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.65);
+}
+
+.my-schedule-item-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-left: 8px;
+}
+.my-schedule-remove {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+    color: rgba(255, 255, 255, 0.35);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.my-schedule-remove:hover {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+}
+
+/* Travel line between schedule items */
+.my-schedule-travel {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 20px;
+    margin: -2px 0 6px;
+}
+.my-schedule-travel-line {
+    flex: 1;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.06);
+}
+.my-schedule-travel-badge {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.28);
+    white-space: nowrap;
+}
+
+/* ========================================
+   TIME HEADER (regular venue list)
+   ======================================== */
+.time-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(0, 0, 0, 0.72);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding: var(--space-sm) var(--space-xl);
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.time-header-label {
+    color: rgba(255, 255, 255, 0.92);
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+}
+
+.time-header-divider {
+    height: 1px;
+    flex: 1;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* ========================================
+   VENUE CARDS (stream items)
+   ======================================== */
+.stream-item {
+    display: flex;
+    align-items: center;
+    padding: var(--space-lg) var(--space-xl);
+    border-bottom: 1px solid var(--border-subtle);
+    transition: all 0.2s ease;
+    cursor: pointer;
+    position: relative;
+}
+.stream-item:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+/* In-route highlight */
+.stream-item.in-route {
+    background: rgba(34, 197, 94, 0.1);
+    border-left: 3px solid #16a34a;
+    box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.15);
+}
+
+.card-layout-mobile {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    gap: 0;
+}
+
+.specs-col {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 58px;
+    flex-shrink: 0;
+    padding-right: 12px;
+    margin-right: 12px;
+    border-right: 2px solid rgba(255, 255, 255, 0.06);
+}
+.specs-col.is-live-mic {
+    border-right-color: var(--green);
+}
+
+.start-time {
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.stage-time {
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.32);
+}
+
+.live-dot {
+    width: 7px;
+    height: 7px;
+    background: var(--green);
+    border-radius: 50%;
+    display: inline-block;
+    animation: livePulse 2s ease-in-out infinite;
+    flex-shrink: 0;
+}
+@keyframes livePulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+    50% { opacity: 0.7; box-shadow: 0 0 0 4px rgba(34, 197, 94, 0); }
+}
+
+.info-col {
+    flex: 1;
+    min-width: 0;
+}
+
+.venue-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 5px;
+}
+
+.venue-name {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tag-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 7px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+}
+.borough-pill {
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.meta-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+}
+
+.neighborhood {
+    color: rgba(255, 255, 255, 0.5);
+    font-weight: 500;
+}
+
+.meta-dot {
+    color: rgba(255, 255, 255, 0.15);
+}
+
+.price-badge {
+    color: rgba(255, 255, 255, 0.5);
+    font-weight: 600;
+}
+
+.action-col {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-left: 8px;
+}
+
+.icon-btn {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 10px;
+    color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition: all 0.15s;
+    text-decoration: none;
+}
+.icon-btn svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.75;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.icon-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* ========================================
+   + ADD / CHECK BUTTON (always visible)
+   ======================================== */
+.venue-row .plan-add-btn,
+.venue-row .in-schedule-badge {
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+.plan-add-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border-radius: 10px;
+    background: rgba(34, 197, 94, 0.14);
+    border: 1px solid rgba(34, 197, 94, 0.30);
+    color: var(--green);
+    font-weight: 800;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+.plan-add-btn:hover {
+    background: rgba(34, 197, 94, 0.22);
+    border-color: rgba(34, 197, 94, 0.55);
+    color: #34d399;
+    transform: translateY(-1px);
+}
+.plan-add-btn:active {
+    transform: scale(0.95);
+}
+
+@keyframes addBtnPop {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.15); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.in-schedule-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border-radius: 10px;
+    background: rgba(34, 197, 94, 0.18);
+    border: 1px solid rgba(34, 197, 94, 0.40);
+    color: #4ade80;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.in-schedule-badge:hover {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.40);
+    color: #ef4444;
+}
+
+/* ========================================
+   TOGGLE DEMO CONTROLS
+   ======================================== */
+.demo-controls {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    z-index: 100;
+    padding: 8px 12px;
+    background: rgba(30, 30, 30, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 14px;
+    backdrop-filter: blur(12px);
+}
+.demo-btn {
+    padding: 6px 14px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.demo-btn:hover { background: rgba(255, 255, 255, 0.12); color: #fff; }
+.demo-btn.active { background: rgba(34, 197, 94, 0.2); border-color: rgba(34, 197, 94, 0.4); color: #4ade80; }
+
+/* Empty state for My Night */
+.my-night-empty {
+    display: none;
+    padding: 16px 20px;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.3);
+    font-size: 13px;
+}
+</style>
+</head>
+<body>
+
+<div id="list-content">
+    <!-- ======== MY NIGHT SECTION (inline) ======== -->
+    <div class="my-night-inline-header" id="my-night-header" style="display: none;">
+        <div class="my-night-inline-left">
+            <span class="my-night-inline-title">My Night</span>
+            <span class="my-night-inline-dot">&middot;</span>
+            <span class="my-night-stops-badge" id="stops-badge">2 Stops</span>
+            <span class="my-night-inline-range" id="time-range">6:00 PM &ndash; 8:00 PM</span>
+        </div>
+        <div class="my-night-inline-right">
+            <button class="my-night-share-btn" aria-label="Share schedule">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+                    <polyline points="16 6 12 2 8 6"/>
+                    <line x1="12" y1="2" x2="12" y2="15"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <div class="my-schedule-inline-list" id="my-night-items">
+        <!-- Filled dynamically -->
+    </div>
+
+    <div class="my-night-empty" id="my-night-empty">
+        Tap <strong>+</strong> on any mic to start building your night
+    </div>
+
+    <!-- ======== REGULAR VENUE LIST ======== -->
+
+    <!-- 6 PM group -->
+    <div class="time-header">
+        <span class="time-header-label">6 PM</span>
+        <div class="time-header-divider"></div>
+    </div>
+
+    <div class="stream-item" data-id="mic-1" id="card-mic-1" onclick="toggleMic('mic-1')">
+        <div class="card-layout-mobile">
+            <div class="specs-col is-live-mic">
+                <div class="start-time"><span class="live-dot"></span>6:00</div>
+                <div class="stage-time">5 min</div>
+            </div>
+            <div class="info-col">
+                <div class="venue-row">
+                    <div class="venue-name">The Creek & The Cave</div>
+                    <span class="tag-pill borough-pill">MN</span>
+                    <button class="plan-add-btn" id="btn-mic-1" onclick="event.stopPropagation(); toggleMic('mic-1')" aria-label="Add to schedule">+</button>
+                </div>
+                <div class="meta-row">
+                    <span class="neighborhood">LES</span>
+                    <span class="meta-dot">&middot;</span>
+                    <span class="price-badge">Free</span>
+                </div>
+            </div>
+            <div class="action-col">
+                <a href="#" class="icon-btn" onclick="event.stopPropagation();"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg></a>
+            </div>
+        </div>
+    </div>
+
+    <div class="stream-item" data-id="mic-2" id="card-mic-2" onclick="toggleMic('mic-2')">
+        <div class="card-layout-mobile">
+            <div class="specs-col">
+                <div class="start-time">6:00</div>
+                <div class="stage-time">5 min</div>
+            </div>
+            <div class="info-col">
+                <div class="venue-row">
+                    <div class="venue-name">Eastville Comedy Club</div>
+                    <span class="tag-pill borough-pill">BK</span>
+                    <button class="plan-add-btn" id="btn-mic-2" onclick="event.stopPropagation(); toggleMic('mic-2')" aria-label="Add to schedule">+</button>
+                </div>
+                <div class="meta-row">
+                    <span class="neighborhood">Brownsville</span>
+                    <span class="meta-dot">&middot;</span>
+                    <span class="price-badge">$5</span>
+                </div>
+            </div>
+            <div class="action-col">
+                <a href="#" class="icon-btn" onclick="event.stopPropagation();"><svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg></a>
+            </div>
+        </div>
+    </div>
+
+    <div class="stream-item" data-id="mic-3" id="card-mic-3" onclick="toggleMic('mic-3')">
+        <div class="card-layout-mobile">
+            <div class="specs-col">
+                <div class="start-time">6:30</div>
+                <div class="stage-time">5 min</div>
+            </div>
+            <div class="info-col">
+                <div class="venue-row">
+                    <div class="venue-name">The PIT</div>
+                    <span class="tag-pill borough-pill">MN</span>
+                    <button class="plan-add-btn" id="btn-mic-3" onclick="event.stopPropagation(); toggleMic('mic-3')" aria-label="Add to schedule">+</button>
+                </div>
+                <div class="meta-row">
+                    <span class="neighborhood">Midtown</span>
+                    <span class="meta-dot">&middot;</span>
+                    <span class="price-badge">Free</span>
+                </div>
+            </div>
+            <div class="action-col">
+                <a href="#" class="icon-btn" onclick="event.stopPropagation();"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 7 PM group -->
+    <div class="time-header">
+        <span class="time-header-label">7 PM</span>
+        <div class="time-header-divider"></div>
+    </div>
+
+    <div class="stream-item" data-id="mic-4" id="card-mic-4" onclick="toggleMic('mic-4')">
+        <div class="card-layout-mobile">
+            <div class="specs-col">
+                <div class="start-time">7:00</div>
+                <div class="stage-time">5 min</div>
+            </div>
+            <div class="info-col">
+                <div class="venue-row">
+                    <div class="venue-name">Stand Up NY</div>
+                    <span class="tag-pill borough-pill">MN</span>
+                    <button class="plan-add-btn" id="btn-mic-4" onclick="event.stopPropagation(); toggleMic('mic-4')" aria-label="Add to schedule">+</button>
+                </div>
+                <div class="meta-row">
+                    <span class="neighborhood">UWS</span>
+                    <span class="meta-dot">&middot;</span>
+                    <span class="price-badge">$7</span>
+                </div>
+            </div>
+            <div class="action-col">
+                <a href="#" class="icon-btn" onclick="event.stopPropagation();"><svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg></a>
+            </div>
+        </div>
+    </div>
+
+    <div class="stream-item" data-id="mic-5" id="card-mic-5" onclick="toggleMic('mic-5')">
+        <div class="card-layout-mobile">
+            <div class="specs-col">
+                <div class="start-time">7:30</div>
+                <div class="stage-time">3 min</div>
+            </div>
+            <div class="info-col">
+                <div class="venue-row">
+                    <div class="venue-name">Tiny Cupboard</div>
+                    <span class="tag-pill borough-pill">MN</span>
+                    <button class="plan-add-btn" id="btn-mic-5" onclick="event.stopPropagation(); toggleMic('mic-5')" aria-label="Add to schedule">+</button>
+                </div>
+                <div class="meta-row">
+                    <span class="neighborhood">LES</span>
+                    <span class="meta-dot">&middot;</span>
+                    <span class="price-badge">Free</span>
+                </div>
+            </div>
+            <div class="action-col">
+                <a href="#" class="icon-btn" onclick="event.stopPropagation();"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg></a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 8 PM group -->
+    <div class="time-header">
+        <span class="time-header-label">8 PM</span>
+        <div class="time-header-divider"></div>
+    </div>
+
+    <div class="stream-item" data-id="mic-6" id="card-mic-6" onclick="toggleMic('mic-6')">
+        <div class="card-layout-mobile">
+            <div class="specs-col">
+                <div class="start-time">8:00</div>
+                <div class="stage-time">5 min</div>
+            </div>
+            <div class="info-col">
+                <div class="venue-row">
+                    <div class="venue-name">Phoenix Bar Open Mic</div>
+                    <span class="tag-pill borough-pill">MN</span>
+                    <button class="plan-add-btn" id="btn-mic-6" onclick="event.stopPropagation(); toggleMic('mic-6')" aria-label="Add to schedule">+</button>
+                </div>
+                <div class="meta-row">
+                    <span class="neighborhood">East Village</span>
+                    <span class="meta-dot">&middot;</span>
+                    <span class="price-badge">1 drink</span>
+                </div>
+            </div>
+            <div class="action-col">
+                <a href="#" class="icon-btn" onclick="event.stopPropagation();"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg></a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bottom padding for demo controls -->
+<div style="height: 80px;"></div>
+
+<div class="demo-controls">
+    <button class="demo-btn" onclick="clearAll()">Clear All</button>
+    <button class="demo-btn" onclick="addTwo()">Add 2 Mics</button>
+</div>
+
+<script>
+// Demo state
+const route = [];
+
+const micData = {
+    'mic-1': { name: 'The Creek & The Cave', hood: 'LES', time: '6:00', price: 'Free', set: '5 min' },
+    'mic-2': { name: 'Eastville Comedy Club', hood: 'Brownsville', time: '6:00', price: '$5', set: '5 min' },
+    'mic-3': { name: 'The PIT', hood: 'Midtown', time: '6:30', price: 'Free', set: '5 min' },
+    'mic-4': { name: 'Stand Up NY', hood: 'UWS', time: '7:00', price: '$7', set: '5 min' },
+    'mic-5': { name: 'Tiny Cupboard', hood: 'LES', time: '7:30', price: 'Free', set: '3 min' },
+    'mic-6': { name: 'Phoenix Bar Open Mic', hood: 'East Village', time: '8:00', price: '1 drink', set: '5 min' },
+};
+
+function toggleMic(id) {
+    const idx = route.indexOf(id);
+    if (idx > -1) {
+        route.splice(idx, 1);
+    } else {
+        route.push(id);
+    }
+    renderMyNight();
+    updateCardButtons();
+}
+
+function clearAll() {
+    route.length = 0;
+    renderMyNight();
+    updateCardButtons();
+}
+
+function addTwo() {
+    clearAll();
+    route.push('mic-1', 'mic-4');
+    renderMyNight();
+    updateCardButtons();
+}
+
+function updateCardButtons() {
+    Object.keys(micData).forEach(id => {
+        const btn = document.getElementById('btn-' + id);
+        const card = document.getElementById('card-' + id);
+        if (!btn) return;
+        const inRoute = route.includes(id);
+        if (inRoute) {
+            btn.className = 'in-schedule-badge';
+            btn.textContent = '\u2713';
+            btn.setAttribute('aria-label', 'Remove from schedule');
+            card.classList.add('in-route');
+        } else {
+            btn.className = 'plan-add-btn';
+            btn.textContent = '+';
+            btn.setAttribute('aria-label', 'Add to schedule');
+            card.classList.remove('in-route');
+        }
+    });
+}
+
+function renderMyNight() {
+    const header = document.getElementById('my-night-header');
+    const itemsEl = document.getElementById('my-night-items');
+    const emptyEl = document.getElementById('my-night-empty');
+    const stopsEl = document.getElementById('stops-badge');
+    const rangeEl = document.getElementById('time-range');
+
+    if (route.length === 0) {
+        header.style.display = 'none';
+        itemsEl.style.display = 'none';
+        emptyEl.style.display = 'none'; // hide empty state too for clean look
+        return;
+    }
+
+    header.style.display = 'flex';
+    itemsEl.style.display = 'block';
+    emptyEl.style.display = 'none';
+
+    // Update header info
+    stopsEl.textContent = route.length === 1 ? '1 Stop' : route.length + ' Stops';
+    const times = route.map(id => micData[id].time);
+    const first = times[0];
+    const last = times[times.length - 1];
+    rangeEl.textContent = first === last ? first + ' PM' : first + ' \u2013 ' + last + ' PM';
+
+    // Render items
+    let html = '';
+    route.forEach((id, idx) => {
+        const mic = micData[id];
+        html += `
+            <div class="my-schedule-item">
+                <div class="my-schedule-item-time-col">
+                    <div class="my-schedule-item-time">${mic.time}</div>
+                    <div class="my-schedule-item-set">${mic.set}</div>
+                </div>
+                <div class="my-schedule-item-info">
+                    <div class="my-schedule-item-venue">${mic.name}</div>
+                    <div class="my-schedule-item-meta">
+                        <span>${mic.hood}</span>
+                        <span>${mic.price}</span>
+                    </div>
+                    <div class="my-schedule-item-duration-row">
+                        <button class="my-schedule-item-duration">
+                            <span class="duration-label">Stay</span>
+                            <span class="duration-value-chip">45 min</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="my-schedule-item-actions">
+                    <button class="my-schedule-remove" onclick="event.stopPropagation(); toggleMic('${id}')" aria-label="Remove">&times;</button>
+                </div>
+            </div>
+        `;
+        if (idx < route.length - 1) {
+            html += `
+                <div class="my-schedule-travel">
+                    <div class="my-schedule-travel-line"></div>
+                    <span class="my-schedule-travel-badge">Leave 6:45 &middot; ~12 min travel</span>
+                    <div class="my-schedule-travel-line"></div>
+                </div>
+            `;
+        }
+    });
+    itemsEl.innerHTML = html;
+}
+
+// Init
+renderMyNight();
+updateCardButtons();
+</script>
+
+</body>
+</html>

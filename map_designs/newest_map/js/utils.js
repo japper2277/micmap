@@ -510,7 +510,9 @@ function copyScheduleAsText() {
         const mins = typeof getMicDuration === 'function' ? getMicDuration(id) : (STATE.setDuration || 45);
         return `${id}:${mins}`;
     });
-    const shareUrl = `https://micfinder.io/share/?plan=${stops.join(',')}`;
+    const host = localStorage.getItem('shareIgHandle') || localStorage.getItem('shareName') || '';
+    let shareUrl = `https://micfinder.io/share/?plan=${stops.join(',')}`;
+    if (host) shareUrl += `&by=${encodeURIComponent(host)}`;
 
     const isMobile = /iPhone|iPad|Android/i.test(navigator.userAgent);
     if (isMobile && navigator.share) {

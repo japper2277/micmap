@@ -166,10 +166,13 @@
 
             <!-- Mics Header Row (hidden when plan-mode active) - tap anywhere to open drawer -->
             <div class="mics-header-row" onclick="if(!event.target.closest('button, a, input')) toggleDrawer()">
-                <!-- Left: Title & Count -->
+                <!-- Left: Title & Subtitle -->
                 <div class="title-group">
-                    <h1 class="title-text">Mics</h1>
-                    <span class="count-text" id="mic-count" aria-live="polite" aria-atomic="true"></span>
+                    <div class="title-stack">
+                        <h1 class="title-text" id="drawer-title">Your Night</h1>
+                        <span class="drawer-subtitle" id="drawer-subtitle" aria-live="polite" aria-atomic="true"></span>
+                    </div>
+                    <span class="count-text" id="mic-count" aria-live="polite" aria-atomic="true" style="display:none"></span>
                     <!-- Clear filters button (desktop only, next to count) -->
                     <button class="clear-filters-btn" id="clear-filters-desktop" onclick="clearAllFilters()" aria-label="Clear all filters">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">

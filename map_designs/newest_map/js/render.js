@@ -1458,11 +1458,10 @@ function render(mode) {
                     <div class="info-col">
                         <div class="venue-row">
                             <div class="venue-name">${safeTitle}</div>
-                            <span class="tag-pill borough-pill"><span class="borough-full">${safeBorough}</span><span class="borough-short">${shortBorough}</span></span>
-                            ${planCta}
+                            <button class="add-mic-btn${isInRoute ? ' added' : ''}" onclick="event.stopPropagation(); handleAddClick(this, '${mic.id}')" aria-label="${isInRoute ? 'In schedule' : 'Add to night'}">${isInRoute ? '&#10003; Added' : '+ Tonight'}</button>
                         </div>
                         <div class="meta-row">
-                            <span class="neighborhood">${safeHood}</span>
+                            <span class="neighborhood">${safeHood}, ${shortBorough}</span>
                             <span class="meta-dot">·</span>
                             <span class="price-badge">${safePrice}</span>
                             ${spotsBadge}

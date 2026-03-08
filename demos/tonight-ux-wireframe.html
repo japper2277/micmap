@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html><head><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tonight UX - Combined Wireframe</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
+*{box-sizing:border-box;margin:0}
+body{font-family:'Inter',sans-serif;background:#09090b;color:#fff;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}
+
+/* Phone frame */
+.phone{width:340px;height:700px;border:3px solid #333;border-radius:40px;position:relative;overflow:hidden;background:#e8e4dc}
+
+/* Fake map background */
+.map{height:100%;position:relative;background:#e8e4dc;
+  background-image:
+    linear-gradient(rgba(0,0,0,.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,0,0,.03) 1px,transparent 1px);
+  background-size:40px 40px;
+  filter:brightness(0.92) saturate(0.85)}
+
+/* Map marker pills - matching real app */
+.marker{position:absolute;border-radius:100px;height:34px;padding:0 12px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;font-family:-apple-system,sans-serif;font-size:13px;font-weight:700;letter-spacing:-0.2px;white-space:nowrap;
+  box-shadow:0 4px 12px rgba(0,0,0,.2),0 1px 3px rgba(0,0,0,.1);transition:opacity .3s,transform .3s}
+.marker::after{content:'';position:absolute;inset:0;border-radius:100px;border:1px solid rgba(255,255,255,.2);border-bottom-color:transparent;pointer-events:none}
+.marker .tail{position:absolute;bottom:-4px;left:50%;transform:translateX(-50%) rotate(45deg);width:10px;height:10px;border-radius:2px;z-index:-1}
+.marker.live{background:linear-gradient(180deg,#22c55e,#16a34a);z-index:50;animation:liveGlow 2s ease-in-out infinite}
+.marker.live .tail{background:#16a34a}
+.marker.upcoming{background:linear-gradient(180deg,#ef4444,#dc2626);border:2px solid rgba(255,255,255,.7);z-index:40}
+.marker.upcoming .tail{background:#dc2626}
+.marker.future{background:linear-gradient(180deg,#2c2c2e,#000);z-index:30}
+.marker.future .tail{background:#000}
+.marker.dim{opacity:.25!important;transform:scale(.9)!important;filter:saturate(.4)}
+@keyframes liveGlow{0%,100%{box-shadow:0 4px 12px rgba(0,0,0,.2),0 0 0 0 rgba(34,197,94,.4)}50%{box-shadow:0 4px 12px rgba(0,0,0,.2),0 0 12px 4px rgba(34,197,94,.3)}}
+
+/* Search bar - matching real app */
+.search-bar{position:absolute;top:16px;left:12px;right:12px;z-index:100;display:flex;gap:8px;align-items:center}
+.search-input-wrap{flex:1;background:rgba(28,28,30,.92);backdrop-filter:blur(24px);border-radius:14px;border:1px solid rgba(255,255,255,.08);padding:10px 14px;display:flex;align-items:center;gap:8px;
+  box-shadow:0 4px 16px rgba(0,0,0,.4)}
+.search-input-wrap svg{opacity:.4;flex-shrink:0}
+.search-input-wrap span{color:rgba(255,255,255,.35);font-size:15px;font-weight:400}
+
+/* Locate button - matching real app */
+.loc-btn{position:absolute;bottom:60px;right:16px;width:56px;height:56px;border-radius:50%;
+  background:linear-gradient(180deg,#fff,#f5f5f5);border:1px solid rgba(255,255,255,.8);color:#1a1a1a;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:90;
+  box-shadow:0 6px 20px rgba(0,0,0,.25),0 2px 6px rgba(0,0,0,.15),inset 0 2px 2px #fff,0 0 0 1px rgba(0,0,0,.04)}
+
+/* TONIGHT FAB - new feature */
+.tonight-fab{position:absolute;bottom:60px;left:16px;
+  background:rgba(28,28,30,.92);backdrop-filter:blur(24px);
+  color:#fff;border:1px solid rgba(255,255,255,.12);border-radius:100px;
+  padding:14px 18px;font-size:14px;font-weight:600;cursor:pointer;z-index:90;
+  box-shadow:0 6px 20px rgba(0,0,0,.35),0 2px 6px rgba(0,0,0,.15);
+  display:flex;align-items:center;gap:8px;letter-spacing:-0.01em;
+  transition:all .2s cubic-bezier(.2,.8,.2,1)}
+.tonight-fab:active{transform:scale(.97);opacity:.8}
+.tonight-fab .count{background:#f43f5e;color:#fff;font-size:12px;font-weight:800;
+  width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+
+/* Plan popover - glass style */
+.plan-pop{position:absolute;bottom:124px;left:16px;right:16px;
+  background:rgba(28,28,30,.96);backdrop-filter:blur(40px);
+  border:1px solid rgba(255,255,255,.1);border-radius:20px;
+  padding:16px;z-index:100;display:none;
+  box-shadow:0 8px 32px rgba(0,0,0,.5);
+  transform-origin:bottom left}
+.plan-pop.show{display:block;animation:popIn .25s cubic-bezier(.16,1,.3,1)}
+@keyframes popIn{from{opacity:0;transform:scale(.95) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.plan-pop h3{font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;letter-spacing:-.01em;margin-bottom:12px}
+
+/* Time chips */
+.chips{display:flex;gap:6px;margin-bottom:14px}
+.chip{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.7);
+  border-radius:100px;padding:6px 14px;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
+.chip:active{transform:scale(.95)}
+.chip.on{background:#f43f5e;border-color:#f43f5e;color:#fff}
+
+/* Plan results */
+.plan-results{border-top:1px solid rgba(255,255,255,.08);padding-top:10px}
+.plan-row{display:flex;justify-content:space-between;align-items:center;padding:10px 8px;
+  border-radius:10px;cursor:pointer;transition:background .15s}
+.plan-row:active{background:rgba(255,255,255,.08)}
+.plan-row .venue{font-size:14px;font-weight:600;letter-spacing:-.01em}
+.plan-row .meta{font-size:12px;color:rgba(255,255,255,.4);margin-top:2px}
+.plan-row .time{font-size:14px;font-weight:700;color:#ef4444}
+.plan-row .time.live{color:#22c55e}
+
+/* Tour button */
+.tour-btn{width:100%;margin-top:10px;padding:12px;
+  background:#f43f5e;color:#fff;border:none;border-radius:12px;
+  font-size:14px;font-weight:700;cursor:pointer;letter-spacing:-.01em;
+  box-shadow:0 4px 12px rgba(244,63,94,.3)}
+.tour-btn:active{transform:scale(.97);opacity:.9}
+
+/* Fly-through card */
+.fly-card{position:absolute;bottom:124px;left:16px;right:16px;
+  background:rgba(28,28,30,.96);backdrop-filter:blur(40px);
+  border:1px solid rgba(255,255,255,.1);border-radius:20px;
+  padding:16px;z-index:100;display:none;
+  box-shadow:0 8px 32px rgba(0,0,0,.5)}
+.fly-card.show{display:block;animation:popIn .25s cubic-bezier(.16,1,.3,1)}
+.fly-card .venue-name{font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:700;letter-spacing:-.02em}
+.fly-card .venue-detail{font-size:13px;color:rgba(255,255,255,.5);margin-top:4px;font-weight:500}
+.fly-nav{display:flex;justify-content:space-between;align-items:center;margin-top:14px;gap:8px}
+.fly-nav button{flex:1;padding:10px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);
+  color:#fff;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer}
+.fly-nav button:active{background:rgba(255,255,255,.12);transform:scale(.97)}
+.fly-nav .counter{font-size:13px;color:rgba(255,255,255,.4);font-weight:600;min-width:36px;text-align:center}
+
+/* Mini bottom bar (replaces drawer) */
+.mini-bar{position:absolute;bottom:0;left:0;right:0;
+  background:rgba(0,0,0,.88);backdrop-filter:blur(16px);
+  border-top:1px solid rgba(255,255,255,.08);
+  padding:12px 16px;display:flex;justify-content:space-between;align-items:center;z-index:80}
+.mini-bar span{font-size:13px;color:rgba(255,255,255,.5);font-weight:500}
+.mini-bar button{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);
+  color:#fff;border-radius:10px;padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer}
+.mini-bar button:active{background:rgba(255,255,255,.15);transform:scale(.97)}
+
+/* Fullscreen list overlay */
+.full-list{position:absolute;inset:0;background:#000;z-index:200;display:none;overflow:auto;padding:0}
+.full-list.show{display:block;animation:slideUp .3s cubic-bezier(.32,.72,0,1)}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.fl-header{position:sticky;top:0;background:rgba(0,0,0,.72);backdrop-filter:blur(16px);
+  padding:16px 20px;display:flex;justify-content:space-between;align-items:center;
+  border-bottom:1px solid rgba(255,255,255,.08)}
+.fl-header h2{font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:800;letter-spacing:-.01em}
+.fl-close{background:rgba(255,255,255,.1);border:none;color:#fff;width:30px;height:30px;
+  border-radius:50%;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.fl-time-header{padding:8px 20px;font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:800;
+  color:rgba(255,255,255,.92);display:flex;align-items:center;gap:12px;
+  background:rgba(0,0,0,.72);backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,.08)}
+.fl-time-header::after{content:'';height:1px;flex:1;background:rgba(255,255,255,.1)}
+.fl-row{padding:14px 20px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+.fl-row:active{background:rgba(255,255,255,.04)}
+.fl-row .name{font-size:15px;font-weight:600;letter-spacing:-.01em}
+.fl-row .info{font-size:12px;color:rgba(255,255,255,.4);margin-top:2px}
+.fl-row .fl-time{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums}
+.fl-row .fl-time.live{color:#22c55e}
+.fl-row .fl-time.soon{color:#ef4444}
+.fl-row .fl-time.later{color:rgba(255,255,255,.4)}
+</style></head><body>
+
+<div class="phone"><div class="map">
+  <!-- Markers matching real app pill style -->
+  <div class="marker live" id="d0" style="top:32%;left:20%"><span>LIVE</span><div class="tail"></div></div>
+  <div class="marker upcoming" id="d1" style="top:48%;left:55%"><span>7:30p</span><div class="tail"></div></div>
+  <div class="marker upcoming" id="d2" style="top:26%;left:65%"><span>8p</span><div class="tail"></div></div>
+  <div class="marker future" id="d3" style="top:58%;left:35%"><span>9p</span><div class="tail"></div></div>
+  <div class="marker future" id="d4" style="top:68%;left:22%"><span>9:30p</span><div class="tail"></div></div>
+
+  <!-- Search bar -->
+  <div class="search-bar">
+    <div class="search-input-wrap">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="#8E8E93"><path d="M10.5 4C6.9 4 4 6.9 4 10.5C4 14.1 6.9 17 10.5 17C12 17 13.4 16.5 14.5 15.6L18.4 19.5C18.8 19.9 19.4 19.9 19.8 19.5C20.2 19.1 20.2 18.5 19.8 18.1L15.9 14.2C16.6 13.1 17 11.9 17 10.5C17 6.9 14.1 4 10.5 4ZM6 10.5C6 8 8 6 10.5 6C13 6 15 8 15 10.5C15 13 13 15 10.5 15C8 15 6 13 6 10.5Z"/></svg>
+      <span>Search venues</span>
+    </div>
+  </div>
+
+  <!-- Tonight FAB (left) -->
+  <button class="tonight-fab" id="fab" onclick="togglePlan()">
+    <span class="count">5</span>
+    Tonight
+  </button>
+
+  <!-- Locate button (right) -->
+  <button class="loc-btn">
+    <svg width="20" height="20" fill="none" stroke="#1a1a1a" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0013 3.06V1h-2v2.06A8.994 8.994 0 003.06 11H1v2h2.06A8.994 8.994 0 0011 20.94V23h2v-2.06A8.994 8.994 0 0020.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg>
+  </button>
+
+  <!-- Plan popover -->
+  <div class="plan-pop" id="pp">
+    <h3>When are you free?</h3>
+    <div class="chips">
+      <button class="chip" onclick="pickTime(this,'now')">Now</button>
+      <button class="chip on" onclick="pickTime(this,'7')">7 PM</button>
+      <button class="chip" onclick="pickTime(this,'8')">8 PM</button>
+      <button class="chip" onclick="pickTime(this,'9')">9 PM</button>
+    </div>
+    <div class="plan-results">
+      <div class="plan-row" onclick="startTour(0)"><div><div class="venue">Creek & Cave</div><div class="meta">Free · LIC · 12 min</div></div><div class="time">7:30p</div></div>
+      <div class="plan-row" onclick="startTour(1)"><div><div class="venue">Tiny Cupboard</div><div class="meta">$5 · East Village · 18 min</div></div><div class="time">8p</div></div>
+      <div class="plan-row" onclick="startTour(2)"><div><div class="venue">EastVille</div><div class="meta">Free · East Village · 22 min</div></div><div class="time">8:30p</div></div>
+    </div>
+    <button class="tour-btn" onclick="startTour(0)">Tour these on map</button>
+  </div>
+
+  <!-- Fly-through card -->
+  <div class="fly-card" id="fc">
+    <div class="venue-name" id="fc-name">Creek & Cave</div>
+    <div class="venue-detail" id="fc-sub">7:30 PM · Free · LIC · 12 min transit</div>
+    <div class="fly-nav">
+      <button onclick="navFly(-1)">Prev</button>
+      <span class="counter" id="fc-count">1 / 3</span>
+      <button onclick="navFly(1)">Next</button>
+    </div>
+  </div>
+
+  <!-- Bottom bar (replaces drawer) -->
+  <div class="mini-bar">
+    <span>5 open mics tonight</span>
+    <button onclick="document.getElementById('fl').classList.add('show')">View list</button>
+  </div>
+
+  <!-- Fullscreen list overlay -->
+  <div class="full-list" id="fl">
+    <div class="fl-header">
+      <h2>Tonight</h2>
+      <button class="fl-close" onclick="this.closest('.full-list').classList.remove('show')">✕</button>
+    </div>
+    <div class="fl-time-header">6 PM</div>
+    <div class="fl-row"><div><div class="name">The Stand</div><div class="info">Free · Gramercy</div></div><div class="fl-time live">LIVE</div></div>
+    <div class="fl-time-header">7 PM</div>
+    <div class="fl-row"><div><div class="name">Creek & Cave</div><div class="info">Free · LIC</div></div><div class="fl-time soon">7:30p</div></div>
+    <div class="fl-time-header">8 PM</div>
+    <div class="fl-row"><div><div class="name">Tiny Cupboard</div><div class="info">$5 · East Village</div></div><div class="fl-time soon">8:00p</div></div>
+    <div class="fl-row"><div><div class="name">EastVille Comedy</div><div class="info">Free · East Village</div></div><div class="fl-time soon">8:30p</div></div>
+    <div class="fl-time-header">9 PM</div>
+    <div class="fl-row"><div><div class="name">Stand Up NY</div><div class="info">$10 · UWS</div></div><div class="fl-time later">9:00p</div></div>
+  </div>
+</div></div>
+
+<script>
+const mics=[
+  {n:"Creek & Cave",t:"7:30 PM",p:"Free",a:"LIC",d:"12 min",dot:1},
+  {n:"Tiny Cupboard",t:"8:00 PM",p:"$5",a:"East Village",d:"18 min",dot:2},
+  {n:"EastVille",t:"8:30 PM",p:"Free",a:"East Village",d:"22 min",dot:2}
+];
+let fi=0,planOpen=false;
+
+function togglePlan(){
+  planOpen=!planOpen;
+  document.getElementById('pp').classList.toggle('show',planOpen);
+  document.getElementById('fc').classList.remove('show');
+  if(!planOpen) document.querySelectorAll('.marker').forEach(d=>d.classList.remove('dim'));
+}
+
+function pickTime(el,t){
+  el.parentNode.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+  document.querySelectorAll('.marker').forEach(d=>{
+    if(t==='now'){d.classList.remove('dim');return}
+    const txt=d.querySelector('span').textContent.replace(':','').toLowerCase();
+    const hour=txt.includes('live')?'6':txt.match(/(\d+)/)?.[1]||'';
+    d.classList.toggle('dim',hour!==t&&!(t==='7'&&(hour==='7'))&&!(t==='8'&&hour==='8')&&!(t==='9'&&hour==='9'));
+  });
+}
+
+function startTour(i){
+  fi=i;planOpen=false;
+  document.getElementById('pp').classList.remove('show');
+  showFly();
+}
+
+function showFly(){
+  const m=mics[fi];
+  document.getElementById('fc-name').textContent=m.n;
+  document.getElementById('fc-sub').textContent=`${m.t} · ${m.p} · ${m.a} · ${m.d} transit`;
+  document.getElementById('fc-count').textContent=`${fi+1} / ${mics.length}`;
+  document.getElementById('fc').classList.add('show');
+  document.querySelectorAll('.marker').forEach((d,i)=>d.classList.toggle('dim',i!==m.dot));
+}
+
+function navFly(d){
+  fi=(fi+d+mics.length)%mics.length;
+  showFly();
+}
+</script></body></html>

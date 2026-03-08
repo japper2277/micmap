@@ -285,7 +285,10 @@ a:focus-visible {
 }
 
 .toast-icon { display: flex; align-items: center; opacity: 0.6; }
+.toast-success { background: rgba(34, 120, 60, 0.85); border-color: rgba(74, 222, 128, 0.3); }
 .toast-success .toast-icon { color: var(--green); opacity: 1; }
+.toast-success .toast-icon svg { animation: toastCheck 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+@keyframes toastCheck { 0% { transform: scale(0); } 60% { transform: scale(1.2); } 100% { transform: scale(1); } }
 .toast-error .toast-icon { color: var(--red); opacity: 1; }
 .toast-warning .toast-icon { color: var(--amber); opacity: 1; }
 .toast-info .toast-icon { color: rgba(255, 255, 255, 0.5); }
