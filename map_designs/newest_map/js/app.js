@@ -3,26 +3,6 @@
    Data loading, event listeners, initialization
    ================================================================= */
 
-// Trigger backend live-data compare on website launch (once per tab session).
-function triggerLaunchLiveCompare() {
-    const sessionKey = 'lbCompareTriggeredAt';
-    try {
-        if (sessionStorage.getItem(sessionKey)) return;
-        sessionStorage.setItem(sessionKey, String(Date.now()));
-    } catch (_) {
-        // Ignore storage failures and still try once.
-    }
-
-    const endpoint = `${CONFIG.apiBase}/api/v1/admin/lb-compare/run`;
-    fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ source: 'website-launch' })
-    }).catch(() => {
-        // Silent failure: this should never block page load.
-    });
-}
-
 // Load JSON and initialize
 async function loadData() {
     // Show skeleton loading while fetching
@@ -218,8 +198,13 @@ function init() {
     // Initialize drawer state
     initDrawerState();
 
-    // Setup mobile swipe
+    // Setup mobile swipe (drawer gestures)
     setupMobileSwipe();
+
+    // Setup My Night sheet swipe-to-dismiss
+    if (typeof setupMyNightSheetSwipe === 'function') {
+        setupMyNightSheetSwipe();
+    }
 
     // Setup keyboard scroll for list content
     setupKeyboardScroll();
@@ -239,6 +224,9 @@ function init() {
         toastService.init();
     }
 
+    // Check for yesterday's "Did you make it?" prompts
+    setTimeout(showCheckinPrompts, 3000);
+
     // Initialize search service
     if (typeof searchService !== 'undefined') {
         searchService.init();
@@ -251,9 +239,6 @@ function init() {
 
     // Load data and render
     loadData();
-
-    // Kick off live-data parity check in the background on app launch.
-    triggerLaunchLiveCompare();
 
     // Load signup slot availability (Slotted.co, Square, COTL, Bushwick)
     loadAllSlottedData();
@@ -289,6 +274,92 @@ function init() {
             closeVenueModal();
         }
     });
+}
+
+// "Did you make it?" — soft check-in prompt for yesterday's mics
+function showCheckinPrompts() {
+    if (typeof toastService === 'undefined') return;
+    const pending = JSON.parse(localStorage.getItem('pendingCheckins') || '[]');
+    if (pending.length === 0) return;
+
+    const today = new Date().toISOString().slice(0, 10);
+    // Find check-ins from before today (yesterday or older)
+    const due = pending.filter(p => p.date < today);
+    if (due.length === 0) return;
+
+    // Remove all due items from pending (whether user responds or not)
+    const remaining = pending.filter(p => p.date >= today);
+    localStorage.setItem('pendingCheckins', JSON.stringify(remaining));
+
+    // Show one prompt at a time (most recent first), max 2 to not annoy
+    const toShow = due.slice(-2).reverse();
+    let delay = 0;
+
+    toShow.forEach(checkin => {
+        setTimeout(() => {
+            showCheckinToast(checkin);
+        }, delay);
+        delay += 4000; // Stagger if multiple
+    });
+}
+
+function showCheckinToast(checkin) {
+    // Build a custom toast with Yes/No buttons
+    const container = document.createElement('div');
+    container.className = 'checkin-toast';
+    container.innerHTML = `
+        <div class="checkin-toast-text">Did you make it to <strong>${checkin.venue}</strong>?</div>
+        <div class="checkin-toast-actions">
+            <button class="checkin-btn checkin-yes">Made it</button>
+            <button class="checkin-btn checkin-no">Skipped</button>
+        </div>
+    `;
+
+    // Use toast container
+    let toastContainer = document.querySelector('.toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.className = 'toast-container';
+        document.body.appendChild(toastContainer);
+    }
+    toastContainer.appendChild(container);
+
+    // Animate in
+    requestAnimationFrame(() => container.classList.add('show'));
+
+    const dismiss = () => {
+        container.classList.remove('show');
+        setTimeout(() => container.remove(), 300);
+    };
+
+    container.querySelector('.checkin-yes').addEventListener('click', () => {
+        // Save check-in to history
+        const history = JSON.parse(localStorage.getItem('checkinHistory') || '[]');
+        history.push({ ...checkin, showedUp: true, answeredAt: new Date().toISOString() });
+        localStorage.setItem('checkinHistory', JSON.stringify(history));
+        // POST to server for going count credibility (fire and forget)
+        if (checkin.micId) {
+            fetch(`${CONFIG.apiBase}/api/v1/mics/${checkin.micId}/checkin`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ showedUp: true })
+            }).catch(() => {});
+        }
+        dismiss();
+        if (typeof toastService !== 'undefined') {
+            toastService.show('Nice! Keep showing up', 'success');
+        }
+    });
+
+    container.querySelector('.checkin-no').addEventListener('click', () => {
+        const history = JSON.parse(localStorage.getItem('checkinHistory') || '[]');
+        history.push({ ...checkin, showedUp: false, answeredAt: new Date().toISOString() });
+        localStorage.setItem('checkinHistory', JSON.stringify(history));
+        dismiss();
+    });
+
+    // Auto-dismiss after 15s if no response
+    setTimeout(dismiss, 15000);
 }
 
 // First-visit onboarding — sequential toast hints, cancels on interaction

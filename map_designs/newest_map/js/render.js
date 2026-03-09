@@ -1024,6 +1024,7 @@ function render(mode) {
             if (idx < routeMics.length - 1) {
                 const next = routeMics[idx + 1];
                 let travelLabel = '';
+                let transitPillHtml = '';
                 if (mic.lat && mic.lng && next.lat && next.lng) {
                     const commuteMeta = (typeof getCommuteBetweenMicsMeta === 'function')
                         ? getCommuteBetweenMicsMeta(mic, next)
@@ -1034,16 +1035,38 @@ function render(mode) {
                             pending: false };
                     const travelMins = Math.max(1, Math.round(commuteMeta.mins || 0));
                     const isEstimate = commuteMeta.source === 'estimate' || commuteMeta.pending;
-                    const travelMode = commuteMeta.source === 'walk' ? 'walk' : (commuteMeta.source === 'transit' ? 'transit' : 'travel');
-                    travelLabel = isEstimate ? `~${travelMins} min est` : `${travelMins} min ${travelMode}`;
+
+                    // Build subway line pill if legs available
+                    if (commuteMeta.legs) {
+                        const rideLegs = commuteMeta.legs.filter(l => l.type === 'ride');
+                        const lines = [];
+                        rideLegs.forEach(leg => {
+                            if (leg.line && !lines.includes(leg.line)) lines.push(leg.line);
+                        });
+                        if (lines.length > 0) {
+                            const badges = lines.slice(0, 3).map(line =>
+                                `<span class="commute-badge b-${escapeHtml(line)}">${escapeHtml(line)}</span>`
+                            ).join('');
+                            transitPillHtml = `<span class="commute-live commute-transit">${badges}<span class="commute-time">${travelMins}m</span></span>`;
+                        }
+                    }
+
+                    // Fallback text label when no pill
+                    if (!transitPillHtml) {
+                        const travelMode = commuteMeta.source === 'walk' ? 'walk' : (commuteMeta.source === 'transit' ? 'transit' : 'travel');
+                        travelLabel = isEstimate ? `~${travelMins} min est` : `${travelMins} min ${travelMode}`;
+                    }
                 }
-                const badgeText = leaveLabel && travelLabel ? `${leaveLabel} · ${travelLabel}`
+                const textPart = leaveLabel && travelLabel ? `${leaveLabel} · ${travelLabel}`
                     : leaveLabel || travelLabel || '';
-                if (badgeText) {
+                const badgeContent = transitPillHtml
+                    ? (leaveLabel ? `${leaveLabel} · ${transitPillHtml}` : transitPillHtml)
+                    : textPart;
+                if (badgeContent) {
                     travelHtml = `
                         <div class="my-schedule-travel">
                             <div class="my-schedule-travel-line"></div>
-                            <span class="my-schedule-travel-badge">${badgeText}</span>
+                            <span class="my-schedule-travel-badge">${badgeContent}</span>
                             <div class="my-schedule-travel-line"></div>
                         </div>`;
                 }
@@ -1782,40 +1805,126 @@ function openMyNightSheet() {
                 <button class="my-night-empty-cta" onclick="closeMyNightSheet()">Browse Mics</button>
             </div>`;
     } else {
-        const fmtTime = (d) => {
+        const setDuration = STATE.setDuration || 45;
+        const fmtTime = (d, showAmPm = false) => {
             if (!d) return '';
             const h = d.getHours();
             const m = d.getMinutes();
             const displayH = h > 12 ? h - 12 : (h === 0 ? 12 : h);
             const ampm = h >= 12 ? 'PM' : 'AM';
-            return m === 0 ? `${displayH} ${ampm}` : `${displayH}:${m.toString().padStart(2, '0')} ${ampm}`;
+            if (showAmPm) return `${displayH}:${m.toString().padStart(2, '0')} ${ampm}`;
+            return m === 0 ? `${displayH}:00` : `${displayH}:${m.toString().padStart(2, '0')}`;
         };
 
-        let html = '';
-        routeMics.forEach((mic, idx) => {
+        // Reuse the same my-schedule-item cards as desktop
+        const html = routeMics.map((mic, idx) => {
             const timeStr = mic.start ? fmtTime(mic.start) : '';
-            const venueName = mic.title || mic.venue || 'Mic';
-            const hood = mic.hood || mic.neighborhood || '';
-            const price = mic.price || 'Free';
-            const meta = [hood, price].filter(Boolean).join(' · ');
-
-            html += `
-                <div class="my-night-stop" onclick="event.stopPropagation(); closeMyNightSheet(); if(typeof locateMic==='function') locateMic(${mic.lat}, ${mic.lng}, '${mic.id}');" style="cursor:pointer;">
-                    <div class="my-night-stop-number">${idx + 1}</div>
-                    <div class="my-night-stop-time">${escapeHtml(timeStr)}</div>
-                    <div class="my-night-stop-info">
-                        <div class="my-night-stop-venue">${escapeHtml(venueName)}</div>
-                        <div class="my-night-stop-meta">${escapeHtml(meta)}</div>
-                    </div>
-                    <button class="my-night-stop-remove" onclick="event.stopPropagation(); removeFromMyNight('${mic.id}')" aria-label="Remove ${escapeHtml(venueName)}">✕</button>
-                </div>
-            `;
-
-            // Travel connector between stops
-            if (idx < routeMics.length - 1) {
-                html += '<div class="my-night-travel"><div class="my-night-travel-dot"></div></div>';
+            const rawPrice = mic.price || mic.cost || 0;
+            let priceStr;
+            if (!rawPrice || rawPrice === 'Free' || rawPrice === 0 || rawPrice === '$0') {
+                priceStr = 'Free';
+            } else {
+                const s = String(rawPrice).replace(/^\$/, '').trim();
+                priceStr = s.toLowerCase().startsWith('free') ? s : `$${s}`;
             }
-        });
+            const priceClass = priceStr === 'Free' ? 'free' : '';
+            const hood = mic.hood || mic.neighborhood || '';
+            const stayMins = typeof getMicDuration === 'function' ? getMicDuration(mic.id) : setDuration;
+            const endDate = mic.start ? new Date(mic.start.getTime() + stayMins * 60000) : null;
+            const endStr = endDate ? fmtTime(endDate) : '';
+
+            // Travel connector (same logic as desktop, with subway line pill)
+            let travelHtml = '';
+            const leaveLabel = endStr ? `Leave ${endStr}` : '';
+            if (idx < routeMics.length - 1) {
+                const next = routeMics[idx + 1];
+                let travelLabel = '';
+                let transitPillHtml = '';
+                if (mic.lat && mic.lng && next.lat && next.lng) {
+                    const commuteMeta = (typeof getCommuteBetweenMicsMeta === 'function')
+                        ? getCommuteBetweenMicsMeta(mic, next)
+                        : { mins: (typeof getCommuteBetweenMics === 'function')
+                            ? getCommuteBetweenMics(mic, next)
+                            : Math.max(1, Math.round(calculateDistance(mic.lat, mic.lng, next.lat, next.lng) / 0.05)),
+                            source: 'estimate',
+                            pending: false };
+                    const travelMins = Math.max(1, Math.round(commuteMeta.mins || 0));
+                    const isEstimate = commuteMeta.source === 'estimate' || commuteMeta.pending;
+
+                    // Build subway line pill if legs available
+                    if (commuteMeta.legs) {
+                        const rideLegs = commuteMeta.legs.filter(l => l.type === 'ride');
+                        const lines = [];
+                        rideLegs.forEach(leg => {
+                            if (leg.line && !lines.includes(leg.line)) lines.push(leg.line);
+                        });
+                        if (lines.length > 0) {
+                            const badges = lines.slice(0, 3).map(line =>
+                                `<span class="commute-badge b-${escapeHtml(line)}">${escapeHtml(line)}</span>`
+                            ).join('');
+                            transitPillHtml = `<span class="commute-live commute-transit">${badges}<span class="commute-time">${travelMins}m</span></span>`;
+                        }
+                    }
+
+                    // Fallback text label when no pill
+                    if (!transitPillHtml) {
+                        const travelMode = commuteMeta.source === 'walk' ? 'walk' : (commuteMeta.source === 'transit' ? 'transit' : 'travel');
+                        travelLabel = isEstimate ? `~${travelMins} min est` : `${travelMins} min ${travelMode}`;
+                    }
+                }
+                const textPart = leaveLabel && travelLabel ? `${leaveLabel} · ${travelLabel}`
+                    : leaveLabel || travelLabel || '';
+                const badgeContent = transitPillHtml
+                    ? (leaveLabel ? `${leaveLabel} · ${transitPillHtml}` : transitPillHtml)
+                    : textPart;
+                if (badgeContent) {
+                    travelHtml = `
+                        <div class="my-schedule-travel">
+                            <div class="my-schedule-travel-line"></div>
+                            <span class="my-schedule-travel-badge">${badgeContent}</span>
+                            <div class="my-schedule-travel-line"></div>
+                        </div>`;
+                }
+            } else if (leaveLabel) {
+                travelHtml = `
+                    <div class="my-schedule-travel">
+                        <div class="my-schedule-travel-line"></div>
+                        <span class="my-schedule-travel-badge">${leaveLabel}</span>
+                        <div class="my-schedule-travel-line"></div>
+                    </div>`;
+            }
+
+            return `
+                <div class="my-schedule-item" data-mic-id="${mic.id}" onclick="event.stopPropagation(); closeMyNightSheet(); if(typeof locateMic==='function') locateMic(${mic.lat}, ${mic.lng}, '${mic.id}');">
+                    <div class="my-schedule-item-time-col">
+                        <div class="my-schedule-item-time">${timeStr}</div>
+                        ${mic.setTime ? `<div class="my-schedule-item-set">${escapeHtml(typeof formatSetTime === 'function' ? formatSetTime(mic.setTime) : mic.setTime)}</div>` : ''}
+                    </div>
+                    <div class="my-schedule-item-info">
+                        <div class="my-schedule-item-venue-row">
+                            <div class="my-schedule-item-venue">${escapeHtml(mic.title || mic.venue || 'Mic')}</div>
+                        </div>
+                        <div class="my-schedule-item-meta">
+                            ${hood ? `<span class="my-schedule-item-hood">${escapeHtml(hood)}</span>` : ''}
+                            <span class="my-schedule-item-price ${priceClass}">${priceStr}</span>
+                        </div>
+                        <div class="my-schedule-item-duration-row">
+                            <div class="duration-picker-wrap" data-mic-id="${mic.id}">
+                                <button class="my-schedule-item-duration" onclick="event.stopPropagation(); toggleDurationPicker('${mic.id}', this)" aria-label="Change stay duration, current ${stayMins} minutes" title="How long you'll stay at this stop">
+                                    <span class="duration-label">Stay</span>
+                                    <span class="duration-value-chip"><span class="duration-value-text">${stayMins} min</span></span>
+                                </button>
+                                <div class="duration-picker-options" id="dur-opts-sheet-${mic.id}">
+                                    ${[30, 45, 60, 90].map(v => `<button class="duration-opt${v === stayMins ? ' active' : ''}" onclick="event.stopPropagation(); selectMicDuration('${mic.id}', ${v}); openMyNightSheet();">${v}<span class="duration-opt-unit">m</span></button>`).join('')}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="my-schedule-remove" onclick="event.stopPropagation(); removeFromMyNight('${mic.id}')" aria-label="Remove from schedule">✕</button>
+                </div>
+                ${travelHtml}
+            `;
+        }).join('');
         content.innerHTML = html;
     }
 
@@ -1834,8 +1943,12 @@ function closeMyNightSheet() {
     if (overlay) overlay.classList.remove('active');
 }
 
-// Remove mic from route via My Night sheet
+// Remove mic from route via My Night sheet (with confirmation)
 function removeFromMyNight(micId) {
+    const mic = STATE.mics.find(m => m.id === micId);
+    const name = mic ? (mic.title || mic.venue || 'this stop') : 'this stop';
+    if (!confirm(`Remove ${name}?`)) return;
+
     // Haptic feedback
     if ('vibrate' in navigator) navigator.vibrate(10);
 

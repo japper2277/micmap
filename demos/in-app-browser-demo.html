@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Venue Card Flow Demo</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #09090b;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ── Fake map ── */
+        .fake-map {
+            position: fixed;
+            inset: 0;
+            background-color: #1a1a2e;
+        }
+        .fake-map::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                repeating-linear-gradient(0deg, transparent, transparent 80px, rgba(255,255,255,0.03) 80px, rgba(255,255,255,0.03) 81px),
+                repeating-linear-gradient(90deg, transparent, transparent 80px, rgba(255,255,255,0.03) 80px, rgba(255,255,255,0.03) 81px);
+        }
+
+        /* ── Venue Bottom Sheet ── */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
+            z-index: 1000;
+            display: flex;
+            align-items: flex-end;
+        }
+        .venue-card {
+            width: 100%;
+            max-height: 80vh;
+            background: #000;
+            border-radius: 20px 20px 0 0;
+            border: 1px solid rgba(255,255,255,0.12);
+            border-bottom: none;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
+            padding-bottom: max(20px, env(safe-area-inset-bottom));
+        }
+        .sheet-handle {
+            width: 36px; height: 4px;
+            background: rgba(255,255,255,0.25);
+            border-radius: 2px;
+            margin: 10px auto 0;
+        }
+
+        /* Header */
+        .venue-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 16px 20px 0;
+        }
+        .venue-name { font-size: 22px; font-weight: 700; letter-spacing: -0.3px; }
+        .venue-time { font-size: 20px; font-weight: 700; flex-shrink: 0; }
+
+        /* Address */
+        .venue-address {
+            padding: 6px 20px 0;
+            font-size: 14px;
+            color: #3b82f6;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .venue-address svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+        /* Meta badges */
+        .meta-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 14px 20px 0;
+        }
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 12px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 100px;
+            font-size: 13px;
+            font-weight: 500;
+            color: rgba(255,255,255,0.8);
+        }
+        .badge svg { width: 13px; height: 13px; }
+        .badge.price {
+            background: rgba(244, 63, 94, 0.12);
+            border-color: rgba(244, 63, 94, 0.25);
+            color: #fb7185;
+        }
+        .badge.free {
+            background: rgba(34, 197, 94, 0.12);
+            border-color: rgba(34, 197, 94, 0.25);
+            color: #4ade80;
+        }
+
+        /* Transit summary */
+        .transit-summary {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 14px 20px 0;
+            padding: 10px 14px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 14px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .transit-summary:active { background: rgba(255,255,255,0.08); }
+        .transit-summary.expanded { border-radius: 14px 14px 0 0; }
+        .transit-route {
+            display: flex; align-items: center; gap: 6px;
+            flex: 1; font-size: 13px; color: rgba(255,255,255,0.7);
+        }
+        .transit-route .walk { color: rgba(255,255,255,0.4); font-size: 12px; }
+        .subway-badge {
+            width: 22px; height: 22px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 800; flex-shrink: 0;
+        }
+        .subway-badge.L { background: #a7a9ac; color: #000; }
+        .subway-badge.N { background: #fccc0a; color: #000; }
+        .transit-time { font-size: 15px; font-weight: 700; color: #fff; }
+        .transit-chevron { color: rgba(255,255,255,0.3); transition: transform 0.2s; }
+        .transit-summary.expanded .transit-chevron { transform: rotate(180deg); }
+        .transit-detail {
+            max-height: 0; overflow: hidden;
+            transition: max-height 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            margin: 0 20px;
+        }
+        .transit-detail.open { max-height: 200px; }
+        .transit-detail-inner {
+            padding: 12px 14px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-top: none;
+            border-radius: 0 0 14px 14px;
+            font-size: 13px; color: rgba(255,255,255,0.6);
+        }
+        .transit-detail-row { display: flex; justify-content: space-between; padding: 4px 0; }
+        .transit-detail-label { color: rgba(255,255,255,0.4); }
+        .transit-trains { color: #4ade80; font-weight: 600; }
+
+        /* ── CTA Area ── */
+        .cta-area { padding: 18px 20px 0; }
+
+        /* RSVP button — always the primary CTA */
+        .btn-rsvp {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 16px 20px;
+            min-height: 54px;
+            background: linear-gradient(180deg, #f43f5e 0%, #e11d48 100%);
+            border: none;
+            border-radius: 14px;
+            color: #fff;
+            font-size: 17px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(244, 63, 94, 0.35), inset 0 1px 0 rgba(255,255,255,0.2);
+            transition: transform 0.1s;
+        }
+        .btn-rsvp:active { transform: scale(0.97); }
+        .btn-rsvp svg { width: 18px; height: 18px; }
+
+        /* ── Payment confirmation (Partiful-style) ── */
+        .payment-sheet {
+            display: none;
+            flex-direction: column;
+            gap: 0;
+            animation: sheetSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .payment-sheet.show { display: flex; }
+        @keyframes sheetSlideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .payment-header {
+            text-align: center;
+            padding: 8px 0 16px;
+        }
+        .payment-emoji {
+            font-size: 40px;
+            margin-bottom: 8px;
+        }
+        .payment-label {
+            font-size: 14px;
+            color: rgba(255,255,255,0.5);
+        }
+        .payment-amount {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-top: 2px;
+        }
+
+        /* Payment method card */
+        .payment-method {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 14px;
+            cursor: pointer;
+            transition: background 0.15s;
+            margin-bottom: 10px;
+        }
+        .payment-method:active { background: rgba(255,255,255,0.1); }
+        .payment-method-icon {
+            width: 40px; height: 40px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; font-weight: 800;
+            flex-shrink: 0;
+        }
+        .payment-method-icon.venmo { background: #008CFF; }
+        .payment-method-icon.website { background: rgba(124, 58, 237, 0.2); color: #a78bfa; }
+        .payment-method-info { flex: 1; }
+        .payment-method-name { font-size: 15px; font-weight: 600; }
+        .payment-method-handle { font-size: 13px; color: rgba(255,255,255,0.5); margin-top: 1px; }
+        .payment-method-action {
+            padding: 8px 18px;
+            background: #fff;
+            color: #000;
+            border: none;
+            border-radius: 100px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        /* "I've already paid" / "Pay at door" */
+        .payment-confirm-link {
+            text-align: center;
+            padding: 14px 0 2px;
+            font-size: 15px;
+            font-weight: 600;
+            color: rgba(255,255,255,0.6);
+            cursor: pointer;
+            transition: color 0.15s;
+        }
+        .payment-confirm-link:active { color: #fff; }
+
+        /* "Pay at door" subtle note */
+        .pay-at-door-note {
+            text-align: center;
+            padding: 6px 0 0;
+            font-size: 12px;
+            color: rgba(255,255,255,0.3);
+        }
+
+        /* ── Post-RSVP confirmation ── */
+        .confirmed-state {
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+            animation: confirmFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .confirmed-state.show { display: flex; }
+        @keyframes confirmFadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .confirm-banner {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            border-radius: 14px;
+        }
+        .confirm-icon {
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(180deg, #22c55e 0%, #16a34a 100%);
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
+        }
+        @keyframes popIn {
+            from { transform: scale(0); }
+            to { transform: scale(1); }
+        }
+        .confirm-icon svg { width: 20px; height: 20px; color: #fff; }
+        .confirm-text-wrap { flex: 1; }
+        .confirm-title { font-size: 16px; font-weight: 700; color: #4ade80; }
+        .confirm-subtitle { font-size: 13px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+
+        /* Share hero CTA */
+        .btn-share-hero {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 16px 20px;
+            min-height: 54px;
+            background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+            border: none;
+            border-radius: 14px;
+            color: #fff;
+            font-size: 17px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(244, 63, 94, 0.35), inset 0 1px 0 rgba(255,255,255,0.2);
+            transition: transform 0.1s;
+        }
+        .btn-share-hero:active { transform: scale(0.97); }
+        .btn-share-hero svg { width: 18px; height: 18px; }
+
+        /* Secondary actions */
+        .secondary-row {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            padding: 14px 20px 4px;
+        }
+        .action-pill {
+            display: flex; align-items: center; gap: 6px;
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 100px;
+            color: rgba(255,255,255,0.7);
+            font-size: 13px; font-weight: 500;
+            cursor: pointer; transition: all 0.15s;
+        }
+        .action-pill:active { background: rgba(255,255,255,0.12); }
+        .action-pill svg { width: 14px; height: 14px; }
+
+        /* ═══ IN-APP BROWSER ═══ */
+        .iab-overlay {
+            position: fixed; inset: 0; z-index: 2000;
+            background: #000;
+            display: flex; flex-direction: column;
+            transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .iab-overlay.open { transform: translateY(0); }
+        .iab-toolbar {
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px 16px;
+            padding-top: max(12px, env(safe-area-inset-top));
+            background: #111;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            flex-shrink: 0;
+        }
+        .iab-back {
+            display: flex; align-items: center; gap: 6px;
+            background: none; border: none;
+            color: #3b82f6; font-size: 15px; font-weight: 600;
+            cursor: pointer; padding: 8px 4px; min-height: 44px;
+        }
+        .iab-back svg { width: 18px; height: 18px; }
+        .iab-url-bar {
+            flex: 1; display: flex; align-items: center; gap: 6px;
+            padding: 8px 12px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 10px; min-height: 36px;
+        }
+        .iab-lock { width: 12px; height: 12px; color: #4ade80; flex-shrink: 0; }
+        .iab-url {
+            font-size: 13px; color: rgba(255,255,255,0.5);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .iab-url .domain { color: rgba(255,255,255,0.8); }
+        .iab-external {
+            background: none; border: none;
+            color: rgba(255,255,255,0.4); cursor: pointer;
+            padding: 8px; min-height: 44px;
+            display: flex; align-items: center;
+        }
+        .iab-external svg { width: 18px; height: 18px; }
+        .iab-loading-bar {
+            height: 2px; background: #3b82f6; width: 0%;
+            transition: width 0.8s ease;
+        }
+        .iab-overlay.loading .iab-loading-bar { width: 70%; }
+        .iab-overlay.loaded .iab-loading-bar { width: 100%; transition: width 0.2s ease; }
+        .iab-content { flex: 1; position: relative; background: #fff; }
+        .iab-content iframe { width: 100%; height: 100%; border: none; }
+        .iab-loading-state {
+            position: absolute; inset: 0;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            gap: 16px; background: #fff;
+        }
+        .iab-spinner {
+            width: 32px; height: 32px;
+            border: 3px solid #e5e7eb; border-top-color: #3b82f6;
+            border-radius: 50%; animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .iab-loading-text { font-size: 14px; color: #9ca3af; }
+        .iab-fallback {
+            position: absolute; inset: 0; display: none;
+            flex-direction: column; align-items: center; justify-content: center;
+            gap: 16px; background: #111; color: #fff; padding: 32px; text-align: center;
+        }
+        .iab-fallback.show { display: flex; }
+        .iab-fallback-title { font-size: 18px; font-weight: 700; }
+        .iab-fallback-text { font-size: 14px; color: rgba(255,255,255,0.5); max-width: 280px; }
+        .iab-fallback-btn {
+            padding: 12px 24px; background: #3b82f6; border: none;
+            border-radius: 12px; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer;
+        }
+
+        /* ── Switcher ── */
+        .demo-switcher {
+            position: fixed; top: 12px; left: 50%; transform: translateX(-50%);
+            z-index: 100; display: flex;
+            background: rgba(0,0,0,0.85);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 100px; overflow: hidden;
+        }
+        .demo-tab {
+            padding: 10px 16px; font-size: 11px; font-weight: 600;
+            color: rgba(255,255,255,0.5); letter-spacing: 0.3px;
+            text-transform: uppercase; cursor: pointer;
+            border: none; background: none; transition: all 0.2s;
+        }
+        .demo-tab.active { color: #fff; background: rgba(255,255,255,0.1); }
+
+        /* Confetti */
+        .confetti-container { position: fixed; inset: 0; pointer-events: none; z-index: 3000; }
+        .confetti {
+            position: absolute;
+            border-radius: 2px;
+            animation: confettiFall 1.5s ease-out forwards;
+        }
+        @keyframes confettiFall {
+            0% { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; }
+            100% { transform: translateY(400px) rotate(720deg) scale(0); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="demo-switcher">
+        <button class="demo-tab active" onclick="showVariant('paid-venmo')">Paid (Venmo)</button>
+        <button class="demo-tab" onclick="showVariant('paid-ticket')">Paid (Ticket)</button>
+        <button class="demo-tab" onclick="showVariant('free')">Free</button>
+    </div>
+
+    <div class="fake-map"></div>
+    <div class="confetti-container" id="confetti-container"></div>
+
+    <!-- ── Venue Bottom Sheet ── -->
+    <div class="modal-overlay">
+        <div class="venue-card">
+            <div class="sheet-handle"></div>
+
+            <div class="venue-header">
+                <div class="venue-name" id="v-name">Laughing Buddha</div>
+                <div class="venue-time" id="v-time">8:45</div>
+            </div>
+            <div class="venue-address">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                <span id="v-addr">410 8th Ave, 2nd Floor →</span>
+            </div>
+            <div class="meta-badges" id="v-badges">
+                <span class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 5min sets</span>
+                <span class="badge price" id="v-price-badge">$5+ purchase</span>
+            </div>
+
+            <!-- Transit -->
+            <div class="transit-summary" onclick="toggleTransit()">
+                <div class="transit-route">
+                    <span class="walk">🚶 3m →</span>
+                    <span class="subway-badge L">L</span>
+                    <span style="color:rgba(255,255,255,0.3)">→</span>
+                    <span class="subway-badge N">N</span>
+                    <span class="walk">→ 5m 🚶</span>
+                </div>
+                <span class="transit-time">29m</span>
+                <svg class="transit-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <div class="transit-detail" id="transit-detail">
+                <div class="transit-detail-inner">
+                    <div class="transit-detail-row"><span class="transit-detail-label">From</span><span>Jefferson St</span></div>
+                    <div class="transit-detail-row"><span class="transit-detail-label">Depart</span><span>8:46 PM</span></div>
+                    <div class="transit-detail-row"><span class="transit-detail-label">Arrive by</span><span>9:15 PM</span></div>
+                    <div class="transit-detail-row"><span class="transit-detail-label">Next trains</span><span class="transit-trains">8:44p, 8:47p +1</span></div>
+                </div>
+            </div>
+
+            <!-- ── CTA Area ── -->
+            <div class="cta-area">
+
+                <!-- STEP 1: RSVP Button (always starts here) -->
+                <div id="step-rsvp">
+                    <button class="btn-rsvp" onclick="handleRSVP()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        <span id="rsvp-label">I'm Going</span>
+                    </button>
+                </div>
+
+                <!-- STEP 2: Payment check (Partiful-style) -->
+                <div id="step-payment" class="payment-sheet">
+                    <div class="payment-header">
+                        <div class="payment-emoji" id="pay-emoji">🎤</div>
+                        <div class="payment-label">Sign up to get on the list</div>
+                        <div class="payment-amount" id="pay-amount">$5+ purchase</div>
+                    </div>
+
+                    <!-- Venmo method -->
+                    <div class="payment-method" id="pay-venmo" onclick="openInAppBrowser('https://venmo.com/laughingbuddha')">
+                        <div class="payment-method-icon venmo">V</div>
+                        <div class="payment-method-info">
+                            <div class="payment-method-name">Venmo</div>
+                            <div class="payment-method-handle" id="pay-venmo-handle">@laughingbuddha</div>
+                        </div>
+                        <button class="payment-method-action">Pay</button>
+                    </div>
+
+                    <!-- Ticket website method -->
+                    <div class="payment-method" id="pay-website" style="display:none;" onclick="openInAppBrowser('https://www.tickettailor.com/events/laughingbuddhacomedy/2002860')">
+                        <div class="payment-method-icon website">🎫</div>
+                        <div class="payment-method-info">
+                            <div class="payment-method-name" id="pay-site-name">TicketTailor</div>
+                            <div class="payment-method-handle" id="pay-site-url">tickettailor.com</div>
+                        </div>
+                        <button class="payment-method-action">Book</button>
+                    </div>
+
+                    <div class="payment-confirm-link" onclick="confirmPayment()">I've already paid</div>
+                    <div class="pay-at-door-note" id="pay-door-note">Or pay at the door</div>
+                </div>
+
+                <!-- STEP 3: Confirmed — share hero -->
+                <div id="step-confirmed" class="confirmed-state">
+                    <div class="confirm-banner">
+                        <div class="confirm-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        </div>
+                        <div class="confirm-text-wrap">
+                            <div class="confirm-title" id="confirm-msg">You're in · Added to My Night</div>
+                            <div class="confirm-subtitle" id="confirm-sub">Stop #2 tonight</div>
+                        </div>
+                    </div>
+                    <button class="btn-share-hero" onclick="alert('Native share sheet would open')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+                        Share with Friends
+                    </button>
+                </div>
+            </div>
+
+            <!-- Secondary -->
+            <div class="secondary-row">
+                <div class="action-pill">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+                    Instagram
+                </div>
+                <div class="action-pill">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    Directions
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ In-App Browser ═══ -->
+    <div class="iab-overlay" id="iab-overlay">
+        <div class="iab-toolbar">
+            <button class="iab-back" onclick="closeInAppBrowser()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                Done
+            </button>
+            <div class="iab-url-bar">
+                <svg class="iab-lock" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1s3.1 1.39 3.1 3.1v2z"/></svg>
+                <span class="iab-url" id="iab-url"></span>
+            </div>
+            <button class="iab-external" id="iab-external" title="Open in Safari">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            </button>
+        </div>
+        <div class="iab-loading-bar" id="iab-loading-bar"></div>
+        <div class="iab-content">
+            <div class="iab-loading-state" id="iab-loading">
+                <div class="iab-spinner"></div>
+                <div class="iab-loading-text" id="iab-loading-text">Loading...</div>
+            </div>
+            <iframe id="iab-iframe" style="display:none;" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+            <div class="iab-fallback" id="iab-fallback">
+                <div class="iab-fallback-title">Can't load inline</div>
+                <div class="iab-fallback-text">This site needs to open in a new tab.</div>
+                <button class="iab-fallback-btn" id="iab-fallback-btn">Open in New Tab →</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let variant = 'paid-venmo';
+        let iabTimeout = null;
+
+        // ── Variants ──
+        const VARIANTS = {
+            'paid-venmo': {
+                name: 'Laughing Buddha', time: '8:45', addr: '410 8th Ave, 2nd Floor →',
+                price: '$5+ purchase', priceClass: 'price', payAmount: '$5+ purchase',
+                showVenmo: true, venmoHandle: '@laughingbuddha',
+                showWebsite: false, doorNote: true
+            },
+            'paid-ticket': {
+                name: 'The Pit Midtown', time: '9:30', addr: '154 W. 29th St →',
+                price: '$10 ticket', priceClass: 'price', payAmount: '$10 per person',
+                showVenmo: false,
+                showWebsite: true, siteName: 'TicketTailor', siteUrl: 'tickettailor.com',
+                siteLink: 'https://www.tickettailor.com/events/laughingbuddhacomedy/2002860',
+                doorNote: false
+            },
+            'free': {
+                name: 'Creek & Cave', time: '7:00', addr: '10-93 Jackson Ave, LIC →',
+                price: 'Free', priceClass: 'free',
+                isFree: true
+            }
+        };
+
+        function showVariant(v) {
+            variant = v;
+            const d = VARIANTS[v];
+
+            document.querySelectorAll('.demo-tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Update venue info
+            document.getElementById('v-name').textContent = d.name;
+            document.getElementById('v-time').textContent = d.time;
+            document.getElementById('v-addr').textContent = d.addr;
+
+            const priceBadge = document.getElementById('v-price-badge');
+            priceBadge.textContent = d.price;
+            priceBadge.className = 'badge ' + d.priceClass;
+
+            // Reset all steps
+            document.getElementById('step-rsvp').style.display = 'none';
+            document.getElementById('step-payment').classList.remove('show');
+            document.getElementById('step-payment').style.display = 'none';
+            document.getElementById('step-confirmed').classList.remove('show');
+            document.getElementById('step-confirmed').style.display = 'none';
+
+            if (d.isFree) {
+                // Free mic: show "I'm Going" as step 1
+                document.getElementById('step-rsvp').style.display = '';
+                document.getElementById('rsvp-label').textContent = "I'm Going";
+            } else {
+                // Paid mic: show payment/signup as step 1 — no "I'm Going" first
+                const paySheet = document.getElementById('step-payment');
+                paySheet.style.display = '';
+                paySheet.classList.add('show');
+
+                document.getElementById('pay-amount').textContent = d.payAmount;
+                document.getElementById('pay-venmo').style.display = d.showVenmo ? 'flex' : 'none';
+                if (d.showVenmo) {
+                    document.getElementById('pay-venmo-handle').textContent = d.venmoHandle;
+                }
+                document.getElementById('pay-website').style.display = d.showWebsite ? 'flex' : 'none';
+                if (d.showWebsite) {
+                    document.getElementById('pay-site-name').textContent = d.siteName;
+                    document.getElementById('pay-site-url').textContent = d.siteUrl;
+                    document.getElementById('pay-website').onclick = () => openInAppBrowser(d.siteLink);
+                }
+                document.getElementById('pay-door-note').style.display = d.doorNote ? '' : 'none';
+            }
+        }
+
+        function toggleTransit() {
+            document.querySelector('.transit-summary').classList.toggle('expanded');
+            document.getElementById('transit-detail').classList.toggle('open');
+        }
+
+        // ── RSVP Flow ──
+        function handleRSVP() {
+            if ('vibrate' in navigator) navigator.vibrate(10);
+            // Only free mics reach this — straight to confirmed
+            document.getElementById('step-rsvp').style.display = 'none';
+            document.getElementById('step-confirmed').style.display = '';
+            document.getElementById('step-confirmed').classList.add('show');
+            document.getElementById('confirm-msg').textContent = "You're in · Added to My Night";
+            document.getElementById('confirm-sub').textContent = 'Free · Walk in';
+            spawnConfetti();
+        }
+
+        function confirmPayment() {
+            if ('vibrate' in navigator) navigator.vibrate(10);
+            document.getElementById('step-payment').style.display = 'none';
+            document.getElementById('step-confirmed').style.display = '';
+            document.getElementById('step-confirmed').classList.add('show');
+            document.getElementById('confirm-msg').textContent = "You're in · Added to My Night";
+            document.getElementById('confirm-sub').textContent = 'Payment confirmed';
+            spawnConfetti();
+        }
+
+        // ── In-App Browser ──
+        function openInAppBrowser(url) {
+            const overlay = document.getElementById('iab-overlay');
+            const iframe = document.getElementById('iab-iframe');
+            const loading = document.getElementById('iab-loading');
+            const fallback = document.getElementById('iab-fallback');
+
+            iframe.style.display = 'none';
+            loading.style.display = 'flex';
+            fallback.classList.remove('show');
+            overlay.classList.remove('loaded');
+            overlay.classList.add('loading');
+
+            try {
+                const parsed = new URL(url);
+                document.getElementById('iab-url').innerHTML =
+                    '<span class="domain">' + parsed.hostname + '</span>' + parsed.pathname.substring(0, 25) + '...';
+                document.getElementById('iab-loading-text').textContent = 'Loading ' + parsed.hostname + '...';
+            } catch(e) {}
+
+            document.getElementById('iab-external').onclick = () => window.open(url, '_blank');
+            document.getElementById('iab-fallback-btn').onclick = () => {
+                window.open(url, '_blank');
+                closeInAppBrowser();
+            };
+
+            overlay.classList.add('open');
+
+            iframe.onload = () => {
+                clearTimeout(iabTimeout);
+                overlay.classList.remove('loading');
+                overlay.classList.add('loaded');
+                setTimeout(() => {
+                    loading.style.display = 'none';
+                    iframe.style.display = 'block';
+                }, 300);
+            };
+            iframe.onerror = () => {
+                overlay.classList.remove('loading');
+                loading.style.display = 'none';
+                fallback.classList.add('show');
+            };
+            iframe.src = url;
+
+            iabTimeout = setTimeout(() => {
+                if (iframe.style.display === 'none') {
+                    overlay.classList.remove('loading');
+                    loading.style.display = 'none';
+                    fallback.classList.add('show');
+                }
+            }, 5000);
+        }
+
+        function closeInAppBrowser() {
+            const overlay = document.getElementById('iab-overlay');
+            const iframe = document.getElementById('iab-iframe');
+            overlay.classList.remove('open', 'loading', 'loaded');
+            clearTimeout(iabTimeout);
+            setTimeout(() => { iframe.src = 'about:blank'; iframe.style.display = 'none'; }, 400);
+
+            // User comes back to payment screen — they decide when to confirm
+        }
+
+        // ── Confetti ──
+        function spawnConfetti() {
+            const c = document.getElementById('confetti-container');
+            const colors = ['#f43f5e','#22c55e','#3b82f6','#eab308','#a855f7','#ec4899'];
+            for (let i = 0; i < 30; i++) {
+                const el = document.createElement('div');
+                el.className = 'confetti';
+                el.style.left = (25 + Math.random() * 50) + '%';
+                el.style.top = (15 + Math.random() * 25) + '%';
+                el.style.background = colors[Math.floor(Math.random() * colors.length)];
+                el.style.animationDelay = (Math.random() * 0.3) + 's';
+                el.style.animationDuration = (1 + Math.random() * 1) + 's';
+                el.style.width = (6 + Math.random() * 6) + 'px';
+                el.style.height = (6 + Math.random() * 6) + 'px';
+                c.appendChild(el);
+            }
+            setTimeout(() => { c.innerHTML = ''; }, 2500);
+        }
+
+        // Initialize — paid-venmo is default, so show payment as step 1
+        (function() {
+            const d = VARIANTS[variant];
+            document.getElementById('step-rsvp').style.display = 'none';
+            const paySheet = document.getElementById('step-payment');
+            paySheet.style.display = '';
+            paySheet.classList.add('show');
+            document.getElementById('pay-amount').textContent = d.payAmount;
+            document.getElementById('pay-venmo').style.display = d.showVenmo ? 'flex' : 'none';
+            if (d.showVenmo) document.getElementById('pay-venmo-handle').textContent = d.venmoHandle;
+            document.getElementById('pay-website').style.display = 'none';
+            document.getElementById('pay-door-note').style.display = d.doorNote ? '' : 'none';
+        })();
+    </script>
+</body>
+</html>

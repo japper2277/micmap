@@ -65,10 +65,8 @@ function handleAddClick(btn, micId) {
     setTimeout(() => {
         addToRoute(micId, true); // skipZoom since user clicked from list
 
-        // Show toast
-        if (typeof toastService !== 'undefined' && toastService.show) {
-            toastService.show(`Added ${venueName}`, 'success');
-        }
+        // Show celebrate HUD
+        showCelebrateHUD(venueName);
     }, 150);
 }
 
@@ -165,6 +163,14 @@ function addToRoute(micId, skipZoom = false) {
     persistPlanState();
     if (!skipZoom) fitMapToReachableMics();
 
+    // Update floating "My Night" pill (mobile)
+    if (typeof updateMyNightPill === 'function') updateMyNightPill();
+
+    // Share nudge after 2nd stop added
+    if (STATE.route.length === 2 && typeof showShareNudge === 'function') {
+        setTimeout(() => showShareNudge(), 800);
+    }
+
     // Trigger pulse animation on schedule card
     const scheduleCard = document.querySelector('.my-schedule-card');
     if (scheduleCard) {
@@ -255,6 +261,9 @@ function removeFromRoute(micId) {
     updateRouteClass();
     render(STATE.currentMode);  // Re-render (includes My Schedule card)
     updateMarkerStates();       // Update marker visual states (selected, dimmed, etc.)
+
+    // Update floating "My Night" pill (mobile)
+    if (typeof updateMyNightPill === 'function') updateMyNightPill();
     updateRouteLine();
     persistPlanState();
 }
@@ -622,13 +631,15 @@ function getCachedPlannerCommuteEntry(cacheKey) {
     return cached;
 }
 
-function setCachedPlannerCommuteMinutes(cacheKey, mins, source = 'api') {
+function setCachedPlannerCommuteMinutes(cacheKey, mins, source = 'api', legs = null) {
     if (!cacheKey || !Number.isFinite(mins)) return;
-    plannerCommuteCache[cacheKey] = {
+    const entry = {
         mins: Math.max(1, Math.round(mins)),
         source,
         fetchedAt: Date.now()
     };
+    if (legs) entry.legs = legs;
+    plannerCommuteCache[cacheKey] = entry;
 }
 
 function queuePlannerCommuteRefresh() {
@@ -674,6 +685,13 @@ async function fetchPlannerCommuteFromApi(fromMic, toMic, cacheKey) {
                     if (Number.isFinite(routeMins)) {
                         mins = routeMins;
                         source = 'transit';
+                        // Preserve route legs for subway line badges
+                        if (route.legs) {
+                            setCachedPlannerCommuteMinutes(cacheKey, mins, source, route.legs);
+                            plannerCommutePending.delete(cacheKey);
+                            queuePlannerCommuteRefresh();
+                            return; // Already cached with legs
+                        }
                     }
                 }
             }
@@ -713,7 +731,9 @@ function getCommuteBetweenMicsMeta(fromMic, toMic) {
 
     const cachedEntry = getCachedPlannerCommuteEntry(cacheKey);
     if (cachedEntry) {
-        return { mins: cachedEntry.mins, source: cachedEntry.source || 'api', pending: false };
+        const result = { mins: cachedEntry.mins, source: cachedEntry.source || 'api', pending: false };
+        if (cachedEntry.legs) result.legs = cachedEntry.legs;
+        return result;
     }
 
     const isOnline = (typeof navigator === 'undefined') ? true : navigator.onLine !== false;

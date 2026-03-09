@@ -104,26 +104,108 @@ function initModal() {
         });
     }
 
-    // "Add to Night" button click handler - adds mic to in-app schedule without entering plan mode
+    // "Going?" button click handler
+    const modalPaidConfirm = document.getElementById('modal-paid-confirm');
+    const modalSignupPay = document.getElementById('modal-signup-pay');
+    const modalConfirmPaid = document.getElementById('modal-confirm-paid');
+    const modalDidYouPay = document.getElementById('modal-did-you-pay');
+    const modalYesPaid = document.getElementById('modal-yes-paid');
+    const modalNotYet = document.getElementById('modal-not-yet');
+    let waitingForPayConfirm = false;
+
     if (modalPlanBtn) {
         modalPlanBtn.addEventListener('click', () => {
             const mic = modalMicsArray[modalActiveMicIndex];
             if (!mic) return;
 
-            // Toggle mic in/out of route
-            if (typeof toggleMicInRoute === 'function') {
-                toggleMicInRoute(mic.id, true); // skipZoom = true
-            }
-
             const venueName = mic.title || mic.venue || 'Mic';
-            const wasAdded = STATE.route.includes(mic.id);
-            if (wasAdded) {
-                showCelebrateHUD(venueName);
-            } else if (typeof toastService !== 'undefined' && toastService.show) {
-                toastService.show(`Removed ${venueName}`, 'warning');
+
+            // If already in route, toggle it off (remove)
+            if (STATE.route && STATE.route.includes(mic.id)) {
+                if (typeof toggleMicInRoute === 'function') {
+                    toggleMicInRoute(mic.id, true);
+                }
+                if (typeof toastService !== 'undefined' && toastService.show) {
+                    toastService.show(`Removed ${venueName}`, 'warning');
+                }
+                closeVenueModal();
+                return;
             }
 
-            // Close modal
+            const signupUrl = modalPlanBtn.dataset.signupUrl;
+
+            // Paid mic: show "Sign Up & Pay" + "Already Signed Up" row
+            if (signupUrl && modalPaidConfirm) {
+                modalPlanBtn.style.display = 'none';
+                modalPaidConfirm.style.display = 'flex';
+                if (modalSignupPay) modalSignupPay.href = signupUrl;
+            } else {
+                // Free mic: add to night directly
+                if (typeof toggleMicInRoute === 'function') {
+                    toggleMicInRoute(mic.id, true);
+                }
+                showCelebrateHUD(venueName);
+                closeVenueModal();
+            }
+        });
+    }
+
+    // "Sign Up & Pay" or "Sign Up Online" - opens link, shows "Did you pay?" when user returns
+    if (modalSignupPay) {
+        modalSignupPay.addEventListener('click', () => {
+            waitingForPayConfirm = true;
+        });
+    }
+    if (modalSignupBtn) {
+        modalSignupBtn.addEventListener('click', () => {
+            waitingForPayConfirm = true;
+        });
+    }
+
+    // When user returns from signup page, swap to "Did you pay?" row
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible' && waitingForPayConfirm) {
+            waitingForPayConfirm = false;
+            if (modalPlanBtn) modalPlanBtn.style.display = 'none';
+            if (modalSignupBtn) modalSignupBtn.style.display = 'none';
+            if (modalPaidConfirm) modalPaidConfirm.style.display = 'none';
+            if (modalDidYouPay) modalDidYouPay.style.display = 'flex';
+        }
+    });
+
+    // "Yes ✓" - paid, add to night
+    if (modalYesPaid) {
+        modalYesPaid.addEventListener('click', () => {
+            const mic = modalMicsArray[modalActiveMicIndex];
+            if (!mic) return;
+            const venueName = mic.title || mic.venue || 'Mic';
+            if (typeof toggleMicInRoute === 'function') {
+                toggleMicInRoute(mic.id, true);
+            }
+            showCelebrateHUD(venueName);
+            closeVenueModal();
+        });
+    }
+
+    // "Not yet" - go back to paid confirm row
+    if (modalNotYet) {
+        modalNotYet.addEventListener('click', () => {
+            if (modalDidYouPay) modalDidYouPay.style.display = 'none';
+            if (modalPaidConfirm) modalPaidConfirm.style.display = 'flex';
+        });
+    }
+
+    // "Already Paid" - confirms and adds to night directly
+    if (modalConfirmPaid) {
+        modalConfirmPaid.addEventListener('click', () => {
+            const mic = modalMicsArray[modalActiveMicIndex];
+            if (!mic) return;
+            const venueName = mic.title || mic.venue || 'Mic';
+
+            if (typeof toggleMicInRoute === 'function') {
+                toggleMicInRoute(mic.id, true);
+            }
+            showCelebrateHUD(venueName);
             closeVenueModal();
         });
     }
@@ -357,7 +439,14 @@ function populateModalContent(mic, allMicsAtVenue = null) {
     activeModalMicId = mic.id || null;
 
     // 1. HEADER - Venue name and time(s)
-    modalVenueName.innerText = mic.title || 'Unknown Venue';
+    const igHandleForName = mic.contact || mic.host || mic.hostIg;
+    const venueName = escapeHtml(mic.title || 'Unknown Venue');
+    if (igHandleForName && igHandleForName !== 'TBD') {
+        const igUrlName = `https://instagram.com/${igHandleForName.replace(/^@/, '')}`;
+        modalVenueName.innerHTML = `${venueName} <a href="${igUrlName}" target="_blank" class="venue-ig-badge" onclick="event.stopPropagation()"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>`;
+    } else {
+        modalVenueName.textContent = mic.title || 'Unknown Venue';
+    }
 
     // In plan mode: show clickable time buttons in header
     const micsForHeader = allMicsAtVenue || [mic];
@@ -527,18 +616,7 @@ function populateModalContent(mic, allMicsAtVenue = null) {
         }
     }
 
-    // 4. IG button in action row
-    const igHandleForBadge = mic.contact || mic.host || mic.hostIg;
-    if (modalIgBtn) {
-        if (igHandleForBadge && igHandleForBadge !== 'TBD') {
-            modalIgBtn.href = `https://instagram.com/${igHandleForBadge.replace(/^@/, '')}`;
-            modalIgBtn.style.display = 'flex';
-        } else {
-            modalIgBtn.style.display = 'none';
-        }
-    }
-
-    // 5. Walk-in or Signup time badge (when no online signup)
+    // 4. Walk-in or Signup time badge (when no online signup)
     if (!mic.signupUrl && !mic.signupEmail) {
         if (signupTimeForBadge) {
             infoParts.push(`<div class="info-badge info-badge-walkin">Signup @${escapeHtml(signupTimeForBadge)}</div>`);
@@ -547,9 +625,24 @@ function populateModalContent(mic, allMicsAtVenue = null) {
         }
     }
 
+    // IG badge moved to venue name row — keep action row IG button
+    const igHandleForBadge = mic.contact || mic.host || mic.hostIg;
+    if (igHandleForBadge && igHandleForBadge !== 'TBD') {
+        const igUrl = `https://instagram.com/${igHandleForBadge.replace(/^@/, '')}`;
+        if (modalIgBtn) { modalIgBtn.href = igUrl; modalIgBtn.style.display = 'flex'; }
+    } else {
+        if (modalIgBtn) modalIgBtn.style.display = 'none';
+    }
+
+    // 6. Transit commute pill
+    if (mic.transitMins !== undefined && typeof buildCommuteHtml === 'function') {
+        const commuteHtml = buildCommuteHtml(mic);
+        if (commuteHtml) infoParts.push(commuteHtml);
+    }
+
     modalInfoRow.innerHTML = infoParts.join('');
 
-    // 4. NOTE TEXT - Description only (if there's meaningful content)
+    // NOTE TEXT - Description only (if there's meaningful content)
     let noteText = instructions;
     if (noteText && noteText.length >= 3) {
         noteText = noteText.charAt(0).toUpperCase() + noteText.slice(1);
@@ -594,40 +687,31 @@ function populateModalContent(mic, allMicsAtVenue = null) {
     const igHandle = mic.contact || mic.host || mic.hostIg;
     const hasIg = igHandle && igHandle !== 'TBD';
 
-    if (hasSignupUrl) {
-        modalSignupBtn.href = mic.signupUrl;
-        modalSignupBtn.target = '_blank';
-        modalSignupBtn.innerText = 'Sign Up Online' + spotsLabel;
-        modalSignupBtn.style.display = 'flex';
-    } else if (hasSignupEmail) {
-        modalSignupBtn.href = `mailto:${mic.signupEmail}`;
-        modalSignupBtn.removeAttribute('target');
-        modalSignupBtn.innerText = 'Email';
-        modalSignupBtn.style.display = 'flex';
-    } else {
-        modalSignupBtn.style.display = 'none';
-    }
+    // Hide signup button — "Going?" handles everything
+    modalSignupBtn.style.display = 'none';
+    modalActions.classList.add('single-btn');
 
-    const hasSignupAction = hasSignupUrl || hasSignupEmail;
-
-    // Schedule button: show current state (unless in plan mode with time pills)
+    // "Going?" button
     if (modalPlanBtn) {
         if (STATE.planMode) {
             modalPlanBtn.style.display = 'none';
         } else {
             modalPlanBtn.style.display = 'flex';
             const isInRoute = STATE.route?.includes(mic.id);
-            modalPlanBtn.textContent = isInRoute ? 'In Night \u2713' : '+ Add to Night';
+            modalPlanBtn.textContent = isInRoute ? 'In Night ✓' : 'Going?';
             modalPlanBtn.classList.toggle('btn-scheduled', isInRoute);
+            modalPlanBtn.dataset.signupUrl = mic.signupUrl || '';
+            modalPlanBtn.dataset.signupEmail = mic.signupEmail || '';
         }
     }
 
-    // Action stack layout: hide signup row if no signup action
-    modalActions.classList.remove('single-btn');
-    if (!hasSignupAction) {
-        modalActions.classList.add('single-btn');
-        modalSignupBtn.style.display = 'none';
-    }
+    // Reset paid confirmation rows
+    const paidConfirmEl = document.getElementById('modal-paid-confirm');
+    const signupPayEl = document.getElementById('modal-signup-pay');
+    const didYouPayEl = document.getElementById('modal-did-you-pay');
+    if (paidConfirmEl) { paidConfirmEl.style.display = 'none'; }
+    if (signupPayEl) { signupPayEl.style.display = ''; }
+    if (didYouPayEl) { didYouPayEl.style.display = 'none'; }
 
     // Plan mode: Hide the separate plan-actions (buttons are now in header)
     if (modalPlanActions) {
@@ -661,7 +745,14 @@ function openVenueModal(mic) {
     modalActiveMicIndex = 0;
 
     // 1. HEADER - Venue name and time
-    modalVenueName.innerText = mic.title || 'Unknown Venue';
+    const igHandleForName = mic.contact || mic.host || mic.hostIg;
+    const venueName = escapeHtml(mic.title || 'Unknown Venue');
+    if (igHandleForName && igHandleForName !== 'TBD') {
+        const igUrlName = `https://instagram.com/${igHandleForName.replace(/^@/, '')}`;
+        modalVenueName.innerHTML = `${venueName} <a href="${igUrlName}" target="_blank" class="venue-ig-badge" onclick="event.stopPropagation()"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>`;
+    } else {
+        modalVenueName.textContent = mic.title || 'Unknown Venue';
+    }
 
     // In plan mode: show clickable time button
     if (STATE.planMode) {
@@ -786,24 +877,28 @@ function openVenueModal(mic) {
         }
     }
 
-    // 4. IG button in action row
-    const igHandleForBadge = mic.contact || mic.host || mic.hostIg;
-    if (modalIgBtn) {
-        if (igHandleForBadge && igHandleForBadge !== 'TBD') {
-            modalIgBtn.href = `https://instagram.com/${igHandleForBadge.replace(/^@/, '')}`;
-            modalIgBtn.style.display = 'flex';
-        } else {
-            modalIgBtn.style.display = 'none';
-        }
-    }
-
-    // 5. Walk-in or Signup time badge (when no online signup)
+    // 4. Walk-in or Signup time badge (when no online signup)
     if (!mic.signupUrl && !mic.signupEmail) {
         if (signupTimeForBadge) {
             infoParts.push(`<div class="info-badge info-badge-walkin">Signup @${escapeHtml(signupTimeForBadge)}</div>`);
         } else {
             infoParts.push(`<div class="info-badge info-badge-walkin">Walk-in</div>`);
         }
+    }
+
+    // IG badge moved to venue name row — keep action row IG button
+    const igHandleForBadge2 = mic.contact || mic.host || mic.hostIg;
+    if (igHandleForBadge2 && igHandleForBadge2 !== 'TBD') {
+        const igUrl = `https://instagram.com/${igHandleForBadge2.replace(/^@/, '')}`;
+        if (modalIgBtn) { modalIgBtn.href = igUrl; modalIgBtn.style.display = 'flex'; }
+    } else {
+        if (modalIgBtn) modalIgBtn.style.display = 'none';
+    }
+
+    // 6. Transit commute pill
+    if (mic.transitMins !== undefined && typeof buildCommuteHtml === 'function') {
+        const commuteHtml = buildCommuteHtml(mic);
+        if (commuteHtml) infoParts.push(commuteHtml);
     }
 
     modalInfoRow.innerHTML = infoParts.join('');
@@ -851,40 +946,31 @@ function openVenueModal(mic) {
     const igHandle = mic.contact || mic.host || mic.hostIg;
     const hasIg = igHandle && igHandle !== 'TBD';
 
-    if (hasSignupUrl) {
-        modalSignupBtn.href = mic.signupUrl;
-        modalSignupBtn.target = '_blank';
-        modalSignupBtn.innerText = 'Sign Up Online' + spotsLabel;
-        modalSignupBtn.style.display = 'flex';
-    } else if (hasSignupEmail) {
-        modalSignupBtn.href = `mailto:${mic.signupEmail}`;
-        modalSignupBtn.removeAttribute('target');
-        modalSignupBtn.innerText = 'Email';
-        modalSignupBtn.style.display = 'flex';
-    } else {
-        modalSignupBtn.style.display = 'none';
-    }
+    // Hide signup button — "Going?" handles everything
+    modalSignupBtn.style.display = 'none';
+    modalActions.classList.add('single-btn');
 
-    const hasSignupAction = hasSignupUrl || hasSignupEmail;
-
-    // Schedule button: show current state (unless in plan mode with time pills)
+    // "Going?" button
     if (modalPlanBtn) {
         if (STATE.planMode) {
             modalPlanBtn.style.display = 'none';
         } else {
             modalPlanBtn.style.display = 'flex';
             const isInRoute = STATE.route?.includes(mic.id);
-            modalPlanBtn.textContent = isInRoute ? 'In Night \u2713' : '+ Add to Night';
+            modalPlanBtn.textContent = isInRoute ? 'In Night ✓' : 'Going?';
             modalPlanBtn.classList.toggle('btn-scheduled', isInRoute);
+            modalPlanBtn.dataset.signupUrl = mic.signupUrl || '';
+            modalPlanBtn.dataset.signupEmail = mic.signupEmail || '';
         }
     }
 
-    // Action stack layout: hide signup row if no signup action
-    modalActions.classList.remove('single-btn');
-    if (!hasSignupAction) {
-        modalActions.classList.add('single-btn');
-        modalSignupBtn.style.display = 'none';
-    }
+    // Reset paid confirmation rows
+    const paidConfirm2 = document.getElementById('modal-paid-confirm');
+    const signupPayBtn2 = document.getElementById('modal-signup-pay');
+    const didYouPayEl2 = document.getElementById('modal-did-you-pay');
+    if (paidConfirm2) { paidConfirm2.style.display = 'none'; }
+    if (signupPayBtn2) { signupPayBtn2.style.display = ''; }
+    if (didYouPayEl2) { didYouPayEl2.style.display = 'none'; }
 
     // Plan mode: Hide plan-actions (buttons are now in header)
     if (modalPlanActions) {

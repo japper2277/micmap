@@ -96,10 +96,10 @@
 .locate-btn[data-tooltip]:hover::after {
     opacity: 1;
 }
-/* Mobile: above drawer */
+/* Mobile: bottom right, above safe area (no drawer now) */
 @media (max-width: 767px) {
     .locate-btn {
-        bottom: 145px;
+        bottom: 96px;
         right: 16px;
         animation: gps-hint 2s ease-out 3s 1; /* Pulse once after 3s to draw attention */
     }

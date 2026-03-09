@@ -422,88 +422,6 @@ body.plan-mode .drag-handle {
     padding: 0 16px;
 }
 
-/* Schedule item inside the My Night sheet */
-.my-night-stop {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 14px 0;
-    border-bottom: none;
-    overflow: hidden;
-    position: relative;
-    background: transparent;
-}
-.my-night-stop:last-child {
-    border-bottom: none;
-}
-
-/* Stop number circle + vertical timeline */
-.my-night-stop-number {
-    width: 26px;
-    height: 26px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 12px;
-    font-weight: 700;
-    flex-shrink: 0;
-    position: relative;
-    z-index: 1;
-    background: #000;
-}
-
-.my-night-stop-time {
-    font-size: 16px;
-    font-weight: 700;
-    color: #fff;
-    min-width: 48px;
-    flex-shrink: 0;
-}
-.my-night-stop-info {
-    flex: 1;
-    min-width: 0;
-}
-.my-night-stop-venue {
-    font-size: 15px;
-    font-weight: 600;
-    color: #fff;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-.my-night-stop-meta {
-    font-size: 13px;
-    color: #8e8e93;
-    margin-top: 2px;
-}
-.my-night-stop-remove {
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    border: none;
-    background: transparent;
-    color: rgba(255, 255, 255, 0.25);
-    font-size: 12px;
-    cursor: pointer;
-    flex-shrink: 0;
-    transition: all 0.15s;
-    opacity: 0.6;
-}
-.my-night-stop-remove:hover {
-    opacity: 1;
-    color: rgba(255, 255, 255, 0.5);
-}
-.my-night-stop-remove:active {
-    background: rgba(248, 113, 113, 0.15);
-    color: #f87171;
-    opacity: 1;
-}
 
 /* Empty state in My Night sheet */
 .my-night-empty {
@@ -541,22 +459,6 @@ body.plan-mode .drag-handle {
 .my-night-empty-cta:active {
     transform: scale(0.96);
     opacity: 0.9;
-}
-
-/* Timeline connector between stops */
-.my-night-travel {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 0 0 0 28px; /* Align with center of stop number circle */
-    color: #636366;
-    font-size: 12px;
-}
-.my-night-travel-dot {
-    width: 2px;
-    height: 20px;
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 2px;
 }
 
 /* Desktop: hide sheet overlay */

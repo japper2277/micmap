@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0a0a"/>
+      <stop offset="100%" style="stop-color:#1a1a2e"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#f43f5e"/>
+      <stop offset="100%" style="stop-color:#e11d48"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <!-- Subtle grid lines suggesting a map -->
+  <g opacity="0.06" stroke="#fff" stroke-width="1">
+    <line x1="0" y1="100" x2="1200" y2="100"/>
+    <line x1="0" y1="200" x2="1200" y2="200"/>
+    <line x1="0" y1="300" x2="1200" y2="300"/>
+    <line x1="0" y1="400" x2="1200" y2="400"/>
+    <line x1="0" y1="500" x2="1200" y2="500"/>
+    <line x1="200" y1="0" x2="200" y2="630"/>
+    <line x1="400" y1="0" x2="400" y2="630"/>
+    <line x1="600" y1="0" x2="600" y2="630"/>
+    <line x1="800" y1="0" x2="800" y2="630"/>
+    <line x1="1000" y1="0" x2="1000" y2="630"/>
+  </g>
+  <!-- Map pin dots -->
+  <circle cx="350" cy="220" r="8" fill="#f43f5e" opacity="0.4"/>
+  <circle cx="520" cy="340" r="8" fill="#4ade80" opacity="0.4"/>
+  <circle cx="700" cy="180" r="8" fill="#f43f5e" opacity="0.4"/>
+  <circle cx="850" cy="380" r="8" fill="#4ade80" opacity="0.4"/>
+  <!-- Center content -->
+  <text x="600" y="260" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="72" font-weight="800" fill="#ffffff" letter-spacing="-2">My Night</text>
+  <text x="600" y="320" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="28" font-weight="500" fill="#8e8e93">Open Mic Plan</text>
+  <!-- Bottom brand bar -->
+  <rect x="0" y="560" width="1200" height="70" fill="rgba(0,0,0,0.5)"/>
+  <text x="600" y="600" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="22" font-weight="600" fill="#f43f5e">MicFinder NYC</text>
+  <!-- Route line connecting pins -->
+  <path d="M350 220 Q435 280 520 340 Q610 260 700 180 Q775 280 850 380" fill="none" stroke="url(#accent)" stroke-width="3" stroke-dasharray="8 6" opacity="0.5"/>
+</svg>

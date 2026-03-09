@@ -2348,6 +2348,86 @@ app.get('/api/v1/plans/:planHash/responses', async (req, res) => {
   }
 });
 
+// ── "Going" counter — anonymous per-mic daily count ──
+// POST increments, GET reads. Stored in Redis with 48hr TTL.
+app.post('/api/v1/mics/:id/going', async (req, res) => {
+  try {
+    const { redis, isRedisConnected } = require('./config/cache');
+    if (!isRedisConnected()) {
+      return res.json({ success: true, count: 0 });
+    }
+    const today = new Date().toISOString().slice(0, 10);
+    const key = `micmap:going:${req.params.id}:${today}`;
+    const count = await redis.incr(key);
+    // Expire after 48 hours (covers late-night mics spanning midnight)
+    if (count === 1) await redis.expire(key, 172800);
+    res.json({ success: true, count });
+  } catch (err) {
+    console.error('Going POST error:', err.message);
+    res.json({ success: true, count: 0 });
+  }
+});
+
+app.get('/api/v1/mics/:id/going', async (req, res) => {
+  try {
+    const { redis, isRedisConnected } = require('./config/cache');
+    if (!isRedisConnected()) {
+      return res.json({ success: true, count: 0 });
+    }
+    const today = new Date().toISOString().slice(0, 10);
+    const key = `micmap:going:${req.params.id}:${today}`;
+    const count = parseInt(await redis.get(key) || '0', 10);
+    res.json({ success: true, count });
+  } catch (err) {
+    console.error('Going GET error:', err.message);
+    res.json({ success: true, count: 0 });
+  }
+});
+
+// Check-in confirmation ("Did you make it?")
+app.post('/api/v1/mics/:id/checkin', async (req, res) => {
+  try {
+    const { redis, isRedisConnected } = require('./config/cache');
+    if (!isRedisConnected()) {
+      return res.json({ success: true });
+    }
+    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+    const showedUp = req.body.showedUp === true;
+    const field = showedUp ? 'showed' : 'skipped';
+    const key = `micmap:checkin:${req.params.id}:${yesterday}`;
+    await redis.hincrby(key, field, 1);
+    await redis.expire(key, 604800); // Keep for 7 days
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Checkin POST error:', err.message);
+    res.json({ success: true });
+  }
+});
+
+// Batch fetch going counts for multiple mics
+app.post('/api/v1/mics/going/batch', async (req, res) => {
+  try {
+    const { redis, isRedisConnected } = require('./config/cache');
+    if (!isRedisConnected() || !req.body.ids || !Array.isArray(req.body.ids)) {
+      return res.json({ success: true, counts: {} });
+    }
+    const today = new Date().toISOString().slice(0, 10);
+    const ids = req.body.ids.slice(0, 100); // Cap at 100
+    const pipeline = redis.pipeline();
+    ids.forEach(id => pipeline.get(`micmap:going:${id}:${today}`));
+    const results = await pipeline.exec();
+    const counts = {};
+    ids.forEach((id, i) => {
+      const val = results[i]?.[1];
+      if (val) counts[id] = parseInt(val, 10);
+    });
+    res.json({ success: true, counts });
+  } catch (err) {
+    console.error('Going batch error:', err.message);
+    res.json({ success: true, counts: {} });
+  }
+});
+
 // Single mic lookup by ID (must come after /mics/slots to avoid catching "slots" as :id)
 app.get('/api/v1/mics/:id', async (req, res) => {
   try {
@@ -2459,83 +2539,87 @@ app.get('/api/v1/admin/lb-compare/latest', (req, res) => {
 });
 
 // --- Facebook Groups Watcher webhook ---
-let fbWebhookService = null;
-try {
-  fbWebhookService = require('./services/fb-webhook');
-} catch (e) {
-  console.warn('FB webhook service not available:', e.message);
-}
+const isFbWebhookEnabled = process.env.ENABLE_FB_WEBHOOK === 'true';
 
-// Receive webhook POST from Groups Watcher extension or scraper
-app.post('/admin/fb-group-post', async (req, res) => {
-  if (!fbWebhookService) {
-    return res.status(503).json({ success: false, error: 'FB webhook service not available' });
-  }
-
-  const post = req.body;
-  if (!post || (!post.text && !post.images)) {
-    return res.status(400).json({ success: false, error: 'Payload must include text or images' });
-  }
-
-  const postId = post.id || `fb_${Date.now()}`;
-
-  // Dedup: check if this post was already processed
+if (isFbWebhookEnabled) {
+  let fbWebhookService = null;
   try {
-    const { redis, isRedisConnected } = require('./config/cache');
-    if (isRedisConnected()) {
-      const existing = await redis.exists(`micmap:fb:raw:${postId}`);
-      if (existing) {
-        return res.json({ success: true, postId, status: 'duplicate' });
-      }
+    fbWebhookService = require('./services/fb-webhook');
+  } catch (e) {
+    console.warn('FB webhook service not available:', e.message);
+  }
+
+  // Receive webhook POST from Groups Watcher extension or scraper
+  app.post('/admin/fb-group-post', async (req, res) => {
+    if (!fbWebhookService) {
+      return res.status(503).json({ success: false, error: 'FB webhook service not available' });
     }
-  } catch (err) {
-    console.warn(`[FB webhook] dedup check failed for ${postId}:`, err.message);
-  }
 
-  // Respond immediately, process async
-  res.json({ success: true, postId, status: 'processing' });
+    const post = req.body;
+    if (!post || (!post.text && !post.images)) {
+      return res.status(400).json({ success: false, error: 'Payload must include text or images' });
+    }
 
-  try {
-    await fbWebhookService.processPost(post);
-  } catch (err) {
-    console.error(`[FB webhook] processing error for ${postId}:`, err.message);
-  }
-});
+    const postId = post.id || `fb_${Date.now()}`;
 
-// Review queue: items needing human review
-app.get('/admin/fb-review-queue', async (req, res) => {
-  if (!fbWebhookService) {
-    return res.status(503).json({ success: false, error: 'FB webhook service not available' });
-  }
+    // Dedup: check if this post was already processed
+    try {
+      const { redis, isRedisConnected } = require('./config/cache');
+      if (isRedisConnected()) {
+        const existing = await redis.exists(`micmap:fb:raw:${postId}`);
+        if (existing) {
+          return res.json({ success: true, postId, status: 'duplicate' });
+        }
+      }
+    } catch (err) {
+      console.warn(`[FB webhook] dedup check failed for ${postId}:`, err.message);
+    }
 
-  try {
-    const items = await fbWebhookService.getReviewQueue();
-    res.json({ success: true, count: items.length, items });
-  } catch (err) {
-    console.error('[FB webhook] review queue error:', err.message);
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
+    // Respond immediately, process async
+    res.json({ success: true, postId, status: 'processing' });
 
-// Apply a safe_write or reviewed entry to MongoDB
-app.post('/admin/fb-apply', async (req, res) => {
-  if (!fbWebhookService) {
-    return res.status(503).json({ success: false, error: 'FB webhook service not available' });
-  }
+    try {
+      await fbWebhookService.processPost(post);
+    } catch (err) {
+      console.error(`[FB webhook] processing error for ${postId}:`, err.message);
+    }
+  });
 
-  const entry = req.body;
-  if (!entry || !entry.matchedMicId) {
-    return res.status(400).json({ success: false, error: 'Payload must include matchedMicId' });
-  }
+  // Review queue: items needing human review
+  app.get('/admin/fb-review-queue', async (req, res) => {
+    if (!fbWebhookService) {
+      return res.status(503).json({ success: false, error: 'FB webhook service not available' });
+    }
 
-  try {
-    const result = await fbWebhookService.applyEntry(entry);
-    res.json({ success: true, ...result });
-  } catch (err) {
-    console.error('[FB webhook] apply error:', err.message);
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
+    try {
+      const items = await fbWebhookService.getReviewQueue();
+      res.json({ success: true, count: items.length, items });
+    } catch (err) {
+      console.error('[FB webhook] review queue error:', err.message);
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  // Apply a safe_write or reviewed entry to MongoDB
+  app.post('/admin/fb-apply', async (req, res) => {
+    if (!fbWebhookService) {
+      return res.status(503).json({ success: false, error: 'FB webhook service not available' });
+    }
+
+    const entry = req.body;
+    if (!entry || !entry.matchedMicId) {
+      return res.status(400).json({ success: false, error: 'Payload must include matchedMicId' });
+    }
+
+    try {
+      const result = await fbWebhookService.applyEntry(entry);
+      res.json({ success: true, ...result });
+    } catch (err) {
+      console.error('[FB webhook] apply error:', err.message);
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+}
 
 // 404 handler
 app.use((req, res) => {
