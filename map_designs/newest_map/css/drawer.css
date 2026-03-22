@@ -300,6 +300,10 @@ body.plan-mode .drag-handle {
     flex-shrink: 0;
 }
 
+.my-night-pill.is-empty .pill-count {
+    display: none;
+}
+
 /* Pulse animation on count change */
 .my-night-pill .pill-count.pulse {
     animation: pillCountPulse 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -317,6 +321,45 @@ body.plan-mode .drag-handle {
 .my-night-pill .pill-chevron {
     color: rgba(255, 255, 255, 0.5);
     transition: transform 0.2s;
+}
+
+.add-mic-demo-target {
+    position: relative;
+    z-index: 6;
+    animation: addMicDemoTargetPulse 1.8s ease-out infinite;
+    animation-delay: var(--add-mic-demo-delay, 0s);
+    box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.5);
+}
+
+.add-mic-demo-target::after {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border-radius: 999px;
+    border: 2px solid rgba(244, 63, 94, 0.55);
+    pointer-events: none;
+    animation: addMicDemoRing 1.8s ease-out infinite;
+    animation-delay: var(--add-mic-demo-delay, 0s);
+}
+
+@keyframes addMicDemoTargetPulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.06);
+    }
+}
+
+@keyframes addMicDemoRing {
+    0% {
+        transform: scale(0.92);
+        opacity: 0.85;
+    }
+    100% {
+        transform: scale(1.28);
+        opacity: 0;
+    }
 }
 
 /* Desktop: hide the pill entirely */
@@ -420,6 +463,189 @@ body.plan-mode .drag-handle {
 
 .my-night-sheet-content {
     padding: 0 16px;
+}
+
+.add-mic-demo-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.58);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.add-mic-demo-panel {
+    width: min(100%, 420px);
+    background:
+        radial-gradient(circle at top, rgba(244, 63, 94, 0.18), transparent 42%),
+        linear-gradient(180deg, rgba(28, 28, 30, 0.98), rgba(10, 10, 11, 0.98));
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 26px;
+    box-shadow:
+        0 24px 80px rgba(0, 0, 0, 0.48),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    color: #fff;
+    padding: 20px;
+}
+
+.add-mic-demo-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.add-mic-demo-header h3 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+}
+
+.add-mic-demo-close {
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.84);
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.add-mic-demo-intro {
+    color: rgba(255, 255, 255, 0.74);
+    font-size: 15px;
+    line-height: 1.5;
+    margin-bottom: 18px;
+}
+
+.add-mic-demo-steps {
+    display: grid;
+    gap: 12px;
+}
+
+.add-mic-demo-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.add-mic-demo-step-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(180deg, #f43f5e 0%, #e11d48 100%);
+    font-size: 13px;
+    font-weight: 800;
+    flex-shrink: 0;
+}
+
+.add-mic-demo-step-title {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 3px;
+}
+
+.add-mic-demo-step-text {
+    font-size: 13px;
+    line-height: 1.45;
+    color: rgba(255, 255, 255, 0.68);
+}
+
+.add-mic-demo-preview {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin: 18px 0 0;
+    padding: 14px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.add-mic-demo-preview-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-radius: 999px;
+    background: #050505;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.add-mic-demo-preview-pill--active {
+    box-shadow: 0 0 0 1px rgba(244, 63, 94, 0.18);
+}
+
+.add-mic-demo-preview-dot,
+.add-mic-demo-preview-count {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(180deg, #f43f5e 0%, #e11d48 100%);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.add-mic-demo-preview-arrow {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.add-mic-demo-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.add-mic-demo-cancel,
+.add-mic-demo-start {
+    flex: 1;
+    min-height: 48px;
+    border-radius: 16px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.add-mic-demo-cancel {
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.add-mic-demo-start {
+    border: none;
+    background: linear-gradient(180deg, #f43f5e 0%, #e11d48 100%);
+    color: #fff;
+    box-shadow: 0 10px 26px rgba(225, 29, 72, 0.28);
+}
+
+.add-mic-demo-cancel:active,
+.add-mic-demo-start:active,
+.add-mic-demo-close:active {
+    transform: scale(0.98);
 }
 
 

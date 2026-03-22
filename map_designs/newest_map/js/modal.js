@@ -96,6 +96,26 @@ function initModal() {
     modalPlanBtn = document.getElementById('modal-plan-btn');
     modalShareBtn = document.getElementById('modal-share-btn');
 
+    // Record Set button (iOS/Capacitor only)
+    const modalRecordBtn = document.getElementById('modal-record-btn');
+    if (modalRecordBtn && window.Capacitor) {
+        modalRecordBtn.style.display = 'flex';
+        modalRecordBtn.addEventListener('click', async () => {
+            try {
+                const result = await window.Capacitor.Plugins.WhisperTranscription.presentRecorder();
+                if (result && result.transcript) {
+                    const mic = modalMicsArray[modalActiveMicIndex];
+                    const venueName = mic?.title || 'Open Mic';
+                    if (typeof toastService !== 'undefined' && toastService.show) {
+                        toastService.show(`Set recorded at ${venueName}`, 'success');
+                    }
+                }
+            } catch (e) {
+                console.error('Record set error:', e);
+            }
+        });
+    }
+
     if (modalShareBtn) {
         modalShareBtn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -279,6 +299,11 @@ function initModal() {
 
 // Store venue map for tab switching
 let modalVenueMap = {};
+
+function setModalTransitVisibility(visible) {
+    if (!modalTransit) return;
+    modalTransit.classList.toggle('is-hidden', !visible);
+}
 
 // Helper: Adjust mic start time to the correct date based on viewing mode
 // today = today's date, tomorrow = +1 day, calendar = selected date
@@ -1170,9 +1195,12 @@ function summarizeDepartureTimes(times, maxVisible = 2) {
 // Display subway routes in new card format
 async function displaySubwayRoutes(routes, mic, walkOption = null, schedule = null) {
     if (!routes || routes.length === 0) {
+        setModalTransitVisibility(true);
         modalTransit.innerHTML = '<div class="empty-card">No routes found</div>';
         return;
     }
+
+    setModalTransitVisibility(true);
 
     let transitHTML = '';
 
@@ -1440,6 +1468,7 @@ async function displaySubwayRoutes(routes, mic, walkOption = null, schedule = nu
 
         modalTransit.innerHTML = '';
         modalTransit.appendChild(carousel);
+        setModalTransitVisibility(true);
 
         // Carousel navigation
         let currentIdx = 0;
@@ -1527,6 +1556,7 @@ async function displaySubwayRoutes(routes, mic, walkOption = null, schedule = nu
         });
     } else {
         modalTransit.innerHTML = transitHTML;
+        setModalTransitVisibility(!!transitHTML);
     }
 }
 
@@ -1538,10 +1568,12 @@ async function loadModalArrivals(mic) {
     const hasUserOrigin = STATE?.userOrigin?.lat && STATE?.userOrigin?.lng;
     if (!hasUserOrigin) {
         modalTransit.innerHTML = '';
+        setModalTransitVisibility(false);
         return;
     }
 
     // Show skeleton loading state
+    setModalTransitVisibility(true);
     modalTransit.innerHTML = `
         <div class="transit-skeleton">
             <div class="skeleton-card">
@@ -1662,6 +1694,7 @@ async function loadModalArrivals(mic) {
     const nearestStations = findNearestStations(originLat, originLng, 2);
     if (!nearestStations || nearestStations.length === 0) {
         modalTransit.innerHTML = '<div class="empty-card">No nearby stations</div>';
+        setModalTransitVisibility(true);
         return;
     }
 
@@ -1770,6 +1803,7 @@ async function loadModalArrivals(mic) {
     }
 
     modalTransit.innerHTML = transitHTML || '<div class="empty-card">No transit info available</div>';
+    setModalTransitVisibility(true);
 }
 
 // Find nearest stations to a lat/lng (returns array)

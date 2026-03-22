@@ -50,6 +50,10 @@ function confirmExitPlanMode() {
 function handleAddClick(btn, micId) {
     if (STATE.route.includes(micId)) return;
 
+    if (typeof clearAddMicSpotlight === 'function') {
+        clearAddMicSpotlight();
+    }
+
     if ('vibrate' in navigator) {
         navigator.vibrate(10);
     }

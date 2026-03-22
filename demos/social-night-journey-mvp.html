@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Social Night Journey MVP</title>
+<style>
+    :root {
+        --bg: #0a0a0b;
+        --panel: #141416;
+        --panel-soft: #1c1c1f;
+        --line: rgba(255, 255, 255, 0.1);
+        --text: #f5f5f5;
+        --muted: rgba(255, 255, 255, 0.52);
+        --soft: rgba(255, 255, 255, 0.3);
+        --rose: #f43f5e;
+        --rose-dark: #e11d48;
+        --green: #22c55e;
+        --green-soft: rgba(34, 197, 94, 0.16);
+        --yellow: #f59e0b;
+        --blue: #60a5fa;
+        --map: #e6e0d5;
+    }
+
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background:
+            radial-gradient(circle at top, rgba(244, 63, 94, 0.08), transparent 28%),
+            #050506;
+        color: var(--text);
+        min-height: 100vh;
+        padding: 28px 16px 56px;
+    }
+
+    .page {
+        max-width: 1180px;
+        margin: 0 auto;
+    }
+
+    .intro {
+        max-width: 720px;
+        margin: 0 auto 28px;
+        text-align: center;
+    }
+
+    .eyebrow {
+        display: inline-block;
+        font-size: 11px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--soft);
+        margin-bottom: 10px;
+    }
+
+    h1 {
+        font-size: 28px;
+        line-height: 1.05;
+        letter-spacing: -0.03em;
+        margin-bottom: 10px;
+    }
+
+    .intro p {
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.5;
+    }
+
+    .flow-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 22px 18px;
+        align-items: start;
+    }
+
+    .step {
+        position: relative;
+    }
+
+    .step-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        padding: 0 4px;
+    }
+
+    .step-num {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--soft);
+    }
+
+    .step-title {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--muted);
+    }
+
+    .phone {
+        width: 100%;
+        max-width: 340px;
+        margin: 0 auto;
+        min-height: 690px;
+        border-radius: 34px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: var(--bg);
+        overflow: hidden;
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+        position: relative;
+    }
+
+    .screen {
+        position: relative;
+        min-height: 690px;
+        background: var(--bg);
+    }
+
+    .statusbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 14px 18px 10px;
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.7);
+    }
+
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 16px 12px;
+    }
+
+    .header-title {
+        font-size: 17px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+    }
+
+    .header-pill {
+        padding: 8px 10px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        font-size: 11px;
+        color: var(--muted);
+        background: rgba(255, 255, 255, 0.04);
+    }
+
+    .search {
+        margin: 0 16px 12px;
+        padding: 12px 14px;
+        border-radius: 14px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--muted);
+        font-size: 14px;
+    }
+
+    .map {
+        position: relative;
+        margin: 0 12px;
+        height: 420px;
+        border-radius: 24px;
+        overflow: hidden;
+        background:
+            linear-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0, 0, 0, 0.04) 1px, transparent 1px),
+            var(--map);
+        background-size: 42px 42px, 42px 42px, auto;
+    }
+
+    .street {
+        position: absolute;
+        background: rgba(0, 0, 0, 0.08);
+        border-radius: 999px;
+    }
+
+    .street.a { width: 220px; height: 10px; top: 72px; left: 56px; transform: rotate(18deg); }
+    .street.b { width: 160px; height: 10px; top: 190px; left: 20px; transform: rotate(-28deg); }
+    .street.c { width: 200px; height: 10px; bottom: 78px; right: 24px; transform: rotate(-18deg); }
+
+    .marker {
+        position: absolute;
+        padding: 9px 12px;
+        border-radius: 999px;
+        color: #fff;
+        font-size: 12px;
+        font-weight: 700;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+    }
+
+    .marker.live { background: linear-gradient(180deg, var(--green), #16a34a); }
+    .marker.soon { background: linear-gradient(180deg, var(--rose), var(--rose-dark)); }
+    .marker.later { background: linear-gradient(180deg, #2b2b31, #0e0e12); }
+    .marker.tap {
+        outline: 2px dashed rgba(255, 255, 255, 0.8);
+        outline-offset: 4px;
+    }
+
+    .sheet,
+    .card,
+    .composer,
+    .response-panel,
+    .final-panel {
+        margin: 12px;
+        border-radius: 22px;
+        border: 1px solid var(--line);
+        background: var(--panel);
+        padding: 16px;
+    }
+
+    .sheet {
+        margin-top: -72px;
+        position: relative;
+    }
+
+    .handle {
+        width: 38px;
+        height: 4px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.22);
+        margin: 0 auto 14px;
+    }
+
+    .venue {
+        font-size: 21px;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        margin-bottom: 4px;
+    }
+
+    .meta,
+    .sub {
+        font-size: 13px;
+        color: var(--muted);
+        line-height: 1.45;
+    }
+
+    .tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 14px 0;
+    }
+
+    .tag {
+        padding: 7px 10px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--line);
+        font-size: 11px;
+        color: var(--muted);
+    }
+
+    .cta,
+    .ghost {
+        width: 100%;
+        border: 0;
+        border-radius: 14px;
+        padding: 14px 16px;
+        font-size: 14px;
+        font-weight: 700;
+    }
+
+    .cta {
+        background: linear-gradient(180deg, var(--rose), var(--rose-dark));
+        color: #fff;
+    }
+
+    .ghost {
+        margin-top: 10px;
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--muted);
+        border: 1px solid var(--line);
+    }
+
+    .my-night-strip {
+        margin: 12px;
+        border-radius: 18px;
+        border: 1px solid rgba(34, 197, 94, 0.22);
+        background: rgba(34, 197, 94, 0.08);
+        padding: 14px;
+    }
+
+    .strip-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+
+    .strip-title {
+        font-size: 16px;
+        font-weight: 800;
+    }
+
+    .badge {
+        padding: 4px 8px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 700;
+        color: #86efac;
+        background: rgba(34, 197, 94, 0.18);
+        border: 1px solid rgba(34, 197, 94, 0.18);
+    }
+
+    .stop {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        padding: 12px 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .stop:first-of-type {
+        border-top: 0;
+        padding-top: 0;
+    }
+
+    .time {
+        width: 48px;
+        font-size: 15px;
+        font-weight: 800;
+    }
+
+    .stop-name {
+        font-size: 14px;
+        font-weight: 700;
+        margin-bottom: 3px;
+    }
+
+    .stop-meta {
+        font-size: 12px;
+        color: var(--muted);
+    }
+
+    .mini-cta {
+        margin-top: 12px;
+        padding: 12px 14px;
+        border-radius: 14px;
+        background: #fff;
+        color: #000;
+        text-align: center;
+        font-size: 14px;
+        font-weight: 800;
+    }
+
+    .composer-title,
+    .panel-title {
+        font-size: 19px;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        margin-bottom: 6px;
+    }
+
+    .composer-box,
+    .handoff-box,
+    .note-box {
+        margin-top: 14px;
+        border-radius: 16px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.04);
+        padding: 14px;
+    }
+
+    .composer-box p,
+    .handoff-box p,
+    .note-box p {
+        font-size: 13px;
+        line-height: 1.5;
+        color: rgba(255, 255, 255, 0.72);
+    }
+
+    .share-row {
+        display: flex;
+        gap: 8px;
+        margin-top: 14px;
+    }
+
+    .share-chip {
+        flex: 1;
+        text-align: center;
+        padding: 11px 8px;
+        border-radius: 12px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.05);
+        font-size: 12px;
+        color: var(--muted);
+    }
+
+    .handoff-box {
+        text-align: center;
+        border-color: rgba(34, 197, 94, 0.24);
+        background: rgba(34, 197, 94, 0.08);
+    }
+
+    .check {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        margin: 0 auto 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(180deg, var(--green), #16a34a);
+        color: #fff;
+        font-size: 22px;
+        font-weight: 800;
+    }
+
+    .response {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .response:first-of-type {
+        border-top: 0;
+        padding-top: 0;
+    }
+
+    .avatar {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        font-weight: 800;
+        color: #fff;
+    }
+
+    .a1 { background: #ec4899; }
+    .a2 { background: #3b82f6; }
+    .a3 { background: #f59e0b; }
+
+    .response-copy {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .response-name {
+        font-size: 14px;
+        font-weight: 700;
+        margin-bottom: 3px;
+    }
+
+    .response-note {
+        font-size: 12px;
+        color: var(--muted);
+    }
+
+    .status-pill {
+        padding: 6px 8px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    .status-in {
+        color: #86efac;
+        background: rgba(34, 197, 94, 0.14);
+    }
+
+    .status-maybe {
+        color: #fcd34d;
+        background: rgba(245, 158, 11, 0.16);
+    }
+
+    .status-later {
+        color: #93c5fd;
+        background: rgba(96, 165, 250, 0.16);
+    }
+
+    .route-card {
+        margin-top: 12px;
+        padding: 14px;
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: var(--panel-soft);
+    }
+
+    .route-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+
+    .attendance {
+        font-size: 12px;
+        color: var(--muted);
+    }
+
+    .friend-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 10px;
+    }
+
+    .friend-stack {
+        display: flex;
+    }
+
+    .friend-stack .avatar {
+        width: 28px;
+        height: 28px;
+        font-size: 10px;
+        margin-left: -6px;
+        border: 2px solid var(--panel-soft);
+    }
+
+    .friend-stack .avatar:first-child {
+        margin-left: 0;
+    }
+
+    .meetup {
+        margin-top: 12px;
+        padding: 12px;
+        border-radius: 14px;
+        border: 1px solid rgba(96, 165, 250, 0.24);
+        background: rgba(96, 165, 250, 0.1);
+        font-size: 13px;
+        line-height: 1.45;
+        color: rgba(255, 255, 255, 0.8);
+    }
+
+    .footer-cta {
+        position: absolute;
+        left: 12px;
+        right: 12px;
+        bottom: 12px;
+        padding: 14px 16px;
+        border-radius: 16px;
+        background: linear-gradient(180deg, #ffffff, #ececec);
+        color: #000;
+        text-align: center;
+        font-size: 15px;
+        font-weight: 800;
+    }
+
+    .hint {
+        margin-top: 10px;
+        padding: 0 18px;
+        font-size: 12px;
+        color: var(--soft);
+        text-align: center;
+        line-height: 1.45;
+    }
+
+    .screen-link {
+        display: inline-block;
+        margin-top: 10px;
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.75);
+        text-decoration: none;
+        border-bottom: 1px dashed rgba(255, 255, 255, 0.35);
+    }
+
+    @media (max-width: 700px) {
+        body {
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+
+        h1 {
+            font-size: 24px;
+        }
+
+        .flow-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+</head>
+<body>
+<div class="page">
+    <div class="intro">
+        <div class="eyebrow">Low-Fi Journey Demo</div>
+        <h1>From solo browse to shared comedy night</h1>
+        <p>A tap-through host-side MVP showing how MicMap could become more social without turning into a heavy planner or chat product.</p>
+    </div>
+
+    <div class="flow-grid">
+        <section class="step">
+            <div class="step-meta">
+                <div class="step-num">Step 1</div>
+                <div class="step-title">Map browse</div>
+            </div>
+            <div class="phone">
+                <div class="screen">
+                    <div class="statusbar"><span>9:41</span><span>MicMap</span></div>
+                    <div class="header">
+                        <div class="header-title">Tonight</div>
+                        <div class="header-pill">Host view</div>
+                    </div>
+                    <div class="search">Search venues or neighborhoods</div>
+                    <div class="map">
+                        <div class="street a"></div>
+                        <div class="street b"></div>
+                        <div class="street c"></div>
+                        <div class="marker live" style="top: 78px; left: 28px;">The Stand</div>
+                        <div class="marker soon tap" style="top: 156px; right: 22px;">Tiny Cupboard</div>
+                        <div class="marker later" style="bottom: 118px; left: 42px;">EastVille</div>
+                        <div class="marker later" style="bottom: 54px; right: 36px;">Rodney's</div>
+                    </div>
+                    <div class="hint">The host is browsing the map and taps a promising mic to start building a night.</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="step">
+            <div class="step-meta">
+                <div class="step-num">Step 2</div>
+                <div class="step-title">Venue sheet</div>
+            </div>
+            <div class="phone">
+                <div class="screen">
+                    <div class="statusbar"><span>9:41</span><span>Tiny Cupboard</span></div>
+                    <div class="map" style="margin-top: 6px;">
+                        <div class="street a"></div>
+                        <div class="street b"></div>
+                        <div class="street c"></div>
+                        <div class="marker soon" style="top: 164px; right: 20px;">Tiny Cupboard</div>
+                    </div>
+                    <div class="sheet">
+                        <div class="handle"></div>
+                        <div class="venue">Tiny Cupboard</div>
+                        <div class="meta">8:00 PM · Bushwick · 18 min from you</div>
+                        <div class="tags">
+                            <div class="tag">$5 bucket</div>
+                            <div class="tag">Friendly room</div>
+                            <div class="tag">Good meetup spot</div>
+                        </div>
+                        <button class="cta">+ Add to Night</button>
+                        <button class="ghost">Just save it</button>
+                    </div>
+                    <div class="hint">The social moment starts after choosing a mic. The primary action is adding it to tonight’s plan.</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="step">
+            <div class="step-meta">
+                <div class="step-num">Step 3</div>
+                <div class="step-title">My Night seed</div>
+            </div>
+            <div class="phone">
+                <div class="screen">
+                    <div class="statusbar"><span>9:41</span><span>My Night</span></div>
+                    <div class="header">
+                        <div class="header-title">Your night</div>
+                        <div class="header-pill">1 stop</div>
+                    </div>
+                    <div class="my-night-strip">
+                        <div class="strip-top">
+                            <div class="strip-title">My Night</div>
+                            <div class="badge">Started</div>
+                        </div>
+                        <div class="stop">
+                            <div class="time">8:00</div>
+                            <div>
+                                <div class="stop-name">Tiny Cupboard</div>
+                                <div class="stop-meta">$5 bucket · Bushwick · 18 min away</div>
+                            </div>
+                        </div>
+                        <div class="mini-cta">Invite friends to join</div>
+                    </div>
+                    <div class="card">
+                        <div class="panel-title">Why invite now?</div>
+                        <div class="sub">You already picked the anchor stop. Now the product helps you turn a solo plan into a shared night without asking the group to plan from scratch.</div>
+                    </div>
+                    <div class="hint">The plan exists first. Friends are joining your plan, not co-authoring a complex itinerary.</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="step">
+            <div class="step-meta">
+                <div class="step-num">Step 4</div>
+                <div class="step-title">Invite composer</div>
+            </div>
+            <div class="phone">
+                <div class="screen">
+                    <div class="statusbar"><span>9:41</span><span>Invite friends</span></div>
+                    <div class="composer">
+                        <div class="composer-title">Share tonight’s plan</div>
+                        <div class="sub">Simple composer, not a group planner.</div>
+                        <div class="composer-box">
+                            <p><strong>Plan</strong><br>Tiny Cupboard · 8:00 PM<br>Bushwick · $5 bucket</p>
+                        </div>
+                        <div class="composer-box">
+                            <p><strong>Message preview</strong><br>Going to Tiny Cupboard tonight around 8. Join if you want. Easy first meetup spot.</p>
+                        </div>
+                        <div class="share-row">
+                            <div class="share-chip">Copy link</div>
+                            <div class="share-chip">Text</div>
+                            <div class="share-chip">Instagram</div>
+                        </div>
+                        <button class="cta" style="margin-top: 14px;">Send invite</button>
+                    </div>
+                    <div class="hint">The composer frames the night in human terms: where, when, and why this is a good meetup.</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="step">
+            <div class="step-meta">
+                <div class="step-num">Step 5</div>
+                <div class="step-title">Share handoff</div>
+            </div>
+            <div class="phone">
+                <div class="screen">
+                    <div class="statusbar"><span>9:41</span><span>Shared</span></div>
+                    <div class="composer">
+                        <div class="handoff-box">
+                            <div class="check">✓</div>
+                            <div class="panel-title">Invite sent</div>
+                            <p>Your shared night link is ready. Friends can respond with In, Maybe, or Meet later.</p>
+                        </div>
+                        <div class="note-box">
+                            <p><strong>Shared link preview</strong><br>micmap.app/night/tiny-cupboard-tonight</p>
+                        </div>
+                        <button class="ghost">Copy again</button>
+                        <button class="cta">Back to plan</button>
+                    </div>
+                    <div class="hint">This is purely visual. No real share integration, just the handoff moment.</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="step">
+            <div class="step-meta">
+                <div class="step-num">Step 6</div>
+                <div class="step-title">Friends responding</div>
+            </div>
+            <div class="phone">
+                <div class="screen">
+                    <div class="statusbar"><span>9:41</span><span>Responses</span></div>
+                    <div class="response-panel">
+                        <div class="panel-title">Friends are joining</div>
+                        <div class="sub">Lightweight responses, not chat threads.</div>
+                        <div class="response" style="margin-top: 14px;">
+                            <div class="avatar a1">MA</div>
+                            <div class="response-copy">
+                                <div class="response-name">Maya</div>
+                                <div class="response-note">I’m in. Can get there by 7:50.</div>
+                            </div>
+                            <div class="status-pill status-in">In</div>
+                        </div>
+                        <div class="response">
+                            <div class="avatar a2">JO</div>
+                            <div class="response-copy">
+                                <div class="response-name">Josh</div>
+                                <div class="response-note">Maybe. Depends if my earlier mic wraps on time.</div>
+                            </div>
+                            <div class="status-pill status-maybe">Maybe</div>
+                        </div>
+                        <div class="response">
+                            <div class="avatar a3">NI</div>
+                            <div class="response-copy">
+                                <div class="response-name">Nina</div>
+                                <div class="response-note">Can meet at stop 2 if you add another room later.</div>
+                            </div>
+                            <div class="status-pill status-later">Meet later</div>
+                        </div>
+                    </div>
+                    <div class="hint">This is the first emotional payoff: the plan now has visible social momentum.</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="step">
+            <div class="step-meta">
+                <div class="step-num">Step 7</div>
+                <div class="step-title">Socialized plan</div>
+            </div>
+            <div class="phone">
+                <div class="screen">
+                    <div class="statusbar"><span>9:41</span><span>Shared night</span></div>
+                    <div class="header">
+                        <div class="header-title">My Night</div>
+                        <div class="header-pill">3 friends aware</div>
+                    </div>
+                    <div class="route-card">
+                        <div class="route-head">
+                            <div>
+                                <div class="stop-name">Tonight’s shared plan</div>
+                                <div class="attendance">2 likely, 1 maybe</div>
+                            </div>
+                            <div class="badge">Live</div>
+                        </div>
+                        <div class="stop">
+                            <div class="time">8:00</div>
+                            <div>
+                                <div class="stop-name">Tiny Cupboard</div>
+                                <div class="stop-meta">Host + Maya joining here</div>
+                                <div class="friend-row">
+                                    <div class="friend-stack">
+                                        <div class="avatar a1">MA</div>
+                                        <div class="avatar a2">JO</div>
+                                    </div>
+                                    <div class="stop-meta">Josh still tentative</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="stop">
+                            <div class="time">9:20</div>
+                            <div>
+                                <div class="stop-name">EastVille</div>
+                                <div class="stop-meta">Possible second stop</div>
+                                <div class="friend-row">
+                                    <div class="friend-stack">
+                                        <div class="avatar a3">NI</div>
+                                    </div>
+                                    <div class="stop-meta">Nina can meet here</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="meetup"><strong>Suggested meetup point:</strong> Tiny Cupboard at 8:00 PM. It’s the earliest overlap between you and Maya, and Josh can still catch up if his other mic runs late.</div>
+                    </div>
+                    <div class="hint">One small “social intelligence” moment: suggest the best meetup point based on friend overlap.</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="step">
+            <div class="step-meta">
+                <div class="step-num">Step 8</div>
+                <div class="step-title">Ready-to-go state</div>
+            </div>
+            <div class="phone">
+                <div class="screen">
+                    <div class="statusbar"><span>9:41</span><span>Ready</span></div>
+                    <div class="final-panel">
+                        <div class="panel-title">Tonight is now a shared plan</div>
+                        <div class="sub">The final value is visible in one glance.</div>
+                        <div class="note-box">
+                            <p><strong>Who’s joining</strong><br>Maya is in. Josh is maybe. Nina can meet at stop 2.</p>
+                        </div>
+                        <div class="note-box">
+                            <p><strong>Where to meet</strong><br>Tiny Cupboard at 8:00 PM is the best anchor for the group.</p>
+                        </div>
+                        <div class="note-box">
+                            <p><strong>Why this feels social</strong><br>The plan shows live people context directly on the itinerary instead of forcing everyone into chat or manual coordination.</p>
+                        </div>
+                    </div>
+                    <div class="footer-cta">Open shared plan</div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div class="intro" style="margin-top: 28px;">
+        <p>This prototype is intentionally static and low fidelity. It is meant to help evaluate whether invite-first coordination feels compelling before building any real backend, sharing, or group logic.</p>
+        <a class="screen-link" href="./social-night-journey-mvp.html">Open this demo directly</a>
+    </div>
+</div>
+</body>
+</html>

@@ -645,6 +645,7 @@
 .btn-primary { background: linear-gradient(180deg, #2997FF 0%, #007AFF 100%); text-shadow: 0 1px 2px rgba(0,0,0,0.1); }
 .btn-tonight { background: linear-gradient(180deg, #f43f5e 0%, #e11d48 100%); text-shadow: 0 1px 2px rgba(0,0,0,0.15); }
 .btn-tonight.btn-scheduled { background: linear-gradient(180deg, var(--green) 0%, var(--green-dark) 100%); }
+.btn-record-set { background: linear-gradient(180deg, #8b5cf6 0%, #7c3aed 100%); text-shadow: 0 1px 2px rgba(0,0,0,0.15); margin-top: 6px; }
 
 /* IG icon button - small circular */
 .btn-ig-icon {
@@ -915,6 +916,10 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
+}
+
+.content-sheet.is-hidden {
+    display: none;
 }
 
 /* --- CARD SHARED STYLES (Added Depth) --- */

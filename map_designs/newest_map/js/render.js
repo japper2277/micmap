@@ -319,6 +319,12 @@ function render(mode) {
         ? isActivePlanningDateToday()
         : (mode === 'today');
 
+    // Compute week-of-month for the active date (1st, 2nd, 3rd, 4th, 5th occurrence of that weekday)
+    const activeDate = (typeof getActivePlanningDate === 'function')
+        ? getActivePlanningDate()
+        : currentTime;
+    const weekOfMonth = Math.ceil(activeDate.getDate() / 7);
+
     // Base filter for day/time (used for both map and list)
     let baseMics = STATE.mics.filter(m => {
         const diffMins = m.start ? (m.start - currentTime) / 60000 : 999;
@@ -328,6 +334,11 @@ function render(mode) {
 
         // Filter by active planning day (today/tomorrow/calendar-selected).
         if (activeDayName && m.day !== activeDayName) return false;
+
+        // Filter by week-of-month for alternating mics (e.g. "1st/3rd" or "2nd/4th")
+        if (m.weekNumbers && m.weekNumbers.length > 0) {
+            if (!m.weekNumbers.includes(weekOfMonth)) return false;
+        }
 
         return true;
     });
@@ -1461,6 +1472,7 @@ function render(mode) {
                 ? `<a href="mailto:${safeSignupEmail}" onclick="event.stopPropagation();" class="icon-btn-sm" title="Email"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></a>`
                 : `<button onclick="event.stopPropagation(); flipCard(this);" class="icon-btn-sm" title="Signup info"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></button>`;
         const igBtnSm = safeContact ? `<a href="https://instagram.com/${safeContact}" target="_blank" rel="noopener" onclick="event.stopPropagation();" class="icon-btn-sm" title="@${safeContact}"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg></a>` : '';
+        const shareBtnSm = `<button onclick="event.stopPropagation(); shareMic('${mic.id}')" class="icon-btn-sm" title="Share"><svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg></button>`;
 
         // Build action buttons HTML (large for mobile)
         const signupBtn = mic.signupUrl
@@ -1469,6 +1481,7 @@ function render(mode) {
                 ? `<a href="mailto:${safeSignupEmail}" onclick="event.stopPropagation();" class="icon-btn" title="Email"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></a>`
                 : `<button onclick="event.stopPropagation(); flipCard(this);" class="icon-btn" title="Signup info"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></button>`;
         const igBtn = safeContact ? `<a href="https://instagram.com/${safeContact}" target="_blank" rel="noopener" onclick="event.stopPropagation();" class="icon-btn" title="@${safeContact}"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg></a>` : '';
+        const shareBtn = `<button onclick="event.stopPropagation(); shareMic('${mic.id}')" class="icon-btn" title="Share"><svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg></button>`;
 
         const planAddBtn = `<button class="plan-add-btn" onclick="event.stopPropagation(); handleAddClick(this, '${mic.id}')" aria-label="Add to schedule">+ Add</button>`;
         const planCta = !STATE.planMode
@@ -1506,6 +1519,7 @@ function render(mode) {
                         </div>
                     </div>
                     <div class="action-col">
+                        ${shareBtn}
                         ${signupBtn}
                         ${igBtn}
                     </div>
@@ -1534,6 +1548,7 @@ function render(mode) {
                         </div>
                     </div>
                     <div class="action-col">
+                        ${shareBtn}
                         ${signupBtn}
                         ${igBtn}
                     </div>
@@ -1714,27 +1729,169 @@ function flipCard(btn) {
    MY NIGHT PILL + SHEET (mobile map-first UX)
    ================================================================= */
 
-// Show/hide the floating "My Night" pill based on route count
+// Keep the floating "My Night" pill visible on mobile, even with an empty route
 function updateMyNightPill() {
     const pill = document.getElementById('my-night-pill');
     const countEl = document.getElementById('pill-count');
-    if (!pill || !countEl) return;
+    const labelEl = pill?.querySelector('.pill-label');
+    if (!pill || !countEl || !labelEl) return;
 
     // Only on mobile
     if (window.matchMedia('(min-width: 768px)').matches) return;
 
     const count = (STATE.route || []).length;
 
+    pill.classList.add('visible');
+
     if (count > 0) {
-        pill.classList.add('visible');
+        pill.classList.remove('is-empty');
         countEl.textContent = count;
+        labelEl.textContent = 'My Night';
         // Pulse animation on count change
         countEl.classList.remove('pulse');
         void countEl.offsetWidth; // force reflow
         countEl.classList.add('pulse');
     } else {
-        pill.classList.remove('visible');
+        pill.classList.add('is-empty');
+        countEl.classList.remove('pulse');
+        labelEl.textContent = 'Add a Mic';
     }
+}
+
+let addMicDemoEl = null;
+let addMicDemoKeyHandler = null;
+let addMicSpotlightTimer = null;
+
+function handleMyNightPillClick() {
+    if (((STATE.route || []).length || 0) === 0) {
+        showAddMicDemoModal();
+        return;
+    }
+    openMyNightSheet();
+}
+
+function showAddMicDemoModal() {
+    hideAddMicDemoModal();
+
+    addMicDemoEl = document.createElement('div');
+    addMicDemoEl.className = 'add-mic-demo-overlay';
+    addMicDemoEl.id = 'add-mic-demo-modal';
+    addMicDemoEl.innerHTML = `
+        <div class="add-mic-demo-panel" role="dialog" aria-modal="true" aria-labelledby="add-mic-demo-title">
+            <div class="add-mic-demo-header">
+                <h3 id="add-mic-demo-title">Build Your First Night</h3>
+                <button class="add-mic-demo-close" type="button" aria-label="Close">&times;</button>
+            </div>
+
+            <div class="add-mic-demo-intro">
+                Tap any mic's <strong>+ Tonight</strong> button and Mic Map will start your lineup for the night.
+            </div>
+
+            <div class="add-mic-demo-steps">
+                <div class="add-mic-demo-step">
+                    <span class="add-mic-demo-step-num">1</span>
+                    <div class="add-mic-demo-step-copy">
+                        <div class="add-mic-demo-step-title">Pick a mic</div>
+                        <div class="add-mic-demo-step-text">Browse the map or list and choose a stop that works for your time.</div>
+                    </div>
+                </div>
+                <div class="add-mic-demo-step">
+                    <span class="add-mic-demo-step-num">2</span>
+                    <div class="add-mic-demo-step-copy">
+                        <div class="add-mic-demo-step-title">Tap + Tonight</div>
+                        <div class="add-mic-demo-step-text">Your first stop gets added instantly and the bottom button switches into My Night.</div>
+                    </div>
+                </div>
+                <div class="add-mic-demo-step">
+                    <span class="add-mic-demo-step-num">3</span>
+                    <div class="add-mic-demo-step-copy">
+                        <div class="add-mic-demo-step-title">Open My Night</div>
+                        <div class="add-mic-demo-step-text">Review your stops, adjust stay time, remove mics, and share the plan when you're ready.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="add-mic-demo-preview">
+                <div class="add-mic-demo-preview-pill">
+                    <span class="add-mic-demo-preview-dot"></span>
+                    <span>Add a Mic</span>
+                </div>
+                <div class="add-mic-demo-preview-arrow">→</div>
+                <div class="add-mic-demo-preview-pill add-mic-demo-preview-pill--active">
+                    <span class="add-mic-demo-preview-count">1</span>
+                    <span>My Night</span>
+                </div>
+            </div>
+
+            <div class="add-mic-demo-actions">
+                <button class="add-mic-demo-cancel" type="button">Maybe Later</button>
+                <button class="add-mic-demo-start" type="button">Show Me Where</button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(addMicDemoEl);
+
+    addMicDemoEl.addEventListener('click', (event) => {
+        if (event.target === addMicDemoEl) hideAddMicDemoModal();
+    });
+    addMicDemoEl.querySelector('.add-mic-demo-close').onclick = hideAddMicDemoModal;
+    addMicDemoEl.querySelector('.add-mic-demo-cancel').onclick = hideAddMicDemoModal;
+    addMicDemoEl.querySelector('.add-mic-demo-start').onclick = () => {
+        hideAddMicDemoModal();
+        spotlightAddMicButtons();
+    };
+
+    addMicDemoKeyHandler = (event) => {
+        if (event.key === 'Escape') hideAddMicDemoModal();
+    };
+    document.addEventListener('keydown', addMicDemoKeyHandler);
+}
+
+function hideAddMicDemoModal() {
+    if (addMicDemoKeyHandler) {
+        document.removeEventListener('keydown', addMicDemoKeyHandler);
+        addMicDemoKeyHandler = null;
+    }
+    if (addMicDemoEl) {
+        addMicDemoEl.remove();
+        addMicDemoEl = null;
+    }
+}
+
+function spotlightAddMicButtons() {
+    clearAddMicSpotlight();
+
+    const buttons = Array.from(document.querySelectorAll('.add-mic-btn:not(.added), .plan-add-btn'))
+        .filter((btn) => btn.offsetParent !== null);
+
+    if (buttons.length === 0) return;
+
+    buttons.slice(0, 3).forEach((btn, index) => {
+        btn.classList.add('add-mic-demo-target');
+        btn.style.setProperty('--add-mic-demo-delay', `${index * 0.18}s`);
+    });
+
+    buttons[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    if (typeof toastService !== 'undefined' && toastService.show) {
+        toastService.show('Tap + Tonight on any mic to start your night', 'info', 2800);
+    }
+
+    addMicSpotlightTimer = setTimeout(() => {
+        clearAddMicSpotlight();
+    }, 8000);
+}
+
+function clearAddMicSpotlight() {
+    if (addMicSpotlightTimer) {
+        clearTimeout(addMicSpotlightTimer);
+        addMicSpotlightTimer = null;
+    }
+    document.querySelectorAll('.add-mic-demo-target').forEach((btn) => {
+        btn.classList.remove('add-mic-demo-target');
+        btn.style.removeProperty('--add-mic-demo-delay');
+    });
 }
 
 // Open the "My Night" bottom sheet

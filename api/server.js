@@ -960,6 +960,25 @@ app.get('/api/gtfs/departures', (req, res) => {
 });
 
 // =================================================================
+// STATIC MAP IMAGE - Redirect to Google Static Maps for OG images
+// =================================================================
+app.get('/api/static-map', (req, res) => {
+  const { lat, lng, zoom = '15', w = '1200', h = '630' } = req.query;
+  if (!lat || !lng) return res.status(400).json({ error: 'lat and lng required' });
+
+  const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+  if (!apiKey) return res.status(503).json({ error: 'Map service unavailable' });
+
+  const url = `https://maps.googleapis.com/maps/api/staticmap`
+    + `?center=${lat},${lng}&zoom=${zoom}&size=${w}x${h}&scale=2`
+    + `&maptype=roadmap&style=feature:all|element:labels|visibility:simplified`
+    + `&markers=color:red|${lat},${lng}`
+    + `&key=${apiKey}`;
+
+  res.redirect(302, url);
+});
+
+// =================================================================
 // GEOCODING PROXY - Mapbox (100k free/month, supports business names)
 // =================================================================
 app.get('/api/proxy/geocode', async (req, res) => {
