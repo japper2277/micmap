@@ -2,6 +2,7 @@ const request = require('supertest');
 
 const ORIGINAL_NODE_ENV = process.env.NODE_ENV;
 const ORIGINAL_ENABLE_FB_WEBHOOK = process.env.ENABLE_FB_WEBHOOK;
+const ORIGINAL_MICMAP_ADMIN_TOKEN = process.env.MICMAP_ADMIN_TOKEN;
 
 function loadServer() {
   return require('../../server');
@@ -19,6 +20,11 @@ describe('Integration: FB webhook gating', () => {
       delete process.env.ENABLE_FB_WEBHOOK;
     } else {
       process.env.ENABLE_FB_WEBHOOK = ORIGINAL_ENABLE_FB_WEBHOOK;
+    }
+    if (ORIGINAL_MICMAP_ADMIN_TOKEN === undefined) {
+      delete process.env.MICMAP_ADMIN_TOKEN;
+    } else {
+      process.env.MICMAP_ADMIN_TOKEN = ORIGINAL_MICMAP_ADMIN_TOKEN;
     }
   });
 
@@ -50,6 +56,7 @@ describe('Integration: FB webhook gating', () => {
   test('FB webhook routes register when feature flag is on', async () => {
     process.env.NODE_ENV = 'test';
     process.env.ENABLE_FB_WEBHOOK = 'true';
+    process.env.MICMAP_ADMIN_TOKEN = 'test-admin-token';
 
     jest.doMock('../../services/fb-webhook', () => ({
       processPost: jest.fn(),
@@ -61,21 +68,61 @@ describe('Integration: FB webhook gating', () => {
 
     const reviewResponse = await request(app)
       .get('/admin/fb-review-queue')
+      .set('x-admin-token', 'test-admin-token')
       .expect(200);
 
     const postResponse = await request(app)
       .post('/admin/fb-group-post')
+      .set('x-admin-token', 'test-admin-token')
       .send({})
       .expect(400);
 
     const applyResponse = await request(app)
       .post('/admin/fb-apply')
+      .set('x-admin-token', 'test-admin-token')
       .send({})
       .expect(400);
 
     expect(reviewResponse.body).toMatchObject({ success: true, count: 0, items: [] });
     expect(postResponse.body.error).toBe('Payload must include text or images');
     expect(applyResponse.body.error).toBe('Payload must include matchedMicId');
+  });
+
+  test('protected admin routes reject missing or bad admin tokens', async () => {
+    process.env.NODE_ENV = 'test';
+    process.env.ENABLE_FB_WEBHOOK = 'true';
+    process.env.MICMAP_ADMIN_TOKEN = 'test-admin-token';
+
+    jest.doMock('../../services/fb-webhook', () => ({
+      processPost: jest.fn(),
+      getReviewQueue: jest.fn().mockResolvedValue([]),
+      applyEntry: jest.fn()
+    }));
+
+    const app = loadServer();
+
+    const missingTokenResponse = await request(app)
+      .get('/admin/fb-review-queue')
+      .expect(401);
+
+    const badTokenResponse = await request(app)
+      .get('/admin/fb-review-queue')
+      .set('x-admin-token', 'wrong-token')
+      .expect(401);
+
+    const lbCompareMissingToken = await request(app)
+      .get('/api/v1/admin/lb-compare/latest')
+      .expect(401);
+
+    const lbCompareAuthorized = await request(app)
+      .get('/api/v1/admin/lb-compare/latest')
+      .set('x-admin-token', 'test-admin-token')
+      .expect(200);
+
+    expect(missingTokenResponse.body.error).toBe('Unauthorized');
+    expect(badTokenResponse.body.error).toBe('Unauthorized');
+    expect(lbCompareMissingToken.body.error).toBe('Unauthorized');
+    expect(lbCompareAuthorized.body.success).toBe(true);
   });
 
   test('production startup skips FB webhook bootstrap when feature flag is off', () => {

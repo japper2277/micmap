@@ -964,7 +964,7 @@ function render(mode) {
                                 <polyline points="16 6 12 2 8 6"/>
                                 <line x1="12" y1="2" x2="12" y2="15"/>
                             </svg>
-                            Share Link
+                            ${STATE.sharedPlan?.shareId ? 'Copy Invite Link' : 'Invite Friends'}
                         </button>
                         <button class="schedule-share-option" onclick="event.stopPropagation(); exportScheduleToCalendar(); closeScheduleShareMenu();">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
@@ -1025,6 +1025,7 @@ function render(mode) {
             const priceClass = priceStr === 'Free' ? 'free' : '';
             const conflictClass = conflicts.has(mic.id) ? ' conflict' : '';
             const hood = mic.hood || mic.neighborhood || '';
+            const safeMicId = typeof escapeAttr === 'function' ? escapeAttr(mic.id) : mic.id;
             const stayMins = typeof getMicDuration === 'function' ? getMicDuration(mic.id) : (STATE.setDuration || 45);
             const endDate = mic.start ? new Date(mic.start.getTime() + stayMins * 60000) : null;
             const endStr = endDate ? fmtTime(endDate) : '';
@@ -1091,7 +1092,7 @@ function render(mode) {
             }
 
             return `
-                <div class="my-schedule-item${conflictClass}" draggable="true" data-mic-id="${mic.id}" aria-label="Scheduled stop" onclick="event.stopPropagation(); if(typeof openMicModal==='function') openMicModal('${mic.id}');">
+                <div class="my-schedule-item${conflictClass}" draggable="true" data-mic-id="${safeMicId}" data-open-mic-id="${safeMicId}" aria-label="Scheduled stop">
                     <div class="my-schedule-item-time-col">
                         <div class="my-schedule-item-time">${timeStr}</div>
                         ${mic.setTime ? `<div class="my-schedule-item-set">${escapeHtml(formatSetTime(mic.setTime))}</div>` : ''}
@@ -1105,29 +1106,34 @@ function render(mode) {
                             <span class="my-schedule-item-price ${priceClass}">${priceStr}</span>
                         </div>
                         <div class="my-schedule-item-duration-row">
-                            <div class="duration-picker-wrap" data-mic-id="${mic.id}">
-                                <button class="my-schedule-item-duration" onclick="event.stopPropagation(); toggleDurationPicker('${mic.id}', this)" aria-label="Change stay duration, current ${stayMins} minutes" title="How long you'll stay at this stop">
+                            <div class="duration-picker-wrap" data-mic-id="${safeMicId}">
+                                <button class="my-schedule-item-duration" data-duration-mic-id="${safeMicId}" aria-label="Change stay duration, current ${stayMins} minutes" title="How long you'll stay at this stop">
                                     <span class="duration-label">Stay</span>
                                     <span class="duration-value-chip"><span class="duration-value-text">${stayMins} min</span></span>
                                 </button>
-                                <div class="duration-picker-options" id="dur-opts-${mic.id}">
-                                    ${[30, 45, 60, 90].map(v => `<button class="duration-opt${v === stayMins ? ' active' : ''}" onclick="event.stopPropagation(); selectMicDuration('${mic.id}', ${v})">${v}<span class="duration-opt-unit">m</span></button>`).join('')}
+                                <div class="duration-picker-options" id="dur-opts-${safeMicId}">
+                                    ${[30, 45, 60, 90].map(v => `<button class="duration-opt${v === stayMins ? ' active' : ''}" data-mic-id="${safeMicId}" data-duration-value="${v}">${v}<span class="duration-opt-unit">m</span></button>`).join('')}
                                 </div>
                             </div>
                         </div>
                         ${(() => {
-                            const responses = (STATE.planResponses || []).filter(r => r.micId === mic.id);
+                            const responses = typeof getSharedPlanResponsesForMic === 'function'
+                                ? getSharedPlanResponsesForMic(mic.id)
+                                : (STATE.planResponses || []).filter(r => r.micId === mic.id);
                             if (responses.length === 0) return '';
-                            return '<div class="rsvp-badges">' + responses.map(r =>
-                                `<span class="rsvp-badge ${r.response === 'in' ? 'rsvp-badge-in' : 'rsvp-badge-out'}">${escapeHtml(r.name)}${r.response === 'in' ? ' is in' : " can't make it"}</span>`
-                            ).join('') + '</div>';
+                            return '<div class="rsvp-badges">' + responses.map(r => {
+                                const presentation = typeof getSharedPlanResponsePresentation === 'function'
+                                    ? getSharedPlanResponsePresentation(r.response)
+                                    : { className: r.response === 'in' ? 'rsvp-badge-in' : 'rsvp-badge-out', label: r.response === 'in' ? 'is in' : "can't make it" };
+                                return `<span class="rsvp-badge ${presentation.className}">${escapeHtml(r.name)} ${escapeHtml(presentation.label)}</span>`;
+                            }).join('') + '</div>';
                         })()}
                     </div>
                     <div class="my-schedule-item-actions stacked">
                         <button class="schedule-drag-handle" onclick="event.stopPropagation();" aria-label="Drag to reorder" title="Drag to reorder">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M4 8h16M4 16h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
                         </button>
-                        <button class="my-schedule-remove" onclick="event.stopPropagation(); undoableRemoveFromRoute('${mic.id}')" aria-label="Remove from schedule">✕</button>
+                        <button class="my-schedule-remove" data-remove-route-mic-id="${safeMicId}" aria-label="Remove from schedule">✕</button>
                     </div>
                 </div>
                 ${travelHtml}
@@ -1185,12 +1191,13 @@ function render(mode) {
                                 const rawPrice = mic.price || mic.cost || 0;
                                 const priceStr = rawPrice === 0 || rawPrice === '0' || rawPrice === 'Free' || rawPrice === 'free' ? 'Free' : (typeof rawPrice === 'number' ? `$${rawPrice}` : rawPrice);
                                 const priceClass = priceStr === 'Free' ? 'free' : '';
+                                const safeMicId = typeof escapeAttr === 'function' ? escapeAttr(mic.id) : mic.id;
                                 const setTime = mic.setTime ? formatSetTime(mic.setTime) : '';
 
                                 return `
                                     <div class="suggested-mic-item"
-                                         data-id="${mic.id}"
-                                         onclick="event.stopPropagation(); var m = STATE.mics.find(x => x.id === '${mic.id}'); if (m && typeof openVenueModal === 'function') openVenueModal(m);"
+                                         data-id="${safeMicId}"
+                                         data-open-venue-mic-id="${safeMicId}"
                                          role="button"
                                          style="animation-delay: ${index * 60}ms">
                                         <div class="suggested-mic-left">
@@ -1207,7 +1214,7 @@ function render(mode) {
                                                 <div class="suggested-mic-reason">${item.reason}</div>
                                             </div>
                                         </div>
-                                        <button class="suggested-mic-add-btn" onclick="event.stopPropagation(); addSuggestedMic('${mic.id}')" aria-label="Add to schedule">+ Add</button>
+                                        <button class="suggested-mic-add-btn" data-suggested-add-mic-id="${safeMicId}" aria-label="Add to schedule">+ Add</button>
                                     </div>
                                 `;
                             }).join('')}
@@ -1461,6 +1468,7 @@ function render(mode) {
         const safeContact = mic.contact ? escapeHtml(mic.contact.replace(/^@/, '')) : '';
         const safeSignupEmail = mic.signupEmail ? escapeHtml(mic.signupEmail) : '';
         const safeSignupUrl = mic.signupUrl ? escapeHtml(mic.signupUrl) : '';
+        const safeMicId = typeof escapeAttr === 'function' ? escapeAttr(mic.id) : mic.id;
         const signupLabel = mic.signupUrl ? 'Online signup' : mic.signupEmail ? 'Email signup' : 'Sign up in person';
 
         const isInPlanRoute = !!(STATE.planMode && STATE.route && STATE.route.includes(mic.id));
@@ -1472,7 +1480,7 @@ function render(mode) {
                 ? `<a href="mailto:${safeSignupEmail}" onclick="event.stopPropagation();" class="icon-btn-sm" title="Email"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></a>`
                 : `<button onclick="event.stopPropagation(); flipCard(this);" class="icon-btn-sm" title="Signup info"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></button>`;
         const igBtnSm = safeContact ? `<a href="https://instagram.com/${safeContact}" target="_blank" rel="noopener" onclick="event.stopPropagation();" class="icon-btn-sm" title="@${safeContact}"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg></a>` : '';
-        const shareBtnSm = `<button onclick="event.stopPropagation(); shareMic('${mic.id}')" class="icon-btn-sm" title="Share"><svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg></button>`;
+        const shareBtnSm = `<button class="icon-btn-sm" data-share-mic-id="${safeMicId}" title="Share"><svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg></button>`;
 
         // Build action buttons HTML (large for mobile)
         const signupBtn = mic.signupUrl
@@ -1481,9 +1489,9 @@ function render(mode) {
                 ? `<a href="mailto:${safeSignupEmail}" onclick="event.stopPropagation();" class="icon-btn" title="Email"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></a>`
                 : `<button onclick="event.stopPropagation(); flipCard(this);" class="icon-btn" title="Signup info"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></button>`;
         const igBtn = safeContact ? `<a href="https://instagram.com/${safeContact}" target="_blank" rel="noopener" onclick="event.stopPropagation();" class="icon-btn" title="@${safeContact}"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg></a>` : '';
-        const shareBtn = `<button onclick="event.stopPropagation(); shareMic('${mic.id}')" class="icon-btn" title="Share"><svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg></button>`;
+        const shareBtn = `<button class="icon-btn" data-share-mic-id="${safeMicId}" title="Share"><svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg></button>`;
 
-        const planAddBtn = `<button class="plan-add-btn" onclick="event.stopPropagation(); handleAddClick(this, '${mic.id}')" aria-label="Add to schedule">+ Add</button>`;
+        const planAddBtn = `<button class="plan-add-btn" data-add-mic-id="${safeMicId}" aria-label="Add to schedule">+ Add</button>`;
         const planCta = !STATE.planMode
             ? ''
             : isInPlanRoute
@@ -1507,7 +1515,7 @@ function render(mode) {
                     <div class="info-col">
                         <div class="venue-row">
                             <div class="venue-name">${safeTitle}</div>
-                            <button class="add-mic-btn${isInRoute ? ' added' : ''}" onclick="event.stopPropagation(); handleAddClick(this, '${mic.id}')" aria-label="${isInRoute ? 'In schedule' : 'Add to night'}">${isInRoute ? '&#10003; Added' : '+ Tonight'}</button>
+                            <button class="add-mic-btn${isInRoute ? ' added' : ''}" data-add-mic-id="${safeMicId}" aria-label="${isInRoute ? 'In schedule' : 'Add to night'}">${isInRoute ? '&#10003; Added' : '+ Tonight'}</button>
                         </div>
                         <div class="meta-row">
                             <span class="neighborhood">${safeHood}, ${shortBorough}</span>
@@ -1626,6 +1634,7 @@ function render(mode) {
         </div>
     `;
     container.appendChild(footer);
+    bindRenderActionHandlers(container);
 
     // Fetch and update departure times for cards with routes
     if (STATE.isTransitMode) {
@@ -1725,6 +1734,117 @@ function flipCard(btn) {
     }
 }
 
+function bindRenderActionHandlers(root = document) {
+    if (!root) return;
+
+    root.querySelectorAll('[data-share-mic-id]').forEach((btn) => {
+        if (btn.dataset.boundShareMic === '1') return;
+        btn.dataset.boundShareMic = '1';
+        btn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            shareMic(btn.dataset.shareMicId);
+        });
+    });
+
+    root.querySelectorAll('[data-add-mic-id]').forEach((btn) => {
+        if (btn.dataset.boundAddMic === '1') return;
+        btn.dataset.boundAddMic = '1';
+        btn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            handleAddClick(btn, btn.dataset.addMicId);
+        });
+    });
+
+    root.querySelectorAll('[data-open-mic-id]').forEach((el) => {
+        if (el.dataset.boundOpenMic === '1') return;
+        el.dataset.boundOpenMic = '1';
+        el.addEventListener('click', (event) => {
+            if (event.target.closest('button, a, input, textarea, select')) return;
+            event.stopPropagation();
+            if (typeof openMicModal === 'function') {
+                openMicModal(el.dataset.openMicId);
+            }
+        });
+    });
+
+    root.querySelectorAll('[data-open-venue-mic-id]').forEach((el) => {
+        if (el.dataset.boundOpenVenueMic === '1') return;
+        el.dataset.boundOpenVenueMic = '1';
+        el.addEventListener('click', (event) => {
+            event.stopPropagation();
+            const mic = STATE.mics.find((entry) => entry.id === el.dataset.openVenueMicId);
+            if (mic && typeof openVenueModal === 'function') {
+                openVenueModal(mic);
+            }
+        });
+    });
+
+    root.querySelectorAll('[data-suggested-add-mic-id]').forEach((btn) => {
+        if (btn.dataset.boundSuggestedAddMic === '1') return;
+        btn.dataset.boundSuggestedAddMic = '1';
+        btn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            addSuggestedMic(btn.dataset.suggestedAddMicId);
+        });
+    });
+
+    root.querySelectorAll('[data-locate-mic-id]').forEach((el) => {
+        if (el.dataset.boundLocateMic === '1') return;
+        el.dataset.boundLocateMic = '1';
+        el.addEventListener('click', (event) => {
+            if (event.target.closest('button, a, input, textarea, select')) return;
+            event.stopPropagation();
+            const mic = STATE.mics.find((entry) => entry.id === el.dataset.locateMicId);
+            if (!mic) return;
+            closeMyNightSheet();
+            if (typeof locateMic === 'function') {
+                locateMic(mic.lat, mic.lng, mic.id);
+            }
+        });
+    });
+
+    root.querySelectorAll('[data-duration-mic-id]').forEach((btn) => {
+        if (btn.dataset.boundDurationMic === '1') return;
+        btn.dataset.boundDurationMic = '1';
+        btn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            toggleDurationPicker(btn.dataset.durationMicId, btn);
+        });
+    });
+
+    root.querySelectorAll('[data-duration-value][data-mic-id]').forEach((btn) => {
+        if (btn.dataset.boundDurationValue === '1') return;
+        btn.dataset.boundDurationValue = '1';
+        btn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            const durationValue = Number(btn.dataset.durationValue);
+            if (!Number.isFinite(durationValue)) return;
+            selectMicDuration(btn.dataset.micId, durationValue);
+            if (btn.dataset.reopenMyNight === 'true') {
+                openMyNightSheet();
+            }
+        });
+    });
+
+    root.querySelectorAll('[data-remove-route-mic-id]').forEach((btn) => {
+        if (btn.dataset.boundRemoveRouteMic === '1') return;
+        btn.dataset.boundRemoveRouteMic = '1';
+        btn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            undoableRemoveFromRoute(btn.dataset.removeRouteMicId);
+        });
+    });
+
+    root.querySelectorAll('[data-remove-night-mic-id]').forEach((btn) => {
+        if (btn.dataset.boundRemoveNightMic === '1') return;
+        btn.dataset.boundRemoveNightMic = '1';
+        btn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            removeFromMyNight(btn.dataset.removeNightMicId);
+        });
+    });
+}
+
 /* =================================================================
    MY NIGHT PILL + SHEET (mobile map-first UX)
    ================================================================= */
@@ -1764,7 +1884,7 @@ let addMicSpotlightTimer = null;
 
 function handleMyNightPillClick() {
     if (((STATE.route || []).length || 0) === 0) {
-        showAddMicDemoModal();
+        spotlightAddMicButtons();
         return;
     }
     openMyNightSheet();
@@ -1948,7 +2068,9 @@ function openMyNightSheet() {
             summaryEl.className = 'my-night-sheet-summary';
             headerEl.appendChild(summaryEl);
         }
-        if (summaryEl) summaryEl.textContent = summaryText;
+        if (summaryEl) {
+            summaryEl.innerHTML = `${summaryText} <button class="my-night-clear-all" onclick="event.stopPropagation(); clearAllStops();">Clear All</button>`;
+        }
     } else {
         if (summaryEl) summaryEl.remove();
     }
@@ -1973,6 +2095,13 @@ function openMyNightSheet() {
             return m === 0 ? `${displayH}:00` : `${displayH}:${m.toString().padStart(2, '0')}`;
         };
 
+        const sharedSummaryHtml = typeof buildSharedPlanSummaryMarkup === 'function'
+            ? buildSharedPlanSummaryMarkup()
+            : '';
+        const sharedSeedHtml = typeof buildSharedPlanInviteSeedMarkup === 'function'
+            ? buildSharedPlanInviteSeedMarkup()
+            : '';
+
         // Reuse the same my-schedule-item cards as desktop
         const html = routeMics.map((mic, idx) => {
             const timeStr = mic.start ? fmtTime(mic.start) : '';
@@ -1986,6 +2115,7 @@ function openMyNightSheet() {
             }
             const priceClass = priceStr === 'Free' ? 'free' : '';
             const hood = mic.hood || mic.neighborhood || '';
+            const safeMicId = typeof escapeAttr === 'function' ? escapeAttr(mic.id) : mic.id;
             const stayMins = typeof getMicDuration === 'function' ? getMicDuration(mic.id) : setDuration;
             const endDate = mic.start ? new Date(mic.start.getTime() + stayMins * 60000) : null;
             const endStr = endDate ? fmtTime(endDate) : '';
@@ -2052,7 +2182,7 @@ function openMyNightSheet() {
             }
 
             return `
-                <div class="my-schedule-item" data-mic-id="${mic.id}" onclick="event.stopPropagation(); closeMyNightSheet(); if(typeof locateMic==='function') locateMic(${mic.lat}, ${mic.lng}, '${mic.id}');">
+                <div class="my-schedule-item" data-mic-id="${safeMicId}" data-locate-mic-id="${safeMicId}">
                     <div class="my-schedule-item-time-col">
                         <div class="my-schedule-item-time">${timeStr}</div>
                         ${mic.setTime ? `<div class="my-schedule-item-set">${escapeHtml(typeof formatSetTime === 'function' ? formatSetTime(mic.setTime) : mic.setTime)}</div>` : ''}
@@ -2066,29 +2196,45 @@ function openMyNightSheet() {
                             <span class="my-schedule-item-price ${priceClass}">${priceStr}</span>
                         </div>
                         <div class="my-schedule-item-duration-row">
-                            <div class="duration-picker-wrap" data-mic-id="${mic.id}">
-                                <button class="my-schedule-item-duration" onclick="event.stopPropagation(); toggleDurationPicker('${mic.id}', this)" aria-label="Change stay duration, current ${stayMins} minutes" title="How long you'll stay at this stop">
+                            <div class="duration-picker-wrap" data-mic-id="${safeMicId}">
+                                <button class="my-schedule-item-duration" data-duration-mic-id="${safeMicId}" aria-label="Change stay duration, current ${stayMins} minutes" title="How long you'll stay at this stop">
                                     <span class="duration-label">Stay</span>
                                     <span class="duration-value-chip"><span class="duration-value-text">${stayMins} min</span></span>
                                 </button>
-                                <div class="duration-picker-options" id="dur-opts-sheet-${mic.id}">
-                                    ${[30, 45, 60, 90].map(v => `<button class="duration-opt${v === stayMins ? ' active' : ''}" onclick="event.stopPropagation(); selectMicDuration('${mic.id}', ${v}); openMyNightSheet();">${v}<span class="duration-opt-unit">m</span></button>`).join('')}
+                                <div class="duration-picker-options" id="dur-opts-sheet-${safeMicId}">
+                                    ${[30, 45, 60, 90].map(v => `<button class="duration-opt${v === stayMins ? ' active' : ''}" data-mic-id="${safeMicId}" data-duration-value="${v}" data-reopen-my-night="true">${v}<span class="duration-opt-unit">m</span></button>`).join('')}
                                 </div>
                             </div>
                         </div>
+                        ${(() => {
+                            const responses = typeof getSharedPlanResponsesForMic === 'function'
+                                ? getSharedPlanResponsesForMic(mic.id)
+                                : [];
+                            if (responses.length === 0) return '';
+                            return '<div class="rsvp-badges">' + responses.map(r => {
+                                const presentation = typeof getSharedPlanResponsePresentation === 'function'
+                                    ? getSharedPlanResponsePresentation(r.response)
+                                    : { className: r.response === 'in' ? 'rsvp-badge-in' : 'rsvp-badge-out', label: r.response === 'in' ? 'is in' : "can't make it" };
+                                return `<span class="rsvp-badge ${presentation.className}">${escapeHtml(r.name)} ${escapeHtml(presentation.label)}</span>`;
+                            }).join('') + '</div>';
+                        })()}
                     </div>
-                    <button class="my-schedule-remove" onclick="event.stopPropagation(); removeFromMyNight('${mic.id}')" aria-label="Remove from schedule">✕</button>
+                    <button class="my-schedule-remove" data-remove-night-mic-id="${safeMicId}" aria-label="Remove from schedule">✕</button>
                 </div>
                 ${travelHtml}
             `;
         }).join('');
-        content.innerHTML = html;
+        content.innerHTML = `${sharedSummaryHtml}${sharedSeedHtml}${html}`;
+        bindRenderActionHandlers(content);
     }
 
     // Show/hide share button
     const shareBtn = document.getElementById('my-night-share-btn');
     if (shareBtn) {
         shareBtn.style.display = routeMics.length >= 1 ? 'flex' : 'none';
+    }
+    if (typeof updateMyNightShareButtonLabel === 'function') {
+        updateMyNightShareButtonLabel();
     }
 
     overlay.classList.add('active');

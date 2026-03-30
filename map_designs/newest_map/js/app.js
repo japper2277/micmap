@@ -65,8 +65,18 @@ async function loadData() {
             openMicFromHash();
         }
 
-        // Check for shared plan deep link (e.g. ?plan=id1:45,id2:60&web=1)
-        if (typeof loadPlanFromDeepLink === 'function') {
+        // Check for new durable shared-plan deep links first, then legacy ?plan=
+        let loadedSharedPlan = false;
+        if (typeof loadSharedPlanFromDeepLink === 'function') {
+            try {
+                loadedSharedPlan = await loadSharedPlanFromDeepLink();
+            } catch (error) {
+                if (typeof toastService !== 'undefined') {
+                    toastService.show(error.message || 'Could not load shared plan', 'error');
+                }
+            }
+        }
+        if (!loadedSharedPlan && typeof loadPlanFromDeepLink === 'function') {
             if (loadPlanFromDeepLink() && typeof planResponseService !== 'undefined') {
                 planResponseService.start();
             }
@@ -307,8 +317,9 @@ function showCheckinToast(checkin) {
     // Build a custom toast with Yes/No buttons
     const container = document.createElement('div');
     container.className = 'checkin-toast';
+    const safeVenue = typeof escapeHtml === 'function' ? escapeHtml(checkin.venue) : checkin.venue;
     container.innerHTML = `
-        <div class="checkin-toast-text">Did you make it to <strong>${checkin.venue}</strong>?</div>
+        <div class="checkin-toast-text">Did you make it to <strong>${safeVenue}</strong>?</div>
         <div class="checkin-toast-actions">
             <button class="checkin-btn checkin-yes">Made it</button>
             <button class="checkin-btn checkin-no">Skipped</button>

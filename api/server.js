@@ -2,6 +2,7 @@
 const express = require('express');
 const { google } = require('googleapis');
 const cors = require('cors');
+const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const { spawn } = require('child_process');
@@ -13,6 +14,23 @@ require('dotenv').config({ path: path.join(__dirname, '.env') });
 const mongoose = require('mongoose');
 const { connectDB } = require('./config/database');
 const Mic = require('./models/Mic');
+const SharedPlan = require('./models/SharedPlan');
+const {
+  buildExpiryDate,
+  sanitizeApiBaseUrl,
+  sanitizeAppBaseUrl,
+  sanitizeMicSnapshot,
+  cleanDisplayName,
+  createActivityEntry,
+  generateShareId,
+  normalizeParticipantName,
+  normalizeStops,
+  serializeSharedPlan,
+  validateApiBaseUrl,
+  validateAppBaseUrl,
+  validateShareId,
+  validateTextField
+} = require('./utils/shared-plans');
 
 // Redis Caching
 const { cacheMiddleware } = require('./middleware/cache');
@@ -217,19 +235,416 @@ function getScheduledDeparturesBefore(stopId, line, deadlineMins, count = 3) {
 }
 
 const compression = require('compression');
+const helmet = require('helmet');
+
+const SHARED_PLAN_CACHE_TTL_SECONDS = 30;
+
+function isSharedPlanExpired(plan) {
+  if (!plan?.expiresAt) return false;
+  return new Date(plan.expiresAt).getTime() <= Date.now();
+}
+
+function getSharedPlanCacheKey(shareId) {
+  return `micmap:shared-plan:${shareId}`;
+}
+
+async function getSharedPlanCache() {
+  try {
+    const { redis, isRedisConnected } = require('./config/cache');
+    if (!isRedisConnected()) return null;
+    return redis;
+  } catch (_) {
+    return null;
+  }
+}
+
+async function readCachedSharedPlan(shareId) {
+  const redis = await getSharedPlanCache();
+  if (!redis) return null;
+
+  try {
+    const raw = await redis.get(getSharedPlanCacheKey(shareId));
+    return raw ? JSON.parse(raw) : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+async function writeCachedSharedPlan(shareId, payload) {
+  const redis = await getSharedPlanCache();
+  if (!redis) return;
+
+  try {
+    await redis.setex(getSharedPlanCacheKey(shareId), SHARED_PLAN_CACHE_TTL_SECONDS, JSON.stringify(payload));
+  } catch (_) {
+    // Cache is optional.
+  }
+}
+
+async function invalidateCachedSharedPlan(shareId) {
+  const redis = await getSharedPlanCache();
+  if (!redis) return;
+
+  try {
+    await redis.del(getSharedPlanCacheKey(shareId));
+  } catch (_) {
+    // Cache is optional.
+  }
+}
+
+async function generateUniqueSharedPlanId() {
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    const shareId = generateShareId();
+    const exists = await SharedPlan.exists({ shareId });
+    if (!exists) return shareId;
+  }
+  throw new Error('Could not generate a unique share id');
+}
+
+async function loadMicDocsByIds(ids) {
+  const uniqueIds = [...new Set((ids || []).map(id => String(id)).filter(Boolean))];
+  if (uniqueIds.length === 0) return new Map();
+
+  const validObjectIds = uniqueIds.filter((id) => mongoose.Types.ObjectId.isValid(id));
+  if (validObjectIds.length === 0) return new Map();
+
+  const mics = await Mic.find({ _id: { $in: validObjectIds } });
+  return new Map(mics.map((mic) => [String(mic._id), mic]));
+}
+
+async function buildSerializedSharedPlan(planDoc, preloadedMics = null) {
+  const plan = planDoc?.toObject ? planDoc.toObject({ virtuals: true }) : planDoc;
+  if (!plan) return null;
+
+  const micIds = new Set();
+  for (const stop of plan.stops || []) {
+    if (stop?.micId) micIds.add(String(stop.micId));
+  }
+  for (const suggestion of plan.suggestions || []) {
+    if (suggestion?.targetMicId) micIds.add(String(suggestion.targetMicId));
+    if (suggestion?.proposedMicId) micIds.add(String(suggestion.proposedMicId));
+  }
+
+  const micDocsById = preloadedMics || await loadMicDocsByIds([...micIds]);
+  return serializeSharedPlan(plan, micDocsById);
+}
+
+function getSharedPlanStopIds(planDoc) {
+  return (planDoc?.stops || []).map(stop => String(stop.micId)).filter(Boolean);
+}
+
+function getSharedPlanMicLabel(planDoc, micId, micDocsById = new Map()) {
+  const targetId = String(micId || '');
+  const stop = (planDoc?.stops || []).find((entry) => String(entry.micId) === targetId);
+  const mic = micDocsById.get(targetId) || stop?.micSnapshot || null;
+  return mic?.venueName || mic?.venue || mic?.title || mic?.name || 'this stop';
+}
+
+function upsertPlanResponse(planDoc, payload) {
+  const normalizedName = normalizeParticipantName(payload.name);
+  const existing = (planDoc.responses || []).find((entry) => entry.normalizedName === normalizedName);
+
+  if (existing) {
+    existing.name = cleanDisplayName(payload.name);
+    existing.normalizedName = normalizedName;
+    existing.response = payload.response;
+    existing.targetMicId = String(payload.targetMicId);
+    existing.updatedAt = new Date();
+  } else {
+    planDoc.responses.push({
+      name: cleanDisplayName(payload.name),
+      normalizedName,
+      response: payload.response,
+      targetMicId: String(payload.targetMicId),
+      updatedAt: new Date()
+    });
+  }
+}
+
+function getSuggestionOrThrow(planDoc, suggestionId) {
+  const suggestion = planDoc.suggestions.id(suggestionId);
+  if (!suggestion) {
+    const error = new Error('Suggestion not found');
+    error.statusCode = 404;
+    throw error;
+  }
+  if (suggestion.status !== 'open') {
+    const error = new Error(`Suggestion already ${suggestion.status}`);
+    error.statusCode = 409;
+    throw error;
+  }
+  return suggestion;
+}
+
+const ALLOWED_CORS_ORIGINS = new Set([
+  'https://micfinder.io',
+  'https://www.micfinder.io'
+]);
+const LOCAL_ORIGIN_HOSTS = new Set(['localhost', '127.0.0.1']);
+
+function isAllowedCorsOrigin(origin) {
+  if (!origin) return true;
+
+  if (ALLOWED_CORS_ORIGINS.has(origin)) {
+    return true;
+  }
+
+  try {
+    const parsed = new URL(origin);
+    return LOCAL_ORIGIN_HOSTS.has(parsed.hostname);
+  } catch (_) {
+    return false;
+  }
+}
+
+function secureTokenEquals(expectedToken, providedToken) {
+  const expected = Buffer.from(String(expectedToken || ''));
+  const provided = Buffer.from(String(providedToken || ''));
+  if (expected.length === 0 || expected.length !== provided.length) {
+    return false;
+  }
+  return crypto.timingSafeEqual(expected, provided);
+}
+
+function requireAdminToken(req, res, next) {
+  const configuredToken = String(process.env.MICMAP_ADMIN_TOKEN || '').trim();
+  if (!configuredToken) {
+    return res.status(503).json({ success: false, error: 'Admin auth is not configured' });
+  }
+
+  const providedToken = String(req.get('x-admin-token') || '').trim();
+  if (!secureTokenEquals(configuredToken, providedToken)) {
+    return res.status(401).json({ success: false, error: 'Unauthorized' });
+  }
+
+  return next();
+}
+
+function getValidatedShareId(rawShareId) {
+  const shareId = String(rawShareId || '').trim();
+  if (!validateShareId(shareId)) {
+    const error = new Error('Invalid shareId');
+    error.statusCode = 400;
+    throw error;
+  }
+  return shareId;
+}
+
+function getValidatedTextInput(value, options) {
+  const error = validateTextField(value, options);
+  if (error) {
+    const validationError = new Error(error);
+    validationError.statusCode = 400;
+    throw validationError;
+  }
+  return value;
+}
+
+function getValidatedOptionalBaseUrl(body, key, validator, fallback) {
+  if (!Object.prototype.hasOwnProperty.call(body || {}, key)) {
+    return fallback;
+  }
+
+  const result = validator(body?.[key], fallback);
+  if (result.error) {
+    const error = new Error(result.error);
+    error.statusCode = 400;
+    throw error;
+  }
+  return result.value;
+}
+
+function buildValidatedRawStops(stopsInput, actorName, {
+  allowEmpty = false
+} = {}) {
+  if (!Array.isArray(stopsInput)) {
+    const error = new Error('stops must be an array');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  if (!allowEmpty && stopsInput.length === 0) {
+    const error = new Error('At least one stop is required');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  return stopsInput.map((stop, index) => {
+    if (!stop || typeof stop !== 'object' || Array.isArray(stop)) {
+      const error = new Error(`Stop ${index + 1} must be an object`);
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const micId = String(stop?.micId || stop?.id || '').trim();
+    if (!micId) {
+      const error = new Error('Every stop must include a micId');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(stop, 'stayMins')) {
+      const stayMins = Number(stop.stayMins);
+      if (!Number.isFinite(stayMins) || stayMins < 15 || stayMins > 240) {
+        const error = new Error(`stayMins must be between 15 and 240 for stop ${micId}`);
+        error.statusCode = 400;
+        throw error;
+      }
+    }
+
+    if (Object.prototype.hasOwnProperty.call(stop, 'order')) {
+      const order = Number(stop.order);
+      if (!Number.isFinite(order) || order < 0) {
+        const error = new Error(`order must be a non-negative number for stop ${micId}`);
+        error.statusCode = 400;
+        throw error;
+      }
+    }
+
+    const snapshotResult = sanitizeMicSnapshot(stop?.micSnapshot);
+    if (snapshotResult.error) {
+      const error = new Error(snapshotResult.error);
+      error.statusCode = 400;
+      throw error;
+    }
+
+    let addedAt = new Date();
+    if (Object.prototype.hasOwnProperty.call(stop, 'addedAt') && stop.addedAt) {
+      addedAt = new Date(stop.addedAt);
+      if (Number.isNaN(addedAt.getTime())) {
+        const error = new Error(`addedAt must be a valid date for stop ${micId}`);
+        error.statusCode = 400;
+        throw error;
+      }
+    }
+
+    return {
+      micId,
+      stayMins: Number.isFinite(Number(stop?.stayMins)) ? Number(stop.stayMins) : 45,
+      order: Number.isFinite(Number(stop?.order)) ? Number(stop.order) : index,
+      addedBy: actorName,
+      micSnapshot: snapshotResult.value,
+      addedAt
+    };
+  });
+}
+
+function validateMeetupStopId(meetupStopId, stops) {
+  if (!meetupStopId) return null;
+  const targetId = String(meetupStopId).trim();
+  if (!targetId) return null;
+  if (!stops.some((stop) => stop.micId === targetId)) {
+    const error = new Error('meetupStopId must refer to an existing stop');
+    error.statusCode = 400;
+    throw error;
+  }
+  return targetId;
+}
+
+function parseStaticMapInteger(value, fallback, {
+  field,
+  min,
+  max
+}) {
+  const normalized = value === undefined || value === null || value === '' ? fallback : Number(value);
+  if (!Number.isInteger(normalized) || normalized < min || normalized > max) {
+    const error = new Error(`${field} must be an integer between ${min} and ${max}`);
+    error.statusCode = 400;
+    throw error;
+  }
+  return normalized;
+}
+
+function parseCoordinate(value, {
+  field,
+  min,
+  max
+}) {
+  const normalized = Number(value);
+  if (!Number.isFinite(normalized) || normalized < min || normalized > max) {
+    const error = new Error(`${field} must be a finite number between ${min} and ${max}`);
+    error.statusCode = 400;
+    throw error;
+  }
+  return normalized;
+}
+
+function buildStaticMapQuery(params) {
+  const width = parseStaticMapInteger(params.w, 1200, { field: 'w', min: 1, max: 2048 });
+  const height = parseStaticMapInteger(params.h, 630, { field: 'h', min: 1, max: 2048 });
+  const zoom = parseStaticMapInteger(params.zoom, 15, { field: 'zoom', min: 1, max: 20 });
+  const query = new URLSearchParams({
+    size: `${width}x${height}`,
+    scale: '2',
+    maptype: 'roadmap',
+    style: 'feature:all|element:labels|visibility:simplified'
+  });
+
+  if (params.markers !== undefined && params.markers !== null && String(params.markers).trim()) {
+    const markerPairs = String(params.markers)
+      .split('|')
+      .map((entry) => entry.trim())
+      .filter(Boolean);
+
+    if (markerPairs.length === 0) {
+      const error = new Error('markers must include at least one lat,lng pair');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const normalizedPairs = markerPairs.map((entry) => {
+      const [latRaw, lngRaw, extra] = entry.split(',');
+      if (!latRaw || !lngRaw || extra !== undefined) {
+        const error = new Error('markers must use the format lat,lng|lat,lng');
+        error.statusCode = 400;
+        throw error;
+      }
+      const lat = parseCoordinate(latRaw, { field: 'marker latitude', min: -90, max: 90 });
+      const lng = parseCoordinate(lngRaw, { field: 'marker longitude', min: -180, max: 180 });
+      return `${lat},${lng}`;
+    });
+
+    query.set('markers', normalizedPairs.join('|'));
+    return query;
+  }
+
+  if (params.lat === undefined || params.lng === undefined) {
+    const error = new Error('lat and lng required');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const lat = parseCoordinate(params.lat, { field: 'lat', min: -90, max: 90 });
+  const lng = parseCoordinate(params.lng, { field: 'lng', min: -180, max: 180 });
+  query.set('center', `${lat},${lng}`);
+  query.set('zoom', String(zoom));
+  query.set('markers', `color:red|${lat},${lng}`);
+  return query;
+}
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const HOST = process.env.HOST || undefined;
 let lbCompareJob = { running: false, startedAt: null, lastFinishedAt: null, lastExitCode: null };
 
 // Gzip/Brotli compression - reduces JSON payload ~70-80% for mobile
 app.use(compression({ threshold: 1024 }));
 
-// Enable CORS for all origins (restrict in production)
-app.use(cors());
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginResourcePolicy: { policy: 'cross-origin' }
+}));
 
-// Parse JSON bodies
-app.use(express.json());
+app.use(cors({
+  origin(origin, callback) {
+    if (isAllowedCorsOrigin(origin)) {
+      return callback(null, true);
+    }
+    return callback(null, false);
+  }
+}));
+
+app.use(express.json({ limit: '100kb' }));
 
 // Request logging with unique IDs
 app.use(requestLoggingMiddleware);
@@ -300,7 +715,7 @@ app.get('/health', (req, res) => {
 });
 
 // Clear cache endpoint
-app.post('/admin/clear-cache', async (req, res) => {
+app.post('/admin/clear-cache', requireAdminToken, async (req, res) => {
   try {
     const { invalidateMicsCache } = require('./utils/cache-invalidation');
     const count = await invalidateMicsCache();
@@ -960,22 +1375,42 @@ app.get('/api/gtfs/departures', (req, res) => {
 });
 
 // =================================================================
-// STATIC MAP IMAGE - Redirect to Google Static Maps for OG images
+// STATIC MAP IMAGE - Proxy Google Static Maps for OG images
 // =================================================================
-app.get('/api/static-map', (req, res) => {
-  const { lat, lng, zoom = '15', w = '1200', h = '630' } = req.query;
-  if (!lat || !lng) return res.status(400).json({ error: 'lat and lng required' });
+app.get('/api/static-map', async (req, res) => {
+  try {
+    const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+    if (!apiKey) {
+      return res.status(503).json({ error: 'Map service unavailable' });
+    }
 
-  const apiKey = process.env.GOOGLE_MAPS_API_KEY;
-  if (!apiKey) return res.status(503).json({ error: 'Map service unavailable' });
+    const query = buildStaticMapQuery(req.query);
+    query.set('key', apiKey);
 
-  const url = `https://maps.googleapis.com/maps/api/staticmap`
-    + `?center=${lat},${lng}&zoom=${zoom}&size=${w}x${h}&scale=2`
-    + `&maptype=roadmap&style=feature:all|element:labels|visibility:simplified`
-    + `&markers=color:red|${lat},${lng}`
-    + `&key=${apiKey}`;
+    const upstream = await fetchWithTimeout(`https://maps.googleapis.com/maps/api/staticmap?${query.toString()}`, {}, 10000);
+    if (!upstream.ok) {
+      const upstreamMessage = await upstream.text().catch(() => '');
+      logger.warn('Static map proxy upstream failure', {
+        requestId: req.id,
+        statusCode: upstream.status,
+        body: upstreamMessage.slice(0, 200)
+      });
+      return res.status(502).json({ error: 'Failed to fetch map image' });
+    }
 
-  res.redirect(302, url);
+    const buffer = Buffer.from(await upstream.arrayBuffer());
+    const contentType = upstream.headers.get('content-type') || 'image/png';
+    const cacheControl = upstream.headers.get('cache-control') || 'public, max-age=3600';
+    res.set('Content-Type', contentType);
+    res.set('Cache-Control', cacheControl);
+    res.send(buffer);
+  } catch (error) {
+    const statusCode = error.statusCode || 500;
+    if (statusCode >= 500) {
+      logger.error('Static map proxy error', error, { requestId: req.id });
+    }
+    res.status(statusCode).json({ error: statusCode === 500 ? 'Failed to fetch map image' : error.message });
+  }
 });
 
 // =================================================================
@@ -2281,7 +2716,7 @@ app.get('/api/v1/mics/slots/square', async (req, res) => {
 });
 
 // Receive Bushwick slot data from GitHub Actions scraper
-app.post('/admin/bushwick-slots', async (req, res) => {
+app.post('/admin/bushwick-slots', requireAdminToken, async (req, res) => {
   try {
     const { redis, isRedisConnected } = require('./config/cache');
     if (!isRedisConnected()) {
@@ -2301,7 +2736,7 @@ app.post('/admin/bushwick-slots', async (req, res) => {
 });
 
 // Receive COTL slot data from GitHub Actions scraper
-app.post('/admin/cotl-slots', async (req, res) => {
+app.post('/admin/cotl-slots', requireAdminToken, async (req, res) => {
   try {
     const { redis, isRedisConnected } = require('./config/cache');
     if (!isRedisConnected()) {
@@ -2318,6 +2753,548 @@ app.post('/admin/cotl-slots', async (req, res) => {
   } catch (err) {
     console.error('COTL slots POST error:', err.message);
     res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ─── Shared Night Plans (persistent collaborative planning) ────────────────
+
+app.post('/api/v1/shared-plans', async (req, res) => {
+  try {
+    if (Object.prototype.hasOwnProperty.call(req.body || {}, 'plannerName')) {
+      getValidatedTextInput(req.body?.plannerName, { field: 'plannerName', maxLength: 60 });
+    }
+    if (Object.prototype.hasOwnProperty.call(req.body || {}, 'plannerNote')) {
+      getValidatedTextInput(req.body?.plannerNote, { field: 'plannerNote', maxLength: 240 });
+    }
+
+    const plannerName = cleanDisplayName(req.body?.plannerName, 'Someone');
+    const plannerNote = String(req.body?.plannerNote || '').trim();
+    const appBaseUrl = getValidatedOptionalBaseUrl(req.body, 'appBaseUrl', validateAppBaseUrl, sanitizeAppBaseUrl());
+    const apiBaseUrl = getValidatedOptionalBaseUrl(req.body, 'apiBaseUrl', validateApiBaseUrl, sanitizeApiBaseUrl());
+    const rawStops = buildValidatedRawStops(req.body?.stops, plannerName);
+
+    const micDocsById = await loadMicDocsByIds(rawStops.map(stop => stop.micId));
+    const missingStopIds = rawStops
+      .filter(stop => !micDocsById.has(stop.micId) && !stop.micSnapshot)
+      .map(stop => stop.micId);
+
+    if (missingStopIds.length > 0) {
+      return res.status(400).json({ success: false, error: `Unknown micId(s): ${missingStopIds.join(', ')}` });
+    }
+
+    const normalizedStops = normalizeStops(rawStops, micDocsById);
+    const meetupStopId = validateMeetupStopId(req.body?.meetupStopId, normalizedStops);
+
+    const shareId = await generateUniqueSharedPlanId();
+    const sharedPlan = await SharedPlan.create({
+      shareId,
+      plannerName,
+      plannerNote,
+      appBaseUrl,
+      apiBaseUrl,
+      status: 'active',
+      revision: 1,
+      stops: normalizedStops,
+      meetupStopId,
+      responses: [],
+      suggestions: [],
+      activity: [
+        createActivityEntry({
+          type: 'plan_created',
+          actorName: plannerName,
+          message: `${plannerName} started a shared night plan.`
+        })
+      ],
+      expiresAt: buildExpiryDate()
+    });
+
+    const payload = await buildSerializedSharedPlan(sharedPlan, micDocsById);
+    await writeCachedSharedPlan(shareId, payload);
+
+    res.status(201).json({
+      success: true,
+      shareId,
+      shareUrl: payload.shareUrl,
+      mapUrl: payload.mapUrl,
+      revision: sharedPlan.revision,
+      plan: payload
+    });
+  } catch (err) {
+    const statusCode = err.statusCode || 500;
+    console.error('Shared plan create error:', err.message);
+    res.status(statusCode).json({ success: false, error: statusCode === 500 ? 'Failed to create shared plan' : err.message });
+  }
+});
+
+app.get('/api/v1/shared-plans/:shareId', async (req, res) => {
+  try {
+    const shareId = getValidatedShareId(req.params.shareId);
+
+    const cached = await readCachedSharedPlan(shareId);
+    if (cached) {
+      return res.json({ success: true, plan: cached });
+    }
+
+    const sharedPlan = await SharedPlan.findOne({ shareId });
+    if (!sharedPlan || isSharedPlanExpired(sharedPlan)) {
+      await invalidateCachedSharedPlan(shareId);
+      return res.status(404).json({ success: false, error: 'Shared plan not found' });
+    }
+
+    const payload = await buildSerializedSharedPlan(sharedPlan);
+    await writeCachedSharedPlan(shareId, payload);
+
+    res.json({ success: true, plan: payload });
+  } catch (err) {
+    const statusCode = err.statusCode || 500;
+    console.error('Shared plan get error:', err.message);
+    res.status(statusCode).json({ success: false, error: statusCode === 500 ? 'Failed to load shared plan' : err.message });
+  }
+});
+
+app.patch('/api/v1/shared-plans/:shareId', async (req, res) => {
+  try {
+    const shareId = getValidatedShareId(req.params.shareId);
+    const sharedPlan = await SharedPlan.findOne({ shareId });
+
+    if (!sharedPlan || isSharedPlanExpired(sharedPlan)) {
+      await invalidateCachedSharedPlan(shareId);
+      return res.status(404).json({ success: false, error: 'Shared plan not found' });
+    }
+
+    const requestedRevision = Number(req.body?.revision);
+    if (!Number.isFinite(requestedRevision)) {
+      return res.status(400).json({ success: false, error: 'revision is required' });
+    }
+
+    if (requestedRevision !== sharedPlan.revision) {
+      const currentPlan = await buildSerializedSharedPlan(sharedPlan);
+      await writeCachedSharedPlan(shareId, currentPlan);
+      return res.status(409).json({
+        success: false,
+        error: 'Revision mismatch',
+        revision: sharedPlan.revision,
+        plan: currentPlan
+      });
+    }
+
+    if (Object.prototype.hasOwnProperty.call(req.body || {}, 'plannerName')) {
+      getValidatedTextInput(req.body?.plannerName, { field: 'plannerName', maxLength: 60 });
+    }
+    if (Object.prototype.hasOwnProperty.call(req.body || {}, 'plannerNote')) {
+      getValidatedTextInput(req.body?.plannerNote, { field: 'plannerNote', maxLength: 240 });
+    }
+
+    const actorName = cleanDisplayName(req.body?.plannerName || sharedPlan.plannerName, sharedPlan.plannerName);
+    const hadPlannerNameChange = actorName !== sharedPlan.plannerName;
+    const nextAppBaseUrl = getValidatedOptionalBaseUrl(req.body, 'appBaseUrl', validateAppBaseUrl, sharedPlan.appBaseUrl);
+    const hadAppBaseUrlChange = nextAppBaseUrl !== sharedPlan.appBaseUrl;
+    const nextApiBaseUrl = getValidatedOptionalBaseUrl(req.body, 'apiBaseUrl', validateApiBaseUrl, sharedPlan.apiBaseUrl);
+    const hadApiBaseUrlChange = nextApiBaseUrl !== sharedPlan.apiBaseUrl;
+    const activities = [];
+    let planChanged = false;
+    let micDocsById = null;
+
+    if (Object.prototype.hasOwnProperty.call(req.body || {}, 'stops')) {
+      const rawStops = buildValidatedRawStops(req.body?.stops, actorName);
+
+      micDocsById = await loadMicDocsByIds(rawStops.map(stop => stop.micId));
+      const missingStopIds = rawStops
+        .filter(stop => !micDocsById.has(stop.micId) && !stop.micSnapshot)
+        .map(stop => stop.micId);
+
+      if (missingStopIds.length > 0) {
+        return res.status(400).json({ success: false, error: `Unknown micId(s): ${missingStopIds.join(', ')}` });
+      }
+
+      sharedPlan.stops = normalizeStops(rawStops, micDocsById);
+      if (sharedPlan.meetupStopId && !sharedPlan.stops.some(stop => stop.micId === sharedPlan.meetupStopId)) {
+        sharedPlan.meetupStopId = null;
+      }
+      activities.push(createActivityEntry({
+        type: 'plan_updated',
+        actorName,
+        message: `${actorName} updated the itinerary.`
+      }));
+      planChanged = true;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(req.body || {}, 'plannerNote')) {
+      const nextNote = String(req.body?.plannerNote || '').trim();
+      if (nextNote !== sharedPlan.plannerNote) {
+        sharedPlan.plannerNote = nextNote;
+        activities.push(createActivityEntry({
+          type: 'note_updated',
+          actorName,
+          message: `${actorName} updated the plan note.`
+        }));
+        planChanged = true;
+      }
+    }
+
+    if (Object.prototype.hasOwnProperty.call(req.body || {}, 'meetupStopId')) {
+      const requestedMeetupStopId = validateMeetupStopId(req.body?.meetupStopId, sharedPlan.stops || []);
+      if (requestedMeetupStopId !== sharedPlan.meetupStopId) {
+        sharedPlan.meetupStopId = requestedMeetupStopId;
+        const labelMap = micDocsById || await loadMicDocsByIds(getSharedPlanStopIds(sharedPlan));
+        const meetupLabel = requestedMeetupStopId ? getSharedPlanMicLabel(sharedPlan, requestedMeetupStopId, labelMap) : 'the default meetup point';
+        activities.push(createActivityEntry({
+          type: 'meetup_updated',
+          actorName,
+          message: `${actorName} updated the meetup point to ${meetupLabel}.`,
+          micId: requestedMeetupStopId
+        }));
+        planChanged = true;
+      }
+    }
+
+    if (hadPlannerNameChange) {
+      sharedPlan.plannerName = actorName;
+      if (!planChanged) {
+        activities.push(createActivityEntry({
+          type: 'planner_renamed',
+          actorName,
+          message: `${actorName} is now the planner for this shared night.`
+        }));
+      }
+      planChanged = true;
+    }
+
+    if (hadAppBaseUrlChange) {
+      sharedPlan.appBaseUrl = nextAppBaseUrl;
+    }
+
+    if (hadApiBaseUrlChange) {
+      sharedPlan.apiBaseUrl = nextApiBaseUrl;
+    }
+
+    if (!planChanged && !hadAppBaseUrlChange && !hadApiBaseUrlChange) {
+      const payload = await buildSerializedSharedPlan(sharedPlan);
+      await writeCachedSharedPlan(shareId, payload);
+      return res.json({ success: true, revision: sharedPlan.revision, plan: payload });
+    }
+
+    if (planChanged) {
+      sharedPlan.revision += 1;
+    }
+    sharedPlan.updatedAt = new Date();
+    sharedPlan.expiresAt = buildExpiryDate();
+    if (activities.length > 0) {
+      sharedPlan.activity.push(...activities);
+    }
+    if (sharedPlan.activity.length > 80) {
+      sharedPlan.activity = sharedPlan.activity.slice(-80);
+    }
+
+    await sharedPlan.save();
+
+    const payload = await buildSerializedSharedPlan(sharedPlan, micDocsById);
+    await invalidateCachedSharedPlan(shareId);
+    await writeCachedSharedPlan(shareId, payload);
+
+    res.json({ success: true, revision: sharedPlan.revision, plan: payload });
+  } catch (err) {
+    const statusCode = err.statusCode || 500;
+    console.error('Shared plan patch error:', err.message);
+    res.status(statusCode).json({ success: false, error: statusCode === 500 ? 'Failed to update shared plan' : err.message });
+  }
+});
+
+app.post('/api/v1/shared-plans/:shareId/responses', async (req, res) => {
+  try {
+    const shareId = getValidatedShareId(req.params.shareId);
+    const sharedPlan = await SharedPlan.findOne({ shareId });
+
+    if (!sharedPlan || isSharedPlanExpired(sharedPlan)) {
+      await invalidateCachedSharedPlan(shareId);
+      return res.status(404).json({ success: false, error: 'Shared plan not found' });
+    }
+
+    const name = cleanDisplayName(req.body?.name);
+    const response = String(req.body?.response || '').trim();
+    const targetMicId = String(req.body?.targetMicId || '');
+
+    if (!name || !targetMicId || !['in', 'maybe', 'meet_later'].includes(response)) {
+      return res.status(400).json({ success: false, error: 'Required: name, targetMicId, response (in|maybe|meet_later)' });
+    }
+
+    if (!(sharedPlan.stops || []).some(stop => stop.micId === targetMicId)) {
+      return res.status(400).json({ success: false, error: 'targetMicId must refer to a stop in the shared plan' });
+    }
+
+    upsertPlanResponse(sharedPlan, { name, response, targetMicId });
+
+    const micDocsById = await loadMicDocsByIds(getSharedPlanStopIds(sharedPlan));
+    const venueLabel = getSharedPlanMicLabel(sharedPlan, targetMicId, micDocsById);
+    const responseMessage = response === 'in'
+      ? `${name} is in for ${venueLabel}.`
+      : response === 'maybe'
+        ? `${name} is maybe for ${venueLabel}.`
+        : `${name} can meet later at ${venueLabel}.`;
+
+    sharedPlan.activity.push(createActivityEntry({
+      type: 'response_updated',
+      actorName: name,
+      message: responseMessage,
+      micId: targetMicId,
+      meta: { response }
+    }));
+    if (sharedPlan.activity.length > 80) {
+      sharedPlan.activity = sharedPlan.activity.slice(-80);
+    }
+    sharedPlan.expiresAt = buildExpiryDate();
+
+    await sharedPlan.save();
+
+    const payload = await buildSerializedSharedPlan(sharedPlan, micDocsById);
+    await invalidateCachedSharedPlan(shareId);
+    await writeCachedSharedPlan(shareId, payload);
+
+    res.json({ success: true, revision: sharedPlan.revision, plan: payload, responses: payload.responses });
+  } catch (err) {
+    const statusCode = err.statusCode || 500;
+    console.error('Shared plan response error:', err.message);
+    res.status(statusCode).json({ success: false, error: statusCode === 500 ? 'Failed to save response' : err.message });
+  }
+});
+
+app.post('/api/v1/shared-plans/:shareId/suggestions', async (req, res) => {
+  try {
+    const shareId = getValidatedShareId(req.params.shareId);
+    const sharedPlan = await SharedPlan.findOne({ shareId });
+
+    if (!sharedPlan || isSharedPlanExpired(sharedPlan)) {
+      await invalidateCachedSharedPlan(shareId);
+      return res.status(404).json({ success: false, error: 'Shared plan not found' });
+    }
+
+    const authorName = cleanDisplayName(req.body?.name);
+    const type = String(req.body?.type || '').trim();
+    const note = String(req.body?.note || '').trim().slice(0, 240);
+
+    if (!authorName || !['add_stop', 'set_meetup'].includes(type)) {
+      return res.status(400).json({ success: false, error: 'Required: name, type (add_stop|set_meetup)' });
+    }
+
+    let suggestionPayload;
+    let activityMessage;
+    let micDocsById = null;
+
+    if (type === 'add_stop') {
+      const proposedMicId = String(req.body?.proposedMicId || req.body?.micId || '');
+      if (!proposedMicId) {
+        return res.status(400).json({ success: false, error: 'proposedMicId is required for add_stop suggestions' });
+      }
+      if ((sharedPlan.stops || []).some(stop => stop.micId === proposedMicId)) {
+        return res.status(409).json({ success: false, error: 'That stop is already in the plan' });
+      }
+
+      const proposedMicSnapshotResult = sanitizeMicSnapshot(req.body?.proposedMicSnapshot);
+      if (proposedMicSnapshotResult.error) {
+        return res.status(400).json({ success: false, error: proposedMicSnapshotResult.error });
+      }
+      const proposedMicSnapshot = proposedMicSnapshotResult.value;
+      micDocsById = await loadMicDocsByIds([proposedMicId]);
+      if (!micDocsById.has(proposedMicId) && !proposedMicSnapshot) {
+        return res.status(400).json({ success: false, error: 'Unknown proposedMicId' });
+      }
+
+      const proposedLabel = getSharedPlanMicLabel({ stops: [{ micId: proposedMicId, micSnapshot: proposedMicSnapshot }] }, proposedMicId, micDocsById);
+      suggestionPayload = {
+        type,
+        authorName,
+        normalizedAuthorName: normalizeParticipantName(authorName),
+        proposedMicId,
+        proposedMicSnapshot,
+        note
+      };
+      activityMessage = `${authorName} suggested adding ${proposedLabel}.`;
+    } else {
+      const targetMicId = String(req.body?.targetMicId || '');
+      if (!targetMicId) {
+        return res.status(400).json({ success: false, error: 'targetMicId is required for set_meetup suggestions' });
+      }
+      if (!(sharedPlan.stops || []).some(stop => stop.micId === targetMicId)) {
+        return res.status(400).json({ success: false, error: 'targetMicId must refer to a stop in the shared plan' });
+      }
+
+      micDocsById = await loadMicDocsByIds(getSharedPlanStopIds(sharedPlan));
+      const targetLabel = getSharedPlanMicLabel(sharedPlan, targetMicId, micDocsById);
+      suggestionPayload = {
+        type,
+        authorName,
+        normalizedAuthorName: normalizeParticipantName(authorName),
+        targetMicId,
+        note
+      };
+      activityMessage = `${authorName} suggested meeting at ${targetLabel}.`;
+    }
+
+    sharedPlan.suggestions.push(suggestionPayload);
+    const suggestion = sharedPlan.suggestions[sharedPlan.suggestions.length - 1];
+    sharedPlan.activity.push(createActivityEntry({
+      type: 'suggestion_created',
+      actorName: authorName,
+      message: activityMessage,
+      micId: suggestion.targetMicId || suggestion.proposedMicId || null,
+      suggestionId: String(suggestion._id),
+      meta: { type }
+    }));
+    if (sharedPlan.activity.length > 80) {
+      sharedPlan.activity = sharedPlan.activity.slice(-80);
+    }
+    sharedPlan.expiresAt = buildExpiryDate();
+
+    await sharedPlan.save();
+
+    const payload = await buildSerializedSharedPlan(sharedPlan, micDocsById);
+    await invalidateCachedSharedPlan(shareId);
+    await writeCachedSharedPlan(shareId, payload);
+
+    res.status(201).json({ success: true, revision: sharedPlan.revision, plan: payload });
+  } catch (err) {
+    const statusCode = err.statusCode || 500;
+    console.error('Shared plan suggestion error:', err.message);
+    res.status(statusCode).json({ success: false, error: statusCode === 500 ? 'Failed to create suggestion' : err.message });
+  }
+});
+
+app.post('/api/v1/shared-plans/:shareId/suggestions/:suggestionId/apply', async (req, res) => {
+  try {
+    const shareId = getValidatedShareId(req.params.shareId);
+    const sharedPlan = await SharedPlan.findOne({ shareId });
+
+    if (!sharedPlan || isSharedPlanExpired(sharedPlan)) {
+      await invalidateCachedSharedPlan(shareId);
+      return res.status(404).json({ success: false, error: 'Shared plan not found' });
+    }
+
+    const actorName = cleanDisplayName(req.body?.name, 'Someone');
+    const suggestion = getSuggestionOrThrow(sharedPlan, req.params.suggestionId);
+    let micDocsById = null;
+    let didChangePlan = false;
+    let activityMessage = '';
+    let targetMicId = suggestion.targetMicId || suggestion.proposedMicId || null;
+
+    if (suggestion.type === 'add_stop') {
+      if ((sharedPlan.stops || []).some(stop => stop.micId === suggestion.proposedMicId)) {
+        return res.status(409).json({ success: false, error: 'That stop is already in the plan' });
+      }
+
+      micDocsById = await loadMicDocsByIds([...getSharedPlanStopIds(sharedPlan), suggestion.proposedMicId]);
+      if (!micDocsById.has(suggestion.proposedMicId) && !suggestion.proposedMicSnapshot) {
+        return res.status(400).json({ success: false, error: 'Suggested stop is no longer available' });
+      }
+
+      const nextStops = [
+        ...(sharedPlan.stops || []).map(stop => ({
+          micId: String(stop.micId),
+          stayMins: stop.stayMins,
+          order: stop.order,
+          addedBy: stop.addedBy,
+          micSnapshot: stop.micSnapshot || null,
+          addedAt: stop.addedAt
+        })),
+        {
+          micId: String(suggestion.proposedMicId),
+          stayMins: 45,
+          order: sharedPlan.stops.length,
+          addedBy: actorName,
+          micSnapshot: suggestion.proposedMicSnapshot || null,
+          addedAt: new Date()
+        }
+      ];
+      sharedPlan.stops = normalizeStops(nextStops, micDocsById);
+      activityMessage = `${actorName} applied a suggestion to add ${getSharedPlanMicLabel({ stops: [{ micId: suggestion.proposedMicId, micSnapshot: suggestion.proposedMicSnapshot }] }, suggestion.proposedMicId, micDocsById)}.`;
+      didChangePlan = true;
+      targetMicId = suggestion.proposedMicId;
+    } else if (suggestion.type === 'set_meetup') {
+      if (!(sharedPlan.stops || []).some(stop => stop.micId === suggestion.targetMicId)) {
+        return res.status(400).json({ success: false, error: 'Suggested meetup stop is no longer in the plan' });
+      }
+
+      sharedPlan.meetupStopId = String(suggestion.targetMicId);
+      micDocsById = await loadMicDocsByIds(getSharedPlanStopIds(sharedPlan));
+      activityMessage = `${actorName} applied a meetup suggestion for ${getSharedPlanMicLabel(sharedPlan, suggestion.targetMicId, micDocsById)}.`;
+      didChangePlan = true;
+    }
+
+    suggestion.status = 'applied';
+    suggestion.appliedBy = actorName;
+    suggestion.appliedAt = new Date();
+    suggestion.updatedAt = new Date();
+
+    if (didChangePlan) {
+      sharedPlan.revision += 1;
+    }
+    sharedPlan.expiresAt = buildExpiryDate();
+    sharedPlan.activity.push(createActivityEntry({
+      type: 'suggestion_applied',
+      actorName,
+      message: activityMessage || `${actorName} applied a suggestion.`,
+      micId: targetMicId,
+      suggestionId: String(suggestion._id),
+      meta: { type: suggestion.type }
+    }));
+    if (sharedPlan.activity.length > 80) {
+      sharedPlan.activity = sharedPlan.activity.slice(-80);
+    }
+
+    await sharedPlan.save();
+
+    const payload = await buildSerializedSharedPlan(sharedPlan, micDocsById);
+    await invalidateCachedSharedPlan(shareId);
+    await writeCachedSharedPlan(shareId, payload);
+
+    res.json({ success: true, revision: sharedPlan.revision, plan: payload });
+  } catch (err) {
+    const statusCode = err.statusCode || 500;
+    console.error('Shared plan suggestion apply error:', err.message);
+    res.status(statusCode).json({ success: false, error: err.message || 'Failed to apply suggestion' });
+  }
+});
+
+app.post('/api/v1/shared-plans/:shareId/suggestions/:suggestionId/dismiss', async (req, res) => {
+  try {
+    const shareId = getValidatedShareId(req.params.shareId);
+    const sharedPlan = await SharedPlan.findOne({ shareId });
+
+    if (!sharedPlan || isSharedPlanExpired(sharedPlan)) {
+      await invalidateCachedSharedPlan(shareId);
+      return res.status(404).json({ success: false, error: 'Shared plan not found' });
+    }
+
+    const actorName = cleanDisplayName(req.body?.name, 'Someone');
+    const suggestion = getSuggestionOrThrow(sharedPlan, req.params.suggestionId);
+
+    suggestion.status = 'dismissed';
+    suggestion.dismissedBy = actorName;
+    suggestion.dismissedAt = new Date();
+    suggestion.updatedAt = new Date();
+    sharedPlan.expiresAt = buildExpiryDate();
+    sharedPlan.activity.push(createActivityEntry({
+      type: 'suggestion_dismissed',
+      actorName,
+      message: `${actorName} dismissed a suggestion.`,
+      micId: suggestion.targetMicId || suggestion.proposedMicId || null,
+      suggestionId: String(suggestion._id),
+      meta: { type: suggestion.type }
+    }));
+    if (sharedPlan.activity.length > 80) {
+      sharedPlan.activity = sharedPlan.activity.slice(-80);
+    }
+
+    await sharedPlan.save();
+
+    const payload = await buildSerializedSharedPlan(sharedPlan);
+    await invalidateCachedSharedPlan(shareId);
+    await writeCachedSharedPlan(shareId, payload);
+
+    res.json({ success: true, revision: sharedPlan.revision, plan: payload });
+  } catch (err) {
+    const statusCode = err.statusCode || 500;
+    console.error('Shared plan suggestion dismiss error:', err.message);
+    res.status(statusCode).json({ success: false, error: err.message || 'Failed to dismiss suggestion' });
   }
 });
 
@@ -2464,7 +3441,7 @@ app.get('/api/v1/mics/:id', async (req, res) => {
 });
 
 // Trigger Laughing Buddha live-vs-local compare job (for web launch automation).
-app.post('/api/v1/admin/lb-compare/run', async (req, res) => {
+app.post('/api/v1/admin/lb-compare/run', requireAdminToken, async (req, res) => {
   const now = Date.now();
   const cooldownMs = 30 * 60 * 1000; // 30 minutes
 
@@ -2540,7 +3517,7 @@ app.post('/api/v1/admin/lb-compare/run', async (req, res) => {
 });
 
 // Get latest compare status/report metadata.
-app.get('/api/v1/admin/lb-compare/latest', (req, res) => {
+app.get('/api/v1/admin/lb-compare/latest', requireAdminToken, (req, res) => {
   const reportPath = path.join(__dirname, 'logs', 'laughing-buddha-compare.json');
   let report = null;
   if (fs.existsSync(reportPath)) {
@@ -2569,7 +3546,7 @@ if (isFbWebhookEnabled) {
   }
 
   // Receive webhook POST from Groups Watcher extension or scraper
-  app.post('/admin/fb-group-post', async (req, res) => {
+  app.post('/admin/fb-group-post', requireAdminToken, async (req, res) => {
     if (!fbWebhookService) {
       return res.status(503).json({ success: false, error: 'FB webhook service not available' });
     }
@@ -2605,7 +3582,7 @@ if (isFbWebhookEnabled) {
   });
 
   // Review queue: items needing human review
-  app.get('/admin/fb-review-queue', async (req, res) => {
+  app.get('/admin/fb-review-queue', requireAdminToken, async (req, res) => {
     if (!fbWebhookService) {
       return res.status(503).json({ success: false, error: 'FB webhook service not available' });
     }
@@ -2620,7 +3597,7 @@ if (isFbWebhookEnabled) {
   });
 
   // Apply a safe_write or reviewed entry to MongoDB
-  app.post('/admin/fb-apply', async (req, res) => {
+  app.post('/admin/fb-apply', requireAdminToken, async (req, res) => {
     if (!fbWebhookService) {
       return res.status(503).json({ success: false, error: 'FB webhook service not available' });
     }
@@ -2645,15 +3622,41 @@ app.use((req, res) => {
   res.status(404).json({ error: 'Endpoint not found' });
 });
 
+app.use((err, req, res, next) => {
+  if (res.headersSent) {
+    return next(err);
+  }
+
+  const statusCode = Number.isInteger(err?.statusCode) ? err.statusCode : 500;
+  logger.error('Unhandled API error', err, {
+    requestId: req.id,
+    method: req.method,
+    path: req.path,
+    statusCode
+  });
+
+  res.status(statusCode).json({
+    success: false,
+    error: statusCode >= 500 ? 'Internal server error' : (err.message || 'Request failed'),
+    requestId: req.id
+  });
+});
+
 // Only start server if not in test environment
 if (process.env.NODE_ENV !== 'test') {
-  app.listen(PORT, () => {
+  const onListen = () => {
     console.log(`🎤 MicMap API is running on port ${PORT}`);
-    console.log(`📍 Health check: http://localhost:${PORT}/health`);
-    console.log(`📋 Mics endpoint: http://localhost:${PORT}/api/v1/mics`);
+    console.log(`📍 Health check: http://${HOST || 'localhost'}:${PORT}/health`);
+    console.log(`📋 Mics endpoint: http://${HOST || 'localhost'}:${PORT}/api/v1/mics`);
     startSlottedRefresh();
     startBushwickRefresh();
-  });
+  };
+
+  if (HOST) {
+    app.listen(PORT, HOST, onListen);
+  } else {
+    app.listen(PORT, onListen);
+  }
 }
 
 // Export app for testing

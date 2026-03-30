@@ -4,6 +4,13 @@ const Mic = require('../../models/Mic');
 
 // Import app but don't start server (supertest handles that)
 const app = require('../../server');
+const ORIGINAL_GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
+
+function binaryParser(res, callback) {
+  const data = [];
+  res.on('data', (chunk) => data.push(chunk));
+  res.on('end', () => callback(null, Buffer.concat(data)));
+}
 
 describe('Critical Path: API Happy Path', () => {
   // Seed test data before tests
@@ -34,6 +41,15 @@ describe('Critical Path: API Happy Path', () => {
         cost: '$5'
       }
     ]);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+    if (ORIGINAL_GOOGLE_MAPS_API_KEY === undefined) {
+      delete process.env.GOOGLE_MAPS_API_KEY;
+    } else {
+      process.env.GOOGLE_MAPS_API_KEY = ORIGINAL_GOOGLE_MAPS_API_KEY;
+    }
   });
 
   test('GET /api/v1/mics returns all mics', async () => {
@@ -76,11 +92,72 @@ describe('Critical Path: API Happy Path', () => {
     expect(response.headers['x-request-id']).toMatch(/^[a-f0-9]{16}$/);
   });
 
-  test('Response includes CORS headers', async () => {
+  test('Response includes allowlisted CORS headers for approved origins', async () => {
     const response = await request(app)
       .get('/api/v1/mics')
+      .set('Origin', 'https://micfinder.io')
       .expect(200);
 
-    expect(response.headers['access-control-allow-origin']).toBe('*');
+    expect(response.headers['access-control-allow-origin']).toBe('https://micfinder.io');
+  });
+
+  test('Response omits CORS allow header for disallowed origins', async () => {
+    const response = await request(app)
+      .get('/api/v1/mics')
+      .set('Origin', 'https://evil.example.com')
+      .expect(200);
+
+    expect(response.headers['access-control-allow-origin']).toBeUndefined();
+  });
+
+  test('GET /api/static-map proxies marker requests without redirecting', async () => {
+    process.env.GOOGLE_MAPS_API_KEY = 'test-google-key';
+    const imageBytes = Uint8Array.from([137, 80, 78, 71]).buffer;
+    const fetchSpy = jest.spyOn(global, 'fetch').mockResolvedValue({
+      ok: true,
+      headers: {
+        get(name) {
+          const normalized = String(name || '').toLowerCase();
+          if (normalized === 'content-type') return 'image/png';
+          if (normalized === 'cache-control') return 'public, max-age=600';
+          return null;
+        }
+      },
+      arrayBuffer: async () => imageBytes
+    });
+
+    const response = await request(app)
+      .get('/api/static-map')
+      .query({
+        markers: '40.71,-73.95|40.72,-73.98',
+        w: 1200,
+        h: 630
+      })
+      .buffer(true)
+      .parse(binaryParser)
+      .expect(200);
+
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    const upstreamUrl = new URL(fetchSpy.mock.calls[0][0]);
+    expect(upstreamUrl.origin).toBe('https://maps.googleapis.com');
+    expect(upstreamUrl.searchParams.get('markers')).toBe('40.71,-73.95|40.72,-73.98');
+    expect(upstreamUrl.searchParams.get('size')).toBe('1200x630');
+    expect(upstreamUrl.searchParams.get('key')).toBe('test-google-key');
+    expect(response.headers['content-type']).toContain('image/png');
+    expect(response.headers.location).toBeUndefined();
+    expect(response.body.equals(Buffer.from(imageBytes))).toBe(true);
+  });
+
+  test('GET /api/static-map rejects malformed coordinates before fetching upstream', async () => {
+    process.env.GOOGLE_MAPS_API_KEY = 'test-google-key';
+    const fetchSpy = jest.spyOn(global, 'fetch');
+
+    const response = await request(app)
+      .get('/api/static-map')
+      .query({ lat: 'not-a-number', lng: '-73.95' })
+      .expect(400);
+
+    expect(response.body.error).toMatch(/lat must be a finite number/i);
+    expect(fetchSpy).not.toHaveBeenCalled();
   });
 });

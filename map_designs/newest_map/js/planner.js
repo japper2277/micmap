@@ -106,6 +106,10 @@ function persistPlanState() {
     if (typeof updateCalendarButtonDisplay === 'function' && STATE.selectedCalendarDate) {
         updateCalendarButtonDisplay(STATE.selectedCalendarDate);
     }
+
+    if (typeof scheduleSharedPlanSync === 'function') {
+        scheduleSharedPlanSync();
+    }
 }
 
 // Update body class based on route state (for overlay visibility)
@@ -270,6 +274,23 @@ function removeFromRoute(micId) {
     if (typeof updateMyNightPill === 'function') updateMyNightPill();
     updateRouteLine();
     persistPlanState();
+}
+
+function clearAllStops() {
+    if (STATE.route.length === 0) return;
+    if ('vibrate' in navigator) navigator.vibrate(10);
+    STATE.route = [];
+    STATE.dismissed = [];
+    updateRouteClass();
+    render(STATE.currentMode);
+    updateMarkerStates();
+    if (typeof updateMyNightPill === 'function') updateMyNightPill();
+    updateRouteLine();
+    persistPlanState();
+    if (typeof closeMyNightSheet === 'function') closeMyNightSheet();
+    if (typeof toastService !== 'undefined' && toastService.show) {
+        toastService.show('Schedule cleared', 'warning');
+    }
 }
 
 function undoableRemoveFromRoute(micId) {
@@ -1095,10 +1116,15 @@ function selectMicDuration(micId, value) {
     if ('vibrate' in navigator) navigator.vibrate(8);
 
     // Close picker
-    const wrap = document.querySelector(`.duration-picker-wrap[data-mic-id="${micId}"]`);
+    const wrap = Array.from(document.querySelectorAll('.duration-picker-wrap[data-mic-id]'))
+        .find((el) => el.dataset.micId === String(micId));
     if (wrap) wrap.classList.remove('picking');
 
     render(STATE.currentMode);
+
+    if (typeof scheduleSharedPlanSync === 'function') {
+        scheduleSharedPlanSync();
+    }
 }
 
 // Close duration pickers when clicking outside
