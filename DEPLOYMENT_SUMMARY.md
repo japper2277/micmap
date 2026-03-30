@@ -54,11 +54,13 @@
 MONGODB_URI=mongodb+srv://japper2277:PASSWORD@micmap.lrqgcyk.mongodb.net/micmap?retryWrites=true&w=majority
 REDIS_URL=redis://default:PASSWORD@redis-14142.c270.us-east-1-3.ec2.cloud.redislabs.com:14142
 NODE_ENV=production
+ENABLE_FB_WEBHOOK=false
 GOOGLE_API_KEY=your_key (if needed)
 SHEET_ID=your_sheet_id (if needed)
 ```
 
 **Note:** PORT is NOT set - Railway provides it dynamically
+**Note:** Leave `ENABLE_FB_WEBHOOK` unset or `false` in Railway unless the FB webhook dependencies are packaged inside the deployed `/api` service.
 
 ---
 
@@ -114,8 +116,13 @@ git push
 ```
 
 **4. Automatic deployment:**
-- **Railway:** Auto-deploys backend when you push to main branch
+- **Railway:** Auto-deploys the backend service from `/api`
+- **Railway:** Repo-level `railway.json` limits backend rebuilds to `api/**` changes only
 - **Netlify:** You need to manually redeploy (drag/drop folder or use CLI)
+
+**Railway service settings to keep:**
+- **Root directory:** `/api`
+- **Watch pattern:** `api/**` (tracked in `railway.json`)
 
 ### Redeploying Frontend to Netlify
 

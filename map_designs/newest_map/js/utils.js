@@ -284,6 +284,14 @@ function processMics(rawMics) {
             contact = igMatch[1];
         }
 
+        // Parse week-of-month pattern (e.g. "1st/3rd/5th", "2nd/4th") from mic name
+        let weekNumbers = null;
+        const micName = m.name || '';
+        const weekMatch = micName.match(/(?:\*?\s*)(\d(?:st|nd|rd|th)(?:\/\d(?:st|nd|rd|th))*)/i);
+        if (weekMatch) {
+            weekNumbers = weekMatch[1].split('/').map(w => parseInt(w));
+        }
+
         // Shorten venue names: "Comedy Club" → "CC" (anywhere in name)
         let venueName = m.venueName || m.venue || m.name || 'Unknown Venue';
         venueName = venueName.replace(/Comedy Club/gi, 'CC');
@@ -332,6 +340,7 @@ function processMics(rawMics) {
             contact: contact,
             borough: m.borough,
             day: day,
+            weekNumbers: weekNumbers,
             notes: m.notes || null
         };
     });
@@ -510,7 +519,9 @@ function copyScheduleAsText() {
         const mins = typeof getMicDuration === 'function' ? getMicDuration(id) : (STATE.setDuration || 45);
         return `${id}:${mins}`;
     });
-    const shareUrl = `https://micfinder.io/share/?plan=${stops.join(',')}`;
+    const host = localStorage.getItem('shareIgHandle') || localStorage.getItem('shareName') || '';
+    let shareUrl = `https://micfinder.io/share/?plan=${stops.join(',')}`;
+    if (host) shareUrl += `&by=${encodeURIComponent(host)}`;
 
     const isMobile = /iPhone|iPad|Android/i.test(navigator.userAgent);
     if (isMobile && navigator.share) {

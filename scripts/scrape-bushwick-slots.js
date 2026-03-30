@@ -189,10 +189,17 @@ async function scrape(headful) {
 
 async function postToApi(apiBase, data) {
   const url = `${apiBase}/admin/bushwick-slots`;
+  const adminToken = process.env.MICMAP_ADMIN_TOKEN;
+  if (!adminToken) {
+    throw new Error('MICMAP_ADMIN_TOKEN not set');
+  }
   console.log(`\nPOSTing to ${url}...`);
   const res = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'x-admin-token': adminToken
+    },
     body: JSON.stringify(data)
   });
   const text = await res.text();

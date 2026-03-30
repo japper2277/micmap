@@ -472,20 +472,20 @@ body.plan-mode .happening-now-card-label {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    width: 54px;
+    width: 46px;
     flex-shrink: 0;
     gap: 1px;
-    padding-right: 12px;
-    margin-right: 12px;
-    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    padding-right: 10px;
+    margin-right: 10px;
+    border-right: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .my-schedule-item-time {
-    font-size: 16px;
-    font-weight: 700;
+    font-size: 14px;
+    font-weight: 600;
     letter-spacing: -0.02em;
     font-variant-numeric: tabular-nums;
-    color: #fff;
+    color: rgba(255, 255, 255, 0.85);
     line-height: 1.1;
 }
 
@@ -494,6 +494,7 @@ body.plan-mode .happening-now-card-label {
     font-weight: 500;
     color: rgba(255, 255, 255, 0.32);
     letter-spacing: 0.01em;
+    margin-top: 1px;
 }
 
 .my-schedule-item-info {
@@ -591,8 +592,8 @@ body.plan-mode .happening-now-card-label {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 2px 0;
-    margin: -2px 0;
+    padding: 4px 0;
+    margin: 0;
 }
 
 .my-schedule-travel-line {
@@ -605,6 +606,25 @@ body.plan-mode .happening-now-card-label {
     font-size: 11px;
     color: rgba(255, 255, 255, 0.35);
     white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+}
+/* Smaller transit pill inside travel connectors */
+.my-schedule-travel-badge .commute-live {
+    padding: 2px 6px 2px 3px;
+    gap: 3px;
+    border: none;
+    background: none;
+}
+.my-schedule-travel-badge .commute-badge {
+    width: 14px;
+    height: 14px;
+    font-size: 8px;
+}
+.my-schedule-travel-badge .commute-time {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.35);
 }
 
 /* Undo button in toast */
@@ -651,19 +671,19 @@ body.plan-mode .happening-now-card-label {
 }
 
 .my-schedule-remove {
-    width: 44px;
-    height: 44px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    color: rgba(255, 69, 58, 0.85);
+    border: none;
+    color: rgba(255, 255, 255, 0.4);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
+    font-size: 12px;
     flex-shrink: 0;
-    margin-left: 8px;
+    margin-left: 4px;
     transition: all 0.15s;
 }
 
@@ -682,9 +702,9 @@ body.plan-mode .happening-now-card-label {
 .my-schedule-item-actions.stacked .schedule-drag-handle,
 .my-schedule-item-actions.stacked .my-schedule-remove {
     margin-left: 0;
-    width: 44px;
-    height: 44px;
-    font-size: 14px;
+    width: 28px;
+    height: 28px;
+    font-size: 11px;
 }
 
 /* Duration picker wrapper */
@@ -888,11 +908,10 @@ body.plan-mode .happening-now-card-label {
         border-radius: 0 7px 7px 0;
     }
 
-    .my-schedule-item-actions.stacked .schedule-drag-handle,
-    .my-schedule-item-actions.stacked .my-schedule-remove {
-        width: 32px;
-        height: 32px;
-        font-size: 12px;
+    .my-schedule-item-actions.stacked .schedule-drag-handle {
+        width: 28px;
+        height: 28px;
+        font-size: 11px;
     }
 
     .my-schedule-item-actions.stacked {
@@ -1030,14 +1049,13 @@ body.plan-mode .happening-now-card-label {
 }
 
 .my-schedule-remove:hover {
-    background: rgba(239, 68, 68, 0.2);
-    border-color: rgba(239, 68, 68, 0.4);
-    transform: scale(1.05);
+    opacity: 1;
+    color: rgba(255, 255, 255, 0.5);
 }
 
 .my-schedule-remove:active {
-    transform: scale(0.95);
-    background: rgba(239, 68, 68, 0.3);
+    opacity: 1;
+    color: #f87171;
 }
 
 /* Hide Conflicts Toggle in Header */
@@ -1136,27 +1154,14 @@ body.plan-mode .happening-now-card-label {
     opacity: 0.85;
 }
 
-/* --- RESPONSIVE CARD LAYOUTS --- */
-/* Mobile: show mobile layout, hide desktop */
+/* --- CARD LAYOUT (unified mobile + desktop) --- */
 .card-layout-mobile {
+    display: none;
+}
+.card-layout-desktop {
     display: flex;
     align-items: center;
     width: 100%;
-}
-.card-layout-desktop {
-    display: none;
-}
-
-/* Desktop: show desktop layout, hide mobile */
-@media (min-width: 768px) {
-    .card-layout-mobile {
-        display: none;
-    }
-    .card-layout-desktop {
-        display: flex;
-        align-items: center;
-        width: 100%;
-    }
 }
 
 /* =================================================================
@@ -1469,19 +1474,24 @@ body.plan-mode .happening-now-card-label {
 
 /* --- LEFT COLUMN: SPECS --- */
 .specs-col {
-    width: 60px;
+    width: 64px;
     display: flex;
     flex-direction: column;
+    align-items: center;
+    justify-content: center;
     margin-right: 14px;
+    padding-right: 14px;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
     flex-shrink: 0;
 }
 
 .start-time {
-    font-size: 19px;
-    font-weight: 700;
+    font-size: 22px;
+    font-weight: 800;
     color: var(--text-primary);
     line-height: 1;
     font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
     display: flex;
     align-items: center;
     gap: 6px;
@@ -1515,13 +1525,13 @@ body.plan-mode .happening-now-card-label {
 
 .stage-time {
     display: inline-block;
-    margin-top: 6px;
-    font-size: 13px;
+    margin-top: 5px;
+    font-size: 12px;
     font-weight: 600;
-    color: var(--text-secondary);
-    background: var(--bg-card);
-    padding: 2px 6px;
-    border-radius: var(--space-xs);
+    color: rgba(255, 255, 255, 0.45);
+    background: rgba(255, 255, 255, 0.06);
+    padding: 2px 8px;
+    border-radius: 6px;
     width: fit-content;
 }
 
@@ -1596,6 +1606,48 @@ body.plan-mode .happening-now-card-label {
 /* In plan mode, keep + Add on the same row as venue + borough (right-aligned) */
 .venue-row .plan-add-btn {
     margin-left: auto;
+}
+
+/* Add-to-night button (mobile cards) */
+.add-mic-btn {
+    height: 28px;
+    padding: 0 10px;
+    border-radius: 8px;
+    background: rgba(34, 197, 94, 0.12);
+    border: 1px solid rgba(34, 197, 94, 0.35);
+    color: var(--green);
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+}
+
+.add-mic-btn:hover {
+    background: rgba(34, 197, 94, 0.22);
+    border-color: rgba(34, 197, 94, 0.55);
+}
+
+.add-mic-btn:active {
+    transform: scale(0.95);
+}
+
+.add-mic-btn.added {
+    background: rgba(34, 197, 94, 0.18);
+    border-color: rgba(34, 197, 94, 0.5);
+    color: #fff;
+    pointer-events: none;
+    animation: addMicPop 0.3s ease;
+}
+
+@keyframes addMicPop {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.08); }
+    100% { transform: scale(1); }
 }
 
 /* Plan Mode: Rectangular + Add button (inline, not floating) */
@@ -1821,6 +1873,13 @@ body.plan-mode .stream-item.in-route .plan-commute-corner {
 /* Commute slot wrapper (for in-place transit updates) */
 .commute-slot {
     display: contents;
+}
+.commute-slot .commute-live {
+    animation: commuteSlotIn 0.3s ease;
+}
+@keyframes commuteSlotIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
 }
 
 /* Commute Display - Apple Dark Glass Pill */

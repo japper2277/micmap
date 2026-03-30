@@ -29,3 +29,4 @@ jobs:
         run: node scripts/scrape-bushwick-slots.js --post
         env:
           MICMAP_API_BASE: https://micmap-production.up.railway.app
+          MICMAP_ADMIN_TOKEN: ${{ secrets.MICMAP_ADMIN_TOKEN }}

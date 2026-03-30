@@ -108,6 +108,11 @@ function buildCommuteHtml(mic) {
 
 // Update commute displays in-place without full re-render
 function updateCommuteDisplays() {
+    // Measure content height before update to compensate for layout shift
+    const listContent = document.getElementById('list-content');
+    const scrollBefore = listContent ? listContent.scrollTop : 0;
+    const heightBefore = listContent ? listContent.scrollHeight : 0;
+
     STATE.mics.forEach(mic => {
         const card = document.getElementById(`card-${mic.id}`);
         if (!card) return;
@@ -115,6 +120,14 @@ function updateCommuteDisplays() {
         const html = buildCommuteHtml(mic);
         slots.forEach(slot => { slot.innerHTML = html; });
     });
+
+    // Compensate scroll position for height growth above viewport
+    if (listContent && scrollBefore > 0) {
+        const heightDelta = listContent.scrollHeight - heightBefore;
+        if (heightDelta > 0) {
+            listContent.scrollTop = scrollBefore + heightDelta;
+        }
+    }
 }
 
 // Format set time (e.g., "5" -> "5min", "3-5min" -> "3-5min", "5min" -> "5min")
@@ -306,6 +319,12 @@ function render(mode) {
         ? isActivePlanningDateToday()
         : (mode === 'today');
 
+    // Compute week-of-month for the active date (1st, 2nd, 3rd, 4th, 5th occurrence of that weekday)
+    const activeDate = (typeof getActivePlanningDate === 'function')
+        ? getActivePlanningDate()
+        : currentTime;
+    const weekOfMonth = Math.ceil(activeDate.getDate() / 7);
+
     // Base filter for day/time (used for both map and list)
     let baseMics = STATE.mics.filter(m => {
         const diffMins = m.start ? (m.start - currentTime) / 60000 : 999;
@@ -315,6 +334,11 @@ function render(mode) {
 
         // Filter by active planning day (today/tomorrow/calendar-selected).
         if (activeDayName && m.day !== activeDayName) return false;
+
+        // Filter by week-of-month for alternating mics (e.g. "1st/3rd" or "2nd/4th")
+        if (m.weekNumbers && m.weekNumbers.length > 0) {
+            if (!m.weekNumbers.includes(weekOfMonth)) return false;
+        }
 
         return true;
     });
@@ -940,7 +964,7 @@ function render(mode) {
                                 <polyline points="16 6 12 2 8 6"/>
                                 <line x1="12" y1="2" x2="12" y2="15"/>
                             </svg>
-                            Share Link
+                            ${STATE.sharedPlan?.shareId ? 'Copy Invite Link' : 'Invite Friends'}
                         </button>
                         <button class="schedule-share-option" onclick="event.stopPropagation(); exportScheduleToCalendar(); closeScheduleShareMenu();">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
@@ -1001,6 +1025,7 @@ function render(mode) {
             const priceClass = priceStr === 'Free' ? 'free' : '';
             const conflictClass = conflicts.has(mic.id) ? ' conflict' : '';
             const hood = mic.hood || mic.neighborhood || '';
+            const safeMicId = typeof escapeAttr === 'function' ? escapeAttr(mic.id) : mic.id;
             const stayMins = typeof getMicDuration === 'function' ? getMicDuration(mic.id) : (STATE.setDuration || 45);
             const endDate = mic.start ? new Date(mic.start.getTime() + stayMins * 60000) : null;
             const endStr = endDate ? fmtTime(endDate) : '';
@@ -1011,6 +1036,7 @@ function render(mode) {
             if (idx < routeMics.length - 1) {
                 const next = routeMics[idx + 1];
                 let travelLabel = '';
+                let transitPillHtml = '';
                 if (mic.lat && mic.lng && next.lat && next.lng) {
                     const commuteMeta = (typeof getCommuteBetweenMicsMeta === 'function')
                         ? getCommuteBetweenMicsMeta(mic, next)
@@ -1021,16 +1047,38 @@ function render(mode) {
                             pending: false };
                     const travelMins = Math.max(1, Math.round(commuteMeta.mins || 0));
                     const isEstimate = commuteMeta.source === 'estimate' || commuteMeta.pending;
-                    const travelMode = commuteMeta.source === 'walk' ? 'walk' : (commuteMeta.source === 'transit' ? 'transit' : 'travel');
-                    travelLabel = isEstimate ? `~${travelMins} min est` : `${travelMins} min ${travelMode}`;
+
+                    // Build subway line pill if legs available
+                    if (commuteMeta.legs) {
+                        const rideLegs = commuteMeta.legs.filter(l => l.type === 'ride');
+                        const lines = [];
+                        rideLegs.forEach(leg => {
+                            if (leg.line && !lines.includes(leg.line)) lines.push(leg.line);
+                        });
+                        if (lines.length > 0) {
+                            const badges = lines.slice(0, 3).map(line =>
+                                `<span class="commute-badge b-${escapeHtml(line)}">${escapeHtml(line)}</span>`
+                            ).join('');
+                            transitPillHtml = `<span class="commute-live commute-transit">${badges}<span class="commute-time">${travelMins}m</span></span>`;
+                        }
+                    }
+
+                    // Fallback text label when no pill
+                    if (!transitPillHtml) {
+                        const travelMode = commuteMeta.source === 'walk' ? 'walk' : (commuteMeta.source === 'transit' ? 'transit' : 'travel');
+                        travelLabel = isEstimate ? `~${travelMins} min est` : `${travelMins} min ${travelMode}`;
+                    }
                 }
-                const badgeText = leaveLabel && travelLabel ? `${leaveLabel} · ${travelLabel}`
+                const textPart = leaveLabel && travelLabel ? `${leaveLabel} · ${travelLabel}`
                     : leaveLabel || travelLabel || '';
-                if (badgeText) {
+                const badgeContent = transitPillHtml
+                    ? (leaveLabel ? `${leaveLabel} · ${transitPillHtml}` : transitPillHtml)
+                    : textPart;
+                if (badgeContent) {
                     travelHtml = `
                         <div class="my-schedule-travel">
                             <div class="my-schedule-travel-line"></div>
-                            <span class="my-schedule-travel-badge">${badgeText}</span>
+                            <span class="my-schedule-travel-badge">${badgeContent}</span>
                             <div class="my-schedule-travel-line"></div>
                         </div>`;
                 }
@@ -1044,7 +1092,7 @@ function render(mode) {
             }
 
             return `
-                <div class="my-schedule-item${conflictClass}" draggable="true" data-mic-id="${mic.id}" aria-label="Scheduled stop" onclick="event.stopPropagation(); if(typeof openMicModal==='function') openMicModal('${mic.id}');">
+                <div class="my-schedule-item${conflictClass}" draggable="true" data-mic-id="${safeMicId}" data-open-mic-id="${safeMicId}" aria-label="Scheduled stop">
                     <div class="my-schedule-item-time-col">
                         <div class="my-schedule-item-time">${timeStr}</div>
                         ${mic.setTime ? `<div class="my-schedule-item-set">${escapeHtml(formatSetTime(mic.setTime))}</div>` : ''}
@@ -1058,29 +1106,34 @@ function render(mode) {
                             <span class="my-schedule-item-price ${priceClass}">${priceStr}</span>
                         </div>
                         <div class="my-schedule-item-duration-row">
-                            <div class="duration-picker-wrap" data-mic-id="${mic.id}">
-                                <button class="my-schedule-item-duration" onclick="event.stopPropagation(); toggleDurationPicker('${mic.id}', this)" aria-label="Change stay duration, current ${stayMins} minutes" title="How long you'll stay at this stop">
+                            <div class="duration-picker-wrap" data-mic-id="${safeMicId}">
+                                <button class="my-schedule-item-duration" data-duration-mic-id="${safeMicId}" aria-label="Change stay duration, current ${stayMins} minutes" title="How long you'll stay at this stop">
                                     <span class="duration-label">Stay</span>
                                     <span class="duration-value-chip"><span class="duration-value-text">${stayMins} min</span></span>
                                 </button>
-                                <div class="duration-picker-options" id="dur-opts-${mic.id}">
-                                    ${[30, 45, 60, 90].map(v => `<button class="duration-opt${v === stayMins ? ' active' : ''}" onclick="event.stopPropagation(); selectMicDuration('${mic.id}', ${v})">${v}<span class="duration-opt-unit">m</span></button>`).join('')}
+                                <div class="duration-picker-options" id="dur-opts-${safeMicId}">
+                                    ${[30, 45, 60, 90].map(v => `<button class="duration-opt${v === stayMins ? ' active' : ''}" data-mic-id="${safeMicId}" data-duration-value="${v}">${v}<span class="duration-opt-unit">m</span></button>`).join('')}
                                 </div>
                             </div>
                         </div>
                         ${(() => {
-                            const responses = (STATE.planResponses || []).filter(r => r.micId === mic.id);
+                            const responses = typeof getSharedPlanResponsesForMic === 'function'
+                                ? getSharedPlanResponsesForMic(mic.id)
+                                : (STATE.planResponses || []).filter(r => r.micId === mic.id);
                             if (responses.length === 0) return '';
-                            return '<div class="rsvp-badges">' + responses.map(r =>
-                                `<span class="rsvp-badge ${r.response === 'in' ? 'rsvp-badge-in' : 'rsvp-badge-out'}">${escapeHtml(r.name)}${r.response === 'in' ? ' is in' : " can't make it"}</span>`
-                            ).join('') + '</div>';
+                            return '<div class="rsvp-badges">' + responses.map(r => {
+                                const presentation = typeof getSharedPlanResponsePresentation === 'function'
+                                    ? getSharedPlanResponsePresentation(r.response)
+                                    : { className: r.response === 'in' ? 'rsvp-badge-in' : 'rsvp-badge-out', label: r.response === 'in' ? 'is in' : "can't make it" };
+                                return `<span class="rsvp-badge ${presentation.className}">${escapeHtml(r.name)} ${escapeHtml(presentation.label)}</span>`;
+                            }).join('') + '</div>';
                         })()}
                     </div>
                     <div class="my-schedule-item-actions stacked">
                         <button class="schedule-drag-handle" onclick="event.stopPropagation();" aria-label="Drag to reorder" title="Drag to reorder">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M4 8h16M4 16h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
                         </button>
-                        <button class="my-schedule-remove" onclick="event.stopPropagation(); undoableRemoveFromRoute('${mic.id}')" aria-label="Remove from schedule">✕</button>
+                        <button class="my-schedule-remove" data-remove-route-mic-id="${safeMicId}" aria-label="Remove from schedule">✕</button>
                     </div>
                 </div>
                 ${travelHtml}
@@ -1138,12 +1191,13 @@ function render(mode) {
                                 const rawPrice = mic.price || mic.cost || 0;
                                 const priceStr = rawPrice === 0 || rawPrice === '0' || rawPrice === 'Free' || rawPrice === 'free' ? 'Free' : (typeof rawPrice === 'number' ? `$${rawPrice}` : rawPrice);
                                 const priceClass = priceStr === 'Free' ? 'free' : '';
+                                const safeMicId = typeof escapeAttr === 'function' ? escapeAttr(mic.id) : mic.id;
                                 const setTime = mic.setTime ? formatSetTime(mic.setTime) : '';
 
                                 return `
                                     <div class="suggested-mic-item"
-                                         data-id="${mic.id}"
-                                         onclick="event.stopPropagation(); var m = STATE.mics.find(x => x.id === '${mic.id}'); if (m && typeof openVenueModal === 'function') openVenueModal(m);"
+                                         data-id="${safeMicId}"
+                                         data-open-venue-mic-id="${safeMicId}"
                                          role="button"
                                          style="animation-delay: ${index * 60}ms">
                                         <div class="suggested-mic-left">
@@ -1160,7 +1214,7 @@ function render(mode) {
                                                 <div class="suggested-mic-reason">${item.reason}</div>
                                             </div>
                                         </div>
-                                        <button class="suggested-mic-add-btn" onclick="event.stopPropagation(); addSuggestedMic('${mic.id}')" aria-label="Add to schedule">+ Add</button>
+                                        <button class="suggested-mic-add-btn" data-suggested-add-mic-id="${safeMicId}" aria-label="Add to schedule">+ Add</button>
                                     </div>
                                 `;
                             }).join('')}
@@ -1414,6 +1468,7 @@ function render(mode) {
         const safeContact = mic.contact ? escapeHtml(mic.contact.replace(/^@/, '')) : '';
         const safeSignupEmail = mic.signupEmail ? escapeHtml(mic.signupEmail) : '';
         const safeSignupUrl = mic.signupUrl ? escapeHtml(mic.signupUrl) : '';
+        const safeMicId = typeof escapeAttr === 'function' ? escapeAttr(mic.id) : mic.id;
         const signupLabel = mic.signupUrl ? 'Online signup' : mic.signupEmail ? 'Email signup' : 'Sign up in person';
 
         const isInPlanRoute = !!(STATE.planMode && STATE.route && STATE.route.includes(mic.id));
@@ -1425,6 +1480,7 @@ function render(mode) {
                 ? `<a href="mailto:${safeSignupEmail}" onclick="event.stopPropagation();" class="icon-btn-sm" title="Email"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></a>`
                 : `<button onclick="event.stopPropagation(); flipCard(this);" class="icon-btn-sm" title="Signup info"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></button>`;
         const igBtnSm = safeContact ? `<a href="https://instagram.com/${safeContact}" target="_blank" rel="noopener" onclick="event.stopPropagation();" class="icon-btn-sm" title="@${safeContact}"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg></a>` : '';
+        const shareBtnSm = `<button class="icon-btn-sm" data-share-mic-id="${safeMicId}" title="Share"><svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg></button>`;
 
         // Build action buttons HTML (large for mobile)
         const signupBtn = mic.signupUrl
@@ -1433,8 +1489,9 @@ function render(mode) {
                 ? `<a href="mailto:${safeSignupEmail}" onclick="event.stopPropagation();" class="icon-btn" title="Email"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></a>`
                 : `<button onclick="event.stopPropagation(); flipCard(this);" class="icon-btn" title="Signup info"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></button>`;
         const igBtn = safeContact ? `<a href="https://instagram.com/${safeContact}" target="_blank" rel="noopener" onclick="event.stopPropagation();" class="icon-btn" title="@${safeContact}"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg></a>` : '';
+        const shareBtn = `<button class="icon-btn" data-share-mic-id="${safeMicId}" title="Share"><svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg></button>`;
 
-        const planAddBtn = `<button class="plan-add-btn" onclick="event.stopPropagation(); handleAddClick(this, '${mic.id}')" aria-label="Add to schedule">+ Add</button>`;
+        const planAddBtn = `<button class="plan-add-btn" data-add-mic-id="${safeMicId}" aria-label="Add to schedule">+ Add</button>`;
         const planCta = !STATE.planMode
             ? ''
             : isInPlanRoute
@@ -1458,11 +1515,10 @@ function render(mode) {
                     <div class="info-col">
                         <div class="venue-row">
                             <div class="venue-name">${safeTitle}</div>
-                            <span class="tag-pill borough-pill"><span class="borough-full">${safeBorough}</span><span class="borough-short">${shortBorough}</span></span>
-                            ${planCta}
+                            <button class="add-mic-btn${isInRoute ? ' added' : ''}" data-add-mic-id="${safeMicId}" aria-label="${isInRoute ? 'In schedule' : 'Add to night'}">${isInRoute ? '&#10003; Added' : '+ Tonight'}</button>
                         </div>
                         <div class="meta-row">
-                            <span class="neighborhood">${safeHood}</span>
+                            <span class="neighborhood">${safeHood}, ${shortBorough}</span>
                             <span class="meta-dot">·</span>
                             <span class="price-badge">${safePrice}</span>
                             ${spotsBadge}
@@ -1471,6 +1527,7 @@ function render(mode) {
                         </div>
                     </div>
                     <div class="action-col">
+                        ${shareBtn}
                         ${signupBtn}
                         ${igBtn}
                     </div>
@@ -1499,6 +1556,7 @@ function render(mode) {
                         </div>
                     </div>
                     <div class="action-col">
+                        ${shareBtn}
                         ${signupBtn}
                         ${igBtn}
                     </div>
@@ -1576,6 +1634,7 @@ function render(mode) {
         </div>
     `;
     container.appendChild(footer);
+    bindRenderActionHandlers(container);
 
     // Fetch and update departure times for cards with routes
     if (STATE.isTransitMode) {
@@ -1608,6 +1667,9 @@ function render(mode) {
     if ((STATE.planMode || STATE.route?.length > 0) && typeof updateMarkerStates === 'function') {
         updateMarkerStates();
     }
+
+    // Update floating "My Night" pill (mobile)
+    if (typeof updateMyNightPill === 'function') updateMyNightPill();
 }
 
 // Fetch live departure times and update card displays
@@ -1669,5 +1731,590 @@ function flipCard(btn) {
     const card = btn.closest('.stream-item');
     if (card) {
         card.classList.toggle('flipped');
+    }
+}
+
+function bindRenderActionHandlers(root = document) {
+    if (!root) return;
+
+    root.querySelectorAll('[data-share-mic-id]').forEach((btn) => {
+        if (btn.dataset.boundShareMic === '1') return;
+        btn.dataset.boundShareMic = '1';
+        btn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            shareMic(btn.dataset.shareMicId);
+        });
+    });
+
+    root.querySelectorAll('[data-add-mic-id]').forEach((btn) => {
+        if (btn.dataset.boundAddMic === '1') return;
+        btn.dataset.boundAddMic = '1';
+        btn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            handleAddClick(btn, btn.dataset.addMicId);
+        });
+    });
+
+    root.querySelectorAll('[data-open-mic-id]').forEach((el) => {
+        if (el.dataset.boundOpenMic === '1') return;
+        el.dataset.boundOpenMic = '1';
+        el.addEventListener('click', (event) => {
+            if (event.target.closest('button, a, input, textarea, select')) return;
+            event.stopPropagation();
+            if (typeof openMicModal === 'function') {
+                openMicModal(el.dataset.openMicId);
+            }
+        });
+    });
+
+    root.querySelectorAll('[data-open-venue-mic-id]').forEach((el) => {
+        if (el.dataset.boundOpenVenueMic === '1') return;
+        el.dataset.boundOpenVenueMic = '1';
+        el.addEventListener('click', (event) => {
+            event.stopPropagation();
+            const mic = STATE.mics.find((entry) => entry.id === el.dataset.openVenueMicId);
+            if (mic && typeof openVenueModal === 'function') {
+                openVenueModal(mic);
+            }
+        });
+    });
+
+    root.querySelectorAll('[data-suggested-add-mic-id]').forEach((btn) => {
+        if (btn.dataset.boundSuggestedAddMic === '1') return;
+        btn.dataset.boundSuggestedAddMic = '1';
+        btn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            addSuggestedMic(btn.dataset.suggestedAddMicId);
+        });
+    });
+
+    root.querySelectorAll('[data-locate-mic-id]').forEach((el) => {
+        if (el.dataset.boundLocateMic === '1') return;
+        el.dataset.boundLocateMic = '1';
+        el.addEventListener('click', (event) => {
+            if (event.target.closest('button, a, input, textarea, select')) return;
+            event.stopPropagation();
+            const mic = STATE.mics.find((entry) => entry.id === el.dataset.locateMicId);
+            if (!mic) return;
+            closeMyNightSheet();
+            if (typeof locateMic === 'function') {
+                locateMic(mic.lat, mic.lng, mic.id);
+            }
+        });
+    });
+
+    root.querySelectorAll('[data-duration-mic-id]').forEach((btn) => {
+        if (btn.dataset.boundDurationMic === '1') return;
+        btn.dataset.boundDurationMic = '1';
+        btn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            toggleDurationPicker(btn.dataset.durationMicId, btn);
+        });
+    });
+
+    root.querySelectorAll('[data-duration-value][data-mic-id]').forEach((btn) => {
+        if (btn.dataset.boundDurationValue === '1') return;
+        btn.dataset.boundDurationValue = '1';
+        btn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            const durationValue = Number(btn.dataset.durationValue);
+            if (!Number.isFinite(durationValue)) return;
+            selectMicDuration(btn.dataset.micId, durationValue);
+            if (btn.dataset.reopenMyNight === 'true') {
+                openMyNightSheet();
+            }
+        });
+    });
+
+    root.querySelectorAll('[data-remove-route-mic-id]').forEach((btn) => {
+        if (btn.dataset.boundRemoveRouteMic === '1') return;
+        btn.dataset.boundRemoveRouteMic = '1';
+        btn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            undoableRemoveFromRoute(btn.dataset.removeRouteMicId);
+        });
+    });
+
+    root.querySelectorAll('[data-remove-night-mic-id]').forEach((btn) => {
+        if (btn.dataset.boundRemoveNightMic === '1') return;
+        btn.dataset.boundRemoveNightMic = '1';
+        btn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            removeFromMyNight(btn.dataset.removeNightMicId);
+        });
+    });
+}
+
+/* =================================================================
+   MY NIGHT PILL + SHEET (mobile map-first UX)
+   ================================================================= */
+
+// Keep the floating "My Night" pill visible on mobile, even with an empty route
+function updateMyNightPill() {
+    const pill = document.getElementById('my-night-pill');
+    const countEl = document.getElementById('pill-count');
+    const labelEl = pill?.querySelector('.pill-label');
+    if (!pill || !countEl || !labelEl) return;
+
+    // Only on mobile
+    if (window.matchMedia('(min-width: 768px)').matches) return;
+
+    const count = (STATE.route || []).length;
+
+    pill.classList.add('visible');
+
+    if (count > 0) {
+        pill.classList.remove('is-empty');
+        countEl.textContent = count;
+        labelEl.textContent = 'My Night';
+        // Pulse animation on count change
+        countEl.classList.remove('pulse');
+        void countEl.offsetWidth; // force reflow
+        countEl.classList.add('pulse');
+    } else {
+        pill.classList.add('is-empty');
+        countEl.classList.remove('pulse');
+        labelEl.textContent = 'Add a Mic';
+    }
+}
+
+let addMicDemoEl = null;
+let addMicDemoKeyHandler = null;
+let addMicSpotlightTimer = null;
+
+function handleMyNightPillClick() {
+    if (((STATE.route || []).length || 0) === 0) {
+        spotlightAddMicButtons();
+        return;
+    }
+    openMyNightSheet();
+}
+
+function showAddMicDemoModal() {
+    hideAddMicDemoModal();
+
+    addMicDemoEl = document.createElement('div');
+    addMicDemoEl.className = 'add-mic-demo-overlay';
+    addMicDemoEl.id = 'add-mic-demo-modal';
+    addMicDemoEl.innerHTML = `
+        <div class="add-mic-demo-panel" role="dialog" aria-modal="true" aria-labelledby="add-mic-demo-title">
+            <div class="add-mic-demo-header">
+                <h3 id="add-mic-demo-title">Build Your First Night</h3>
+                <button class="add-mic-demo-close" type="button" aria-label="Close">&times;</button>
+            </div>
+
+            <div class="add-mic-demo-intro">
+                Tap any mic's <strong>+ Tonight</strong> button and Mic Map will start your lineup for the night.
+            </div>
+
+            <div class="add-mic-demo-steps">
+                <div class="add-mic-demo-step">
+                    <span class="add-mic-demo-step-num">1</span>
+                    <div class="add-mic-demo-step-copy">
+                        <div class="add-mic-demo-step-title">Pick a mic</div>
+                        <div class="add-mic-demo-step-text">Browse the map or list and choose a stop that works for your time.</div>
+                    </div>
+                </div>
+                <div class="add-mic-demo-step">
+                    <span class="add-mic-demo-step-num">2</span>
+                    <div class="add-mic-demo-step-copy">
+                        <div class="add-mic-demo-step-title">Tap + Tonight</div>
+                        <div class="add-mic-demo-step-text">Your first stop gets added instantly and the bottom button switches into My Night.</div>
+                    </div>
+                </div>
+                <div class="add-mic-demo-step">
+                    <span class="add-mic-demo-step-num">3</span>
+                    <div class="add-mic-demo-step-copy">
+                        <div class="add-mic-demo-step-title">Open My Night</div>
+                        <div class="add-mic-demo-step-text">Review your stops, adjust stay time, remove mics, and share the plan when you're ready.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="add-mic-demo-preview">
+                <div class="add-mic-demo-preview-pill">
+                    <span class="add-mic-demo-preview-dot"></span>
+                    <span>Add a Mic</span>
+                </div>
+                <div class="add-mic-demo-preview-arrow">→</div>
+                <div class="add-mic-demo-preview-pill add-mic-demo-preview-pill--active">
+                    <span class="add-mic-demo-preview-count">1</span>
+                    <span>My Night</span>
+                </div>
+            </div>
+
+            <div class="add-mic-demo-actions">
+                <button class="add-mic-demo-cancel" type="button">Maybe Later</button>
+                <button class="add-mic-demo-start" type="button">Show Me Where</button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(addMicDemoEl);
+
+    addMicDemoEl.addEventListener('click', (event) => {
+        if (event.target === addMicDemoEl) hideAddMicDemoModal();
+    });
+    addMicDemoEl.querySelector('.add-mic-demo-close').onclick = hideAddMicDemoModal;
+    addMicDemoEl.querySelector('.add-mic-demo-cancel').onclick = hideAddMicDemoModal;
+    addMicDemoEl.querySelector('.add-mic-demo-start').onclick = () => {
+        hideAddMicDemoModal();
+        spotlightAddMicButtons();
+    };
+
+    addMicDemoKeyHandler = (event) => {
+        if (event.key === 'Escape') hideAddMicDemoModal();
+    };
+    document.addEventListener('keydown', addMicDemoKeyHandler);
+}
+
+function hideAddMicDemoModal() {
+    if (addMicDemoKeyHandler) {
+        document.removeEventListener('keydown', addMicDemoKeyHandler);
+        addMicDemoKeyHandler = null;
+    }
+    if (addMicDemoEl) {
+        addMicDemoEl.remove();
+        addMicDemoEl = null;
+    }
+}
+
+function spotlightAddMicButtons() {
+    clearAddMicSpotlight();
+
+    const buttons = Array.from(document.querySelectorAll('.add-mic-btn:not(.added), .plan-add-btn'))
+        .filter((btn) => btn.offsetParent !== null);
+
+    if (buttons.length === 0) return;
+
+    buttons.slice(0, 3).forEach((btn, index) => {
+        btn.classList.add('add-mic-demo-target');
+        btn.style.setProperty('--add-mic-demo-delay', `${index * 0.18}s`);
+    });
+
+    buttons[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    if (typeof toastService !== 'undefined' && toastService.show) {
+        toastService.show('Tap + Tonight on any mic to start your night', 'info', 2800);
+    }
+
+    addMicSpotlightTimer = setTimeout(() => {
+        clearAddMicSpotlight();
+    }, 8000);
+}
+
+function clearAddMicSpotlight() {
+    if (addMicSpotlightTimer) {
+        clearTimeout(addMicSpotlightTimer);
+        addMicSpotlightTimer = null;
+    }
+    document.querySelectorAll('.add-mic-demo-target').forEach((btn) => {
+        btn.classList.remove('add-mic-demo-target');
+        btn.style.removeProperty('--add-mic-demo-delay');
+    });
+}
+
+// Open the "My Night" bottom sheet
+function openMyNightSheet() {
+    const overlay = document.getElementById('my-night-overlay');
+    const content = document.getElementById('my-night-sheet-content');
+    if (!overlay || !content) return;
+
+    const routeMics = (STATE.route || []).map(id => STATE.mics.find(m => m.id === id)).filter(Boolean);
+
+    // Update header with date
+    const headerH2 = document.querySelector('#my-night-sheet .my-night-sheet-header h2');
+    if (headerH2) {
+        const now = new Date();
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const tonight = now.getHours() >= 5; // After 5am = "Tonight"
+        const dayLabel = tonight ? 'Tonight' : days[now.getDay()] + ' Night';
+        headerH2.textContent = `${dayLabel}, ${months[now.getMonth()]} ${now.getDate()}`;
+    }
+
+    // Wrap header content if not already wrapped
+    const headerEl = document.querySelector('#my-night-sheet .my-night-sheet-header');
+    if (headerEl && !headerEl.querySelector('.my-night-header-top')) {
+        const h2 = headerEl.querySelector('h2');
+        const shareBtn = headerEl.querySelector('.my-night-sheet-share');
+        const topRow = document.createElement('div');
+        topRow.className = 'my-night-header-top';
+        if (h2) topRow.appendChild(h2);
+        if (shareBtn) topRow.appendChild(shareBtn);
+        headerEl.prepend(topRow);
+    }
+
+    // Add/update summary line
+    let summaryEl = headerEl?.querySelector('.my-night-sheet-summary');
+    if (routeMics.length > 0) {
+        const fmtShort = (d) => {
+            if (!d) return '';
+            const h = d.getHours();
+            const displayH = h > 12 ? h - 12 : (h === 0 ? 12 : h);
+            const ampm = h >= 12 ? 'p' : 'a';
+            return `${displayH}${ampm}m`;
+        };
+        const sorted = [...routeMics].sort((a, b) => (a.start || 0) - (b.start || 0));
+        const first = sorted[0]?.start;
+        const last = sorted[sorted.length - 1]?.start;
+        const stopWord = routeMics.length === 1 ? 'stop' : 'stops';
+        let summaryText = `${routeMics.length} ${stopWord}`;
+        if (first && last) {
+            summaryText += ` · ${fmtShort(first)}–${fmtShort(last)}`;
+        }
+        if (!summaryEl && headerEl) {
+            summaryEl = document.createElement('div');
+            summaryEl.className = 'my-night-sheet-summary';
+            headerEl.appendChild(summaryEl);
+        }
+        if (summaryEl) {
+            summaryEl.innerHTML = `${summaryText} <button class="my-night-clear-all" onclick="event.stopPropagation(); clearAllStops();">Clear All</button>`;
+        }
+    } else {
+        if (summaryEl) summaryEl.remove();
+    }
+
+    if (routeMics.length === 0) {
+        content.innerHTML = `
+            <div class="my-night-empty">
+                <div class="my-night-empty-icon">🎤</div>
+                <div class="my-night-empty-title">No stops yet</div>
+                <div class="my-night-empty-hint">Tap a mic on the map and hit<br><strong>Add to Tonight</strong> to start planning</div>
+                <button class="my-night-empty-cta" onclick="closeMyNightSheet()">Browse Mics</button>
+            </div>`;
+    } else {
+        const setDuration = STATE.setDuration || 45;
+        const fmtTime = (d, showAmPm = false) => {
+            if (!d) return '';
+            const h = d.getHours();
+            const m = d.getMinutes();
+            const displayH = h > 12 ? h - 12 : (h === 0 ? 12 : h);
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            if (showAmPm) return `${displayH}:${m.toString().padStart(2, '0')} ${ampm}`;
+            return m === 0 ? `${displayH}:00` : `${displayH}:${m.toString().padStart(2, '0')}`;
+        };
+
+        const sharedSummaryHtml = typeof buildSharedPlanSummaryMarkup === 'function'
+            ? buildSharedPlanSummaryMarkup()
+            : '';
+        const sharedSeedHtml = typeof buildSharedPlanInviteSeedMarkup === 'function'
+            ? buildSharedPlanInviteSeedMarkup()
+            : '';
+
+        // Reuse the same my-schedule-item cards as desktop
+        const html = routeMics.map((mic, idx) => {
+            const timeStr = mic.start ? fmtTime(mic.start) : '';
+            const rawPrice = mic.price || mic.cost || 0;
+            let priceStr;
+            if (!rawPrice || rawPrice === 'Free' || rawPrice === 0 || rawPrice === '$0') {
+                priceStr = 'Free';
+            } else {
+                const s = String(rawPrice).replace(/^\$/, '').trim();
+                priceStr = s.toLowerCase().startsWith('free') ? s : `$${s}`;
+            }
+            const priceClass = priceStr === 'Free' ? 'free' : '';
+            const hood = mic.hood || mic.neighborhood || '';
+            const safeMicId = typeof escapeAttr === 'function' ? escapeAttr(mic.id) : mic.id;
+            const stayMins = typeof getMicDuration === 'function' ? getMicDuration(mic.id) : setDuration;
+            const endDate = mic.start ? new Date(mic.start.getTime() + stayMins * 60000) : null;
+            const endStr = endDate ? fmtTime(endDate) : '';
+
+            // Travel connector (same logic as desktop, with subway line pill)
+            let travelHtml = '';
+            const leaveLabel = endStr ? `Leave ${endStr}` : '';
+            if (idx < routeMics.length - 1) {
+                const next = routeMics[idx + 1];
+                let travelLabel = '';
+                let transitPillHtml = '';
+                if (mic.lat && mic.lng && next.lat && next.lng) {
+                    const commuteMeta = (typeof getCommuteBetweenMicsMeta === 'function')
+                        ? getCommuteBetweenMicsMeta(mic, next)
+                        : { mins: (typeof getCommuteBetweenMics === 'function')
+                            ? getCommuteBetweenMics(mic, next)
+                            : Math.max(1, Math.round(calculateDistance(mic.lat, mic.lng, next.lat, next.lng) / 0.05)),
+                            source: 'estimate',
+                            pending: false };
+                    const travelMins = Math.max(1, Math.round(commuteMeta.mins || 0));
+                    const isEstimate = commuteMeta.source === 'estimate' || commuteMeta.pending;
+
+                    // Build subway line pill if legs available
+                    if (commuteMeta.legs) {
+                        const rideLegs = commuteMeta.legs.filter(l => l.type === 'ride');
+                        const lines = [];
+                        rideLegs.forEach(leg => {
+                            if (leg.line && !lines.includes(leg.line)) lines.push(leg.line);
+                        });
+                        if (lines.length > 0) {
+                            const badges = lines.slice(0, 3).map(line =>
+                                `<span class="commute-badge b-${escapeHtml(line)}">${escapeHtml(line)}</span>`
+                            ).join('');
+                            transitPillHtml = `<span class="commute-live commute-transit">${badges}<span class="commute-time">${travelMins}m</span></span>`;
+                        }
+                    }
+
+                    // Fallback text label when no pill
+                    if (!transitPillHtml) {
+                        const travelMode = commuteMeta.source === 'walk' ? 'walk' : (commuteMeta.source === 'transit' ? 'transit' : 'travel');
+                        travelLabel = isEstimate ? `~${travelMins} min est` : `${travelMins} min ${travelMode}`;
+                    }
+                }
+                const textPart = leaveLabel && travelLabel ? `${leaveLabel} · ${travelLabel}`
+                    : leaveLabel || travelLabel || '';
+                const badgeContent = transitPillHtml
+                    ? (leaveLabel ? `${leaveLabel} · ${transitPillHtml}` : transitPillHtml)
+                    : textPart;
+                if (badgeContent) {
+                    travelHtml = `
+                        <div class="my-schedule-travel">
+                            <div class="my-schedule-travel-line"></div>
+                            <span class="my-schedule-travel-badge">${badgeContent}</span>
+                            <div class="my-schedule-travel-line"></div>
+                        </div>`;
+                }
+            } else if (leaveLabel) {
+                travelHtml = `
+                    <div class="my-schedule-travel">
+                        <div class="my-schedule-travel-line"></div>
+                        <span class="my-schedule-travel-badge">${leaveLabel}</span>
+                        <div class="my-schedule-travel-line"></div>
+                    </div>`;
+            }
+
+            return `
+                <div class="my-schedule-item" data-mic-id="${safeMicId}" data-locate-mic-id="${safeMicId}">
+                    <div class="my-schedule-item-time-col">
+                        <div class="my-schedule-item-time">${timeStr}</div>
+                        ${mic.setTime ? `<div class="my-schedule-item-set">${escapeHtml(typeof formatSetTime === 'function' ? formatSetTime(mic.setTime) : mic.setTime)}</div>` : ''}
+                    </div>
+                    <div class="my-schedule-item-info">
+                        <div class="my-schedule-item-venue-row">
+                            <div class="my-schedule-item-venue">${escapeHtml(mic.title || mic.venue || 'Mic')}</div>
+                        </div>
+                        <div class="my-schedule-item-meta">
+                            ${hood ? `<span class="my-schedule-item-hood">${escapeHtml(hood)}</span>` : ''}
+                            <span class="my-schedule-item-price ${priceClass}">${priceStr}</span>
+                        </div>
+                        <div class="my-schedule-item-duration-row">
+                            <div class="duration-picker-wrap" data-mic-id="${safeMicId}">
+                                <button class="my-schedule-item-duration" data-duration-mic-id="${safeMicId}" aria-label="Change stay duration, current ${stayMins} minutes" title="How long you'll stay at this stop">
+                                    <span class="duration-label">Stay</span>
+                                    <span class="duration-value-chip"><span class="duration-value-text">${stayMins} min</span></span>
+                                </button>
+                                <div class="duration-picker-options" id="dur-opts-sheet-${safeMicId}">
+                                    ${[30, 45, 60, 90].map(v => `<button class="duration-opt${v === stayMins ? ' active' : ''}" data-mic-id="${safeMicId}" data-duration-value="${v}" data-reopen-my-night="true">${v}<span class="duration-opt-unit">m</span></button>`).join('')}
+                                </div>
+                            </div>
+                        </div>
+                        ${(() => {
+                            const responses = typeof getSharedPlanResponsesForMic === 'function'
+                                ? getSharedPlanResponsesForMic(mic.id)
+                                : [];
+                            if (responses.length === 0) return '';
+                            return '<div class="rsvp-badges">' + responses.map(r => {
+                                const presentation = typeof getSharedPlanResponsePresentation === 'function'
+                                    ? getSharedPlanResponsePresentation(r.response)
+                                    : { className: r.response === 'in' ? 'rsvp-badge-in' : 'rsvp-badge-out', label: r.response === 'in' ? 'is in' : "can't make it" };
+                                return `<span class="rsvp-badge ${presentation.className}">${escapeHtml(r.name)} ${escapeHtml(presentation.label)}</span>`;
+                            }).join('') + '</div>';
+                        })()}
+                    </div>
+                    <button class="my-schedule-remove" data-remove-night-mic-id="${safeMicId}" aria-label="Remove from schedule">✕</button>
+                </div>
+                ${travelHtml}
+            `;
+        }).join('');
+        content.innerHTML = `${sharedSummaryHtml}${sharedSeedHtml}${html}`;
+        bindRenderActionHandlers(content);
+    }
+
+    // Show/hide share button
+    const shareBtn = document.getElementById('my-night-share-btn');
+    if (shareBtn) {
+        shareBtn.style.display = routeMics.length >= 1 ? 'flex' : 'none';
+    }
+    if (typeof updateMyNightShareButtonLabel === 'function') {
+        updateMyNightShareButtonLabel();
+    }
+
+    overlay.classList.add('active');
+}
+
+// Close the "My Night" bottom sheet
+function closeMyNightSheet() {
+    const overlay = document.getElementById('my-night-overlay');
+    if (overlay) overlay.classList.remove('active');
+}
+
+// Remove mic from route via My Night sheet (with confirmation)
+function removeFromMyNight(micId) {
+    const mic = STATE.mics.find(m => m.id === micId);
+    const name = mic ? (mic.title || mic.venue || 'this stop') : 'this stop';
+    if (!confirm(`Remove ${name}?`)) return;
+
+    // Haptic feedback
+    if ('vibrate' in navigator) navigator.vibrate(10);
+
+    // Remove from route without adding to dismissed list (not plan mode dismissal)
+    STATE.route = STATE.route.filter(id => id !== micId);
+    if (typeof updateRouteClass === 'function') updateRouteClass();
+    if (typeof updateMarkerStates === 'function') updateMarkerStates();
+    if (typeof updateRouteLine === 'function') updateRouteLine();
+    if (typeof persistPlanState === 'function') persistPlanState();
+    render(STATE.currentMode);
+
+    updateMyNightPill();
+    // Re-render the sheet content
+    if (document.getElementById('my-night-overlay')?.classList.contains('active')) {
+        openMyNightSheet();
+    }
+    // Close sheet if no stops left
+    if (STATE.route.length === 0) {
+        closeMyNightSheet();
+    }
+}
+
+// Share nudge after 2nd stop (Phase 4)
+function showShareNudge() {
+    // Only show once per session
+    if (sessionStorage.getItem('shareNudgeShown')) return;
+    // Only on mobile
+    if (window.matchMedia('(min-width: 768px)').matches) return;
+
+    sessionStorage.setItem('shareNudgeShown', '1');
+
+    if (typeof toastService !== 'undefined' && toastService.show) {
+        toastService.show('Your night is taking shape! Share with friends?', 'info', {
+            duration: 5000,
+            actionLabel: 'Share',
+            action: () => shareMyNight()
+        });
+    }
+}
+
+// Share using native API when available, fallback to clipboard
+function shareMyNight() {
+    // Build share text from route
+    const routeMics = (STATE.route || []).map(id => STATE.mics.find(m => m.id === id)).filter(Boolean);
+    if (routeMics.length === 0) return;
+
+    const lines = routeMics.map(mic => {
+        const time = mic.start ? mic.start.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : '';
+        const venue = mic.title || mic.venue || 'Mic';
+        return `${time} - ${venue}`;
+    });
+    const text = `My Night Plan:\n${lines.join('\n')}`;
+
+    // Build share URL if available
+    const shareUrl = typeof buildShareUrl === 'function' ? buildShareUrl() : '';
+
+    if (navigator.share) {
+        navigator.share({
+            title: 'My Night - Open Mic Plan',
+            text: text,
+            url: shareUrl
+        }).catch(() => {}); // User cancelled - no-op
+    } else if (typeof copyScheduleAsText === 'function') {
+        copyScheduleAsText();
     }
 }

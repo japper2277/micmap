@@ -4,10 +4,11 @@
     "watch": "node scripts/watch-mics.js",
     "generate": "node scripts/generate-venue-list.js",
     "check:lb": "node scripts/check-laughing-buddha.js",
-    "ig:scrape": "node scripts/scrape-ig-stories.js",
+    "ig:scrape": "node scripts/scrape-ig-signups.js",
+    "ig:scrape:legacy": "node scripts/scrape-ig-stories.js",
     "ig:apply": "node scripts/apply-ig-signups.js",
     "ig:review": "node scripts/build-ig-review-checklist.js",
-    "ig:test": "node --test scripts/tests/ig-sync.test.js",
+    "ig:test": "node --test scripts/tests/*.test.js",
     "fb:scrape": "node scripts/scrape-fb-group.js",
     "fb:export-cookies": "node scripts/fb-export-cookies.js"
   },

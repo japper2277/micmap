@@ -285,7 +285,10 @@ a:focus-visible {
 }
 
 .toast-icon { display: flex; align-items: center; opacity: 0.6; }
+.toast-success { background: rgba(34, 120, 60, 0.85); border-color: rgba(74, 222, 128, 0.3); }
 .toast-success .toast-icon { color: var(--green); opacity: 1; }
+.toast-success .toast-icon svg { animation: toastCheck 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+@keyframes toastCheck { 0% { transform: scale(0); } 60% { transform: scale(1.2); } 100% { transform: scale(1); } }
 .toast-error .toast-icon { color: var(--red); opacity: 1; }
 .toast-warning .toast-icon { color: var(--amber); opacity: 1; }
 .toast-info .toast-icon { color: rgba(255, 255, 255, 0.5); }
@@ -323,6 +326,64 @@ a:focus-visible {
 }
 .toast-actionable {
     padding-right: var(--space-md);
+}
+
+/* Check-in toast ("Did you make it?") */
+.checkin-toast {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px 16px;
+    background: rgba(30, 30, 30, 0.96);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    color: #fff;
+    pointer-events: auto;
+    opacity: 0;
+    transform: translateY(20px) scale(0.96);
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    max-width: 320px;
+    width: max-content;
+}
+.checkin-toast.show {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+.checkin-toast-text {
+    font-size: 14px;
+    line-height: 1.4;
+    color: rgba(255, 255, 255, 0.85);
+}
+.checkin-toast-text strong {
+    color: #fff;
+    font-weight: 700;
+}
+.checkin-toast-actions {
+    display: flex;
+    gap: 8px;
+}
+.checkin-btn {
+    flex: 1;
+    padding: 9px 0;
+    border-radius: 10px;
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+.checkin-btn:active { transform: scale(0.96); }
+.checkin-yes {
+    background: linear-gradient(180deg, #22c55e 0%, #16a34a 100%);
+    color: #fff;
+}
+.checkin-no {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.6);
 }
 
 /* Celebrate HUD - Apple-style centered overlay */

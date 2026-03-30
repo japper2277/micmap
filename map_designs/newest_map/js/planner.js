@@ -50,6 +50,10 @@ function confirmExitPlanMode() {
 function handleAddClick(btn, micId) {
     if (STATE.route.includes(micId)) return;
 
+    if (typeof clearAddMicSpotlight === 'function') {
+        clearAddMicSpotlight();
+    }
+
     if ('vibrate' in navigator) {
         navigator.vibrate(10);
     }
@@ -65,10 +69,8 @@ function handleAddClick(btn, micId) {
     setTimeout(() => {
         addToRoute(micId, true); // skipZoom since user clicked from list
 
-        // Show toast
-        if (typeof toastService !== 'undefined' && toastService.show) {
-            toastService.show(`Added ${venueName}`, 'success');
-        }
+        // Show celebrate HUD
+        showCelebrateHUD(venueName);
     }, 150);
 }
 
@@ -103,6 +105,10 @@ function persistPlanState() {
     // Keep date chip schedule count in sync after add/remove/reorder actions.
     if (typeof updateCalendarButtonDisplay === 'function' && STATE.selectedCalendarDate) {
         updateCalendarButtonDisplay(STATE.selectedCalendarDate);
+    }
+
+    if (typeof scheduleSharedPlanSync === 'function') {
+        scheduleSharedPlanSync();
     }
 }
 
@@ -164,6 +170,14 @@ function addToRoute(micId, skipZoom = false) {
     updateRouteLine();
     persistPlanState();
     if (!skipZoom) fitMapToReachableMics();
+
+    // Update floating "My Night" pill (mobile)
+    if (typeof updateMyNightPill === 'function') updateMyNightPill();
+
+    // Share nudge after 2nd stop added
+    if (STATE.route.length === 2 && typeof showShareNudge === 'function') {
+        setTimeout(() => showShareNudge(), 800);
+    }
 
     // Trigger pulse animation on schedule card
     const scheduleCard = document.querySelector('.my-schedule-card');
@@ -255,8 +269,28 @@ function removeFromRoute(micId) {
     updateRouteClass();
     render(STATE.currentMode);  // Re-render (includes My Schedule card)
     updateMarkerStates();       // Update marker visual states (selected, dimmed, etc.)
+
+    // Update floating "My Night" pill (mobile)
+    if (typeof updateMyNightPill === 'function') updateMyNightPill();
     updateRouteLine();
     persistPlanState();
+}
+
+function clearAllStops() {
+    if (STATE.route.length === 0) return;
+    if ('vibrate' in navigator) navigator.vibrate(10);
+    STATE.route = [];
+    STATE.dismissed = [];
+    updateRouteClass();
+    render(STATE.currentMode);
+    updateMarkerStates();
+    if (typeof updateMyNightPill === 'function') updateMyNightPill();
+    updateRouteLine();
+    persistPlanState();
+    if (typeof closeMyNightSheet === 'function') closeMyNightSheet();
+    if (typeof toastService !== 'undefined' && toastService.show) {
+        toastService.show('Schedule cleared', 'warning');
+    }
 }
 
 function undoableRemoveFromRoute(micId) {
@@ -622,13 +656,15 @@ function getCachedPlannerCommuteEntry(cacheKey) {
     return cached;
 }
 
-function setCachedPlannerCommuteMinutes(cacheKey, mins, source = 'api') {
+function setCachedPlannerCommuteMinutes(cacheKey, mins, source = 'api', legs = null) {
     if (!cacheKey || !Number.isFinite(mins)) return;
-    plannerCommuteCache[cacheKey] = {
+    const entry = {
         mins: Math.max(1, Math.round(mins)),
         source,
         fetchedAt: Date.now()
     };
+    if (legs) entry.legs = legs;
+    plannerCommuteCache[cacheKey] = entry;
 }
 
 function queuePlannerCommuteRefresh() {
@@ -674,6 +710,13 @@ async function fetchPlannerCommuteFromApi(fromMic, toMic, cacheKey) {
                     if (Number.isFinite(routeMins)) {
                         mins = routeMins;
                         source = 'transit';
+                        // Preserve route legs for subway line badges
+                        if (route.legs) {
+                            setCachedPlannerCommuteMinutes(cacheKey, mins, source, route.legs);
+                            plannerCommutePending.delete(cacheKey);
+                            queuePlannerCommuteRefresh();
+                            return; // Already cached with legs
+                        }
                     }
                 }
             }
@@ -713,7 +756,9 @@ function getCommuteBetweenMicsMeta(fromMic, toMic) {
 
     const cachedEntry = getCachedPlannerCommuteEntry(cacheKey);
     if (cachedEntry) {
-        return { mins: cachedEntry.mins, source: cachedEntry.source || 'api', pending: false };
+        const result = { mins: cachedEntry.mins, source: cachedEntry.source || 'api', pending: false };
+        if (cachedEntry.legs) result.legs = cachedEntry.legs;
+        return result;
     }
 
     const isOnline = (typeof navigator === 'undefined') ? true : navigator.onLine !== false;
@@ -1071,10 +1116,15 @@ function selectMicDuration(micId, value) {
     if ('vibrate' in navigator) navigator.vibrate(8);
 
     // Close picker
-    const wrap = document.querySelector(`.duration-picker-wrap[data-mic-id="${micId}"]`);
+    const wrap = Array.from(document.querySelectorAll('.duration-picker-wrap[data-mic-id]'))
+        .find((el) => el.dataset.micId === String(micId));
     if (wrap) wrap.classList.remove('picking');
 
     render(STATE.currentMode);
+
+    if (typeof scheduleSharedPlanSync === 'function') {
+        scheduleSharedPlanSync();
+    }
 }
 
 // Close duration pickers when clicking outside

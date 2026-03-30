@@ -77,12 +77,14 @@ function setDrawerState(newState) {
         render(STATE.currentMode);
     }
 
-    // Force scroll context recalculation (fixes scroll not working after state change)
+    // Force scroll context recalculation AFTER transition completes (avoids mid-animation reflow jump)
     const listContent = document.getElementById('list-content');
     if (listContent) {
-        listContent.style.overflowY = 'hidden';
-        void listContent.offsetHeight; // Force reflow
-        listContent.style.overflowY = 'auto';
+        setTimeout(() => {
+            listContent.style.overflowY = 'hidden';
+            void listContent.offsetHeight;
+            listContent.style.overflowY = 'auto';
+        }, 320); // After 300ms transition
     }
 
     // Backdrop for mobile full state
@@ -394,10 +396,92 @@ function initDrawerState() {
         STATE.drawerState = DRAWER_STATES.OPEN;
         drawer.classList.add('drawer-open');
     } else {
-        // Mobile: start in peek
+        // Mobile: drawer is hidden (map-first UX), but set state for desktop resize
         STATE.drawerState = DRAWER_STATES.PEEK;
         drawer.classList.add('drawer-peek');
     }
+}
+
+// Swipe-to-dismiss for My Night bottom sheet (velocity-aware)
+function setupMyNightSheetSwipe() {
+    const sheet = document.getElementById('my-night-sheet');
+    const overlay = document.getElementById('my-night-overlay');
+    if (!sheet) return;
+
+    let startY = 0;
+    let currentY = 0;
+    let isDragging = false;
+    let velocityTracker = [];
+
+    const getVelocity = () => {
+        if (velocityTracker.length < 2) return 0;
+        const recent = velocityTracker.slice(-5);
+        const first = recent[0];
+        const last = recent[recent.length - 1];
+        const dt = (last.time - first.time) / 1000;
+        if (dt === 0) return 0;
+        return (last.y - first.y) / dt;
+    };
+
+    sheet.addEventListener('touchstart', (e) => {
+        if (sheet.scrollTop > 0) return;
+        startY = e.touches[0].clientY;
+        currentY = startY;
+        isDragging = true;
+        velocityTracker = [{ y: startY, time: Date.now() }];
+        sheet.style.transition = 'none';
+    }, { passive: true });
+
+    sheet.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+        currentY = e.touches[0].clientY;
+        const deltaY = currentY - startY;
+
+        velocityTracker.push({ y: currentY, time: Date.now() });
+        if (velocityTracker.length > 10) velocityTracker.shift();
+
+        if (deltaY > 0) {
+            sheet.style.transform = `translateY(${deltaY * 0.6}px)`;
+            // Dim overlay proportionally
+            if (overlay) {
+                const progress = Math.min(deltaY / 300, 1);
+                overlay.style.background = `rgba(0, 0, 0, ${0.5 * (1 - progress)})`;
+            }
+        }
+    }, { passive: true });
+
+    sheet.addEventListener('touchend', () => {
+        if (!isDragging) return;
+        isDragging = false;
+
+        const deltaY = currentY - startY;
+        const velocity = getVelocity();
+
+        // Dismiss: fast flick (>600px/s) OR dragged >80px without upward velocity
+        const shouldDismiss = velocity > 600 || (deltaY > 80 && velocity > -200);
+
+        const absVel = Math.abs(velocity);
+        const duration = Math.min(350, Math.max(150, 300 - (absVel > 500 ? (absVel - 500) * 0.1 : 0)));
+
+        sheet.style.transition = `transform ${duration}ms cubic-bezier(0.16, 1, 0.3, 1)`;
+
+        if (shouldDismiss) {
+            sheet.style.transform = 'translateY(100%)';
+            setTimeout(() => {
+                if (typeof closeMyNightSheet === 'function') closeMyNightSheet();
+                sheet.style.transform = '';
+                sheet.style.transition = '';
+                if (overlay) { overlay.style.background = ''; }
+            }, duration);
+        } else {
+            sheet.style.transform = 'translateY(0)';
+            if (overlay) {
+                overlay.style.transition = 'background 0.2s ease';
+                overlay.style.background = '';
+                setTimeout(() => { overlay.style.transition = ''; }, 200);
+            }
+        }
+    }, { passive: true });
 }
 
 // Keyboard scroll support for list-content
