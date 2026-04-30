@@ -57,4 +57,20 @@ describe('Critical Path: Cache Behavior', () => {
     // Should be different results
     expect(mondayResponse.body.count).not.toBe(tuesdayResponse.body.count);
   });
+
+  test('Cache hits still disable downstream caching', async () => {
+    await request(app)
+      .get('/api/v1/mics?day=Monday')
+      .expect(200);
+
+    const cachedResponse = await request(app)
+      .get('/api/v1/mics?day=Monday')
+      .expect(200);
+
+    expect(cachedResponse.headers['cache-control']).toBe(
+      'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0, s-maxage=0'
+    );
+    expect(cachedResponse.headers.pragma).toBe('no-cache');
+    expect(cachedResponse.headers.expires).toBe('0');
+  });
 });

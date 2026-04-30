@@ -1,6 +1,11 @@
 {
   "scripts": {
     "start": "cd api && node server.js",
+    "test:config": "node --test map_designs/newest_map/js/tests/*.test.cjs",
+    "native:copy:ios": "npx cap copy ios",
+    "native:sync:ios": "npx cap sync ios",
+    "native:open:ios": "npx cap open ios",
+    "native:refresh:ios": "npm run test:config && npm run native:sync:ios",
     "watch": "node scripts/watch-mics.js",
     "generate": "node scripts/generate-venue-list.js",
     "check:lb": "node scripts/check-laughing-buddha.js",

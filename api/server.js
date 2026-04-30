@@ -33,7 +33,7 @@ const {
 } = require('./utils/shared-plans');
 
 // Redis Caching
-const { cacheMiddleware } = require('./middleware/cache');
+const { applyMicFreshnessHeaders, cacheMiddleware } = require('./middleware/cache');
 const { getCacheStats } = require('./utils/cache-invalidation');
 
 // Slotted.co signup scraper
@@ -384,6 +384,7 @@ const LOCAL_ORIGIN_HOSTS = new Set(['localhost', '127.0.0.1']);
 
 function isAllowedCorsOrigin(origin) {
   if (!origin) return true;
+  if (origin === 'null') return true;
 
   if (ALLOWED_CORS_ORIGINS.has(origin)) {
     return true;
@@ -816,6 +817,8 @@ if (allowJsonFallback) {
 // Main endpoint: Fetch open mic data from MongoDB (with Redis caching)
 app.get('/api/v1/mics', cacheMiddleware, async (req, res) => {
   try {
+    applyMicFreshnessHeaders(res);
+
     // Extract query parameters for filtering
     const { day, borough, neighborhood, cost, sort } = req.query;
 
@@ -978,9 +981,6 @@ app.get('/api/v1/mics', cacheMiddleware, async (req, res) => {
     } catch (e) {
       console.warn('⚠️ Failed to inject Bushwick data:', e.message);
     }
-
-    // Allow browser to cache for 5 min, CDN for 10 min
-    res.set('Cache-Control', 'public, max-age=300, s-maxage=600');
 
     res.json({
       success: true,

@@ -101,6 +101,27 @@ describe('Critical Path: API Happy Path', () => {
     expect(response.headers['access-control-allow-origin']).toBe('https://micfinder.io');
   });
 
+  test('Response includes CORS headers for null origin contexts', async () => {
+    const response = await request(app)
+      .get('/api/v1/mics')
+      .set('Origin', 'null')
+      .expect(200);
+
+    expect(response.headers['access-control-allow-origin']).toBe('null');
+  });
+
+  test('Response disables downstream caching for fresh mic data', async () => {
+    const response = await request(app)
+      .get('/api/v1/mics')
+      .expect(200);
+
+    expect(response.headers['cache-control']).toBe(
+      'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0, s-maxage=0'
+    );
+    expect(response.headers.pragma).toBe('no-cache');
+    expect(response.headers.expires).toBe('0');
+  });
+
   test('Response omits CORS allow header for disallowed origins', async () => {
     const response = await request(app)
       .get('/api/v1/mics')

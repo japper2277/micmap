@@ -7,6 +7,11 @@
     "allowsLinkPreview": false
   },
   "server": {
-    "allowNavigation": ["micmap-production.up.railway.app"]
+    "url": "https://micfinder.io",
+    "allowNavigation": [
+      "micfinder.io",
+      "www.micfinder.io",
+      "micmap-production.up.railway.app"
+    ]
   }
 }

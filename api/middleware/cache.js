@@ -2,6 +2,14 @@
 const crypto = require('crypto');
 const { redis, isRedisConnected } = require('../config/cache');
 
+const MICS_CLIENT_CACHE_CONTROL = 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0, s-maxage=0';
+
+function applyMicFreshnessHeaders(res) {
+  res.set('Cache-Control', MICS_CLIENT_CACHE_CONTROL);
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
+}
+
 // Cache TTL: 15 minutes in seconds
 const CACHE_TTL = 15 * 60;
 
@@ -48,6 +56,8 @@ function generateCacheKey(query) {
  * - API always works, caching is a performance optimization only
  */
 async function cacheMiddleware(req, res, next) {
+  applyMicFreshnessHeaders(res);
+
   // Skip caching if Redis isn't connected
   if (!isRedisConnected()) {
     if (process.env.NODE_ENV !== 'test') {
@@ -122,4 +132,8 @@ async function cacheMiddleware(req, res, next) {
   }
 }
 
-module.exports = { cacheMiddleware, generateCacheKey };
+module.exports = {
+  applyMicFreshnessHeaders,
+  cacheMiddleware,
+  generateCacheKey
+};

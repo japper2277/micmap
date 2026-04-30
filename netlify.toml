@@ -6,21 +6,28 @@
 [build.processing]
   skip_processing = false
 
-# Cache control for static assets
+# Cache control for static assets. Mobile Safari can hold onto old app shells
+# aggressively, so keep the MicFinder frontend revalidation strict.
 [[headers]]
   for = "/*"
   [headers.values]
-    Cache-Control = "public, max-age=0, must-revalidate"
+    Cache-Control = "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0"
+    Pragma = "no-cache"
+    Expires = "0"
 
 [[headers]]
   for = "/js/*"
   [headers.values]
-    Cache-Control = "public, max-age=0, must-revalidate"
+    Cache-Control = "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0"
+    Pragma = "no-cache"
+    Expires = "0"
 
 [[headers]]
   for = "/css/*"
   [headers.values]
-    Cache-Control = "public, max-age=0, must-revalidate"
+    Cache-Control = "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0"
+    Pragma = "no-cache"
+    Expires = "0"
 
 # Edge function: inject dynamic OG tags for shared mic links
 [[edge_functions]]
@@ -30,6 +37,12 @@
 # API proxy settings (if needed)
 [[redirects]]
   from = "/api/*"
-  to = "https://micmap-api.netlify.app/api/:splat"
+  to = "https://micmap-production.up.railway.app/api/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/data/*"
+  to = "https://micmap-production.up.railway.app/data/:splat"
   status = 200
   force = true
