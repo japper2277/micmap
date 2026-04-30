@@ -6,9 +6,21 @@
 const PRODUCTION_API_BASE = 'https://micmap-production.up.railway.app';
 const LOCAL_API_BASE = 'http://127.0.0.1:3001';
 const PRODUCTION_APP_BASE = 'https://micfinder.io/';
+const LEGACY_LOCAL_API_BASES = new Set([
+    'http://127.0.0.1:3011',
+    'http://localhost:3011'
+]);
 
-function isLocalMicMapHost(hostname = window.location.hostname) {
-    return hostname === 'localhost' || hostname === '127.0.0.1';
+function isLocalMicMapHost(
+    hostname = window.location.hostname,
+    protocol = window.location.protocol
+) {
+    const isLoopbackHost = hostname === 'localhost' || hostname === '127.0.0.1';
+    const isHttpDevProtocol = protocol === 'http:' || protocol === 'https:';
+
+    // Capacitor uses localhost with a non-http scheme in production, so only
+    // treat loopback http(s) origins as local development.
+    return isLoopbackHost && isHttpDevProtocol;
 }
 
 function readMicMapOverride(name) {
@@ -65,6 +77,15 @@ function normalizeBaseUrl(url, fallback) {
     }
 }
 
+function normalizeLocalApiOverride(url) {
+    const normalized = String(url || '').trim().replace(/\/$/, '');
+    if (!normalized) return '';
+    if (LEGACY_LOCAL_API_BASES.has(normalized)) {
+        return LOCAL_API_BASE;
+    }
+    return normalized;
+}
+
 function applyMicMapLinkOverrides(url) {
     const nextUrl = new URL(url.toString());
     const apiBaseOverride = readMicMapOverride('apiBase');
@@ -97,8 +118,24 @@ function resolveAppBaseUrl() {
 }
 
 function resolveApiBase() {
-    const override = readMicMapOverride('apiBase');
-    if (override) return override.replace(/\/$/, '');
+    const override = normalizeLocalApiOverride(readMicMapOverride('apiBase'));
+    if (override) {
+        if (isLocalMicMapHost()) {
+            try {
+                localStorage.setItem('micmap:apiBase', override);
+            } catch (_) {
+                // Ignore storage issues.
+            }
+        }
+        return override.replace(/\/$/, '');
+    }
+
+    if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+        if (isLocalMicMapHost()) {
+            return LOCAL_API_BASE;
+        }
+        return PRODUCTION_API_BASE;
+    }
 
     if (isLocalMicMapHost()) {
         return LOCAL_API_BASE;
