@@ -260,6 +260,12 @@
     width: 100%;
 }
 .going-share-row #modal-plan-btn { flex: 1 1 80%; min-width: 0; }
+/* Hide the share button when the paid-confirm flow is active — Going?
+   is hidden in that state, so a lone share button looks orphaned. */
+.going-share-row:has(#modal-plan-btn[style*="display: none"]) .btn-share-bottom,
+.going-share-row:has(#modal-plan-btn[style*="display:none"]) .btn-share-bottom {
+    display: none;
+}
 .btn-share-bottom {
     flex: 0 0 20%;
     background: linear-gradient(180deg, #2997FF 0%, #007AFF 100%);
