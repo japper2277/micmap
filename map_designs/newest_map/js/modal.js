@@ -1903,12 +1903,13 @@ function toggleShareMenu(anchor, micId) {
         </button>
     `;
 
-    // Position below the button
+    // Position above the button (anchor moved to bottom-right of the
+    // action stack, so the popover opens upward into empty space).
     const rect = anchor.getBoundingClientRect();
     const card = anchor.closest('.venue-card');
     const cardRect = card.getBoundingClientRect();
     menu.style.position = 'absolute';
-    menu.style.top = (rect.bottom - cardRect.top + 4) + 'px';
+    menu.style.bottom = (cardRect.bottom - rect.top + 4) + 'px';
     menu.style.right = (cardRect.right - rect.right) + 'px';
 
     card.style.position = 'relative';

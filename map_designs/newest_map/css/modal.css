@@ -262,15 +262,16 @@
 .going-share-row #modal-plan-btn { flex: 1 1 80%; min-width: 0; }
 .btn-share-bottom {
     flex: 0 0 20%;
-    background: rgba(255,255,255,0.06);
-    color: rgba(255,255,255,0.85);
-    border: 1.5px solid rgba(255,255,255,0.18);
+    background: linear-gradient(180deg, #2997FF 0%, #007AFF 100%);
+    color: #fff;
+    border: none;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 6px;
 }
-.btn-share-bottom:hover { background: rgba(255,255,255,0.10); }
+.btn-share-bottom:hover { filter: brightness(1.05); }
 .btn-share-bottom svg { width: 14px; height: 14px; flex-shrink: 0; }
 .btn-share-bottom .share-label { display: inline; font-size: 13px; }
 
@@ -372,7 +373,7 @@
     animation: sharePopIn 0.15s ease-out;
 }
 @keyframes sharePopIn {
-    from { opacity: 0; transform: scale(0.95) translateY(-4px); }
+    from { opacity: 0; transform: scale(0.95) translateY(4px); }
     to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 .share-popover-item {
