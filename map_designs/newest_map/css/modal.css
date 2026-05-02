@@ -252,6 +252,27 @@
 }
 .header-time-row:empty { display: none; }
 .header-time-row .time-display { font-size: 16px; }
+.time-display-inline:empty { display: none; }
+
+.going-share-row {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+}
+.going-share-row #modal-plan-btn { flex: 1 1 80%; min-width: 0; }
+.btn-share-bottom {
+    flex: 0 0 20%;
+    background: rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.85);
+    border: 1.5px solid rgba(255,255,255,0.18);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+.btn-share-bottom:hover { background: rgba(255,255,255,0.10); }
+.btn-share-bottom svg { width: 14px; height: 14px; flex-shrink: 0; }
+.btn-share-bottom .share-label { display: inline; font-size: 13px; }
 
 /* Venue title row with IG button */
 .venue-title-row {

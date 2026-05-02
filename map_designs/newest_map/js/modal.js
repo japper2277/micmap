@@ -84,7 +84,30 @@ function initModal() {
     modalVenueName = document.getElementById('modal-venue-name');
     modalAddress = document.getElementById('modal-address');
     modalDirections = document.getElementById('modal-directions');
-    modalMicTime = document.getElementById('modal-mic-time');
+    modalMicTime = {
+        inline: document.getElementById('modal-mic-time-inline'),
+        row: document.getElementById('modal-mic-time-row'),
+        // Set inline plain text. Used for single-mic case so the time
+        // sits next to the venue title.
+        setInline(text) {
+            if (this.row) this.row.innerHTML = '';
+            if (this.inline) this.inline.innerText = text || '';
+        },
+        // Set row HTML. Used for multi-pill case so pills get their own
+        // row below the title without crushing it.
+        setRowHtml(html) {
+            if (this.inline) this.inline.innerText = '';
+            if (this.row) this.row.innerHTML = html;
+        },
+        // Backwards-compat for callers that used `.innerHTML` / `.innerText`
+        // and `.addEventListener` directly.
+        set innerHTML(html) { this.setRowHtml(html); },
+        set innerText(text) { this.setInline(text); },
+        addEventListener(type, fn) {
+            this.row && this.row.addEventListener(type, fn);
+            this.inline && this.inline.addEventListener(type, fn);
+        }
+    };
     modalInfoRow = document.getElementById('modal-info-row');
     modalInstructions = document.getElementById('modal-instructions');
     modalActions = document.getElementById('modal-actions');

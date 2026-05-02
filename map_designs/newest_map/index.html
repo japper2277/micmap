@@ -310,19 +310,10 @@
                         <h2 id="modal-venue-name">The Gray Mare</h2>
                     </div>
                     <div class="header-right-actions">
-                        <button id="modal-share-btn" class="modal-share-btn" type="button" aria-label="Share mic">
-                            <span class="share-label">Share</span>
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <path d="M12 3v12"></path>
-                                <path d="M8.5 6.5L12 3l3.5 3.5"></path>
-                                <path d="M6 11.5v7A2.5 2.5 0 0 0 8.5 21h7A2.5 2.5 0 0 0 18 18.5v-7"></path>
-                            </svg>
-                        </button>
+                        <span class="time-display time-display-inline" id="modal-mic-time-inline"></span>
                     </div>
                 </div>
-                <div class="header-time-row">
-                    <span class="time-display" id="modal-mic-time">7:00 PM</span>
-                </div>
+                <div class="header-time-row" id="modal-mic-time-row"></div>
 
                 <!-- Plan mode: Add to Route buttons (dynamically populated) -->
                 <div class="plan-route-actions" id="modal-plan-actions" style="display: none;"></div>
@@ -339,7 +330,17 @@
 
                 <div class="action-stack" id="modal-actions">
                     <a href="#" class="btn btn-primary btn-full" id="modal-signup-btn">Sign Up Online</a>
-                    <button class="btn btn-tonight btn-full" id="modal-plan-btn">Going?</button>
+                    <div class="going-share-row">
+                        <button class="btn btn-tonight" id="modal-plan-btn">Going?</button>
+                        <button id="modal-share-btn" class="btn btn-share-bottom" type="button" aria-label="Share mic">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M12 3v12"></path>
+                                <path d="M8.5 6.5L12 3l3.5 3.5"></path>
+                                <path d="M6 11.5v7A2.5 2.5 0 0 0 8.5 21h7A2.5 2.5 0 0 0 18 18.5v-7"></path>
+                            </svg>
+                            <span class="share-label">Share</span>
+                        </button>
+                    </div>
                     <!-- Paid mic confirmation states -->
                     <div class="paid-confirm-row" id="modal-paid-confirm" style="display:none;">
                         <a href="#" class="btn btn-signup-pay" id="modal-signup-pay" target="_blank">Sign Up & Pay</a>
