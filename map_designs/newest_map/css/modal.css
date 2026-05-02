@@ -243,6 +243,16 @@
 .header-top h1,
 .header-top h2 { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.3px; color: #fff; }
 
+.header-time-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 6px 0 8px;
+    min-height: 0;
+}
+.header-time-row:empty { display: none; }
+.header-time-row .time-display { font-size: 16px; }
+
 /* Venue title row with IG button */
 .venue-title-row {
     display: flex;
