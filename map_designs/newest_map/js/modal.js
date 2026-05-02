@@ -96,26 +96,6 @@ function initModal() {
     modalPlanBtn = document.getElementById('modal-plan-btn');
     modalShareBtn = document.getElementById('modal-share-btn');
 
-    // Record Set button (iOS/Capacitor only)
-    const modalRecordBtn = document.getElementById('modal-record-btn');
-    if (modalRecordBtn && window.Capacitor) {
-        modalRecordBtn.style.display = 'flex';
-        modalRecordBtn.addEventListener('click', async () => {
-            try {
-                const result = await window.Capacitor.Plugins.WhisperTranscription.presentRecorder();
-                if (result && result.transcript) {
-                    const mic = modalMicsArray[modalActiveMicIndex];
-                    const venueName = mic?.title || 'Open Mic';
-                    if (typeof toastService !== 'undefined' && toastService.show) {
-                        toastService.show(`Set recorded at ${venueName}`, 'success');
-                    }
-                }
-            } catch (e) {
-                console.error('Record set error:', e);
-            }
-        });
-    }
-
     if (modalShareBtn) {
         modalShareBtn.addEventListener('click', (e) => {
             e.stopPropagation();
