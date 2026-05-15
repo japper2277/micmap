@@ -378,7 +378,8 @@ function getSuggestionOrThrow(planDoc, suggestionId) {
 
 const ALLOWED_CORS_ORIGINS = new Set([
   'https://micfinder.io',
-  'https://www.micfinder.io'
+  'https://www.micfinder.io',
+  'https://micmap.netlify.app'
 ]);
 const LOCAL_ORIGIN_HOSTS = new Set(['localhost', '127.0.0.1']);
 
