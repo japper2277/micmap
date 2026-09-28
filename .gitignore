@@ -56,3 +56,4 @@ map_designs/newest_map/demo-*.html
 map_designs/newest_map/proto-*.html
 map_designs/newest_map/prototype-*.html
 map_designs/newest_map/wireframes/
+/map_designs/newest_map/js/runtime-config.js

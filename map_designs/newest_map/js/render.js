@@ -1527,7 +1527,6 @@ function render(mode) {
                         </div>
                     </div>
                     <div class="action-col">
-                        ${shareBtn}
                         ${signupBtn}
                         ${igBtn}
                     </div>
@@ -1556,7 +1555,6 @@ function render(mode) {
                         </div>
                     </div>
                     <div class="action-col">
-                        ${shareBtn}
                         ${signupBtn}
                         ${igBtn}
                     </div>

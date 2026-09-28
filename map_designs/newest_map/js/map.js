@@ -10,7 +10,13 @@ const initialZoom = isMobile ? CONFIG.mobileMapZoom : CONFIG.mapZoom;
 const map = L.map('map', { zoomControl: false, attributionControl: false })
     .setView(initialCenter, initialZoom);
 
-L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+const CARTO_VOYAGER_TILE_URL = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+const cartoPublicToken = String(window.MICFINDER_RUNTIME_CONFIG?.cartoPublicToken || '').trim();
+const cartoVoyagerTileUrl = cartoPublicToken
+    ? `${CARTO_VOYAGER_TILE_URL}?key=${encodeURIComponent(cartoPublicToken)}`
+    : CARTO_VOYAGER_TILE_URL;
+
+L.tileLayer(cartoVoyagerTileUrl, {
     maxZoom: 20,
     subdomains: 'abcd'
 }).addTo(map);
