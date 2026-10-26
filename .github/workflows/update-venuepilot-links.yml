@@ -5,10 +5,17 @@ on:
     - cron: '0 6 * * 3'    # Every Wednesday at 6am UTC (1am EST)
   workflow_dispatch:        # Allow manual trigger
 
+concurrency:
+  group: venuepilot-link-sync
+  cancel-in-progress: false
+
 jobs:
   update-links:
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: write
+      pull-requests: write
 
     steps:
       - name: Checkout repo
@@ -22,13 +29,6 @@ jobs:
       - name: Update VenuePilot links
         run: node api/scripts/update-venuepilot-links.js
 
-      - name: Seed database
-        run: |
-          cd api && npm install --production && node scripts/seed-database.js
-        env:
-          MONGODB_URI: ${{ secrets.MONGODB_URI }}
-          REDIS_URL: ${{ secrets.REDIS_URL }}
-
       - name: Check for changes
         id: diff
         run: |
@@ -38,11 +38,13 @@ jobs:
             echo "changed=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Commit updated links
+      - name: Open or update signup link review PR
         if: steps.diff.outputs.changed == 'true'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add api/mics.json
-          git commit -m "Update VenuePilot signup links"
-          git push
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: codex/automated-venuepilot-links
+          title: Review signup link updates
+          commit-message: Prepare signup link updates
+          draft: true
+          add-paths: api/mics.json
+          body: Review signup links before merging; database synchronization runs separately after merge.

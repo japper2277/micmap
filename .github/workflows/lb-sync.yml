@@ -5,6 +5,10 @@ on:
     - cron: '0 10 * * 1'  # Every Monday at 10am UTC (6am ET)
   workflow_dispatch:       # Allow manual trigger from GitHub UI
 
+concurrency:
+  group: lb-mic-sync
+  cancel-in-progress: false
+
 jobs:
   sync:
     runs-on: ubuntu-latest
@@ -41,16 +45,18 @@ jobs:
 
       - name: Open PR if mics.json changed
         if: steps.diff.outputs.changed == 'true'
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          branch: lb-sync-${{ github.run_number }}
+          branch: codex/automated-lb-mics
+          draft: true
+          add-paths: api/mics.json
           title: "🎤 LB sync: update Laughing Buddha mics"
           body: |
             Automated weekly sync with [laughingbuddhacomedy.com/mics](https://www.laughingbuddhacomedy.com/mics).
 
-            **Review the diff before merging.** Once merged, remember to:
-            - Seed the database: `node -r dotenv/config api/scripts/seed-database.js`
-            - Clear Redis cache: `curl -X POST https://micmap-production.up.railway.app/admin/clear-cache`
+            Review additions and removals before merging. Merge synchronization preserves existing IDs
+            and stops if database identities are absent from the approved seed. Schedule changes and
+            removals require a separate reviewed data migration; do not run a destructive reseed.
           commit-message: "Update Laughing Buddha mics from weekly sync"
           labels: mics-sync

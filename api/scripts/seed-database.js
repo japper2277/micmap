@@ -1,62 +1,34 @@
-// Seed production database with mics from mics.json
-const mongoose = require('mongoose');
-const Redis = require('ioredis');
+// Update approved seed records while preserving IDs used by saved plans.
 const fs = require('fs');
 const path = require('path');
-
-// Mic model schema (simplified)
-const micSchema = new mongoose.Schema({}, { strict: false });
-const Mic = mongoose.model('Mic', micSchema);
-
+const { planSeed } = require('./seed-plan');
 async function seed() {
+  const mongoose = require('mongoose');
+  let redis;
   try {
-    const mongoUri = process.env.MONGODB_URI;
-    if (!mongoUri) {
-      throw new Error('MONGODB_URI environment variable is required');
+    if (!process.env.MONGODB_URI) throw new Error('MONGODB_URI environment variable is required');
+    const incoming = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'mics.json'), 'utf8'));
+    await mongoose.connect(process.env.MONGODB_URI);
+    const collection = mongoose.connection.collection('mics');
+    const existing = await collection.find({}).toArray();
+    // Validate everything before the first write. Missing/ambiguous identities stop the run.
+    const operations = planSeed(incoming, existing);
+    await collection.bulkWrite(operations, { ordered: true });
+    console.log(`Synchronized ${operations.length} records; existing IDs preserved`);
+    if (process.env.REDIS_URL) {
+      const Redis = require('ioredis');
+      redis = new Redis(process.env.REDIS_URL);
+      let cursor = '0';
+      do {
+        const page = await redis.scan(cursor, 'MATCH', 'micmap:mics:*', 'COUNT', 100);
+        cursor = page[0];
+        if (page[1].length) await redis.del(...page[1]);
+      } while (cursor !== '0');
     }
-
-    console.log('Connecting to MongoDB...');
-    await mongoose.connect(mongoUri);
-    console.log('✅ Connected to MongoDB');
-
-    // Read mics.json
-    const micsPath = path.join(__dirname, '..', 'mics.json');
-    const micsData = JSON.parse(fs.readFileSync(micsPath, 'utf-8'));
-    console.log(`📄 Found ${micsData.length} mics in mics.json`);
-
-    // Clear existing data
-    await Mic.deleteMany({});
-    console.log('🗑️  Cleared existing mics');
-
-    // Insert new data
-    await Mic.insertMany(micsData);
-    console.log(`✅ Inserted ${micsData.length} mics into database`);
-
-    await mongoose.connection.close();
-    console.log('✅ Database seeded successfully!');
-
-    // Invalidate Redis cache
-    const redisUrl = process.env.REDIS_URL;
-    if (redisUrl) {
-      console.log('Connecting to Redis...');
-      const redis = new Redis(redisUrl);
-      const keys = await redis.keys('micmap:mics:*');
-      if (keys.length > 0) {
-        await redis.del(...keys);
-        console.log(`🗑️  Cache invalidated: ${keys.length} entries deleted`);
-      } else {
-        console.log('ℹ️  No cache entries to invalidate');
-      }
-      await redis.quit();
-    } else {
-      console.log('⚠️  REDIS_URL not set - cache not invalidated');
-    }
-
-    process.exit(0);
-  } catch (error) {
-    console.error('❌ Error seeding database:', error.message);
-    process.exit(1);
+  } finally {
+    if (redis) await redis.quit();
+    await mongoose.disconnect();
   }
 }
-
-seed();
+if (require.main === module) seed().catch(error => { console.error(error.message); process.exitCode = 1; });
+module.exports = { seed };
