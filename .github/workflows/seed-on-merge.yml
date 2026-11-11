@@ -6,6 +6,10 @@ on:
     paths:
       - 'api/mics.json'
 
+concurrency:
+  group: micmap-seed
+  cancel-in-progress: false
+
 jobs:
   seed:
     runs-on: ubuntu-latest
@@ -28,7 +32,3 @@ jobs:
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
           REDIS_URL: ${{ secrets.REDIS_URL }}
         run: cd api && node -r dotenv/config scripts/seed-database.js
-
-      - name: Clear Redis cache
-        run: |
-          curl -s -X POST https://micmap-production.up.railway.app/admin/clear-cache

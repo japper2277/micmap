@@ -5,6 +5,10 @@ on:
     - cron: '0 * * * *'      # Every hour
   workflow_dispatch:          # Allow manual trigger
 
+concurrency:
+  group: ig-signup-sync
+  cancel-in-progress: false
+
 jobs:
   sync:
     runs-on: ubuntu-latest
@@ -60,18 +64,19 @@ jobs:
             echo "changed=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Commit and push changes directly
+      - name: Open or update signup review PR
         if: steps.diff.outputs.changed == 'true'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add api/mics.json api/public/data/flyers/ logs/ig-review.md logs/ig-review.json
-          git commit -m "IG stories sync: signup updates + flyers [automated]"
-          git push
-
-      - name: Seed production database
-        if: steps.diff.outputs.changed == 'true'
-        run: node api/scripts/seed-database.js
-        env:
-          MONGODB_URI: ${{ secrets.MONGODB_URI }}
-          REDIS_URL: ${{ secrets.REDIS_URL }}
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: codex/automated-ig-signups
+          title: Review automated signup updates
+          commit-message: Prepare reviewed signup candidates
+          draft: true
+          add-paths: |
+            api/mics.json
+            api/public/data/flyers/
+            logs/ig-review.md
+            logs/ig-review.json
+          body: |
+            Review schedule identity and flyer evidence before merging.
+            Review-required entries are withheld. Database synchronization is a separate merge workflow.

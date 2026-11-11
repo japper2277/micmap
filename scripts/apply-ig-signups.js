@@ -10,6 +10,23 @@ const DEFAULT_SUMMARY_PATH = path.join(__dirname, '../logs/ig-apply-summary.json
 const FLYERS_DIR = path.join(__dirname, '../api/public/data/flyers');
 const FLYER_BASE_URL = 'https://micmap-production.up.railway.app/data/flyers';
 const SAFE_CONFIDENCE_THRESHOLD = 0.85;
+function hasSafeConfidence(entry) {
+  const confidence = entry.confidence;
+  return typeof confidence === 'number' && Number.isFinite(confidence) && confidence >= SAFE_CONFIDENCE_THRESHOLD && confidence <= 1;
+}
+const { normalizeDay, normalizeText, normalizeTime } = require('./lib/ig-mic-matcher');
+
+function canAttachFlyer(entry, mic) {
+  const fields = entry.candidateFields || {};
+  return entry.classification === 'safe_write'
+    && hasSafeConfidence(entry)
+    && normalizeDay(fields.day) === normalizeDay(mic.day)
+    && Boolean(normalizeDay(fields.day))
+    && normalizeTime(fields.startTime) === normalizeTime(mic.startTime)
+    && Boolean(normalizeTime(fields.startTime))
+    && normalizeText(fields.venueName) === normalizeText(mic.venueName)
+    && Boolean(normalizeText(fields.venueName));
+}
 
 function parseArgs(argv) {
   const out = {
@@ -83,6 +100,7 @@ function slugify(str) {
 }
 
 async function copyFlyer(entry, mic, dryRun) {
+  if (!canAttachFlyer(entry, mic)) return null;
   const src = entry.screenshotPath;
   if (!src) return null;
 
@@ -101,19 +119,6 @@ async function copyFlyer(entry, mic, dryRun) {
   }
 
   return `${FLYER_BASE_URL}/${filename}`;
-}
-
-async function applyFlyerOnly(mic, entry, dryRun) {
-  const changes = [];
-  const flyerUrl = await copyFlyer(entry, mic, dryRun);
-  if (flyerUrl && flyerUrl !== mic.flyerUrl) {
-    changes.push({ field: 'flyerUrl', from: mic.flyerUrl || null, to: flyerUrl });
-    mic.flyerUrl = flyerUrl;
-    const dateStr = new Date().toISOString().slice(0, 10);
-    mic.flyerDate = dateStr;
-    changes.push({ field: 'flyerDate', from: null, to: dateStr });
-  }
-  return changes;
 }
 
 async function applyEntryToMic(mic, entry, dryRun) {
@@ -185,16 +190,14 @@ async function main() {
 
   for (const entry of entries) {
     const isSafeWrite = entry.classification === 'safe_write';
-    const isReviewWithMatch = entry.classification === 'review_required' && entry.matchedMicRef;
-    const isFlyerCandidate = entry.source === 'story' && entry.matchedMicRef;
 
-    if (!isSafeWrite && !isReviewWithMatch && !isFlyerCandidate) {
+    if (!isSafeWrite) {
       summary.skipped += 1;
       summary.skippedReasons.non_safe_classification += 1;
       continue;
     }
 
-    if (isSafeWrite && Number(entry.confidence || 0) < SAFE_CONFIDENCE_THRESHOLD) {
+    if (!hasSafeConfidence(entry)) {
       summary.skipped += 1;
       summary.skippedReasons.low_confidence += 1;
       continue;
@@ -214,11 +217,7 @@ async function main() {
       notes: mic.notes || null
     };
 
-    // For review_required or flyer-only candidates, just copy the flyer (skip field changes)
-    const flyerOnly = (isReviewWithMatch || isFlyerCandidate) && !isSafeWrite;
-    const entryChanges = flyerOnly
-      ? await applyFlyerOnly(mic, entry, args.dryRun || !args.write)
-      : await applyEntryToMic(mic, entry, args.dryRun || !args.write);
+    const entryChanges = await applyEntryToMic(mic, entry, args.dryRun || !args.write);
     if (entryChanges.length === 0) {
       summary.skipped += 1;
       summary.skippedReasons.no_effective_change += 1;
@@ -268,6 +267,8 @@ if (require.main === module) {
 
 module.exports = {
   appendNoteIdempotent,
+  canAttachFlyer,
+  hasSafeConfidence,
   applyEntryToMic,
   copyFlyer,
   parseArgs,
